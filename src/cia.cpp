@@ -159,7 +159,9 @@ static struct CIA cia[2];
 static bool oldovl;
 static bool led;
 static int led_old_brightness;
-static evt_t led_cycles_on, led_cycles_off, led_cycle;
+static evt_t led_cycle;
+static evt_t cia_now_evt;
+static int led_cycles_on, led_cycles_off;
 
 static int kbstate, kblostsynccnt;
 static evt_t kbhandshakestart;
@@ -189,7 +191,7 @@ void cia_adjust_eclock_phase(int diff)
 		internaleclockphase += 20;
 	}
 	internaleclockphase %= 20;
-	write_log("CIA E-clock phase %d\n", internaleclockphase);
+	//write_log("CIA E-clock phase %d\n", internaleclockphase);
 }
 
 static void set_eclockphase(void)
@@ -409,7 +411,6 @@ static uae_u8 cia_inmode_cnt(int num)
 
 	// A INMODE=1 (count CNT pulses)
 	if ((c->t[0].cr & (CR_INMODE | CR_START)) == (CR_INMODE | CR_START)) {
-		c->t[0].timer--;
 		if (c->t[0].timer == 0) {
 			icr |= ICR_A;
 			timer_reset(&c->t[0]);
@@ -420,6 +421,8 @@ static uae_u8 cia_inmode_cnt(int num)
 			if ((c->t[1].cr & (CR_INMODE1 | CR_START)) == (CR_INMODE1 | CR_START)) {
 				decb = true;
 			}
+		} else {
+			c->t[0].timer--;
 		}
 	}
 	// B INMODE=01 (count CNT pulses)
@@ -428,13 +431,14 @@ static uae_u8 cia_inmode_cnt(int num)
 	}
 
 	if (decb) {
-		c->t[1].timer--;
 		if (c->t[1].timer == 0) {
 			icr |= ICR_B;
 			timer_reset(&c->t[1]);
 			if (c->t[1].cr & CR_RUNMODE) {
 				c->t[1].cr &= ~CR_START;
 			}
+		} else {
+			c->t[1].timer--;
 		}
 	}
 	return icr;
@@ -515,6 +519,7 @@ static void CIA_update_check(void)
 					t->timer = t->latch;
 					t->inputpipe &= ~CIA_PIPE_CLR1;
 				}
+
 				if ((t->loaddelay & 0x0100) && t->timer != 0) {
 					loaded2[tn] = true;
 				}
@@ -533,12 +538,11 @@ static void CIA_update_check(void)
 				t->loaddelay >>= 1;
 				t->loaddelay &= 0x7f7f7f7f;
 			}
-
 		}
 
 		// Timer A
 		int cc = 0;
-		if ((c->t[0].cr& (CR_INMODE | CR_START)) == CR_START || c->t[0].inputpipe) {
+		if ((c->t[0].cr & (CR_INMODE | CR_START)) == CR_START || c->t[0].inputpipe) {
 			cc = process_pipe(&c->t[0], ciaclocks, CR_INMODE | CR_START, &ovfl[0]);
 		}
 		if (cc > 0) {
@@ -557,10 +561,6 @@ static void CIA_update_check(void)
 					}
 				}
 				ovfl[0] = 1;
-				// B INMODE=10 or 11
-				if ((c->t[1].cr & (CR_INMODE | CR_INMODE1 | CR_START)) == (CR_INMODE1 | CR_START) || (c->t[1].cr & (CR_INMODE | CR_INMODE1 | CR_START)) == (CR_INMODE | CR_INMODE1 | CR_START)) {
-					c->t[1].inputpipe |= CIA_PIPE_INPUT;
-				}
 			}
 		}
 		assert(c->t[0].timer < 0x10000);
@@ -571,12 +571,21 @@ static void CIA_update_check(void)
 			cc = process_pipe(&c->t[1], ciaclocks, CR_INMODE | CR_INMODE1 | CR_START, &ovfl[1]);
 		}
 		if (cc > 0) {
-			c->t[1].timer -= cc;
-			if (c->t[1].timer == 0) {
+			if ((c->t[1].timer == 0 && (c->t[1].cr & (CR_INMODE | CR_INMODE1)))) {
 				ovfl[1] = 1;
+			} else {
+				c->t[1].timer -= cc;
+				if ((c->t[1].timer == 0 && !(c->t[1].cr & (CR_INMODE | CR_INMODE1)))) {
+					ovfl[1] = 1;
+				}
 			}
 		}
 		assert(c->t[1].timer < 0x10000);
+
+		// B INMODE=10 or 11
+		if (ovfl[0] && ((c->t[1].cr & (CR_INMODE | CR_INMODE1 | CR_START)) == (CR_INMODE1 | CR_START) || (c->t[1].cr & (CR_INMODE | CR_INMODE1 | CR_START)) == (CR_INMODE | CR_INMODE1 | CR_START))) {
+			c->t[1].inputpipe |= CIA_PIPE_INPUT;
+		}
 
 		for (int tn = 0; tn < 2; tn++) {
 			struct CIATimer *t = &c->t[tn];
@@ -676,6 +685,7 @@ static void CIA_calctimers(void)
 		for (int tn = 0; tn < 2; tn++) {
 			struct CIATimer *t = &c->t[tn];
 			bool timerspecial = t->loaddelay != 0;
+			int tnidx = idx + tn;
 			if (t->cr & CR_START) {
 				if (t->inputpipe != CIA_PIPE_ALL_MASK) {
 					timerspecial = true;
@@ -685,8 +695,8 @@ static void CIA_calctimers(void)
 					timerspecial = true;
 				}
 			}
-			if (timerspecial && (timevals[idx] < 0 || timevals[idx] > DIV10)) {
-				timevals[idx + tn] = DIV10;
+			if (timerspecial && (timevals[tnidx] < 0 || timevals[tnidx] > DIV10)) {
+				timevals[tnidx] = DIV10;
 			}
 		}
 
@@ -694,7 +704,7 @@ static void CIA_calctimers(void)
 			timevals[idx] = DIV10;
 		}
 
-#if CIA_EVERY_CYCLE_DEBUG		
+#if CIA_EVERY_CYCLE_DEBUG
 		timevals[idx] = DIV10;
 #endif
 
@@ -725,7 +735,7 @@ void CIA_handler(void)
 	CIA_calctimers();
 }
 
-static int get_cia_sync_cycles(void)
+static int get_cia_sync_cycles(int *syncdelay)
 {
 	evt_t c = get_e_cycles();
 	int div10 = c % DIV10;
@@ -733,13 +743,13 @@ static int get_cia_sync_cycles(void)
 	int synccycle = e_clock_sync * E_CYCLE_UNIT;
 	if (div10 < synccycle) {
 		add += synccycle - div10;
-	}
-	else if (div10 > synccycle) {
+	} else if (div10 > synccycle) {
 		add += DIV10 - div10;
 		add += synccycle;
 	}
-	// sync + 4 first cycles of E-clock
-	add += e_clock_start * E_CYCLE_UNIT;
+	*syncdelay = add;
+	// 4 first cycles of E-clock
+	add = e_clock_start * E_CYCLE_UNIT;
 	return add;
 }
 
@@ -754,15 +764,17 @@ static void CIA_sync_interrupt(int num, uae_u8 icr)
 	struct CIA *c = &cia[num];
 
 	if (acc_mode()) {
-		c->icr2 |= icr;
-		if ((c->icr1 & ICR_MASK) == (c->icr2 & ICR_MASK)) {
-			return;
-		}
 		if (!(icr & c->imask)) {
 			c->icr1 |= icr;
 			return;
 		}
-		int delay = get_cia_sync_cycles();
+		c->icr2 |= icr;
+		if ((c->icr1 & ICR_MASK) == (c->icr2 & ICR_MASK)) {
+			return;
+		}
+		int syncdelay = 0;
+		int delay = get_cia_sync_cycles(&syncdelay);
+		delay += syncdelay;
 		event2_newevent_xx(-1, DIV10 + delay, num, CIA_synced_interrupt);
 	} else {
 		c->icr1 |= icr;
@@ -852,7 +864,7 @@ void cia_heartbeat(void)
 	heartbeat_cnt = 10;
 }
 
-static void do_tod_hack(void)
+static void do_tod_hack(bool dotod)
 {
 	struct timeval tv;
 	static int oldrate;
@@ -900,7 +912,7 @@ static void do_tod_hack(void)
 		docount = 1;
 	}
 
-	if (currprefs.cs_ciaatod == 0)
+	if (!dotod && currprefs.cs_ciaatod == 0)
 		return;
 
 	if (tod_hack_delay > 0) {
@@ -1041,8 +1053,9 @@ static void CIA_tod_inc(bool irq, int num)
 {
 	struct CIA *c = &cia[num];
 	c->tod_event_state = 3; // done
-	if (!c->todon)
+	if (!c->todon) {
 		return;
+	}
 	c->tod++;
 	c->tod &= 0xFFFFFF;
 	cia_checkalarm(true, irq, num);
@@ -1051,8 +1064,9 @@ static void CIA_tod_inc(bool irq, int num)
 static void CIA_tod_inc_event(uae_u32 num)
 {
 	struct CIA *c = &cia[num];
-	if (c->tod_event_state != 2)
+	if (c->tod_event_state != 2) {
 		return;
+	}
 	CIA_tod_inc(true, num);
 }
 
@@ -1088,12 +1102,18 @@ static void CIA_tod_check(int num)
 	event2_newevent_xx(-1, -hpos * CYCLE_UNIT, num, CIA_tod_inc_event);
 }
 
-static void CIA_tod_handler(int hoffset, int num)
+static void CIA_tod_handler(int hoffset, int num, bool delayedevent)
 {
 	struct CIA *c = &cia[num];
 	c->tod_event_state = 0;
 	c->tod_offset = tod_inc_delay(hoffset);
 	if (c->tod_offset >= maxhpos) {
+		if (!delayedevent) {
+			return;
+		}
+		// crossed scanline, increase in next line
+		c->tod_offset -= maxhpos;
+		c->tod_event_state = 4;
 		return;
 	}
 	c->tod_event_state = 1; // TOD inc needed
@@ -1113,11 +1133,11 @@ void CIAA_tod_handler(int hoffset)
 		return;
 	}
 #endif
-	CIA_tod_handler(hoffset, 0);
+	CIA_tod_handler(hoffset, 0, true);
 }
 void CIAB_tod_handler(int hoffset)
 {
-	CIA_tod_handler(hoffset, 1);
+	CIA_tod_handler(hoffset, 1, false);
 }
 
 void keyboard_connected(bool connect)
@@ -1166,8 +1186,13 @@ static void check_keyboard(void)
 static void cia_delayed_tod(int num)
 {
 	struct CIA *c = &cia[num];
-	if (c->tod_event_state == 1)
+	if (c->tod_event_state == 4) {
+		c->tod_event_state = 1;
+		return;
+	}
+	if (c->tod_event_state == 1) {
 		CIA_tod_inc(false, num);
+	}
 	c->tod_event_state = 0;
 	c->tod_offset = -1;
 }
@@ -1178,6 +1203,9 @@ void CIA_hsync_posthandler(bool ciahsync, bool dotod)
 		// CIA-B HSync pulse
 		// Delayed previous line TOD increase.
 		cia_delayed_tod(1);
+		if (currprefs.tod_hack && cia[0].todon) {
+			do_tod_hack(dotod);
+		}
 	} else if (currprefs.keyboard_connected) {
 		// custom hsync
 		if (resetwarning_phase) {
@@ -1199,9 +1227,6 @@ void CIA_hsync_posthandler(bool ciahsync, bool dotod)
 	if (!ciahsync) {
 		// Increase CIA-A TOD if delayed from previous line
 		cia_delayed_tod(0);
-		if (currprefs.tod_hack && cia[0].todon) {
-			do_tod_hack();
-		}
 	}
 
 }
@@ -1209,7 +1234,7 @@ void CIA_hsync_posthandler(bool ciahsync, bool dotod)
 static void calc_led(int old_led)
 {
 	evt_t c = get_cycles();
-	evt_t t = (c - led_cycle) / CYCLE_UNIT;
+	int t = (int)((c - led_cycle) / CYCLE_UNIT);
 	if (old_led)
 		led_cycles_on += t;
 	else
@@ -1459,6 +1484,9 @@ static void CIA_thi_write(int num, int tnum, uae_u8 val)
 
 	t->latch = (t->latch & 0xff) | (val << 8);
 
+	// If ONESHOT: Load and start timer.
+	// If CONTINUOUS: Load timer if not running.
+
 	if (!acc_mode()) {
 		// if inaccurate mode: do everything immediately
 
@@ -1480,15 +1508,15 @@ static void CIA_thi_write(int num, int tnum, uae_u8 val)
 	} else {
 		// if accurate mode: handle delays cycle-accurately
 
-		t->loaddelay |= 1 << 2;
-
 		if (!(t->cr & CR_START)) {
 			t->loaddelay |= 1 << 1;
+			t->loaddelay |= 1 << 2;
 		}
 
 		if (t->cr & CR_RUNMODE) {
 			t->cr |= CR_START;
 			t->loaddelay |= 0x01000000 << 1;
+			t->loaddelay |= 1 << 2;
 		}
 	}
 }
@@ -1778,12 +1806,6 @@ static uae_u8 ReadCIAB(uae_u32 addr, uae_u32 *flags)
 	switch (reg) {
 	case 0:
 		tmp = (c->pra & c->dra) | (c->dra ^ 0xff);
-#ifdef SERIAL_PORT
-		if (currprefs.use_serial) {
-			tmp &= 7;
-			tmp |= serial_readstatus(c->dra) & 0xf8;
-		}
-#endif
 #ifdef PARALLEL_PORT
 		if (isprinter() > 0) {
 			tmp &= ~3; // clear BUSY and PAPEROUT
@@ -1804,6 +1826,9 @@ static uae_u8 ReadCIAB(uae_u32 addr, uae_u32 *flags)
 			}
 			tmp = handle_parport_joystick(1, tmp);
 		}
+#endif
+#ifdef SERIAL_PORT
+		tmp = serial_readstatus(tmp, c->dra);
 #endif
 		tmp = dongle_cia_read(1, reg, c->pra, tmp);
 #if DONGLE_DEBUG > 0
@@ -2031,8 +2056,7 @@ static void WriteCIAB(uae_u16 addr, uae_u8 val, uae_u32 *flags)
 		write_ciab_serial(val, c->pra, c->dra, c->dra);
 		c->pra = val;
 #ifdef SERIAL_PORT
-		if (currprefs.use_serial)
-			serial_writestatus(c->pra, c->dra);
+		serial_writestatus(c->pra, c->dra);
 #endif
 #ifdef PARALLEL_PORT
 		if (isprinter() < 0) {
@@ -2115,6 +2139,9 @@ void CIA_reset(void)
 	heartbeat_cnt = 0;
 	cia[0].tod_event_state = 0;
 	cia[1].tod_event_state = 0;
+	led_cycles_off = 0;
+	led_cycles_on = 0;
+	led_cycle = get_cycles();
 
 	if (!savestate_state) {
 		oldovl = true;
@@ -2179,6 +2206,36 @@ addrbank cia_bank = {
 	ABFLAG_IO | ABFLAG_CIA, S_READ, S_WRITE, NULL, 0x3f01, 0xbfc000
 };
 
+static int cia_cycles(int delay, int phase, int val, int post)
+{
+#ifdef DEBUGGER
+	if (currprefs.cpu_memory_cycle_exact && debug_dma) {
+		while (delay > 0) {
+			int hpos = current_hpos();
+			record_cia_access(0xfffff, 0, 0, 0, hpos, vpos, phase + 1);
+			phase += 2;
+			if (post) {
+				x_do_cycles_post(CYCLE_UNIT, val);
+			} else {
+				x_do_cycles_pre(CYCLE_UNIT);
+			}
+			delay -= CYCLE_UNIT;
+		}
+	} else {
+#endif
+		if (delay > 0) {
+			if (post) {
+				x_do_cycles_post(delay, val);
+			} else {
+				x_do_cycles_pre(delay);
+			}
+		}
+#ifdef DEBUGGER
+	}
+#endif
+	return phase;
+}
+
 static void cia_wait_pre(int cianummask)
 {
 	if (currprefs.cachesize || currprefs.cpu_thread)
@@ -2195,8 +2252,15 @@ static void cia_wait_pre(int cianummask)
 #endif
 
 #ifndef CUSTOM_SIMPLE
-	int delay = get_cia_sync_cycles();
-	x_do_cycles_pre(delay);
+	cia_now_evt = get_cycles();
+	int syncdelay = 0;
+	int delay = get_cia_sync_cycles(&syncdelay);
+	if (debug_dma) {
+		cia_cycles(syncdelay, 100, 0, 0);
+		cia_cycles(delay, 0, 0, 0);
+	} else {
+		cia_cycles(syncdelay + delay, 0, 0, 0);
+	}
 #endif
 }
 
@@ -2206,7 +2270,7 @@ static void cia_wait_post(int cianummask, uaecptr addr, uae_u32 value, bool rw)
 	if (currprefs.cpu_memory_cycle_exact && debug_dma) {
 		int r = (addr & 0xf00) >> 8;
 		int hpos = current_hpos();
-		record_cia_access(r, cianummask, value, rw, hpos, vpos);
+		record_cia_access(r, cianummask, value, rw, hpos, vpos, -1);
 	}
 #endif
 
@@ -2220,7 +2284,14 @@ static void cia_wait_post(int cianummask, uaecptr addr, uae_u32 value, bool rw)
 		do_cycles(12 * E_CYCLE_UNIT);
 	} else {
 		// Last 6 cycles of E-clock
-		x_do_cycles_post(e_clock_end * E_CYCLE_UNIT, value);
+		// IPL fetch that got delayed by CIA access?
+		if (cia_now_evt == regs.ipl_evt && currprefs.cpu_model <= 68010) {
+			int phase = cia_cycles((e_clock_end - 2) * E_CYCLE_UNIT, 4, value, 1);
+			regs.ipl[0] = regs.ipl_pin;
+			cia_cycles(2 * E_CYCLE_UNIT, phase, value, 1);
+		} else {
+			cia_cycles(e_clock_end * E_CYCLE_UNIT, 4, value, 1);
+		}
 #if CIA_IRQ_PROCESS_DELAY
 		if (currprefs.cpu_memory_cycle_exact) {
 			cia_interrupt_disabled &= ~cianummask;

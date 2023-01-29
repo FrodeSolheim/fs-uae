@@ -2665,7 +2665,7 @@ static void REGPARAM2 gfxboard_wput_mem_autoconfig (uaecptr addr, uae_u32 b)
 				gb->configured_regs = gb->gfxmem_bank->start >> 16;
 				gb->pcem_vram_mask = 0x3fffff;
 
-			} if (boardnum == GFXBOARD_ID_CV643D_Z3) {
+			} else if (boardnum == GFXBOARD_ID_CV643D_Z3) {
 
 				map_banks_z3(&gb->gfxboard_bank_vram_pcem, (start + 0x4000000) >> 16, gb->gfxboard_bank_vram_pcem.allocated_size >> 16);
 				map_banks_z3(&gb->gfxboard_bank_vram_pcem, (start + 0x4400000) >> 16, gb->gfxboard_bank_vram_pcem.allocated_size >> 16);
@@ -3856,7 +3856,7 @@ static const struct pci_config voodoo3_pci_config =
 static const struct pci_board voodoo3_pci_board =
 {
 	_T("VOODOO3"),
-	&voodoo3_pci_config, NULL, NULL, NULL, NULL,
+	&voodoo3_pci_config, NULL, NULL, NULL, NULL, NULL,
 	{
 		{ voodoo3_mb0_lget, voodoo3_mb0_wget, voodoo3_mb0_bget, voodoo3_mb0_lput, voodoo3_mb0_wput, voodoo3_mb0_bput },
 		{ voodoo3_mb1_lget, voodoo3_mb1_wget, voodoo3_mb1_bget, voodoo3_mb1_lput, voodoo3_mb1_wput, voodoo3_mb1_bput },
@@ -4058,7 +4058,7 @@ static const struct pci_config s3virge_pci_config =
 static const struct pci_board s3virge_pci_board =
 {
 	_T("S3VIRGE"),
-	&s3virge_pci_config, NULL, NULL, NULL, NULL,
+	&s3virge_pci_config, NULL, NULL, NULL, NULL, NULL,
 	{
 		{ s3virge_mb0_lget, s3virge_mb0_wget, s3virge_mb0_bget, s3virge_mb0_lput, s3virge_mb0_wput, s3virge_mb0_bput },
 		{ NULL },
@@ -4325,13 +4325,13 @@ bool gfxboard_init_memory (struct autoconfig_info *aci)
 	}
 	if (gb->board->configtype == 3) {
 		type = 0x80;
+		flags |= 0x10;
 		if (ext_size) {
-			type |= 0x20;
+			flags |= 0x20;
 			type |= z3_flags;
 		} else {
 			type |= z2_flags;
 		}
-		flags |= 0x10;
 	} else {
 		type = z2_flags | 0xc0;
 	}

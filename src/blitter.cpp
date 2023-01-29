@@ -460,7 +460,7 @@ static void blitter_done_all(int hpos)
 	blt_info.blit_main = 0;
 	blt_info.blit_finald = 0;
 	if (m68k_interrupt_delay && hpos >= 0) {
-		blt_info.finishhpos = (hpos + 1) % maxhpos;
+		blt_info.finishhpos = hpos;
 	} else {
 		blt_info.finishhpos = -1;
 	}
@@ -471,9 +471,14 @@ static void blitter_done_all(int hpos)
 	}
 }
 
-static void blitter_done_except_d(void)
+static void blitter_done_except_d(int hpos)
 {
 	blt_info.blit_main = 0;
+	if (m68k_interrupt_delay && hpos >= 0) {
+		blt_info.finishhpos = hpos;
+	} else {
+		blt_info.finishhpos = -1;
+	}
 	blitter_interrupt();
 	blitter_done_notify(blitline);
 }
@@ -1005,20 +1010,24 @@ static void blit_bltset(int con)
 			if ((bltcon1 & BLTLINE) && !blitline_started) {
 				write_log(_T("BLITTER: linedraw enabled when blitter is active! %08x\n"), M68K_GETPC);
 				blit_warned--;
-				//activate_debugger();
+				if (log_blitter & 16)
+					activate_debugger();
 			} else if (!(bltcon1 & BLTLINE) && blitline_started) {
 				write_log(_T("BLITTER: linedraw disabled when blitter is active! %08x\n"), M68K_GETPC);
 				blit_warned--;
-				//activate_debugger();
+				if (log_blitter & 16)
+					activate_debugger();
 			}
 			if ((bltcon1 & BLTFILL) && !(bltcon1_old & BLTFILL)) {
 				write_log(_T("BLITTER: fill enabled when blitter is active! %08x\n"), M68K_GETPC);
 				blit_warned--;
-				//activate_debugger();
+				if (log_blitter & 16)
+					activate_debugger();
 			} else if (!(bltcon1 & BLTFILL) && (bltcon1_old & BLTFILL)) {
 				write_log(_T("BLITTER: fill disabled when blitter is active! %08x\n"), M68K_GETPC);
 				blit_warned--;
-				//activate_debugger();
+				if (log_blitter & 16)
+					activate_debugger();
 			}
 		}
 	}
@@ -1030,11 +1039,11 @@ static void blit_bltset(int con)
 			//blitter_dump();
 			blitshifterdebug(bltcon0_old, false);
 			blit_warned--;
-			//activate_debugger();
+			if (log_blitter & 16)
+				activate_debugger();
 		}
 		bltcon0_old = bltcon0;
 		bltcon1_old = bltcon1;
-		//activate_debugger();
 	}
 
 	blit_ch = (bltcon0 & 0x0f00) >> 8;
@@ -1321,50 +1330,67 @@ static int blitter_next_cycle(void)
 
 static void blitter_doddma_new(int hpos, bool addmod)
 {
+	uaecptr *hpt = NULL;
+	bool skip = false;
+
 	check_channel_mods(hpos, 4, &bltdpt);
+	bltdpt |= alloc_cycle_blitter_conflict_or(hpos, 4, &skip);
+	// alloc_cycle_blitter() can change modulo, old modulo is used during this cycle.
+	int mod = blit_modaddd;
+	if (!skip) {
+		record_dma_blit(0x00, ddat1, bltdpt, hpos);
+		blit_chipmem_agnus_wput(bltdpt, ddat1, MW_MASK_BLITTER_D_N);
+	}
+	bool skipadd = alloc_cycle_blitter(hpos, &bltdpt, 4, addmod ? mod : 0);
 
-	record_dma_blit(0x00, ddat1, bltdpt, hpos);
-	blit_chipmem_agnus_wput(bltdpt, ddat1, MW_MASK_BLITTER_D_N);
-	alloc_cycle_blitter(hpos, &bltdpt, 4);
-
-	if (!blitline) {
+	if (!blitline && !skipadd) {
 		bltdpt += blit_add;
 	}
 	if (addmod) {
-		bltdpt += blit_modaddd;
+		bltdpt += mod;
 	}
 }
 
 static void blitter_dodma_new(int ch, int hpos, bool addmod)
 {
-	uae_u16 dat, reg;
+	uae_u16 dat;
 	uae_u32 *addr;
+	bool skipadd = false;
 	int mod;
+	bool skip = false;
+
+	uaecptr orptr = alloc_cycle_blitter_conflict_or(hpos, ch, &skip);
 
 	switch (ch)
 	{
 	case 1: // A
 	{
+		bltapt |= orptr;
 		check_channel_mods(hpos, 1, &bltapt);
-		reg = 0x74;
-		record_dma_blit(reg, 0, bltapt, hpos);
-		blt_info.bltadat = dat = chipmem_wget_indirect(bltapt);
-		record_dma_blit_val(dat);
-		regs.chipset_latch_rw = blt_info.bltadat;
+		if (!skip) {
+			uae_u16 reg = 0x74;
+			record_dma_blit(reg, 0, bltapt, hpos);
+			blt_info.bltadat = dat = chipmem_wget_indirect(bltapt);
+			record_dma_blit_val(dat);
+			regs.chipset_latch_rw = blt_info.bltadat;
+		}
 		addr = &bltapt;
 		mod = blit_modadda;
-		alloc_cycle_blitter(hpos, &bltapt, 1);
+		skipadd = alloc_cycle_blitter(hpos, &bltapt, 1, addmod ? mod : 0);
 		break;
 	}
 	case 2: // B
 	{
 		int bshift = bltcon1 >> 12;
+		bltbpt |= orptr;
 		check_channel_mods(hpos, 2, &bltbpt);
-		reg = 0x72;
-		record_dma_blit(reg, 0, bltbpt, hpos);
-		blt_info.bltbdat = dat = chipmem_wget_indirect(bltbpt);
-		record_dma_blit_val(dat);
-		regs.chipset_latch_rw = blt_info.bltbdat;
+		if (!skip) {
+			uae_u16 reg = 0x72;
+			record_dma_blit(reg, 0, bltbpt, hpos);
+			blt_info.bltbdat = dat = chipmem_wget_indirect(bltbpt);
+			record_dma_blit_val(dat);
+			regs.chipset_latch_rw = blt_info.bltbdat;
+		}
 		addr = &bltbpt;
 		mod = blit_modaddb;
 		if (blitdesc)
@@ -1373,27 +1399,30 @@ static void blitter_dodma_new(int ch, int hpos, bool addmod)
 			blt_info.bltbhold = (((uae_u32)blt_info.bltbold << 16) | blt_info.bltbdat) >> bshift;
 		blineb = blt_info.bltbhold;
 		blt_info.bltbold = blt_info.bltbdat;
-		alloc_cycle_blitter(hpos, &bltbpt, 2);
+		skipadd = alloc_cycle_blitter(hpos, &bltbpt, 2, addmod ? mod : 0);
 		break;
 	}
 	case 3: // C
 	{
-		reg = 0x70;
+		bltcpt |= orptr;
 		check_channel_mods(hpos, 3, &bltcpt);
-		record_dma_blit(reg, 0, bltcpt, hpos);
-		blt_info.bltcdat = dat = chipmem_wget_indirect(bltcpt);
-		record_dma_blit_val(dat);
-		regs.chipset_latch_rw = blt_info.bltcdat;
+		if (!skip) {
+			uae_u16 reg = 0x70;
+			record_dma_blit(reg, 0, bltcpt, hpos);
+			blt_info.bltcdat = dat = chipmem_wget_indirect(bltcpt);
+			record_dma_blit_val(dat);
+			regs.chipset_latch_rw = blt_info.bltcdat;
+		}
 		addr = &bltcpt;
 		mod = blit_modaddc;
-		alloc_cycle_blitter(hpos, &bltcpt, 3);
+		skipadd = alloc_cycle_blitter(hpos, &bltcpt, 3, addmod ? mod : 0);
 		break;
 	}
 	default:
 		abort();
 	}
 
-	if (!blitline) {
+	if (!blitline && !skipadd) {
 		(*addr) += blit_add;
 	}
 	if (addmod) {
@@ -1434,7 +1463,7 @@ static bool decide_blitter_idle(int lasthpos, int hpos, uaecptr addr, uae_u32 va
 	return false;
 }
 
-uae_u16 blitter_pipe[256];
+uae_u16 blitter_pipe[256+1];
 
 static bool decide_blitter_maybe_write2(int until_hpos, uaecptr addr, uae_u32 value)
 {
@@ -1555,13 +1584,16 @@ static bool decide_blitter_maybe_write2(int until_hpos, uaecptr addr, uae_u32 va
 					blitter_line_proc_cpt_y();
 					blitlineloop = 0;
 				}
-
-				record_dma_blit(0x70, 0, bltcpt, hpos);
+				bool skip = false;
+				uaecptr orptr = alloc_cycle_blitter_conflict_or(hpos, 3, &skip);
+				record_dma_blit(0x70, 0, bltcpt | orptr, hpos);
 				check_channel_mods(hpos, 3, &bltcpt);
-				blt_info.bltcdat = chipmem_wget_indirect(bltcpt);
-				regs.chipset_latch_rw = blt_info.bltcdat;
-				record_dma_blit_val(blt_info.bltcdat);
-				alloc_cycle_blitter(hpos, &bltcpt, 3);
+				if (!skip) {
+					blt_info.bltcdat = chipmem_wget_indirect(bltcpt | orptr);
+					regs.chipset_latch_rw = blt_info.bltcdat;
+					record_dma_blit_val(blt_info.bltcdat);
+				}
+				alloc_cycle_blitter(hpos, &bltcpt, 3, 0);
 
 				if (dat & BLITTER_PIPELINE_FIRST) {
 					blitter_line_minterm(dat);
@@ -1592,10 +1624,14 @@ static bool decide_blitter_maybe_write2(int until_hpos, uaecptr addr, uae_u32 va
 
 				/* onedot mode and no pixel = bus write access is skipped */
 				if (blitlinepixel && c == 4) {
-					record_dma_blit(0x00, blt_info.bltddat, bltdpt, hpos);
+					bool skip = false;
+					uaecptr orptr = alloc_cycle_blitter_conflict_or(hpos, 4, &skip);
+					record_dma_blit(0x00, blt_info.bltddat, bltdpt | orptr, hpos);
 					check_channel_mods(hpos, 4, &bltdpt);
-					blit_chipmem_agnus_wput(bltdpt, blt_info.bltddat, MW_MASK_BLITTER_D_L);
-					alloc_cycle_blitter(hpos, &bltdpt, 4);
+					if (!skip) {
+						blit_chipmem_agnus_wput(bltdpt | orptr, blt_info.bltddat, MW_MASK_BLITTER_D_L);
+					}
+					alloc_cycle_blitter(hpos, &bltdpt, 4, 0);
 				} else {
 					markidlecycle(hpos);
 				}
@@ -1605,7 +1641,12 @@ static bool decide_blitter_maybe_write2(int until_hpos, uaecptr addr, uae_u32 va
 				bltdpt = bltcpt;
 
 				blitter_line_minterm(dat);
-
+#if 0
+				if (blt_info.hblitsize == 1) {
+					blitter_line_proc_cpt_x();
+					blitter_line_proc_cpt_y();
+				}
+#endif
 			} else {
 
 				// normal mode channels
@@ -1741,7 +1782,7 @@ static bool decide_blitter_maybe_write2(int until_hpos, uaecptr addr, uae_u32 va
 						// has final D write?
 						if (blt_info.blit_finald) {
 							if (!(currprefs.chipset_mask & CSMASK_AGA)) {
-								blitter_done_except_d();
+								blitter_done_except_d(hpos);
 							}
 						} else {
 							blitter_done_all(hpos);
@@ -2170,8 +2211,8 @@ void restore_blitter_start(void)
 
 void restore_blitter_finish (void)
 {
-	record_dma_reset();
-	record_dma_reset();
+	record_dma_reset(0);
+	record_dma_reset(0);
 	blitter_cycle_exact = currprefs.blitter_cycle_exact;
 	immediate_blits = currprefs.immediate_blits;
 	if (blt_statefile_type == 0) {

@@ -44,6 +44,7 @@
 #include "casablanca.h"
 
 bool canbang;
+uaecptr highest_ram;
 static bool rom_write_enabled;
 #ifdef JIT
 /* Set by each memory handler that does not simply access real memory. */
@@ -1174,7 +1175,7 @@ uae_u8 *REGPARAM2 default_xlate (uaecptr addr)
 				uaecptr a3 = m68k_getpc () - 32;
 				write_log (_T("Your Amiga program just did something terribly stupid %08X PC=%08X\n"), addr, M68K_GETPC);
 				if (debugging || DEBUG_STUPID) {
-					activate_debugger ();
+					activate_debugger();
 					m68k_dumpstate(NULL, 0xffffffff);
 				}
 				for (i = 0; i < 10; i++) {
@@ -1186,7 +1187,6 @@ uae_u8 *REGPARAM2 default_xlate (uaecptr addr)
 					write_log (_T("\n"));
 				}
 				memory_map_dump();
-				m68k_dumpstate(NULL, 0xffffffff);
 			}
 			if (0 || (gary_toenb && (gary_nonrange(addr) || (size > 1 && gary_nonrange(addr + size - 1))))) {
 				hardware_exception2(addr, 0, true, true, size);
@@ -1452,23 +1452,23 @@ static void descramble_alg(uae_u8 *data, int size)
 
 static const uae_char *kickstring = "exec.library";
 
-static int read_kickstart (struct zfile *f, uae_u8 *mem, int size, int dochecksum, int noalias)
+static int read_kickstart(struct zfile *f, uae_u8 *mem, int size, int dochecksum, int noalias)
 {
 	uae_char buffer[11];
 	int i, j, oldpos;
 	int cr = 0, kickdisk = 0;
 
 	if (size < 0) {
-		zfile_fseek (f, 0, SEEK_END);
+		zfile_fseek(f, 0, SEEK_END);
 		size = zfile_ftell32(f) & ~0x3ff;
-		zfile_fseek (f, 0, SEEK_SET);
+		zfile_fseek(f, 0, SEEK_SET);
 	}
 	oldpos = zfile_ftell32(f);
-	i = zfile_fread (buffer, 1, sizeof(buffer), f);
+	i = zfile_fread32(buffer, 1, sizeof(buffer), f);
 	if (i < sizeof(buffer))
 		return 0;
-	if (!memcmp (buffer, "KICK", 4)) {
-		zfile_fseek (f, 512, SEEK_SET);
+	if (!memcmp(buffer, "KICK", 4)) {
+		zfile_fseek(f, 512, SEEK_SET);
 		kickdisk = 1;
 #if 0
 	} else if (size >= ROM_SIZE_512 && !memcmp (buffer, "AMIG", 4)) {
@@ -1476,14 +1476,14 @@ static int read_kickstart (struct zfile *f, uae_u8 *mem, int size, int dochecksu
 		zfile_fseek (f, oldpos + 0x6c, SEEK_SET);
 		cr = 2;
 #endif
-	} else if (memcmp ((uae_char*)buffer, "AMIROMTYPE1", 11) != 0) {
-		zfile_fseek (f, oldpos, SEEK_SET);
+	} else if (memcmp((uae_char*)buffer, "AMIROMTYPE1", 11) != 0) {
+		zfile_fseek(f, oldpos, SEEK_SET);
 	} else {
 		cloanto_rom = 1;
 		cr = 1;
 	}
 
-	memset (mem, 0, size);
+	memset(mem, 0, size);
 	if (size >= 131072) {
 		for (i = 0; i < 8; i++) {
 			mem[size - 16 + i * 2 + 1] = 0x18 + i;
@@ -1494,7 +1494,7 @@ static int read_kickstart (struct zfile *f, uae_u8 *mem, int size, int dochecksu
 		mem[size - 17] = size >>  0;
 	}
 
-	i = zfile_fread (mem, 1, size, f);
+	i = zfile_fread32(mem, 1, size, f);
 
 	if (kickdisk && i > ROM_SIZE_256)
 		i = ROM_SIZE_256;
@@ -1505,17 +1505,17 @@ static int read_kickstart (struct zfile *f, uae_u8 *mem, int size, int dochecksu
 	}
 #endif
 	if (i < size - 20)
-		kickstart_fix_checksum (mem, size);
+		kickstart_fix_checksum(mem, size);
 	j = 1;
 	while (j < i)
 		j <<= 1;
 	i = j;
 
 	if (!noalias && i == size / 2)
-		memcpy (mem + size / 2, mem, size / 2);
+		memcpy(mem + size / 2, mem, size / 2);
 
 	if (cr) {
-		if (!decode_rom (mem, size, cr, i))
+		if (!decode_rom(mem, size, cr, i))
 			return 0;
 	}
 
@@ -1525,26 +1525,26 @@ static int read_kickstart (struct zfile *f, uae_u8 *mem, int size, int dochecksu
 	if (currprefs.cs_a1000ram && i < ROM_SIZE_256) {
 		int off = 0;
 		if (!a1000_bootrom)
-			a1000_bootrom = xcalloc (uae_u8, ROM_SIZE_256);
+			a1000_bootrom = xcalloc(uae_u8, ROM_SIZE_256);
 		while (off + i < ROM_SIZE_256) {
-			memcpy (a1000_bootrom + off, kickmem_bank.baseaddr, i);
+			memcpy(a1000_bootrom + off, kickmem_bank.baseaddr, i);
 			off += i;
 		}
-		memset (kickmem_bank.baseaddr, 0, kickmem_bank.allocated_size);
-		a1000_handle_kickstart (1);
+		memset(kickmem_bank.baseaddr, 0, kickmem_bank.allocated_size);
+		a1000_handle_kickstart(1);
 		dochecksum = 0;
 		i = ROM_SIZE_512;
 	}
 
 	for (j = 0; j < 256 && i >= ROM_SIZE_256; j++) {
-		if (!memcmp (mem + j, kickstring, strlen (kickstring) + 1))
+		if (!memcmp(mem + j, kickstring, strlen(kickstring) + 1))
 			break;
 	}
 
 	if (j == 256 || i < ROM_SIZE_256)
 		dochecksum = 0;
 	if (dochecksum)
-		kickstart_checksum (mem, size);
+		kickstart_checksum(mem, size);
 	return i;
 }
 
@@ -1554,7 +1554,7 @@ static bool load_extendedkickstart (const TCHAR *romextfile, int type)
 	int size, off;
 	bool ret = false;
 
-	if (_tcslen (romextfile) == 0)
+	if (romextfile[0] == '\0')
 		return false;
 	if (is_arcadia_rom (romextfile) == ARCADIA_BIOS) {
 		extendedkickmem_type = EXTENDED_ROM_ARCADIA;
@@ -2093,6 +2093,7 @@ static void add_shmmaps (uae_u32 start, addrbank *what)
 		write_log (_T("NATMEM: Failure to map existing at %08x (%p)\n"), start, base);
 		dumplist ();
 		nocanbang ();
+		xfree(y);
 		return;
 	}
 	y->next = shm_start;
@@ -2482,13 +2483,18 @@ static void setmemorywidth(struct ramboard *mb, addrbank *ab)
 {
 	if (!ab || !ab->allocated_size)
 		return;
-	if (!mb->force16bit)
-		return;
-	for (int i = (ab->start >> 16); i < ((ab->start + ab->allocated_size) >> 16); i++) {
-		if (ce_banktype[i] == CE_MEMBANK_FAST32)
-			ce_banktype[i] = CE_MEMBANK_FAST16;
-		if (ce_banktype[i] == CE_MEMBANK_CHIP32)
-			ce_banktype[i] = CE_MEMBANK_CHIP16;
+	if (mb->force16bit) {
+		for (int i = (ab->start >> 16); i < ((ab->start + ab->allocated_size) >> 16); i++) {
+			if (ce_banktype[i] == CE_MEMBANK_FAST32)
+				ce_banktype[i] = CE_MEMBANK_FAST16;
+			if (ce_banktype[i] == CE_MEMBANK_CHIP32)
+				ce_banktype[i] = CE_MEMBANK_CHIP16;
+		}
+	}
+	if (mb->chipramtiming) {
+		for (int i = (ab->start >> 16); i < ((ab->start + ab->allocated_size) >> 16); i++) {
+			ce_banktype[i] = ce_banktype[0];
+		}
 	}
 }
 
@@ -2507,12 +2513,6 @@ static void fill_ce_banks (void)
 		for (i = 0; i < (0x200000 >> 16); i++) {
 			ce_banktype[i] = (currprefs.cs_mbdmac || (currprefs.chipset_mask & CSMASK_AGA)) ? CE_MEMBANK_CHIP32 : CE_MEMBANK_CHIP16;
 		}
-	}
-	if (!currprefs.cs_slowmemisfast) {
-		for (i = (0xc00000 >> 16); i < (0xe00000 >> 16); i++)
-			ce_banktype[i] = ce_banktype[0];
-		for (i = (bogomem_bank.start >> 16); i < ((bogomem_bank.start + bogomem_bank.allocated_size) >> 16); i++)
-			ce_banktype[i] = ce_banktype[0];
 	}
 	for (i = (0xd00000 >> 16); i < (0xe00000 >> 16); i++) {
 		ce_banktype[i] = CE_MEMBANK_CHIP16;
@@ -2592,27 +2592,27 @@ void map_overlay (int chip)
 	if (bogomem_aliasing)
 		size = 8;
 	cb = &chipmem_bank;
-#ifdef AGA
-#if 0
+	#ifdef AGA
+	#if 0
 	if (currprefs.cpu_cycle_exact && currprefs.cpu_model >= 68020)
-		cb = &chipmem_bank_ce2;
-#endif
-#endif
+	cb = &chipmem_bank_ce2;
+	#endif
+	#endif
 	if (chip) {
-		map_banks (&dummy_bank, 0, size, 0);
-		if (!isdirectjit ()) {
+		map_banks(&dummy_bank, 0, size, 0);
+		if (!isdirectjit()) {
 			if ((currprefs.chipset_mask & CSMASK_ECS_AGNUS) && bogomem_bank.allocated_size == 0) {
 				map_banks(cb, 0, size, chipmem_bank.allocated_size);
 				int start = chipmem_bank.allocated_size >> 16;
 				if (chipmem_bank.allocated_size < 0x100000) {
 					if (currprefs.cs_1mchipjumper) {
 						int dummy = (0x100000 - chipmem_bank.allocated_size) >> 16;
-						map_banks (&chipmem_dummy_bank, start, dummy, 0);
-						map_banks (&chipmem_dummy_bank, start + 16, dummy, 0);
+						map_banks(&chipmem_dummy_bank, start, dummy, 0);
+						map_banks(&chipmem_dummy_bank, start + 16, dummy, 0);
 					}
 				} else if (chipmem_bank.allocated_size < 0x200000 && chipmem_bank.allocated_size > 0x100000) {
 					int dummy = (0x200000 - chipmem_bank.allocated_size) >> 16;
-					map_banks (&chipmem_dummy_bank, start, dummy, 0);
+					map_banks(&chipmem_dummy_bank, start, dummy, 0);
 				}
 			} else {
 				int mapsize = 32;
@@ -2621,28 +2621,85 @@ void map_overlay (int chip)
 				map_banks(cb, 0, mapsize, chipmem_bank.allocated_size);
 			}
 		} else {
-			map_banks (cb, 0, chipmem_bank.allocated_size >> 16, 0);
+			map_banks(cb, 0, chipmem_bank.allocated_size >> 16, 0);
 		}
 	} else {
 		addrbank *rb = NULL;
 		if (size < 32 && bogomem_aliasing == 0)
 			size = 32;
 		cb = get_mem_bank_real(0xf00000);
-		if (!rb && cb && (cb->flags & ABFLAG_ROM) && get_word (0xf00000) == 0x1114)
+		if (!rb && cb && (cb->flags & ABFLAG_ROM) && get_word(0xf00000) == 0x1114)
 			rb = cb;
 		cb = get_mem_bank_real(0xe00000);
-		if (!rb && cb && (cb->flags & ABFLAG_ROM) && get_word (0xe00000) == 0x1114)
+		if (!rb && cb && (cb->flags & ABFLAG_ROM) && get_word(0xe00000) == 0x1114)
 			rb = cb;
 		if (!rb)
 			rb = &kickmem_bank;
-		map_banks (rb, 0, size, 0x80000);
+		map_banks(rb, 0, size, 0x80000);
 	}
 	initramboard(&chipmem_bank, &currprefs.chipmem);
 	overlay_state = chip;
-	fill_ce_banks ();
+	fill_ce_banks();
 	cpuboard_overlay_override();
-	if (!isrestore () && valid_address (regs.pc, 4))
-		m68k_setpc_normal (m68k_getpc ());
+	if (!isrestore() && valid_address(regs.pc, 4))
+		m68k_setpc_normal(m68k_getpc());
+}
+
+// set a default pattern for uninitialized memory after hard reset.
+//   0:even 1:odd on columns for even rows,
+//   1:even 0:odd on columns for odd rows.
+static void fillpattern(addrbank *ab)
+  {
+	if (currprefs.cs_memorypatternfill && aga_mode) {
+		uae_u32 fillval = 0;
+		for (int fillbank = 0; fillbank < ab->allocated_size / 2048; fillbank++) {
+			fillval = ~fillval;
+			for (int fillrow = fillbank * 2048; fillrow < (fillbank + 1) * 2048; fillrow += 4) {
+				// chip emulated: nec pd42s4260 (a1200 r1).  spec says 512x512x16.
+				*((uae_u32 *)(ab->baseaddr + fillrow)) = fillval;
+				if ((fillrow & 7) == 4) {
+  					fillval = ~fillval;
+  				}
+  			}
+		}
+	} else if (currprefs.cs_memorypatternfill && (currprefs.chipset_mask & CSMASK_ECS_AGNUS)) {
+		uae_u32 fillval = 0;
+		for (int fillbank = 0; fillbank < ab->allocated_size / 1024; fillbank++) {
+			fillval = ~fillval;
+			for (int fillrow = fillbank * 1024; fillrow < (fillbank + 1) * 1024; fillrow += 4) {
+				// chip emulated: generic 4256.  4 * 512x4.
+				*((uae_u32 *)(ab->baseaddr + fillrow)) = fillval;
+				if ((fillrow & 7) == 0) {
+  					fillval = ~fillval;
+  				}
+  			}
+  		}
+	} else if (currprefs.cs_memorypatternfill && !currprefs.cs_dipagnus) {
+		// ocs agnus has swapped row and column compared to ecs and aga.
+		uae_u16 fillval = 0;
+		for (int fillbank = 0; fillbank < ab->allocated_size / 256; fillbank++) {
+			fillval = ~fillval;
+			for (int fillrow = 0; fillrow < 256; fillrow += 2) {
+				// chip emulated: generic 4256.  16 * 512x1.
+				*((uae_u16 *)(ab->baseaddr + fillbank * 256 + fillrow)) = fillval;
+  			}
+		}
+	} else if (currprefs.cs_memorypatternfill) {
+		// a1000
+		uae_u16 fillval = 0;
+		for (int fillbank = 0; fillbank < ab->allocated_size / 512; fillbank++) {
+			fillval = ~fillval;
+			for (int fillrow = 0; fillrow < 512; fillrow += 2) {
+				// chip emulated: generic 4256.  16 * 512x1.
+				*((uae_u16 *)(ab->baseaddr + fillbank * 512 + fillrow)) = fillval;
+				if (((fillrow >> 1) & 15) == 15) {
+  					fillval = ~fillval;
+  				}
+  			}
+  		}
+	} else {
+		memset(ab->baseaddr, 0, ab->allocated_size);
+	}
 }
 
 void memory_clear (void)
@@ -2650,59 +2707,14 @@ void memory_clear (void)
 	mem_hardreset = 0;
 	if (savestate_state == STATE_RESTORE)
 		return;
-
-	// Set a default pattern for uninitialized memory after hard reset.
-	//   0:even 1:odd on columns for even rows,
-	//   1:even 0:odd on columns for odd rows.
+	
 	if (chipmem_bank.baseaddr) {
-		if (aga_mode) {
-			uae_u32 fillval = 0;
-			for (int fillbank = 0; fillbank < chipmem_bank.allocated_size / 2048; fillbank++) {
-				for (int fillrow = fillbank * 2048; fillrow < (fillbank + 1) * 2048; fillrow += 4) {
-					// Chip emulated: NEC PD42S4260 (A1200 R1).  Spec says 512x512x16.
-					*((uae_u32*)(chipmem_bank.baseaddr + fillrow)) = fillval;
-					fillval = ~fillval;
-				}
-				fillval = ~fillval;
-			}
-		} else {
-			uae_u16 fillval = 0;
-			for (int fillbank = 0; fillbank < chipmem_bank.allocated_size / 1024; fillbank++) {
-				for (int fillrow = fillbank * 1024; fillrow < (fillbank + 1) * 1024; fillrow += 2) {
-					// Chip emulated: Generic 4256.  Should apply to both 512x512x1 and 512x512x4.
-					*((uae_u16*)(chipmem_bank.baseaddr + fillrow)) = fillval;
-					fillval = ~fillval;
-				}
-				fillval = ~fillval;
-			}
-		}
+		fillpattern(&chipmem_bank);
 	}
 
 	if (bogomem_bank.baseaddr) {
-		// NOTE: At reset, WinUAE maps "slow" memory to fast before later re-assigning to chip.
-		if (ce_banktype[0xC0] == CE_MEMBANK_FAST32) {
-			uae_u32 fillval = 0;
-			for (int fillbank = 0; fillbank < bogomem_bank.allocated_size / 2048; fillbank++) {
-				for (int fillrow = fillbank * 2048; fillrow < (fillbank + 1) * 2048; fillrow += 4) {
-					// Chip emulated: 512x512x16 (A1200 R1)
-					*((uae_u32*)(bogomem_bank.baseaddr + fillrow)) = fillval;
-					fillval = ~fillval;
-				}
-				fillval = ~fillval;
-			}
-		} else if (ce_banktype[0xC0] == CE_MEMBANK_FAST16) {
-			uae_u16 fillval = 0;
-			for (int fillbank = 0; fillbank < bogomem_bank.allocated_size / 1024; fillbank++) {
-				for (int fillrow = fillbank * 1024; fillrow < (fillbank + 1) * 1024; fillrow += 2) {
-					// Chip emulated: Generic 4256
-					*((uae_u16*)(bogomem_bank.baseaddr + fillrow)) = fillval;
-					fillval = ~fillval;
-				}
-				fillval = ~fillval;
-			}
-		} else {
-			memset(bogomem_bank.baseaddr, 0, bogomem_bank.allocated_size);
-		}
+		// todo: slow ram can have 16x chips even if agnus is ecs.
+		fillpattern(&bogomem_bank);
 	}
 
 	if (mem25bit_bank.baseaddr)
@@ -2740,7 +2752,7 @@ static void restore_roms(void)
 	load_extendedkickstart (currprefs.romextfile2, EXTENDED_ROM_CDTV);
 	kickmem_bank.mask = ROM_SIZE_512 - 1;
 	if (!load_kickstart ()) {
-		if (_tcslen (currprefs.romfile) > 0) {
+		if (currprefs.romfile[0] != '\0') {
 			error_log (_T("Failed to open '%s'\n"), currprefs.romfile);
 			notify_user (NUMSG_NOROM);
 		}
@@ -2825,10 +2837,13 @@ void memory_reset (void)
 	int bnk, bnk_end;
 	bool gayleorfatgary;
 
+	highest_ram = 0;
 	alg_flag = 0;
 	need_hardreset = false;
 	rom_write_enabled = true;
+#ifdef JIT
 	jit_n_addr_unsafe = 0;
+#endif
 	/* Use changed_prefs, as m68k_reset is called later.  */
 	if (last_address_space_24 != changed_prefs.address_space_24)
 		need_hardreset = true;
@@ -2958,7 +2973,7 @@ void memory_reset (void)
 	}
 	cpuboard_map();
 	map_banks_set(&kickmem_bank, 0xF8, 8, 0);
-	if (currprefs.maprom) {
+	if (currprefs.maprom && _tcscmp(currprefs.romfile, _T(":AROS"))) {
 		if (!cpuboard_maprom())
 			map_banks_set(&kickram_bank, currprefs.maprom >> 16, extendedkickmem2a_bank.allocated_size ? 32 : (extendedkickmem_bank.allocated_size ? 16 : 8), 0);
 	}
@@ -3433,9 +3448,11 @@ void map_banks (addrbank *bank, int start, int size, int realsize)
 	if (start == 0xffffffff)
 		return;
 
+#ifdef JIT
 	if ((bank->jit_read_flag | bank->jit_write_flag) & S_N_ADDR) {
 		jit_n_addr_unsafe = 1;
 	}
+#endif
 
 	if (start >= 0x100) {
 		int real_left = 0;
@@ -3449,6 +3466,9 @@ void map_banks (addrbank *bank, int start, int size, int realsize)
 #ifdef WITH_PPC
 	ppc_generate_map_banks(bank, start, size);
 #endif
+	if ((bank->flags & ABFLAG_RAM) && !(bank->flags & ABFLAG_RTG) && ((start + size) << 16) > highest_ram) {
+		highest_ram = (start + size) << 16;
+	}
 }
 
 bool validate_banks_z3(addrbank *bank, int start, int size)
@@ -3772,7 +3792,7 @@ void loadboardfile(addrbank *ab, struct boardloadfile * lf)
 		else if (lf->loadoffset + size > ab->allocated_size)
 			size = ab->allocated_size - lf->loadoffset;
 		if (size > 0) {
-			int total = zfile_fread(ab->baseaddr + lf->loadoffset, 1, size, zf);
+			int total = zfile_fread32(ab->baseaddr + lf->loadoffset, 1, size, zf);
 			write_log(_T("Expansion file '%s': load %u bytes, offset %u, start addr %08x\n"),
 				lf->loadfile, total, lf->loadoffset, ab->start + lf->loadoffset);
 		}

@@ -503,13 +503,21 @@ void branch_stack_pop_rts(uaecptr oldpc)
 
 void branch_stack_push(uaecptr oldpc, uaecptr newpc)
 {
-	if (!stackframes)
+	if (!stackframes) {
 		return;
+	}
 	if (!stackframemode) {
-		if (debug_waiting || (!regs.s && get_long_host(exec_thistask) != debug_task))
+		if (debug_waiting || (!regs.s && get_long_host(exec_thistask) != debug_task)) {
 			return;
+		}
 	}
 	int cnt = regs.s ? stackframecntsuper : stackframecnt;
+	if (cnt >= MAX_STACKFRAMES) {
+		write_log(_T("Stack frame %c max limit reached!\n"), regs.s ? 'S' : 'U');
+		stackframecntsuper = 0;
+		stackframecnt = 0;
+		return;
+	}
 	struct debugstackframe *sf = regs.s ? &stackframessuper[cnt] : &stackframes[cnt];
 	sf->current_pc = regs.instruction_pc;
 	sf->next_pc = newpc;
@@ -1565,6 +1573,9 @@ static uae_u8 *loadhunkfile(uae_u8 *file, int filelen, uae_u32 seglist, int segm
 					int relochunk = gl(p);
 					p += 4;
 					if (relochunk > last) {
+						xfree(hunkoffsets);
+						xfree(hunklens);
+						xfree(out);
 						return 0;
 					}
 					uaecptr hunkptr = hunkoffsets[relochunk] + relocate_base;
@@ -2974,9 +2985,13 @@ static uae_u8 *loadelffile(uae_u8 *file, int filelen, uae_u8 *dbgfile, int debug
 #endif
 
 end:
-	xfree(lelfs);
+	
 	if (startp && startseg >= 0)
-		*startp = lelfs[startseg].dma->start;
+		if (lelfs)
+			*startp = lelfs[startseg].dma->start;
+
+	xfree(lelfs);
+
 	if (parentidp)
 		*parentidp = parentid;
 	return outp;

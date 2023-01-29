@@ -239,7 +239,7 @@ static const TCHAR help[] = {
 	_T("  W <addr> 'string'     Write into Amiga memory.\n")
 	_T("  Wf <addr> <endaddr> <bytes or string like above>, fill memory.\n")
 	_T("  Wc <addr> <endaddr> <destaddr>, copy memory.\n")
-	_T("  w <num> <address> <length> <R/W/I> <F/C/L/N> [<value>[.x]] (read/write/opcode) (freeze/mustchange/logonly/nobreak).\n")
+	_T("  w <num> <address> <length> <R/W/I> <F/C/L/N> [V<value>[.x]] (read/write/opcode) (freeze/mustchange/logonly/nobreak).\n")
 	_T("                        Add/remove memory watchpoints.\n")
 	_T("  wd [<0-1>]            Enable illegal access logger. 1 = enable break.\n")
 	_T("  L <file> <addr> [<n>] Load a block of Amiga memory.\n")
@@ -569,9 +569,9 @@ static int more_params2(TCHAR **c)
 	return (**c) != 0;
 }
 
-static uae_u32 readint (TCHAR **c);
-static uae_u32 readbin (TCHAR **c);
-static uae_u32 readhex (TCHAR **c);
+static uae_u32 readint(TCHAR **c, bool *err);
+static uae_u32 readbin(TCHAR **c, bool *err);
+static uae_u32 readhex(TCHAR **c, bool *err);
 
 static const TCHAR *debugoper[] = {
 	_T("=="),
@@ -991,36 +991,43 @@ static int checkvaltype (TCHAR **cp, uae_u32 *val, int *size, TCHAR def)
 }
 
 
-static uae_u32 readnum (TCHAR **c, int *size, TCHAR def)
+static uae_u32 readnum(TCHAR **c, int *size, TCHAR def, bool *err)
 {
 	uae_u32 val;
-	if (checkvaltype (c, &val, size, def))
+	if (err) {
+		*err = 0;
+	}
+	if (checkvaltype(c, &val, size, def)) {
 		return val;
+	}
+	if (err) {
+		*err = 1;
+	}
 	return 0;
 }
 
-static uae_u32 readint (TCHAR **c)
+static uae_u32 readint(TCHAR **c, bool *err)
 {
 	int size;
-	return readnum (c, &size, '!');
+	return readnum(c, &size, '!', err);
 }
-static uae_u32 readhex (TCHAR **c)
+static uae_u32 readhex(TCHAR **c, bool *err)
 {
 	int size;
-	return readnum (c, &size, '$');
+	return readnum(c, &size, '$', err);
 }
-static uae_u32 readbin (TCHAR **c)
+static uae_u32 readbin(TCHAR **c, bool *err)
 {
 	int size;
-	return readnum (c, &size, '%');
+	return readnum(c, &size, '%', err);
 }
-static uae_u32 readint (TCHAR **c, int *size)
+static uae_u32 readint(TCHAR **c, int *size, bool *err)
 {
-	return readnum (c, size, '!');
+	return readnum(c, size, '!', err);
 }
-static uae_u32 readhex (TCHAR **c, int *size)
+static uae_u32 readhex(TCHAR **c, int *size, bool *err)
 {
-	return readnum (c, size, '$');
+	return readnum(c, size, '$', err);
 }
 
 static size_t next_string (TCHAR **c, TCHAR *out, int max, int forceupper)
@@ -1051,24 +1058,29 @@ static size_t next_string (TCHAR **c, TCHAR *out, int max, int forceupper)
 	return _tcslen (out);
 }
 
-static void converter (TCHAR **c)
+static void converter(TCHAR **c)
 {
-	uae_u32 v = readint (c);
+	bool err;
+	uae_u32 v = readint(c, &err);
 	TCHAR s[100];
 	int i;
 
+	if (err) {
+		return;
+	}
 	for (i = 0; i < 32; i++)
 		s[i] = (v & (1 << (31 - i))) ? '1' : '0';
 	s[i] = 0;
 	console_out_f (_T("0x%08X = %%%s = %u = %d\n"), v, s, v, (uae_s32)v);
 }
 
-int notinrom (void)
+static bool isrom(uaecptr addr)
 {
-	uaecptr pc = munge24 (m68k_getpc ());
-	if (pc < 0x00e00000 || pc > 0x00ffffff)
-		return 1;
-	return 0;
+	addrbank *ab = &get_mem_bank(addr);
+	if (ab->flags & ABFLAG_ROM) {
+		return true;
+	}
+	return false;
 }
 
 static uae_u32 lastaddr (void)
@@ -1341,23 +1353,46 @@ static int dma_record_toggle, dma_record_frame[2];
 // BARTO
 struct dma_rec* get_dma_records() { return dma_record[dma_record_toggle]; }
 
-void record_dma_reset (void)
+void record_dma_clear(int r)
 {
-	int v, h;
-	struct dma_rec *dr, *dr2;
-
-	if (!dma_record[0])
-		return;
-	dma_record_toggle ^= 1;
-	dr = dma_record[dma_record_toggle];
-	for (v = 0; v < NR_DMA_REC_VPOS; v++) {
-		for (h = 0; h < NR_DMA_REC_HPOS; h++) {
-			dr2 = &dr[v * NR_DMA_REC_HPOS + h];
-			memset (dr2, 0, sizeof (struct dma_rec));
+	struct dma_rec *dr = dma_record[r];
+	for (int v = 0; v < NR_DMA_REC_VPOS; v++) {
+		for (int h = 0; h < NR_DMA_REC_HPOS; h++) {
+			struct dma_rec *dr2 = &dr[v * NR_DMA_REC_HPOS + h];
+			memset(dr2, 0, sizeof(struct dma_rec));
 			dr2->reg = 0xffff;
 			dr2->cf_reg = 0xffff;
 			dr2->addr = 0xffffffff;
 		}
+	}
+}
+
+static void dma_record_init(void)
+{
+	if (!dma_record[0]) {
+		dma_record[0] = xmalloc(struct dma_rec, NR_DMA_REC_HPOS * NR_DMA_REC_VPOS);
+		dma_record[1] = xmalloc(struct dma_rec, NR_DMA_REC_HPOS * NR_DMA_REC_VPOS);
+		record_dma_reset(0);
+		dma_record_toggle = 0;
+		dma_record_frame[0] = -1;
+		dma_record_frame[1] = -1;
+		record_dma_clear(0);
+		record_dma_clear(1);
+	}
+}
+
+void record_dma_reset(int start)
+{
+	if (start && !dma_record[0]) {
+		dma_record_init();
+	}
+	if (!dma_record[0]) {
+		return;
+	}
+	dma_record_toggle ^= 1;
+	record_dma_clear(dma_record_toggle);
+	if (start && !debug_dma) {
+		debug_dma = start;
 	}
 }
 
@@ -1907,12 +1942,12 @@ static void heatmap_stats(TCHAR **c)
 				}
 			}
 			if (more_params(c)) {
-				maxlines = readint(c);
+				maxlines = readint(c, NULL);
 			}
 		} else {
-			range = readint(c);
+			range = readint(c, NULL);
 			if (more_params(c)) {
-				maxlines = readint(c);
+				maxlines = readint(c, NULL);
 			}
 		}
 	}
@@ -2237,6 +2272,21 @@ void record_dma_ipl(int hpos, int vpos)
 	dr = &dma_record[dma_record_toggle][vpos * NR_DMA_REC_HPOS + hpos];
 	dr->intlev = regs.intmask;
 	dr->ipl = regs.ipl_pin;
+	dr->evt2 |= DMA_EVENT2_IPL;
+}
+
+void record_dma_ipl_sample(int hpos, int vpos)
+{
+	struct dma_rec *dr;
+
+	if (!dma_record[0])
+		return;
+	if (hpos >= NR_DMA_REC_HPOS || vpos >= NR_DMA_REC_VPOS)
+		return;
+	dr = &dma_record[dma_record_toggle][vpos * NR_DMA_REC_HPOS + hpos];
+	dr->intlev = regs.intmask;
+	dr->ipl2 = regs.ipl_pin;
+	dr->evt2 |= DMA_EVENT2_IPLSAMPLE;
 }
 
 void record_dma_event(uae_u32 evt, int hpos, int vpos)
@@ -2249,6 +2299,19 @@ void record_dma_event(uae_u32 evt, int hpos, int vpos)
 		return;
 	dr = &dma_record[dma_record_toggle][vpos * NR_DMA_REC_HPOS + hpos];
 	dr->evt |= evt;
+	dr->ipl = regs.ipl_pin;
+}
+
+void record_dma_event2(uae_u32 evt2, int hpos, int vpos)
+{
+	struct dma_rec *dr;
+
+	if (!dma_record[0])
+		return;
+	if (hpos >= NR_DMA_REC_HPOS || vpos >= NR_DMA_REC_VPOS)
+		return;
+	dr = &dma_record[dma_record_toggle][vpos * NR_DMA_REC_HPOS + hpos];
+	dr->evt2 |= evt2;
 	dr->ipl = regs.ipl_pin;
 }
 
@@ -2296,12 +2359,7 @@ void record_dma_write(uae_u16 reg, uae_u32 dat, uae_u32 addr, int hpos, int vpos
 	struct dma_rec *dr;
 
 	if (!dma_record[0]) {
-		dma_record[0] = xmalloc(struct dma_rec, NR_DMA_REC_HPOS * NR_DMA_REC_VPOS);
-		dma_record[1] = xmalloc(struct dma_rec, NR_DMA_REC_HPOS * NR_DMA_REC_VPOS);
-		dma_record_toggle = 0;
-		record_dma_reset();
-		dma_record_frame[0] = -1;
-		dma_record_frame[1] = -1;
+		dma_record_init();
 	}
 
 	if (hpos >= NR_DMA_REC_HPOS || vpos >= NR_DMA_REC_VPOS)
@@ -2329,6 +2387,13 @@ void record_dma_write(uae_u16 reg, uae_u32 dat, uae_u32 addr, int hpos, int vpos
 	debug_mark_refreshed(dr->addr);
 }
 struct dma_rec *last_dma_rec;
+void record_dma_read_value_pos(uae_u32 v, int hpos, int vpos)
+{
+	struct dma_rec *dr = &dma_record[dma_record_toggle][vpos * NR_DMA_REC_HPOS + hpos];
+	last_dma_rec = dr;
+	record_dma_read_value(v);
+}
+
 void record_dma_read_value(uae_u32 v)
 {
 	if (last_dma_rec) {
@@ -2375,21 +2440,9 @@ void record_dma_clear(int hpos, int vpos)
 	dr->cf_reg = 0xffff;
 }
 
-static void dma_record_init(void)
+void record_cia_access(int r, int mask, uae_u16 value, bool rw, int hpos, int vpos, int phase)
 {
-	if (!dma_record[0]) {
-		dma_record[0] = xmalloc(struct dma_rec, NR_DMA_REC_HPOS * NR_DMA_REC_VPOS);
-		dma_record[1] = xmalloc(struct dma_rec, NR_DMA_REC_HPOS * NR_DMA_REC_VPOS);
-		dma_record_toggle = 0;
-		record_dma_reset();
-		dma_record_frame[0] = -1;
-		dma_record_frame[1] = -1;
-	}
-}
-
-void record_cia_access(int r, int mask, uae_u16 value, bool rw, int hpos, int vpos)
-{
-	struct dma_rec* dr;
+	struct dma_rec *dr;
 
 	dma_record_init();
 
@@ -2399,10 +2452,14 @@ void record_cia_access(int r, int mask, uae_u16 value, bool rw, int hpos, int vp
 	dr = &dma_record[dma_record_toggle][vpos * NR_DMA_REC_HPOS + hpos];
 	dma_record_frame[dma_record_toggle] = timeframes;
 
+	if (dr->ciaphase < 0) {
+		return;
+	}
 	dr->ciamask = mask;
 	dr->ciareg = r;
 	dr->ciavalue = value;
 	dr->ciarw = rw;
+	dr->ciaphase = phase;
 }
 
 void record_dma_read(uae_u16 reg, uae_u32 addr, int hpos, int vpos, int type, int extra)
@@ -2529,8 +2586,9 @@ static bool get_record_dma_info(struct dma_rec *dr, int hpos, int vpos, TCHAR *l
 		chcnt = br + 1;
 	}
 	if (dr->cf_reg != 0xffff) {
-		_stprintf(srtext, _T("!%03x "), dr->cf_reg);
+		_stprintf(srtext, _T("!%03x"), dr->cf_reg);
 		chcnt = -1;
+		regsize--;
 	} else {
 		_tcscpy(srtext, sr);
 	}
@@ -2543,48 +2601,61 @@ static bool get_record_dma_info(struct dma_rec *dr, int hpos, int vpos, TCHAR *l
 			ipl = 0;
 		}
 		*iplp = ipl;
+		if (dr->ipl2 > 0) {
+		}
 	}
 	if (ipl >= 0) {
-		_stprintf(l1, _T("[%02X   %d]"), hpos, ipl);
+		_stprintf(l1, _T("[%02X     %d]"), hpos, ipl);
 	} else if (ipl == -2) {
-		_stprintf(l1, _T("[%02X   -]"), hpos);
+		_stprintf(l1, _T("[%02X     -]"), hpos);
 	} else {
-		_stprintf(l1, _T("[%02X    ]"), hpos);
+		_stprintf(l1, _T("[%02X      ]"), hpos);
 	}
 	if (l4) {
-		_tcscpy(l4, _T("        "));
+		_tcscpy(l4, _T("          "));
 	}
 	if (l2) {
-		_tcscpy(l2, _T("        "));
+		_tcscpy(l2, _T("          "));
 	}
 	if (l3) {
-		_tcscpy(l3, _T("        "));
+		_tcscpy(l3, _T("          "));
 	}
 	if (r != 0xffff) {
 		if (r & 0x1000) {
 			if ((r & 0x0100) == 0x0000)
-				_tcscpy (l2, _T("CPU-R "));
+				_tcscpy(l2, _T("CPU-R  "));
 			else if ((r & 0x0100) == 0x0100)
-				_tcscpy (l2, _T("CPU-W "));
+				_tcscpy(l2, _T("CPU-W  "));
 			if ((r & 0xff) == 4) {
 				l2[5] = 'L';
 				longsize = 4;
 			}
-			if ((r & 0xff) == 2)
+			if ((r & 0xff) == 2) {
 				l2[5] = 'W';
-			if ((r & 0xff) == 1)
+			}
+			if ((r & 0xff) == 1) {
 				l2[5] = 'B';
+			}
+			if (br) {
+				l2[6] = 'D';
+			} else {
+				l2[6] = 'I';
+			}
 		} else {
 			if (chcnt >= 0) {
 				if (regsize == 3)
-					_stprintf(l2, _T("%3s%d %03X"), srtext, chcnt, r);
+					_stprintf(l2, _T("%3s%d   %03X"), srtext, chcnt, r);
+				else if (regsize == 2)
+					_stprintf(l2, _T("%4s%d   %02X"), srtext, chcnt, r);
 				else
-					_stprintf(l2, _T("%4s%d %02X"), srtext, chcnt, r);
+					_stprintf(l2, _T("%5s%d   %02X"), srtext, chcnt, r);
 			} else {
 				if (regsize == 3)
-					_stprintf(l2, _T("%4s %03X"), srtext, r);
+					_stprintf(l2, _T("%4s   %03X"), srtext, r);
+				else if (regsize == 2)
+					_stprintf(l2, _T("%5s   %02X"), srtext, r);
 				else
-					_stprintf(l2, _T("%5s %02X"), srtext, r);
+					_stprintf(l2, _T("%6s   %02X"), srtext, r);
 			}
 		}
 		if (l3 && !noval) {
@@ -2596,7 +2667,7 @@ static bool get_record_dma_info(struct dma_rec *dr, int hpos, int vpos, TCHAR *l
 				extra64 = true;
 				extraval = (uae_u32)v;
 			} else {
-				_stprintf(l3, _T("    %04X"), (uae_u32)(v & 0xffff));
+				_stprintf(l3, _T("     %04X"), (uae_u32)(v & 0xffff));
 			}
 		}
 		if (l4 && dr->addr != 0xffffffff)
@@ -2692,12 +2763,28 @@ static bool get_record_dma_info(struct dma_rec *dr, int hpos, int vpos, TCHAR *l
 			l3[cl2++] = 'B';
 		}
 
+		if (dr->evt2 & DMA_EVENT2_IPLSAMPLE) {
+			l3[cl2++] = '^';
+		}
+		if (dr->evt2 & DMA_EVENT2_COPPERUSE) {
+			l3[cl2++] = 'C';
+		}
+
 	}
 	if (l5) {
-		if (dr->ciamask) {
-			_stprintf(l5, _T("%c%s%X %04X"), dr->ciarw ? 'W' : 'R',
-				dr->ciamask == 1 ? _T("A") : (dr->ciamask == 2 ? _T("B") : _T("X")),
-				dr->ciareg, dr->ciavalue);
+		if (dr->ciaphase) {
+			if (dr->ciamask) {
+				_stprintf(l5, _T("%c%s%X   %04X"), dr->ciarw ? 'W' : 'R',
+					dr->ciamask == 1 ? _T("A") : (dr->ciamask == 2 ? _T("B") : _T("X")),
+					dr->ciareg, dr->ciavalue);
+			} else {
+				int ph = dr->ciaphase;
+				if (ph >= 100) {
+					_tcscpy(l5, _T(" - "));
+				} else {
+					_stprintf(l5, _T(" %u "), ph - 1);
+				}
+			}
 		}
 	}
 	if (l6) {
@@ -2708,11 +2795,10 @@ static bool get_record_dma_info(struct dma_rec *dr, int hpos, int vpos, TCHAR *l
 			if (ret) {
 				xtra = '+';
 			}
-			_stprintf(l6, _T("%c%03X %03X"), xtra, ras, cas);
+			_stprintf(l6, _T("%c%03X   %03X"), xtra, ras, cas);
 		} else {
 			l6[0] = 0;
 		}
-		//_stprintf (l5, _T("%08X"), cycles + (vpos * maxhpos + hpos) * CYCLE_UNIT);
 	}
 	if (extra64) {
 		_tcscpy(l6, l4);
@@ -2723,7 +2809,7 @@ static bool get_record_dma_info(struct dma_rec *dr, int hpos, int vpos, TCHAR *l
 
 
 
-static void decode_dma_record (int hpos, int vpos, int toggle, bool logfile)
+static void decode_dma_record(int hpos, int vpos, int toggle, bool logfile)
 {
 	struct dma_rec *dr, *dr_start;
 	int h, i, maxh = 0;
@@ -2774,17 +2860,17 @@ static void decode_dma_record (int hpos, int vpos, int toggle, bool logfile)
 			get_record_dma_info(dr, h, vpos, l1l, l2l, l3l, l4l, l5l, l6l, &split, &ipl);
 
 			TCHAR *p = l1 + _tcslen(l1);
-			_stprintf(p, _T("%9s "), l1l);
+			_stprintf(p, _T("%11s  "), l1l);
 			p = l2 + _tcslen(l2);
-			_stprintf(p, _T("%9s "), l2l);
+			_stprintf(p, _T("%11s  "), l2l);
 			p = l3 + _tcslen(l3);
-			_stprintf(p, _T("%9s "), l3l);
+			_stprintf(p, _T("%11s  "), l3l);
 			p = l4 + _tcslen(l4);
-			_stprintf(p, _T("%9s "), l4l);
+			_stprintf(p, _T("%11s  "), l4l);
 			p = l5 + _tcslen(l5);
-			_stprintf(p, _T("%9s "), l5l);
+			_stprintf(p, _T("%11s  "), l5l);
 			p = l6 + _tcslen(l6);
-			_stprintf(p, _T("%9s "), l6l);
+			_stprintf(p, _T("%11s  "), l6l);
 
 			if (split != 0xffffffff) {
 				if (split < 0x10000) {
@@ -3003,14 +3089,14 @@ static int copper_debugger (TCHAR **c)
 		(*c)++;
 		debug_copper = 1|4;
 		if (more_params (c)) {
-			debug_copper_pc = readhex (c);
+			debug_copper_pc = readhex(c, NULL);
 			console_out_f (_T("Copper breakpoint @0x%08x\n"), debug_copper_pc);
 		} else {
 			debug_copper &= ~4;
 		}
 	} else {
 		if (more_params(c)) {
-			maddr = readhex(c);
+			maddr = readhex(c, NULL);
 			if (maddr == 1 || maddr == 2 || maddr == 3)
 				maddr = get_copper_address(maddr);
 			else if (maddr == 0)
@@ -3023,8 +3109,8 @@ static int copper_debugger (TCHAR **c)
 			selected_cop_set = curr_cop_set ^ 1;
 		}
 
-		if (more_params (c))
-			lines = readhex (c);
+		if (more_params(c))
+			lines = readhex(c, NULL);
 		else
 			lines = 20;
 
@@ -3116,7 +3202,7 @@ static void deepcheatsearch(TCHAR **c)
 		(*c)++;
 	}
 	if (more_params(c))
-		maxdiff = readint(c);
+		maxdiff = readint(c, NULL);
 
 	if (!memtmp || v == 'S') {
 		first = 1;
@@ -3248,6 +3334,7 @@ static void cheatsearch (TCHAR **c)
 	uae_u32 val, memcnt, prevmemcnt;
 	int i, count, vcnt, memsize;
 	uaecptr addr, end;
+	bool err;
 
 	memsize = 0;
 	addr = 0xffffffff;
@@ -3270,9 +3357,12 @@ static void cheatsearch (TCHAR **c)
 		return;
 	}
 	if (first)
-		val = readint (c, &size);
+		val = readint(c, &size, &err);
 	else
-		val = readint (c);
+		val = readint(c, &err);
+	if (err) {
+		return;
+	}
 
 	if (vlist == NULL) {
 		listsize = memsize;
@@ -3489,11 +3579,13 @@ static int debug_mem_off (uaecptr *addrp)
 
 struct smc_item {
 	uae_u32 addr;
+	uae_u16 version;
 	uae_u8 cnt;
 };
 
-static int smc_size, smc_mode;
+static uae_u32 smc_size, smc_mode;
 static struct smc_item *smc_table;
+static uae_u16 smc_version;
 
 static void smc_free (void)
 {
@@ -3510,85 +3602,115 @@ static void smc_detect_init(TCHAR **c)
 	int v;
 
 	ignore_ws(c);
-	v = readint(c);
+	v = readint(c, NULL);
 	smc_free();
 	smc_size = 1 << 24;
-	if (currprefs.z3fastmem[0].size)
-		smc_size = currprefs.z3autoconfig_start + currprefs.z3fastmem[0].size;
-	smc_size += 4;
-	smc_table = xmalloc(struct smc_item, smc_size);
-	if (!smc_table)
-		return;
-	for (int i = 0; i < smc_size; i++) {
-		struct smc_item *si = &smc_table[i];
-		si->addr = 0xffffffff;
-		si->cnt = 0;
+	if (highest_ram > smc_size) {
+		smc_size = highest_ram;
 	}
+	smc_table = xcalloc(struct smc_item, smc_size + 4);
+	if (!smc_table) {
+		console_out_f(_T("Failed to allocated SMCD buffers, %d bytes needed\n."), sizeof(struct smc_item) * smc_size + 4);
+		return;
+	}
+	smc_version = 0xffff;
+	debug_smc_clear(-1, 0);
 	if (!memwatch_enabled)
 		initialize_memwatch(0);
 	if (v)
 		smc_mode = 1;
-	console_out_f(_T("SMCD enabled. Break=%d\n"), smc_mode);
+	console_out_f(_T("SMCD enabled. Break=%d. Last address=%08x\n"), smc_mode, smc_size);
 }
 
 void debug_smc_clear(uaecptr addr, int size)
 {
 	if (!smc_table)
 		return;
-	for (int i = 0; i < smc_size; i++) {
-		struct smc_item *si = &smc_table[i];
-		if (size < 0 || (si->addr >= addr && si->addr < addr + size)) {
-			si->addr = 0xffffffff;
-			si->cnt = 0;
+	smc_version++;
+	if (smc_version == 0) {
+		for (uae_u32 i = 0; i < smc_size; i += 65536) {
+			addrbank *ab = &get_mem_bank(i);
+			if (ab->flags & (ABFLAG_RAM | ABFLAG_ROM)) {
+				for (uae_u32 j = 0; j < 65536; j++) {
+					struct smc_item *si = &smc_table[i + j];
+					if (size < 0 || (si->addr >= addr && si->addr < addr + size)) {
+						si->addr = 0xffffffff;
+						si->cnt = 0;
+						si->version = smc_version;
+					}
+				}
+			}
 		}
 	}
 }
 
 #define SMC_MAXHITS 8
-static void smc_detector (uaecptr addr, int rwi, int size, uae_u32 *valp)
+static void smc_detector(uaecptr addr, int rwi, int size, uae_u32 *valp)
 {
-	int i, hitcnt;
+	int hitcnt;
 	uaecptr hitaddr, hitpc;
 
 	if (!smc_table)
 		return;
-	if (addr >= smc_size)
+	if (addr + size > smc_size)
 		return;
+
 	if (rwi == 2) {
-		for (i = 0; i < size; i++) {
-			if (smc_table[addr + i].cnt < SMC_MAXHITS) {
-				smc_table[addr + i].addr = m68k_getpc ();
+		for (int i = 0; i < size; i++) {
+			struct smc_item *si = &smc_table[addr + i];
+			if (si->version != smc_version) {
+				si->version = smc_version;
+				si->addr = 0xffffffff;
+				si->cnt = 0;
+			}	
+			if (si->cnt < SMC_MAXHITS) {
+				si->addr = m68k_getpc();
 			}
 		}
 		return;
 	}
-	hitpc = smc_table[addr].addr;
-	if (hitpc == 0xffffffff)
+	hitpc = 0xffffffff;
+	for (int i = 0; i < size && hitpc == 0xffffffff && addr + i < smc_size; i += 2) {
+		struct smc_item *si = &smc_table[addr + i];
+		if (si->version == smc_version) {
+			hitpc = si->addr;
+		}
+	}
+	if (hitpc == 0xffffffff) {
 		return;
+	}
+	if ((hitpc & 0xFFF80000) == 0xF80000) {
+		return;
+	}
 	hitaddr = addr;
 	hitcnt = 0;
-	while (addr < smc_size && smc_table[addr].addr != 0xffffffff) {
-		smc_table[addr++].addr = 0xffffffff;
+	while (addr < smc_size) {
+		struct smc_item *si = &smc_table[addr];
+		if (si->addr == 0xffffffff || si->version != smc_version) {
+			break;
+		}
+		si->addr = 0xffffffff;
 		hitcnt++;
+		addr++;
 	}
-	if ((hitpc & 0xFFF80000) == 0xF80000)
-		return;
-	if (currprefs.cpu_model == 68000 && currprefs.cpu_compatible) {
+	if (currprefs.cpu_model <= 68010 && currprefs.cpu_compatible) {
 		/* ignore single-word unconditional jump instructions
 		* (instruction prefetch from PC+2 can cause false positives) */
-		if (regs.irc == 0x4e75 || regs.irc == 4e74 || regs.irc == 0x4e72 || regs.irc == 0x4e77)
+		if (regs.irc == 0x4e75 || regs.irc == 0x4e74 || regs.irc == 0x4e73 || regs.irc == 0x4e77)
 			return; /* RTS, RTD, RTE, RTR */
 		if ((regs.irc & 0xff00) == 0x6000 && (regs.irc & 0x00ff) != 0 && (regs.irc & 0x00ff) != 0xff)
 			return; /* BRA.B */
 	}
 	if (hitcnt < 100) {
-		smc_table[hitaddr].cnt++;
-		console_out_f (_T("SMC at %08X - %08X (%d) from %08X\n"),
-			hitaddr, hitaddr + hitcnt, hitcnt, hitpc);
-		if (smc_mode)
+		struct smc_item *si = &smc_table[hitaddr];
+		si->cnt++;
+		console_out_f(_T("SMC at %08X - %08X (%d) from %08X\n"), hitaddr, hitaddr + hitcnt, hitcnt, hitpc);
+		if (smc_mode) {
 			activate_debugger_new();
-		if (smc_table[hitaddr].cnt >= SMC_MAXHITS)
-			console_out_f (_T("* hit count >= %d, future hits ignored\n"), SMC_MAXHITS);
+		}
+		if (si->cnt >= SMC_MAXHITS) {
+			console_out_f(_T("* hit count >= %d, future hits ignored\n"), SMC_MAXHITS);
+		}
 	}
 }
 
@@ -3952,8 +4074,6 @@ static int memwatch_func (uaecptr addr, int rwi, int size, uae_u32 *valp, uae_u3
 			}
 			return 0;
 		}
-		//	if (!notinrom ())
-		//	    return 1;
 		mwhit.addr = addr;
 		mwhit.rwi = rwi;
 		mwhit.size = size;
@@ -4519,6 +4639,7 @@ static void memwatch (TCHAR **c)
 	int num;
 	struct memwatch_node *mwn;
 	TCHAR nc, *cp;
+	bool err;
 
 	if (!memwatch_enabled) {
 		initialize_memwatch (0);
@@ -4548,10 +4669,10 @@ static void memwatch (TCHAR **c)
 		if (illgdebug) {
 			ignore_ws (c);
 			if (more_params (c)) {
-				uae_u32 addr = readhex (c);
+				uae_u32 addr = readhex(c, NULL);
 				uae_u32 len = 1;
 				if (more_params (c))
-					len = readhex (c);
+					len = readhex(c, NULL);
 				console_out_f (_T("Cleared logging addresses %08X - %08X\n"), addr, addr + len);
 				while (len > 0) {
 					addr &= 0xffffff;
@@ -4574,7 +4695,7 @@ static void memwatch (TCHAR **c)
 		return;
 	}
 	*c = cp;
-	num = readint (c);
+	num = readint(c, NULL);
 	if (num < 0 || num >= MEMWATCH_TOTAL)
 		return;
 	mwn = &mwnodes[num];
@@ -4585,7 +4706,7 @@ static void memwatch (TCHAR **c)
 		memwatch_setup ();
 		return;
 	}
-	mwn->addr = readhex (c);
+	mwn->addr = readhex(c, NULL);
 	mwn->size = 1;
 	mwn->rwi = 7;
 	mwn->val_enabled = 0;
@@ -4598,9 +4719,10 @@ static void memwatch (TCHAR **c)
 	mwn->mustchange = 0;
 	mwn->bus_error = 0;
 	mwn->reportonly = false;
+	mwn->nobreak = false;
 	ignore_ws (c);
 	if (more_params (c)) {
-		mwn->size = readhex (c);
+		mwn->size = readhex(c, NULL);
 		ignore_ws (c);
 		if (more_params (c)) {
 			TCHAR *cs = *c;
@@ -4663,26 +4785,24 @@ static void memwatch (TCHAR **c)
 						mwn->reportonly = true;
 					if (nc == 'N')
 						mwn->nobreak = true;
-					if (ncc == ' ' || ncc == 0)
-						break;
 					if (nc == 'P' && ncc == 'C') {
 						next_char(c);
 						mwn->pc = readhex(c, NULL);
+					}
+					if (nc == 'M') {
+						mwn->modval_written = 1;
+					}
+					if (nc == 'C') {
+						mwn->mustchange = 1;
+					}
+					if (nc == 'V') {
+						mwn->val = readhex(c, &mwn->val_size, &err);
+						mwn->val_enabled = 1;
 					}
 					if (!more_params(c))
 						break;
 				}
 				ignore_ws (c);
-			}
-			if (more_params (c)) {
-				if (_totupper (**c) == 'M') {
-					mwn->modval_written = 1;
-				} else if (_totupper (**c) == 'C') {
-					mwn->mustchange = 1;
-				} else {
-					mwn->val = readhex (c, &mwn->val_size);
-					mwn->val_enabled = 1;
-				}
 			}
 		}
 	}
@@ -4697,19 +4817,29 @@ static void memwatch (TCHAR **c)
 static void copymem(TCHAR **c)
 {
 	uae_u32 addr = 0, eaddr = 0, dst = 0;
+	bool err;
 
 	ignore_ws(c);
-	if (!more_params (c))
+	if (!more_params(c))
 		return;
-	addr = readhex (c);
+	addr = readhex(c, &err);
+	if (err) {
+		return;
+	}
 	ignore_ws (c);
-	if (!more_params (c))
+	if (!more_params(c))
 		return;
-	eaddr = readhex (c);
+	eaddr = readhex(c, &err);
+	if (err) {
+		return;
+	}
 	ignore_ws (c);
-	if (!more_params (c))
+	if (!more_params(c))
 		return;
-	dst = readhex (c);
+	dst = readhex(c, &err);
+	if (err) {
+		return;
+	}
 
 	if (addr >= eaddr)
 		return;
@@ -4741,6 +4871,7 @@ static void writeintomem (TCHAR **c)
 	TCHAR cc;
 	int len = 1;
 	bool fillmode = false;
+	bool err;
 
 	if (**c == 'f') {
 		fillmode = true;
@@ -4752,70 +4883,111 @@ static void writeintomem (TCHAR **c)
 	}
 
 	ignore_ws(c);
-	addr = readhex (c);
+	addr = readhex(c, &err);
+	if (err) {
+		return;
+	}
 	ignore_ws (c);
 
 	if (fillmode) {
-		if (!more_params (c))
+		if (!more_params(c))
 			return;
-		eaddr = readhex(c);
-		ignore_ws (c);
+		eaddr = readhex(c, &err);
+		if (err) {
+			return;
+		}
+		ignore_ws(c);
 	}
 
 	if (!more_params (c))
 		return;
 	TCHAR *cb = *c;
-	cc = peekchar (c);
 	uae_u32 addrc = addr;
+	bool retry = false;
 	for(;;) {
+		cc = peekchar(c);
+		retry = false;
 		uae_u32 addrb = addr;
-		*c = cb;
 		if (cc == '\'' || cc == '\"') {
+			TCHAR quoted = cc;
 			next_char2(c);
 			while (more_params2(c)) {
 				TCHAR str[2];
 				char *astr;
 				cc = next_char2(c);
-				if (cc == '\'' || cc == '\"')
+				if (quoted == cc) {
+					ignore_ws(c);
+					retry = true;
 					break;
+				}
+				if (addr >= eaddr) {
+					break;
+				}
 				str[0] = cc;
 				str[1] = 0;
-				astr = ua (str);
-				put_byte (addr, astr[0]);
-				xfree (astr);
+				astr = ua(str);
+				put_byte(addr, astr[0]);
+				if (!fillmode) {
+					char c = astr[0];
+					if (c < 32) {
+						c = '.';
+					}
+					console_out_f(_T("Wrote '%c' (%02X, %02u) at %08X.B\n"), c, c, c, addr);
+				}
+				xfree(astr);
 				addr++;
-				if (addr >= eaddr)
-					break;
+			}
+			if (fillmode && peekchar(c) == 0) {
+				*c = cb;
 			}
 		} else {
 			for (;;) {
+				bool err;
 				ignore_ws (c);
 				if (!more_params (c))
 					break;
-				val = readhex (c, &len);
-
+				val = readhex(c, &len, &err);
+				if (err) {
+					goto end;
+				}
 				if (len == 4) {
-					put_long (addr, val);
+					put_long(addr, val);
 					cc = 'L';
 				} else if (len == 2) {
-					put_word (addr, val);
+					put_word(addr, val);
 					cc = 'W';
 				} else if (len == 1) {
-					put_byte (addr, val);
+					put_byte(addr, val);
 					cc = 'B';
 				} else {
+					cc = peekchar(c);
+					if (cc == '\'' || cc == '\"') {
+						retry = true;
+					} else {
+						next_char(c);
+						retry = true;
+					}
 					break;
 				}
-				if (!fillmode)
-					console_out_f (_T("Wrote %X (%u) at %08X.%c\n"), val, val, addr, cc);
+				if (!fillmode) {
+					console_out_f(_T("Wrote %X (%u) at %08X.%c\n"), val, val, addr, cc);
+				}
 				addr += len;
 				if (addr >= eaddr)
 					break;
 			}
 		}
-		if (eaddr == 0xffffffff || addr <= addrb || addr >= eaddr)
+		if (retry) {
+			continue;
+		}
+		if (addr >= eaddr) {
 			break;
+		}
+		if (eaddr == 0xffffffff || addr <= addrb) {
+			break;
+		}
 	}
+end:
 	if (eaddr != 0xffffffff)
 		console_out_f(_T("Wrote data to %08x - %08x\n"), addrc, addr);
 }
@@ -5533,11 +5705,11 @@ static int cycle_breakpoint(TCHAR **c)
 	TCHAR nc = (*c)[0];
 	next_char(c);
 	if (more_params(c)) {
-		int count = readint(c);
+		int count = readint(c, NULL);
 		if (nc == 's') {
 			if (more_params(c)) {
 				debug_vpos = count;
-				debug_hpos = readint(c);
+				debug_hpos = readint(c, NULL);
 				if (debug_vpos == vpos && debug_hpos > current_hpos()) {
 					debug_vpos = -1;
 					count = debug_hpos - current_hpos();
@@ -5564,20 +5736,29 @@ static struct regstruct trace_prev_regs;
 #endif
 static uaecptr nextpc;
 
-int instruction_breakpoint (TCHAR **c)
+int instruction_breakpoint(TCHAR **c)
 {
 	struct breakpoint_node *bpn;
+	int bpcnt = 0;
 	int i;
 
+	if (more_params(c)) {
+		TCHAR nc = _totupper((*c)[0]);
+		if (nc == 'N') {
+			next_char(c);
+			bpcnt = readint(c, NULL);
+		}
+	}
 	if (more_params (c)) {
 		TCHAR nc = _totupper ((*c)[0]);
 		if (nc == 'O') {
 			// bpnum register operation value1 [mask value2]
 			next_char(c);
 			if (more_params(c)) {
-				int bpidx = readint(c);
+				int bpidx = readint(c, NULL);
 				if (more_params(c) && bpidx >= 0 && bpidx < BREAKPOINT_TOTAL) {
 					bpn = &bpnodes[bpidx];
+					bpn->cnt = bpcnt;
 					int regid = getregidx(c);
 					if (regid >= 0) {
 						bpn->type = regid;
@@ -5586,12 +5767,12 @@ int instruction_breakpoint (TCHAR **c)
 							int operid = getoperidx(c);
 							if (more_params(c) && operid >= 0) {
 								bpn->oper = operid;
-								bpn->value1 = readhex(c);
+								bpn->value1 = readhex(c, NULL);
 								bpn->enabled = 1;
 								if (more_params(c)) {
-									bpn->mask = readhex(c);
+									bpn->mask = readhex(c, NULL);
 									if (more_params(c))  {
-										bpn->value2 = readhex(c);
+										bpn->value2 = readhex(c, NULL);
 									}
 								}
 								console_out(_T("Breakpoint added.\n"));
@@ -5619,12 +5800,12 @@ int instruction_breakpoint (TCHAR **c)
 				}
 			} else {
 				if (more_params(c)) {
-					trace_param[0] = readhex(c);
+					trace_param[0] = readhex(c, NULL);
 					if (more_params(c)) {
-						trace_param[1] = readhex(c);
+						trace_param[1] = readhex(c, NULL);
 					}
 					if (more_params(c)) {
-						trace_param[2] = readhex(c);
+						trace_param[2] = readhex(c, NULL);
 					}
 				} else {
 					trace_param[0] = 0x10000;
@@ -5639,7 +5820,7 @@ int instruction_breakpoint (TCHAR **c)
 			return 0;
 		} else if (nc == 'R' && (*c)[1] == 0) {
 			if (more_params(c)) {
-				int bpnum = readint(c);
+				int bpnum = readint(c, NULL);
 				if (bpnum >= 0 && bpnum < BREAKPOINT_TOTAL) {
 					bpnodes[bpnum].enabled = 0;
 					console_out_f(_T("Breakpoint %d removed.\n"), bpnum);
@@ -5662,9 +5843,9 @@ int instruction_breakpoint (TCHAR **c)
 			return 0;
 		}
 		trace_mode = TRACE_RANGE_PC;
-		trace_param[0] = readhex (c);
+		trace_param[0] = readhex(c, NULL);
 		if (more_params (c)) {
-			trace_param[1] = readhex (c);
+			trace_param[1] = readhex(c, NULL);
 			return 1;
 		} else {
 			for (i = 0; i < BREAKPOINT_TOTAL; i++) {
@@ -5683,6 +5864,7 @@ int instruction_breakpoint (TCHAR **c)
 				bpn->value1 = trace_param[0];
 				bpn->type = BREAKPOINT_REG_PC;
 				bpn->oper = BREAKPOINT_CMP_EQUAL;
+				bpn->cnt = bpcnt;
 				bpn->enabled = 1;
 				console_out (_T("Breakpoint added.\n"));
 				trace_mode = 0;
@@ -5695,19 +5877,23 @@ int instruction_breakpoint (TCHAR **c)
 	return 1;
 }
 
-static int process_breakpoint (TCHAR **c)
+static int process_breakpoint(TCHAR **c)
 {
+	bool err;
 	processptr = 0;
-	xfree (processname);
+	xfree(processname);
 	processname = NULL;
-	if (!more_params (c))
+	if (!more_params(c))
 		return 0;
 	if (**c == '\"') {
 		TCHAR pn[200];
-		next_string (c, pn, 200, 0);
-		processname = ua (pn);
+		next_string(c, pn, sizeof(pn) / sizeof(TCHAR), 0);
+		processname = ua(pn);
 	} else {
-		processptr = readhex (c);
+		processptr = readhex(c, &err);
+		if (err) {
+			return 0;
+		}
 	}
 	trace_mode = TRACE_CHECKONLY;
 	return 1;
@@ -5734,14 +5920,14 @@ static void saveloadmem (TCHAR **cc, bool save)
 	(*cc)++;
 	if (!more_params (cc))
 		goto S_argh;
-	src2 = src = readhex (cc);
+	src2 = src = readhex(cc, NULL);
 	if (save) {
 		if (!more_params(cc))
 			goto S_argh;
 	}
 	len2 = len = -1;
 	if (more_params(cc)) {
-		len2 = len = readhex (cc);
+		len2 = len = readhex(cc, NULL);
 	}
 	fp = uae_tfopen (name, save ? _T("wb") : _T("rb"));
 	if (fp == NULL) {
@@ -5797,41 +5983,55 @@ static void searchmem (TCHAR **cc)
 	sslen = 0;
 	stringmode = 0;
 	ignore_ws (cc);
-	if (**cc == '"') {
-		stringmode = 1;
-		(*cc)++;
-		while (**cc != '"' && **cc != 0) {
-			ss[sslen++] = tolower (**cc);
+	while(more_params(cc)) {
+		if (**cc == '"' || **cc == '\'') {
+			TCHAR quoted = **cc;
+			stringmode = 1;
 			(*cc)++;
+			while (**cc != quoted && **cc != 0) {
+				ss[sslen++] = tolower(**cc);
+				(*cc)++;
+			}
+			if (**cc != 0) {
+				(*cc)++;
+			}
+		} else {
+			for (;;) {
+				if (**cc == 32 || **cc == 0) {
+					break;
+				}
+				if (**cc == '"' || **cc == '\'') {
+					break;
+				}
+				nc = _totupper(next_char(cc));
+				if (isspace(nc))
+					break;
+				if (isdigit(nc))
+					val = nc - '0';
+				else
+					val = nc - 'A' + 10;
+				if (val < 0 || val > 15)
+					return;
+				val *= 16;
+				if (**cc == 32 || **cc == 0)
+					break;
+				nc = _totupper(next_char(cc));
+				if (isspace(nc))
+					break;
+				if (isdigit(nc))
+					val += nc - '0';
+				else
+					val += nc - 'A' + 10;
+				if (val < 0 || val > 255)
+					return;
+				ss[sslen++] = (uae_u8)val;
+			}
 		}
-		if (**cc != 0)
+		if (**cc == 0 || **cc == 32) {
+			break;
+		}
+		if (**cc != '"' && **cc != '\'') {
 			(*cc)++;
-	} else {
-		for (;;) {
-			if (**cc == 32 || **cc == 0)
-				break;
-			nc = _totupper (next_char (cc));
-			if (isspace (nc))
-				break;
-			if (isdigit(nc))
-				val = nc - '0';
-			else
-				val = nc - 'A' + 10;
-			if (val < 0 || val > 15)
-				return;
-			val *= 16;
-			if (**cc == 32 || **cc == 0)
-				break;
-			nc = _totupper (next_char (cc));
-			if (isspace (nc))
-				break;
-			if (isdigit(nc))
-				val += nc - '0';
-			else
-				val += nc - 'A' + 10;
-			if (val < 0 || val > 255)
-				return;
-			ss[sslen++] = (uae_u8)val;
 		}
 	}
 	if (sslen == 0)
@@ -5840,10 +6040,10 @@ static void searchmem (TCHAR **cc)
 	addr = 0xffffffff;
 	endaddr = lastaddr ();
 	if (more_params (cc)) {
-		addr = readhex (cc);
+		addr = readhex(cc, NULL);
 		addr--;
 		if (more_params(cc)) {
-			endaddr = readhex(cc);
+			endaddr = readhex(cc, NULL);
 		}
 	}
 	console_out_f (_T("Searching from %08X to %08X..\n"), addr + 1, endaddr);
@@ -5931,9 +6131,9 @@ static void debugtest_set (TCHAR **inptr)
 		console_out (_T("All debugtests disabled\n"));
 		return;
 	}
-	val = readint (inptr);
+	val = readint(inptr, NULL);
 	if (more_params (inptr)) {
-		val2 = readint (inptr);
+		val2 = readint(inptr, NULL);
 		if (val2 > 0)
 			val2 = 2;
 	}
@@ -5968,16 +6168,16 @@ static void debug_sprite (TCHAR **inptr)
 	int max = 2;
 
 	addr2 = 0;
-	ignore_ws (inptr);
-	addr = readhex (inptr);
-	ignore_ws (inptr);
+	ignore_ws(inptr);
+	addr = readhex(inptr, NULL);
+	ignore_ws(inptr);
 	if (more_params (inptr))
-		size = readhex (inptr);
+		size = readhex(inptr, NULL);
 	if (size != 1 && size != 2 && size != 4) {
 		addr2 = size;
-		ignore_ws (inptr);
-		if (more_params (inptr))
-			size = readint (inptr);
+		ignore_ws(inptr);
+		if (more_params(inptr))
+			size = readint(inptr, NULL);
 		if (size != 1 && size != 2 && size != 4)
 			size = 1;
 	}
@@ -6061,13 +6261,13 @@ static void debug_sprite (TCHAR **inptr)
 			for (x = 0; x < width; x++) {
 				int v1 = w1 & 1;
 				int v2 = w2 & 1;
-				int v = v1 * 2 + v2;
+				int v = v2 * 2 + v1;
 				w1 >>= 1;
 				w2 >>= 1;
 				if (addr2) {
 					int vv1 = ww1 & 1;
 					int vv2 = ww2 & 1;
-					int vv = vv1 * 2 + vv2;
+					int vv = vv2 * 2 + vv1;
 					ww1 >>= 1;
 					ww2 >>= 1;
 					v *= 4;
@@ -6158,7 +6358,7 @@ static void disk_debug (TCHAR **inptr)
 	if (**inptr == 'd') {
 		(*inptr)++;
 		ignore_ws (inptr);
-		disk_debug_logging = readint (inptr);
+		disk_debug_logging = readint(inptr, NULL);
 		console_out_f (_T("Disk logging level %d\n"), disk_debug_logging);
 		return;
 	}
@@ -6176,7 +6376,7 @@ static void disk_debug (TCHAR **inptr)
 			disk_debug_mode |= DISK_DEBUG_PIO;
 	}
 	if (more_params(inptr))
-		disk_debug_track = readint (inptr);
+		disk_debug_track = readint(inptr, NULL);
 	if (disk_debug_track < 0 || disk_debug_track > 2 * 83)
 		disk_debug_track = -1;
 	if (disk_debug_logging == 0)
@@ -6194,15 +6394,25 @@ static void find_ea (TCHAR **inptr)
 	uae_u32 ea, sea, dea;
 	uaecptr addr, end, end2;
 	int hits = 0;
+	bool err;
 
 	addr = 0xffffffff;
 	end = lastaddr ();
-	ea = readhex (inptr);
+	ea = readhex(inptr, &err);
+	if (err) {
+		return;
+	}
 	if (more_params(inptr)) {
-		addr = readhex (inptr);
+		addr = readhex(inptr, &err);
+		if (err) {
+			return;
+		}
 		addr--;
 		if (more_params(inptr)) {
-			end = readhex(inptr);
+			end = readhex(inptr, &err);
+			if (err) {
+				return;
+			}
 		}
 	}
 	console_out_f (_T("Searching from %08X to %08X\n"), addr + 1, end);
@@ -6246,7 +6456,7 @@ static void m68k_modify (TCHAR **inptr)
 		else
 			c2 = 99;
 	}
-	v = readhex (inptr);
+	v = readhex(inptr, NULL);
 	if (c1 == 'A' && c2 < 8)
 		regs.regs[8 + c2] = v;
 	else if (c1 == 'D' && c2 < 8)
@@ -6310,10 +6520,15 @@ static void dma_disasm(int frames, int vp, int hp, int frames_end, int vp_end, i
 			return;
 		TCHAR l1[16], l2[16], l3[16], l4[16];
 		if (get_record_dma_info(dr, hp, vp, l1, l2, l3, l4, NULL, NULL, NULL, NULL)) {
-			console_out_f(_T(" - %02X %s %s %s\n"), hp, l2, l3, l4);
+			TCHAR tmp[256];
+			_stprintf(tmp, _T(" - %02d %02X %s"), dr->ipl, hp, l2);
+			while (_tcslen(tmp) < 18) {
+				_tcscat(tmp, _T(" "));
+			}
+			console_out_f(_T("%s %s %s\n"), tmp, l3, l4);
 		}
 		hp++;
-		if (dr->end) {
+		if (dr->end || hp >= NR_DMA_REC_HPOS) {
 			hp = 0;
 			vp++;
 			if (vp >= maxvpos + 1) {
@@ -6336,6 +6551,7 @@ static bool ppcmode, asmmode;
 {
 	TCHAR cmd, *inptr;
 	uaecptr addr;
+	bool err;
 
 	inptr = input;
 
@@ -6383,9 +6599,9 @@ static bool ppcmode, asmmode;
 			if (*inptr == 'l') {
 				next_char (&inptr);
 				if (more_params (&inptr)) {
-					debug_illegal_mask = readhex (&inptr);
+					debug_illegal_mask = readhex(&inptr, NULL);
 					if (more_params(&inptr))
-						debug_illegal_mask |= ((uae_u64)readhex(&inptr)) << 32;
+						debug_illegal_mask |= ((uae_u64)readhex(&inptr, NULL)) << 32;
 				} else {
 					debug_illegal_mask = debug_illegal ? 0 : -1;
 					debug_illegal_mask &= ~((uae_u64)255 << 24); // mask interrupts
@@ -6395,7 +6611,7 @@ static bool ppcmode, asmmode;
 			} else {
 				addr = 0xffffffff;
 				if (more_params (&inptr))
-					addr = readhex (&inptr);
+					addr = readhex (&inptr, NULL);
 				dump_vectors (addr);
 			}
 			break;
@@ -6442,7 +6658,7 @@ static bool ppcmode, asmmode;
 					debugmem_list_segment(1, addr);
 				} else {
 					if (more_params(&inptr)) {
-						addr = readhex(&inptr);
+						addr = readhex(&inptr, NULL);
 					}
 					debugmem_list_segment(0, addr);
 				}
@@ -6467,7 +6683,10 @@ static bool ppcmode, asmmode;
 		case 'a':
 			asmaddr = nxdis;
 			if (more_params(&inptr)) {
-				asmaddr = readhex(&inptr);
+				asmaddr = readhex(&inptr, &err);
+				if (err) {
+					break;
+				}
 				if (more_params(&inptr)) {
 					uae_u16 asmout[16];
 					int inss = m68k_asm(inptr, asmout, asmaddr);
@@ -6493,7 +6712,7 @@ static bool ppcmode, asmmode;
 					inptr++;
 					inputdevice_logging = 1 | 2;
 					if (more_params (&inptr))
-						inputdevice_logging = readint (&inptr);
+						inputdevice_logging = readint(&inptr, NULL);
 					console_out_f (_T("Input logging level %d\n"), inputdevice_logging);
 				} else if (*inptr == 'm') {
 					memory_map_dump_2 (0);
@@ -6505,7 +6724,7 @@ static bool ppcmode, asmmode;
 					extern void update_disassembly (uae_u32);
 					next_char (&inptr);
 					if (more_params (&inptr))
-						update_disassembly (readhex (&inptr));
+						update_disassembly(readhex (&inptr, NULL));
 #endif
 				} else {
 					uae_u32 daddr;
@@ -6518,11 +6737,11 @@ static bool ppcmode, asmmode;
 						next_char(&inptr);
 					}
 					if (more_params (&inptr))
-						daddr = readhex (&inptr);
+						daddr = readhex(&inptr, NULL);
 					else
 						daddr = nxdis;
 					if (more_params (&inptr))
-						count = readhex (&inptr);
+						count = readhex(&inptr, NULL);
 					else
 						count = 10;
 					if (ppcmode) {
@@ -6586,7 +6805,7 @@ static bool ppcmode, asmmode;
 				return true;
 			} else {
 				if (more_params(&inptr))
-					trace_param[0] = readint(&inptr);
+					trace_param[0] = readint(&inptr, NULL);
 				if (trace_param[0] <= 0 || trace_param[0] > 10000)
 					trace_param[0] = 1;
 				trace_mode = TRACE_SKIP_INS;
@@ -6631,8 +6850,12 @@ static bool ppcmode, asmmode;
 
 		case 'g':
 			if (more_params (&inptr)) {
-				m68k_setpc (readhex (&inptr));
-				fill_prefetch ();
+				uaecptr addr = readhex(&inptr, &err);
+				if (err) {
+					break;
+				}
+				m68k_setpc(addr);
+				fill_prefetch();
 			}
 			deactivate_debugger();
 			return true;
@@ -6662,7 +6885,7 @@ static bool ppcmode, asmmode;
 				}
 
 				if (more_params(&inptr))
-					count = readint (&inptr);
+					count = readint(&inptr, NULL);
 				else
 					count = 10;
 				if (count > 1000) {
@@ -6673,7 +6896,7 @@ static bool ppcmode, asmmode;
 					break;
 				skip = count;
 				if (more_params (&inptr))
-					skip = count - readint (&inptr);
+					skip = count - readint(&inptr, NULL);
 
 				temp = lasthist;
 				while (count-- > 0 && temp != firsthist) {
@@ -6717,19 +6940,19 @@ static bool ppcmode, asmmode;
 				{
 				case 'a':
 					if (more_params (&inptr))
-						audio_channel_mask = readhex (&inptr);
+						audio_channel_mask = readhex(&inptr, NULL);
 					console_out_f (_T("Audio mask = %02X\n"), audio_channel_mask);
 					break;
 				case 's':
 					if (more_params (&inptr))
-						debug_sprite_mask = readhex (&inptr);
+						debug_sprite_mask = readhex(&inptr, NULL);
 					console_out_f (_T("Sprite mask: %02X\n"), debug_sprite_mask);
 					break;
 				case 'b':
-					if (more_params (&inptr)) {
-						debug_bpl_mask = readhex (&inptr) & 0xff;
-						if (more_params (&inptr))
-							debug_bpl_mask_one = readhex (&inptr) & 0xff;
+					if (more_params(&inptr)) {
+						debug_bpl_mask = readhex(&inptr, NULL) & 0xff;
+						if (more_params(&inptr))
+							debug_bpl_mask_one = readhex(&inptr, NULL) & 0xff;
 						notice_screen_contents_lost(0);
 					}
 					console_out_f (_T("Bitplane mask: %02X (%02X)\n"), debug_bpl_mask, debug_bpl_mask_one);
@@ -6745,8 +6968,12 @@ static bool ppcmode, asmmode;
 				if (*inptr == 'g') {
 					extern void update_memdump (uae_u32);
 					next_char (&inptr);
-					if (more_params (&inptr))
-						update_memdump (readhex (&inptr));
+					if (more_params(&inptr)) {
+						uaecptr addr = readhex(&inptr, &err);
+						if (!err) {
+							update_memdump(addr);
+						}
+					}
 					break;
 				}
 #endif
@@ -6758,7 +6985,7 @@ static bool ppcmode, asmmode;
 					} else {
 						if (currprefs.mmu_model) {
 							if (more_params (&inptr))
-								debug_mmu_mode = readint (&inptr);
+								debug_mmu_mode = readint(&inptr, NULL);
 							else
 								debug_mmu_mode = 0;
 							console_out_f (_T("MMU translation function code = %d\n"), debug_mmu_mode);
@@ -6766,16 +6993,19 @@ static bool ppcmode, asmmode;
 					}
 					break;
 				}
+				err = false;
 				if (more_params (&inptr)) {
-					maddr = readhex (&inptr);
+					maddr = readhex(&inptr, &err);
 				} else {
 					maddr = nxmem;
 				}
 				if (more_params (&inptr))
-					lines = readhex (&inptr);
+					lines = readhex(&inptr, &err);
 				else
 					lines = 20;
-				dumpmem (maddr, &nxmem, lines);
+				if (!err) {
+					dumpmem(maddr, &nxmem, lines);
+				}
 			}
 			break;
 		case 'v':
@@ -6790,7 +7020,7 @@ static bool ppcmode, asmmode;
 						debug_heatmap = 1;
 						init_heatmap();
 						if (more_params(&inptr)) {
-							v1 = readint(&inptr);
+							v1 = readint(&inptr, NULL);
 							if (v1 < 0) {
 								debug_heatmap = 2;
 							}
@@ -6820,7 +7050,7 @@ static bool ppcmode, asmmode;
 				} else if (*inptr == 'o') {
 					if (debug_dma) {
 						console_out_f (_T("DMA debugger disabled\n"), debug_dma);
-						record_dma_reset();
+						record_dma_reset(0);
 						reset_drawing();
 						debug_dma = 0;
 					}
@@ -6828,12 +7058,12 @@ static bool ppcmode, asmmode;
 					set_debug_colors();
 					inptr++;
 					if (more_params(&inptr)) {
-						v1 = readint(&inptr);
-						if (v1 >= 0 && v1 < DMARECORD_MAX) {
-							v2 = readint(&inptr);
-							if (v2 >= 0 && v2 <= DMARECORD_SUBITEMS) {
+						v1 = readint(&inptr, &err);
+						if (!err && v1 >= 0 && v1 < DMARECORD_MAX) {
+							v2 = readint(&inptr, &err);
+							if (!err && v2 >= 0 && v2 <= DMARECORD_SUBITEMS) {
 								if (more_params(&inptr)) {
-									uae_u32 rgb = readhex(&inptr);
+									uae_u32 rgb = readhex(&inptr, NULL);
 									if (v2 == 0) {
 										for (int i = 0; i < DMARECORD_SUBITEMS; i++) {
 											debug_colors[v1].l[i] = rgb;
@@ -6868,14 +7098,14 @@ static bool ppcmode, asmmode;
 							next_char(&inptr);
 						}
 						if (more_params (&inptr))
-							v1 = readint (&inptr);
+							v1 = readint (&inptr, NULL);
 						if (more_params (&inptr))
-							v2 = readint (&inptr);
+							v2 = readint (&inptr, NULL);
 						if (debug_dma && v1 >= 0 && v2 >= 0) {
 							decode_dma_record (v2, v1, cmd == 'v', nextcmd == 'l');
 						} else {
 							if (debug_dma) {
-								record_dma_reset();
+								record_dma_reset(0);
 								reset_drawing();
 							}
 							debug_dma = v1 < 0 ? -v1 : 1;
@@ -6922,7 +7152,7 @@ static bool ppcmode, asmmode;
 		case 'U':
 			if (currprefs.mmu_model && more_params (&inptr)) {
 				int i;
-				uaecptr addrl = readhex (&inptr);
+				uaecptr addrl = readhex(&inptr, NULL);
 				uaecptr addrp;
 				console_out_f (_T("%08X translates to:\n"), addrl);
 				for (i = 0; i < 4; i++) {
@@ -7129,7 +7359,7 @@ void debug (void)
 						}
 					}
 				}
-				if ((processptr || processname) && notinrom()) {
+				if ((processptr || processname) && !isrom(m68k_getpc())) {
 					uaecptr execbase = get_long_debug (4);
 					uaecptr activetask = get_long_debug (execbase + 276);
 					if(activetask) { // BARTO
@@ -7205,8 +7435,16 @@ void debug (void)
 				debug_continue();
 				return;
 			}
-			if (bp > 0)
+			if (bp > 0) {
+				if (bpnodes[bp - 1].cnt > 0) {
+					bpnodes[bp - 1].cnt--;
+				}
+				if (bpnodes[bp - 1].cnt > 0) {
+					debug_continue();
+					return;
+				}
 				console_out_f(_T("Breakpoint %d triggered.\n"), bp - 1);
+			}
 			debug_cycles(1);
 		}
 	} else {
@@ -7392,7 +7630,9 @@ void mmu_do_hit (void)
 	m68k_areg (regs, 7) -= 2;
 	put_word (m68k_areg (regs, 7), mmur.sr);
 #ifdef JIT
-	set_special(SPCFLAG_END_COMPILE);
+	if (currprefs.cachesize) {
+		set_special(SPCFLAG_END_COMPILE);
+	}
 #endif
 }
 

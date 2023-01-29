@@ -2453,6 +2453,14 @@ static void de_recycle_aino (Unit *unit, a_inode *aino)
 	unit->aino_cache_size--;
 }
 
+static void free_aino(a_inode *aino)
+{
+	xfree(aino->aname);
+	xfree(aino->comment);
+	xfree(aino->nname);
+	xfree(aino);
+}
+
 static void dispose_aino (Unit *unit, a_inode **aip, a_inode *aino)
 {
 	int hash = aino->uniq % MAX_AINO_HASH;
@@ -2470,10 +2478,7 @@ static void dispose_aino (Unit *unit, a_inode **aip, a_inode *aino)
 		isofs_dispose_inode (unit->ui.cdfs_superblock, aino->uniq_external);
 	}
 
-	xfree (aino->aname);
-	xfree (aino->comment);
-	xfree (aino->nname);
-	xfree (aino);
+	free_aino(aino);
 }
 
 static void free_all_ainos (Unit *u, a_inode *parent)
@@ -2768,13 +2773,25 @@ static TCHAR *get_nname (Unit *unit, a_inode *base, TCHAR *rel, TCHAR **modified
 
 	/* See if we have a file that has the same name as the aname we are
 	* looking for.  */
-	found = fsdb_search_dir (base->nname, rel);
-	if (found == 0)
+	TCHAR *relalt = NULL;
+	found = fsdb_search_dir (base->nname, rel, &relalt);
+	if (found == 0) {
 		return found;
-	if (found == rel)
-		return build_nname (base->nname, rel);
-
+	}
+	if (found == rel) {
+		if (relalt) {
+			TCHAR *v = build_nname(base->nname, relalt);
+			xfree(relalt);
+			return v;
+		}
+		return build_nname(base->nname, rel);
+	}
 	*modified_rel = found;
+	if (relalt) {
+		TCHAR *v = build_nname(base->nname, relalt);
+		xfree(relalt);
+		return v;
+	}
 	return build_nname (base->nname, found);
 }
 
@@ -2913,7 +2930,7 @@ static void init_child_aino (Unit *unit, a_inode *base, a_inode *aino)
 	aino_test (aino);
 }
 
-static a_inode *new_child_aino (Unit *unit, a_inode *base, TCHAR *rel)
+static a_inode *new_child_aino(Unit *unit, a_inode *base, TCHAR *rel)
 {
 	TCHAR *modified_rel;
 	TCHAR *nn;
@@ -2922,34 +2939,42 @@ static a_inode *new_child_aino (Unit *unit, a_inode *base, TCHAR *rel)
 
 	TRACE((_T("new_child_aino %s, %s\n"), base->aname, rel));
 
-	if (!isvirtual)
-		aino = fsdb_lookup_aino_aname (base, rel);
-	if (aino == 0) {
-		uae_u64 uniq_ext = 0;
-		nn = get_nname (unit, base, rel, &modified_rel, &uniq_ext);
-		if (nn == 0)
-			return 0;
+	if (!isvirtual) {
+		aino = fsdb_lookup_aino_aname(base, rel);
+	}
 
-		aino = xcalloc (a_inode, 1);
-		if (aino == 0)
+	if (aino == NULL) {
+		uae_u64 uniq_ext = 0;
+		nn = get_nname(unit, base, rel, &modified_rel, &uniq_ext);
+		if (nn == NULL) {
+			xfree(modified_rel);
 			return 0;
+		}
+
+		aino = xcalloc(a_inode, 1);
+		if (aino == 0) {
+			xfree(modified_rel);
+			return 0;
+		}
+
 		aino->uniq_external = uniq_ext;
-		aino->aname = modified_rel ? modified_rel : my_strdup (rel);
+		aino->aname = modified_rel ? modified_rel : my_strdup(rel);
 		aino->nname = nn;
 
 		aino->comment = 0;
 		aino->has_dbentry = 0;
 
-		if (!fill_file_attrs (unit, base, aino)) {
-			xfree (aino);
+		if (!fill_file_attrs(unit, base, aino)) {
+			free_aino(aino);
 			return 0;
 		}
-		if (aino->dir && !isvirtual)
-			fsdb_clean_dir (aino);
+		if (aino->dir && !isvirtual) {
+			fsdb_clean_dir(aino);
+		}
 	}
-	init_child_aino (unit, base, aino);
+	init_child_aino(unit, base, aino);
 
-	recycle_aino (unit, aino);
+	recycle_aino(unit, aino);
 	TRACE((_T("created aino %x, lookup, amigaos_mode %d\n"), aino->uniq, aino->amigaos_mode));
 	return aino;
 }
@@ -2962,7 +2987,7 @@ static a_inode *create_child_aino (Unit *unit, a_inode *base, TCHAR *rel, int is
 
 	aino->nname = create_nname (unit, base, rel);
 	if (!aino->nname) {
-		free (aino);
+		free_aino(aino);
 		return 0;
 	}
 	aino->aname = my_strdup (rel);
@@ -7438,6 +7463,17 @@ void filesys_free_handles (void)
 	}
 }
 
+static void free_shellexecute(void)
+{
+	shell_execute_data = 0;
+	shell_execute_process = 0;
+	shellexecute2_queued = 0;
+	for (int i = 0; i < SHELLEXEC_MAX; i++) {
+		struct ShellExecute2 *se2 = &shellexecute2[i];
+		shellexecute2_free(se2);
+	}
+}
+
 static void filesys_reset2 (void)
 {
 	Unit *u, *u1;
@@ -7461,14 +7497,7 @@ void filesys_reset (void)
 	load_injected_icons();
 	filesys_reset2 ();
 	initialize_mountinfo ();
-
-	shell_execute_data = 0;
-	shell_execute_process = 0;
-	shellexecute2_queued = 0;
-	for (int i = 0; i < SHELLEXEC_MAX; i++) {
-		struct ShellExecute2 *se2 = &shellexecute2[i];
-		shellexecute2_free(se2);
-	}
+	free_shellexecute();
 }
 
 static void filesys_prepare_reset2 (void)
@@ -9514,12 +9543,15 @@ void filesys_hsync() {
 
 void filesys_cleanup(void)
 {
+	filesys_prepare_reset();
+	filesys_reset2();
 	filesys_free_handles();
 	free_mountinfo();
 	destroy_comm_pipe(&shellexecute_pipe);
 	uae_sem_destroy(&singlethread_int_sem);
 	uae_sem_destroy(&shellexec_sem);
 	shell_execute_data = 0;
+	free_shellexecute();
 }
 
 void filesys_install (void)

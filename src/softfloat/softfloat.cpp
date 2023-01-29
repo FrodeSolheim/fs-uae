@@ -116,7 +116,8 @@ uae_s8 floatx80_internal_mode = float_round_nearest_even;
  *----------------------------------------------------------------------------*/
 floatx80 roundSaveFloatx80Internal( uae_s8 roundingPrecision, flag zSign, uae_s32 zExp, uae_u64 zSig0, uae_u64 zSig1, float_status *status )
 {
-    uae_s64 roundIncrement, roundMask, roundBits;
+    uae_s64 roundMask, roundBits;
+    uae_u64 roundIncrement;
     flag increment;
     
     if ( roundingPrecision == 80 ) {
@@ -227,7 +228,8 @@ static void saveFloat32Internal( flag zSign, uae_s16 zExp, uae_u32 zSig, float_s
 
 void getRoundedFloatInternal( uae_s8 roundingPrecision, flag *pzSign, uae_s32 *pzExp, uae_u64 *pzSig )
 {
-    uae_s64 roundIncrement, roundMask, roundBits;
+    uae_s64 roundMask, roundBits;
+    uae_u64 roundIncrement;
     flag increment;
 
     flag zSign = floatx80_internal_sign;
@@ -1349,7 +1351,8 @@ floatx80 roundAndPackFloatx80( uae_s8 roundingPrecision, flag zSign, uae_s32 zEx
 {
     uae_s8 roundingMode;
     flag roundNearestEven, increment;
-    uae_s64 roundIncrement, roundMask, roundBits;
+    uae_s64 roundMask, roundBits;
+    uae_u64 roundIncrement;
     uae_s32 expOffset;
     
     roundingMode = status->float_rounding_mode;
@@ -1502,7 +1505,8 @@ floatx80 roundSigAndPackFloatx80( uae_s8 roundingPrecision, flag zSign, uae_s32 
 {
     uae_s8 roundingMode;
     flag roundNearestEven, isTiny;
-    uae_s64 roundIncrement, roundMask, roundBits;
+    uae_s64 roundMask, roundBits;
+    uae_u64 roundIncrement;
     
     roundingMode = status->float_rounding_mode;
     roundNearestEven = ( roundingMode == float_round_nearest_even );

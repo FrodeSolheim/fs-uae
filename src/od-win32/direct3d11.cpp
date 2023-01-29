@@ -1357,7 +1357,7 @@ static bool psEffect_End(struct d3d11struct *d3d, struct shaderdata11 *s)
 static bool processshader(struct d3d11struct *d3d, struct shadertex *st, struct shaderdata11 *s, bool rendertarget)
 {
 	int uPasses, uPass, uIndex;
-	ID3D11RenderTargetView *lpRenderTarget;
+	ID3D11RenderTargetView *lpRenderTarget = NULL;
 	ID3D11RenderTargetView *lpNewRenderTarget;
 	struct shadertex *lpWorkTexture;
 
@@ -1391,8 +1391,9 @@ pass2:
 			psEffect_End(d3d, s);
 		}
 
-		if (lpRenderTarget)
+		if (lpRenderTarget) {
 			d3d->m_deviceContext->OMSetRenderTargets(1, &lpRenderTarget, NULL);
+		}
 		lpNewRenderTarget = NULL;
 
 		if (psEffect_hasPreProcess2(s) && lpWorkTexture == &s->lpWorkTexture1) {
@@ -1400,7 +1401,10 @@ pass2:
 			goto pass2;
 		}
 		
-		lpRenderTarget = NULL;
+		if (lpRenderTarget) {
+			lpRenderTarget->Release();
+			lpRenderTarget = NULL;
+		}
 	}
 
 	psEffect_SetMatrices(&d3d->m_matProj2, &d3d->m_matView2, &d3d->m_matWorld2, s);
@@ -1415,8 +1419,12 @@ pass2:
 	uPasses = 0;
 	if (psEffect_Begin(d3d, psEffect_Combine, &uPasses, &uIndex, s)) {
 		for (uPass = 0; uPass < uPasses; uPass++) {
-			if (!psEffect_BeginPass(d3d, s, uPass, uIndex))
-				return NULL;
+			if (!psEffect_BeginPass(d3d, s, uPass, uIndex)) {
+				if (lpRenderTarget) {
+					lpRenderTarget->Release();
+				}
+				return false;
+			}
 			d3d->m_deviceContext->DrawIndexed(6, 0, 0);
 			psEffect_EndPass(d3d, s);
 		}
@@ -1424,8 +1432,11 @@ pass2:
 	}
 
 	if (rendertarget) {
-
 		d3d->m_deviceContext->OMSetRenderTargets(1, &lpRenderTarget, NULL);
+	}
+
+	if (lpRenderTarget) {
+		lpRenderTarget->Release();
 	}
 
 	memcpy(st, &s->lpTempTexture, sizeof(struct shadertex));
@@ -1495,14 +1506,14 @@ static bool UpdateBuffers(struct d3d11struct *d3d)
 	positionY = (sh - bh) / 2 + d3d->yoffset;
 
 	// Calculate the screen coordinates of the left side of the bitmap.
-	left = (sw + 0.5f) / -2.0f;
+	left = sw / -2.0f;
 	left += positionX;
 
 	// Calculate the screen coordinates of the right side of the bitmap.
 	right = left + bw;
 
 	// Calculate the screen coordinates of the top of the bitmap.
-	top = (sh + 0.5f) / 2.0f;
+	top = sh / 2.0f;
 	top -= positionY;
 
 	// Calculate the screen coordinates of the bottom of the bitmap.
@@ -2123,7 +2134,7 @@ static bool allocshadertex(struct d3d11struct *d3d, struct shadertex *t, int w, 
 
 static bool allocextratextures(struct d3d11struct *d3d, struct shaderdata11 *s, int w, int h)
 {
-	int scnt = (int)(s - &d3d->shaders[0]);
+	int scnt = addrdiff(s, &d3d->shaders[0]);
 	if (!allocshadertex(d3d, &s->lpWorkTexture1, w, h, scnt))
 		return false;
 	if (!allocshadertex(d3d, &s->lpWorkTexture2, w, h, scnt))
@@ -3211,9 +3222,6 @@ int can_D3D11(bool checkdevice)
 
 	detected = true;
 
-	if (!os_win7)
-		return 0;
-
 	if (!hd3d11)
 		hd3d11 = LoadLibrary(_T("D3D11.dll"));
 	if (!hdxgi)
@@ -3285,6 +3293,7 @@ int can_D3D11(bool checkdevice)
 		HRESULT hr = pD3D11CreateDevice(NULL, currprefs.gfx_api_options == 0 ? D3D_DRIVER_TYPE_HARDWARE : D3D_DRIVER_TYPE_WARP,
 			NULL, cdflags, levels, 1, D3D11_SDK_VERSION, &m_device, NULL, &m_deviceContext);
 		if (FAILED(hr)) {
+			write_log(_T("D3D11 check failed. %08x\n"), hr);
 			return 0;
 		}
 		m_deviceContext->Release();
@@ -3403,13 +3412,13 @@ static int xxD3D11_init2(HWND ahwnd, int monid, int w_w, int w_h, int t_w, int t
 	IDXGIOutput *adapterOutput;
 	DXGI_ADAPTER_DESC1 adesc;
 	DXGI_OUTPUT_DESC odesc;
-	unsigned int numModes;
+	unsigned int numModes = 0;
 	DXGI_MODE_DESC1 *displayModeList;
 	DXGI_ADAPTER_DESC adapterDesc;
 
 	write_log(_T("D3D11 init start. (%d*%d) (%d*%d) RTG=%d Depth=%d.\n"), w_w, w_h, t_w, t_h, ad->picasso_on, depth);
 
-	d3d->filterd3didx = ad->picasso_on;
+	d3d->filterd3didx = ad->gf_index;
 	d3d->filterd3d = &currprefs.gf[d3d->filterd3didx];
 
 	d3d->delayedfs = 0;
@@ -3543,7 +3552,7 @@ static int xxD3D11_init2(HWND ahwnd, int monid, int w_w, int w_h, int t_w, int t
 			write_log(_T("IDXGIOutput QueryInterface %08x\n"), result);
 			return 0;
 		}
-		adapterOutputx = adapterOutput1;
+		adapterOutputx = std::move(adapterOutput1);
 	} else {
 		DXGI_OUTPUT_DESC1 desc1;
 		result = adapterOutput6->GetDesc1(&desc1);
@@ -3736,6 +3745,14 @@ static int xxD3D11_init2(HWND ahwnd, int monid, int w_w, int w_h, int t_w, int t
 	static const char cname[] = "context";
 	d3d->m_device->SetPrivateData(WKPDID_D3DDebugObjectName, sizeof(dname) - 1, dname);
 	d3d->m_deviceContext->SetPrivateData(WKPDID_D3DDebugObjectName, sizeof(cname) - 1, cname);
+	d3d->m_device->QueryInterface(IID_ID3D11InfoQueue, (void **)&d3d->m_debugInfoQueue);
+	if (0 && d3d->m_debugInfoQueue)
+	{
+		d3d->m_debugInfoQueue->SetBreakOnSeverity(D3D11_MESSAGE_SEVERITY_CORRUPTION, TRUE);
+		d3d->m_debugInfoQueue->SetBreakOnSeverity(D3D11_MESSAGE_SEVERITY_ERROR, TRUE);
+		d3d->m_debugInfoQueue->SetBreakOnSeverity(D3D11_MESSAGE_SEVERITY_WARNING, TRUE);
+	}
+	d3d->m_device->QueryInterface(IID_ID3D11Debug, (void **)&d3d->m_debug);
 #endif
 
 	write_log(_T("D3D11CreateDevice succeeded with level %d.%d. %s.\n"), outlevel >> 12, (outlevel >> 8) & 15,
@@ -3754,17 +3771,6 @@ static int xxD3D11_init2(HWND ahwnd, int monid, int w_w, int w_h, int t_w, int t
 		write_log(_T("Direct3D11: Retrying in 32-bit mode\n"), result);
 		return -1;
 	}
-
-#ifndef NDEBUG
-	d3d->m_device->QueryInterface(IID_ID3D11InfoQueue, (void**)&d3d->m_debugInfoQueue);
-	if (0 && d3d->m_debugInfoQueue)
-	{
-		d3d->m_debugInfoQueue->SetBreakOnSeverity(D3D11_MESSAGE_SEVERITY_CORRUPTION, TRUE);
-		d3d->m_debugInfoQueue->SetBreakOnSeverity(D3D11_MESSAGE_SEVERITY_ERROR, TRUE);
-		d3d->m_debugInfoQueue->SetBreakOnSeverity(D3D11_MESSAGE_SEVERITY_WARNING, TRUE);
-	}
-	d3d->m_device->QueryInterface(IID_ID3D11Debug, (void**)&d3d->m_debug);
-#endif
 
 	// Initialize the swap chain description.
 	ZeroMemory(&d3d->swapChainDesc, sizeof(d3d->swapChainDesc));

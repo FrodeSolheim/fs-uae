@@ -3672,6 +3672,7 @@ void expamem_reset (int hardreset)
 
 	chipdone = false;
 
+	expamem_init_clear();
 	allocate_expamem ();
 	expamem_bank.name = _T("Autoconfig [reset]");
 
@@ -4295,7 +4296,7 @@ static const struct expansionsubromtype supra_sub[] = {
 		{ 0xc1, 1, 0x00, 0x00, 0x04, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 },
 	},
 	{
-		_T("A2000 DMA"), _T("dma"), ROMTYPE_NONE | ROMTYPE_SUPRADMA,
+		_T("2000 DMA"), _T("dma"), ROMTYPE_NONE | ROMTYPE_SUPRA,
 		1056, 2, 0, false, EXPANSIONTYPE_DMA24,
 		{ 0xd1, 3, 0x00, 0x00, 0x04, 0x20, 0x00, 0x00, 0x00, 0x00, 0x40, 0x00 },
 	},
@@ -5419,6 +5420,13 @@ const struct expansionromtype expansionroms[] = {
 		NULL, 0,
 		true, EXPANSIONTYPE_SCSI | EXPANSIONTYPE_DMA24,
 		2017, 10, 0
+	},
+	{
+		_T("gvpa1208"), _T("GVP A1208"), _T("Great Valley Products"),
+		NULL, gvp_init_a1208, NULL, gvp_a1208_add_scsi_unit, ROMTYPE_GVPA1208 | ROMTYPE_NONE, ROMTYPE_GVPS2, 0, BOARD_AUTOCONFIG_Z2, false,
+		NULL, 0,
+		true, EXPANSIONTYPE_SCSI | EXPANSIONTYPE_DMA24,
+		2017, 9, 0
 	},
 	{
 		_T("dotto"), _T("Dotto"), _T("Hardital"),

@@ -184,7 +184,7 @@ static struct arcadiarom *is_arcadia (const TCHAR *xpath, int cnt)
 
 	_tcscpy (path, xpath);
 	p = path;
-	for (i = _tcslen (xpath) - 1; i > 0; i--) {
+	for (i = uaetcslen (xpath) - 1; i > 0; i--) {
 		if (path[i] == '\\' || path[i] == '/') {
 			path[i++] = 0;
 			p = path + i;
@@ -1124,7 +1124,7 @@ int touch_serial_write(void)
 			sprintf((char*)p, "%03d", y);
 			p += 3;
 			*p++ = 0x0d;
-			touch_write_buf_offset = p - touch_data_w;
+			touch_write_buf_offset = addrdiff(p, touch_data_w);
 
 			cubo_flag |= 0x40000000;
 		}

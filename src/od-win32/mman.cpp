@@ -29,6 +29,7 @@
 #define WIN32_NATMEM_TEST 0
 
 uae_u32 max_z3fastmem;
+uae_u32 max_physmem;
 
 /* BARRIER is used in case Amiga memory is access across memory banks,
  * for example move.l $1fffffff,d0 when $10000000-$1fffffff is mapped and
@@ -177,11 +178,8 @@ bool preinit_shm (void)
 #endif
 #if 1
 	if (os_64bit) {
-//#ifdef WIN64
-//		max_allowed_mman = 3072;
-//#else
-		max_allowed_mman = 2048;
-//#endif
+ 		// Higher than 2G to support G-REX PCI VRAM
+ 		max_allowed_mman = 2560;
 	}
 #endif
 	if (maxmem > max_allowed_mman)
@@ -259,8 +257,8 @@ bool preinit_shm (void)
 	natmem_size = WIN32_NATMEM_TEST * 1024 * 1024;
 #endif
 
-	if (natmem_size > 0x80000000) {
-		natmem_size = 0x80000000;
+	if (natmem_size > 0xc0000000) {
+		natmem_size = 0xc0000000;
 	}
 
 	write_log (_T("MMAN: Total physical RAM %llu MB, all RAM %llu MB\n"),
@@ -303,10 +301,6 @@ bool preinit_shm (void)
 		bool os_vista = (osVersion.dwMajorVersion == 6 &&
 						 osVersion.dwMinorVersion == 0);
 #endif
-#ifndef _WIN64
-		if (!os_vista)
-			vaflags |= MEM_TOP_DOWN;
-#endif
 #endif
 		for (;;) {
 #ifdef FSUAE
@@ -341,6 +335,7 @@ bool preinit_shm (void)
 	} else {
 		max_z3fastmem = natmem_size;
 	}
+	max_physmem = natmem_size;
 	write_log (_T("MMAN: Reserved %p-%p (0x%08x %dM)\n"),
 			   natmem_reserved, (uae_u8 *) natmem_reserved + natmem_reserved_size,
 			   natmem_reserved_size, natmem_reserved_size / (1024 * 1024));
@@ -714,7 +709,7 @@ void free_shm (void)
 {
 	resetmem (true);
 	clear_shm ();
-	for (int i = 0; i < MAX_RAM_BOARDS; i++) {
+	for (int i = 0; i < MAX_RTG_BOARDS; i++) {
 		ortgmem_type[i] = -1;
 	}
 }

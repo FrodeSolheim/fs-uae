@@ -19,7 +19,7 @@
 #include "xwin.h"
 
 #define UAEMAJOR 4
-#define UAEMINOR 9
+#define UAEMINOR 10
 #define UAESUBREV 1
 
 typedef enum { KBD_LANG_US, KBD_LANG_DK, KBD_LANG_DE, KBD_LANG_SE, KBD_LANG_FR, KBD_LANG_IT, KBD_LANG_ES } KbdLang;
@@ -165,6 +165,7 @@ struct floppyslot
 	int dfxtype;
 	int dfxsubtype;
 	TCHAR dfxsubtypeid[32];
+	TCHAR dfxprofile[32];
 	int dfxclick;
 	TCHAR dfxclickexternal[256];
 	bool forcedwriteprotect;
@@ -352,8 +353,13 @@ struct apmode
 #define MAX_LUA_STATES 16
 
 
+#define MAX_FILTERDATA 3
+#define GF_NORMAL 0
+#define GF_RTG 1
+#define GF_INTERLACE 2
 struct gfx_filterdata
 {
+	int enable;
 	int gfx_filter;
 	TCHAR gfx_filtershader[2 * MAX_FILTERSHADERS + 1][MAX_DPATH];
 	TCHAR gfx_filtermask[2 * MAX_FILTERSHADERS + 1][MAX_DPATH];
@@ -452,6 +458,7 @@ struct ramboard
 	bool readonly;
 	bool nodma;
 	bool force16bit;
+	bool chipramtiming;
 	struct boardloadfile lf;
 };
 struct expansion_params
@@ -586,7 +593,7 @@ struct uae_prefs {
 	int gfx_overscanmode;
 	int gfx_monitorblankdelay;
 
-	struct gfx_filterdata gf[2];
+	struct gfx_filterdata gf[3];
 
 	float rtg_horiz_zoom_mult;
 	float rtg_vert_zoom_mult;
@@ -603,6 +610,9 @@ struct uae_prefs {
 	int genlock_mix;
 	int genlock_scale;
 	int genlock_aspect;
+	int genlock_effects;
+	uae_u64 ecs_genlock_features_colorkey_mask[4];
+	uae_u8 ecs_genlock_features_plane_mask;
 	bool genlock_alpha;
 	TCHAR genlock_image_file[MAX_DPATH];
 	TCHAR genlock_video_file[MAX_DPATH];
@@ -679,7 +689,6 @@ struct uae_prefs {
 	int cs_mbdmac;
 	bool cs_cdtvcr;
 	bool cs_df0idhw;
-	bool cs_slowmemisfast;
 	bool cs_resetwarning;
 	bool cs_denisenoehb;
 	bool cs_dipagnus;
@@ -700,6 +709,7 @@ struct uae_prefs {
 	int cs_hvcsync;
 	int cs_eclockphase;
 	int cs_eclocksync;
+	bool cs_memorypatternfill;
 
 	struct boardromconfig expansionboard[MAX_EXPANSION_BOARDS];
 
@@ -926,7 +936,6 @@ extern void set_config_changed (void);
 
 /* Contains the filename of .uaerc */
 extern TCHAR optionsfile[];
-extern void save_options (struct zfile *, struct uae_prefs *, int);
 
 extern void cfgfile_write (struct zfile *, const TCHAR *option, const TCHAR *format,...);
 extern void cfgfile_dwrite (struct zfile *, const TCHAR *option, const TCHAR *format,...);
@@ -941,7 +950,6 @@ extern void cfgfile_target_dwrite_bool (struct zfile *f, const TCHAR *option, bo
 extern void cfgfile_write_str(struct zfile *f, const TCHAR *option, const TCHAR *value);
 extern void cfgfile_write_str_escape(struct zfile *f, const TCHAR *option, const TCHAR *value);
 extern void cfgfile_dwrite_str(struct zfile *f, const TCHAR *option, const TCHAR *value);
-extern void cfgfile_dwrite_str_escape(struct zfile *f, const TCHAR *option, const TCHAR *value);
 extern void cfgfile_target_write_str(struct zfile *f, const TCHAR *option, const TCHAR *value);
 extern void cfgfile_target_dwrite_str(struct zfile *f, const TCHAR *option, const TCHAR *value);
 extern void cfgfile_target_dwrite_str_escape(struct zfile *f, const TCHAR *option, const TCHAR *value);
@@ -971,7 +979,7 @@ extern TCHAR *cfgfile_option_get(const TCHAR *s, const TCHAR *option);
 extern TCHAR *cfgfile_subst_path(const TCHAR *path, const TCHAR *subst, const TCHAR *file);
 
 extern TCHAR *target_expand_environment (const TCHAR *path, TCHAR *out, int maxlen);
-extern int target_parse_option (struct uae_prefs *, const TCHAR *option, const TCHAR *value);
+extern int target_parse_option (struct uae_prefs *, const TCHAR *option, const TCHAR *value, int type);
 extern void target_save_options (struct zfile*, struct uae_prefs *);
 extern void target_default_options (struct uae_prefs *, int type);
 extern void target_fixup_options (struct uae_prefs *);

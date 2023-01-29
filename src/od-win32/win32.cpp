@@ -115,7 +115,7 @@ const static GUID GUID_DEVINTERFACE_MOUSE = { 0x378de44c, 0x56ef, 0x11d1,
 { 0xbc, 0x8c, 0x00, 0xa0, 0xc9, 0x14, 0x05, 0xdd } };
 
 extern int harddrive_dangerous, do_rdbdump;
-extern int no_rawinput, no_directinput, no_windowsmouse;
+extern int no_rawinput, no_directinput, no_windowsmouse, winekeyboard;
 extern int force_directsound;
 extern int log_a2065, a2065_promiscuous, log_ethernet;
 extern int rawinput_enabled_hid, rawinput_log;
@@ -150,9 +150,10 @@ int d3ddebug = 0;
 int max_uae_width;
 int max_uae_height;
 
+static HINSTANCE hRichEdit;
 HINSTANCE hInst = NULL;
 HMODULE hUIDLL = NULL;
-HWND (WINAPI *pHtmlHelp)(HWND, LPCWSTR, UINT, LPDWORD);
+
 HWND hHiddenWnd, hGUIWnd;
 #if KBHOOK
 static HHOOK hhook;
@@ -209,7 +210,6 @@ TCHAR start_path_exe[MAX_DPATH];
 TCHAR start_path_plugins[MAX_DPATH];
 TCHAR start_path_new1[MAX_DPATH]; /* AF2005 */
 TCHAR start_path_new2[MAX_DPATH]; /* AMIGAFOREVERDATA */
-TCHAR help_file[MAX_DPATH];
 TCHAR bootlogpath[MAX_DPATH];
 TCHAR logpath[MAX_DPATH];
 bool winuaelog_temporary_enable;
@@ -751,7 +751,6 @@ void setminimized(int monid)
 {
 	if (!minimized)
 		minimized = 1;
-	set_inhibit_frame(monid, IHF_WINDOWHIDDEN);
 	if (isfullscreen() > 0 && D3D_resize) {
 		write_log(_T("setminimized\n"));
 		D3D_resize(monid, -1);
@@ -765,7 +764,6 @@ void unsetminimized(int monid)
 	else if (minimized > 0)
 		full_redraw_all();
 	minimized = 0;
-	clear_inhibit_frame(monid, IHF_WINDOWHIDDEN);
 }
 
 void refreshtitle(void)
@@ -1198,7 +1196,7 @@ static void winuae_active(struct AmigaMonitor *mon, HWND hwnd, int minimized)
 #endif
 	clipboard_active(mon->hAmigaWnd, 1);
 #if USETHREADCHARACTERICS
-	if (os_vista && AVTask == NULL) {
+	if (AVTask == NULL) {
 		typedef HANDLE(WINAPI* AVSETMMTHREADCHARACTERISTICS)(LPCTSTR, LPDWORD);
 		DWORD taskIndex = 0;
 		AVSETMMTHREADCHARACTERISTICS pAvSetMmThreadCharacteristics =
@@ -1390,7 +1388,7 @@ void setmouseactivexy(int monid, int x, int y, int dir)
 	struct AmigaMonitor *mon = &AMonitors[monid];
 	int diff = 8;
 
-	if (isfullscreen () > 0)
+	if (isfullscreen() > 0)
 		return;
 	x += mon->amigawin_rect.left;
 	y += mon->amigawin_rect.top;
@@ -1406,16 +1404,16 @@ void setmouseactivexy(int monid, int x, int y, int dir)
 		x += (mon->amigawin_rect.right - mon->amigawin_rect.left) / 2;
 		y += (mon->amigawin_rect.bottom - mon->amigawin_rect.top) / 2;
 	}
-	if (isfullscreen () < 0) {
+	if (isfullscreen() < 0) {
 		POINT pt;
 		pt.x = x;
 		pt.y = y;
-		if (MonitorFromPoint (pt, MONITOR_DEFAULTTONULL) == NULL)
+		if (MonitorFromPoint(pt, MONITOR_DEFAULTTONULL) == NULL)
 			return;
 	}
 	if (mouseactive) {
-		disablecapture ();
-		SetCursorPos (x, y);
+		disablecapture();
+		SetCursorPos(x, y);
 		if (dir) {
 			recapture = 1;
 		}
@@ -2605,11 +2603,11 @@ static int canstretch(struct AmigaMonitor *mon)
 	if (!WIN32GFX_IsPicassoScreen(mon)) {
 		if (!currprefs.gfx_windowed_resize)
 			return 0;
-		if (currprefs.gf[APMODE_NATIVE].gfx_filter_autoscale == AUTOSCALE_RESIZE)
+		if (currprefs.gf[GF_NORMAL].gfx_filter_autoscale == AUTOSCALE_RESIZE)
 			return 0;
 		return 1;
 	} else {
-		if (currprefs.win32_rtgallowscaling || currprefs.gf[APMODE_RTG].gfx_filter_autoscale)
+		if (currprefs.win32_rtgallowscaling || currprefs.gf[GF_RTG].gfx_filter_autoscale)
 			return 1;
 	}
 	return 0;
@@ -2840,10 +2838,10 @@ static LRESULT CALLBACK MainWindowProc (HWND hWnd, UINT message, WPARAM wParam, 
 
 	case WM_NCLBUTTONDBLCLK:
 		if (wParam == HTCAPTION) {
-			if (GetKeyState (VK_SHIFT)) {
+			if (GetKeyState(VK_SHIFT) & 0x8000) {
 				toggle_fullscreen(0, 0);
 				return 0;
-			} else if (GetKeyState (VK_CONTROL)) {
+			} else if (GetKeyState(VK_CONTROL) & 0x8000) {
 				toggle_fullscreen(0, 2);
 				return 0;
 			}
@@ -3009,7 +3007,7 @@ static LRESULT CALLBACK HiddenWindowProc (HWND hWnd, UINT message, WPARAM wParam
 			inputdevice_add_inputcode (AKS_ENTERGUI, 1, NULL);
 			break;
 		case ID_ST_HELP:
-			HtmlHelp (NULL, help_file, 0, NULL);
+			HtmlHelp(NULL);
 			break;
 		case ID_ST_QUIT:
 			uae_quit ();
@@ -3268,37 +3266,14 @@ static int WIN32_RegisterClasses (void)
 	return 1;
 }
 
-static HINSTANCE hRichEdit = NULL, hHtmlHelp = NULL;
-
-int WIN32_CleanupLibraries (void)
+static int WIN32_CleanupLibraries(void)
 {
-	if (hRichEdit)
-		FreeLibrary (hRichEdit);
-
-	if (hHtmlHelp)
-		FreeLibrary (hHtmlHelp);
-
 	if (hUIDLL)
-		FreeLibrary (hUIDLL);
-	CoUninitialize ();
+		FreeLibrary(hUIDLL);
+	if (hRichEdit)
+		FreeLibrary(hRichEdit);
+	CoUninitialize();
 	return 1;
-}
-
-/* HtmlHelp Initialization - optional component */
-int WIN32_InitHtmlHelp (void)
-{
-	const TCHAR *chm = _T("WinUAE.chm");
-	int result = 0;
-	_stprintf(help_file, _T("%s%s"), start_path_data, chm);
-	if (!zfile_exists (help_file))
-		_stprintf(help_file, _T("%s%s"), start_path_exe, chm);
-	if (zfile_exists (help_file)) {
-		if (hHtmlHelp = LoadLibrary (_T("HHCTRL.OCX"))) {
-			pHtmlHelp = (HWND(WINAPI *)(HWND, LPCWSTR, UINT, LPDWORD))GetProcAddress (hHtmlHelp, "HtmlHelpW");
-			result = 1;
-		}
-	}
-	return result;
 }
 
 const struct winuae_lang langs[] =
@@ -3519,7 +3494,8 @@ static int WIN32_InitLibraries (void)
 	if (pSetCurrentProcessExplicitAppUserModelID)
 		pSetCurrentProcessExplicitAppUserModelID (WINUAEAPPNAME);
 
-	hRichEdit = LoadLibrary (_T("RICHED32.DLL"));
+	hRichEdit = LoadLibrary(_T("RICHED32.DLL"));
+
 	return 1;
 }
 
@@ -3625,7 +3601,7 @@ void logging_init (void)
 		SystemInfo.wProcessorArchitecture, SystemInfo.wProcessorLevel, SystemInfo.wProcessorRevision,
 		SystemInfo.dwNumberOfProcessors, filedate, os_touch);
 	write_log (_T("\n(c) 1995-2001 Bernd Schmidt   - Core UAE concept and implementation.")
-		_T("\n(c) 1998-2022 Toni Wilen      - Win32 port, core code updates.")
+		_T("\n(c) 1998-2023 Toni Wilen      - Win32 port, core code updates.")
 		_T("\n(c) 1996-2001 Brian King      - Win32 port, Picasso96 RTG, and GUI.")
 		_T("\n(c) 1996-1999 Mathias Ortmann - Win32 port and bsdsocket support.")
 		_T("\n(c) 2000-2001 Bernd Meyer     - JIT engine.")
@@ -4274,7 +4250,7 @@ void target_default_options (struct uae_prefs *p, int type)
 		p->win32_powersavedisabled = true;
 		p->sana2 = 0;
 		p->win32_rtgmatchdepth = 1;
-		p->gf[APMODE_RTG].gfx_filter_autoscale = RTG_MODE_SCALE;
+		p->gf[GF_RTG].gfx_filter_autoscale = RTG_MODE_SCALE;
 		p->win32_rtgallowscaling = 0;
 		p->win32_rtgscaleaspectratio = -1;
 		p->win32_rtgvblankrate = 0;
@@ -4286,13 +4262,13 @@ void target_default_options (struct uae_prefs *p, int type)
 		p->win32_commandpathstart[0] = 0;
 		p->win32_commandpathend[0] = 0;
 		p->win32_statusbar = 1;
-		p->gfx_api = os_win7 ? 2 : (os_vista ? 1 : 0);
+		p->gfx_api = 2;
 		if (p->gfx_api > 1)
 			p->color_mode = 5;
-		if (p->gf[APMODE_NATIVE].gfx_filter == 0)
-			p->gf[APMODE_NATIVE].gfx_filter = 1;
-		if (p->gf[APMODE_RTG].gfx_filter == 0)
-			p->gf[APMODE_RTG].gfx_filter = 1;
+		if (p->gf[GF_NORMAL].gfx_filter == 0)
+			p->gf[GF_NORMAL].gfx_filter = 1;
+		if (p->gf[GF_RTG].gfx_filter == 0)
+			p->gf[GF_RTG].gfx_filter = 1;
 		WIN32GUI_LoadUIString (IDS_INPUT_CUSTOM, buf, sizeof buf / sizeof (TCHAR));
 		for (int i = 0; i < GAMEPORT_INPUT_SETTINGS; i++)
 			_stprintf (p->input_config_name[i], buf, i + 1);
@@ -4385,8 +4361,8 @@ void target_save_options (struct zfile *f, struct uae_prefs *p)
 	cfgfile_target_dwrite_bool (f, _T("midirouter"), p->win32_midirouter);
 			
 	cfgfile_target_dwrite_bool (f, _T("rtg_match_depth"), p->win32_rtgmatchdepth);
-	cfgfile_target_dwrite_bool(f, _T("rtg_scale_small"), p->gf[1].gfx_filter_autoscale == 1);
-	cfgfile_target_dwrite_bool(f, _T("rtg_scale_center"), p->gf[1].gfx_filter_autoscale == 2);
+	cfgfile_target_dwrite_bool(f, _T("rtg_scale_small"), p->gf[GF_RTG].gfx_filter_autoscale == 1);
+	cfgfile_target_dwrite_bool(f, _T("rtg_scale_center"), p->gf[GF_RTG].gfx_filter_autoscale == 2);
 	cfgfile_target_dwrite_bool (f, _T("rtg_scale_allow"), p->win32_rtgallowscaling);
 	cfgfile_target_dwrite (f, _T("rtg_scale_aspect_ratio"), _T("%d:%d"),
 		p->win32_rtgscaleaspectratio >= 0 ? (p->win32_rtgscaleaspectratio / ASPECTMULT) : -1,
@@ -4493,13 +4469,37 @@ static const TCHAR *obsolete[] = {
 	_T("file_path"), _T("iconified_nospeed"), _T("activepriority"), _T("magic_mouse"),
 	_T("filesystem_codepage"), _T("aspi"), _T("no_overlay"), _T("soundcard_exclusive"),
 	_T("specialkey"), _T("sound_speed_tweak"), _T("sound_lag"),
-	0
+	NULL
 };
 
-int target_parse_option (struct uae_prefs *p, const TCHAR *option, const TCHAR *value)
+static int target_parse_option_hardware(struct uae_prefs *p, const TCHAR *option, const TCHAR *value)
 {
 	TCHAR tmpbuf[CONFIG_BLEN];
-	int i, v;
+
+	if (cfgfile_string(option, value, _T("rtg_vblank"), tmpbuf, sizeof tmpbuf / sizeof(TCHAR))) {
+		if (!_tcscmp(tmpbuf, _T("real"))) {
+			p->win32_rtgvblankrate = -1;
+			return 1;
+		}
+		if (!_tcscmp(tmpbuf, _T("disabled"))) {
+			p->win32_rtgvblankrate = -2;
+			return 1;
+		}
+		if (!_tcscmp(tmpbuf, _T("chipset"))) {
+			p->win32_rtgvblankrate = 0;
+			return 1;
+		}
+		p->win32_rtgvblankrate = _tstol(tmpbuf);
+		return 1;
+	}
+
+	return 0;
+}
+
+static int target_parse_option_host(struct uae_prefs *p, const TCHAR *option, const TCHAR *value)
+{
+	TCHAR tmpbuf[CONFIG_BLEN];
+	int v;
 	bool tbool;
 
 	if (cfgfile_yesno(option, value, _T("middle_mouse"), &tbool)) {
@@ -4539,12 +4539,12 @@ int target_parse_option (struct uae_prefs *p, const TCHAR *option, const TCHAR *
 		|| cfgfile_yesno(option, value, _T("always_on_top"), &p->win32_main_alwaysontop)
 		|| cfgfile_yesno(option, value, _T("gui_always_on_top"), &p->win32_gui_alwaysontop)
 		|| cfgfile_yesno(option, value, _T("powersavedisabled"), &p->win32_powersavedisabled)
-		|| cfgfile_string(option, value, _T("exec_before"), p->win32_commandpathstart, sizeof p->win32_commandpathstart / sizeof (TCHAR))
+		|| cfgfile_string(option, value, _T("exec_before"), p->win32_commandpathstart, sizeof p->win32_commandpathstart / sizeof(TCHAR))
 		|| cfgfile_string(option, value, _T("exec_after"), p->win32_commandpathend, sizeof p->win32_commandpathend / sizeof (TCHAR))
-		|| cfgfile_string(option, value, _T("parjoyport0"), p->win32_parjoyport0, sizeof p->win32_parjoyport0 / sizeof (TCHAR))
-		|| cfgfile_string(option, value, _T("parjoyport1"), p->win32_parjoyport1, sizeof p->win32_parjoyport1 / sizeof (TCHAR))
-		|| cfgfile_string(option, value, _T("gui_page"), p->win32_guipage, sizeof p->win32_guipage / sizeof (TCHAR))
-		|| cfgfile_string(option, value, _T("gui_active_page"), p->win32_guiactivepage, sizeof p->win32_guiactivepage / sizeof (TCHAR))
+		|| cfgfile_string(option, value, _T("parjoyport0"), p->win32_parjoyport0, sizeof p->win32_parjoyport0 / sizeof(TCHAR))
+		|| cfgfile_string(option, value, _T("parjoyport1"), p->win32_parjoyport1, sizeof p->win32_parjoyport1 / sizeof(TCHAR))
+		|| cfgfile_string(option, value, _T("gui_page"), p->win32_guipage, sizeof p->win32_guipage / sizeof(TCHAR))
+		|| cfgfile_string(option, value, _T("gui_active_page"), p->win32_guiactivepage, sizeof p->win32_guiactivepage / sizeof(TCHAR))
 		|| cfgfile_intval(option, value, _T("guikey"), &p->win32_guikey, 1)
 		|| cfgfile_intval(option, value, _T("kbledmode"), &p->win32_kbledmode, 1)
 		|| cfgfile_yesno(option, value, _T("filesystem_mangle_reserved_names"), &p->win32_filesystem_mangle_reserved_names)
@@ -4572,7 +4572,6 @@ int target_parse_option (struct uae_prefs *p, const TCHAR *option, const TCHAR *
 		|| cfgfile_intval(option, value, _T("screenshot_max_height"), &p->screenshot_max_height, 1)
 		|| cfgfile_intval(option, value, _T("screenshot_output_width_limit"), &p->screenshot_output_width, 1)
 		|| cfgfile_intval(option, value, _T("screenshot_output_height_limit"), &p->screenshot_output_height, 1))
-
 		return 1;
 
 	if (cfgfile_strval(option, value, _T("screenshot_mult_width"), &p->screenshot_xmult, configmult, 0))
@@ -4593,49 +4592,49 @@ int target_parse_option (struct uae_prefs *p, const TCHAR *option, const TCHAR *
 		return 1;
 	}
 
-	if (cfgfile_yesno (option, value, _T("rtg_match_depth"), &p->win32_rtgmatchdepth))
+	if (cfgfile_yesno(option, value, _T("rtg_match_depth"), &p->win32_rtgmatchdepth))
 		return 1;
-	if (cfgfile_yesno (option, value, _T("rtg_scale_small"), &tbool)) {
-		p->gf[1].gfx_filter_autoscale = tbool ? RTG_MODE_SCALE : 0;
+	if (cfgfile_yesno(option, value, _T("rtg_scale_small"), &tbool)) {
+		p->gf[GF_RTG].gfx_filter_autoscale = tbool ? RTG_MODE_SCALE : 0;
 		return 1;
 	}
-	if (cfgfile_yesno (option, value, _T("rtg_scale_center"), &tbool)) {
+	if (cfgfile_yesno(option, value, _T("rtg_scale_center"), &tbool)) {
 		if (tbool)
-			p->gf[1].gfx_filter_autoscale = RTG_MODE_CENTER;
+			p->gf[GF_RTG].gfx_filter_autoscale = RTG_MODE_CENTER;
 		return 1;
 	}
-	if (cfgfile_yesno (option, value, _T("rtg_scale_allow"), &p->win32_rtgallowscaling))
+	if (cfgfile_yesno(option, value, _T("rtg_scale_allow"), &p->win32_rtgallowscaling))
 		return 1;
 
-	if (cfgfile_intval (option, value, _T("soundcard"), &p->win32_soundcard, 1)) {
+	if (cfgfile_intval(option, value, _T("soundcard"), &p->win32_soundcard, 1)) {
 		if (p->win32_soundcard < 0 || p->win32_soundcard >= MAX_SOUND_DEVICES || sound_devices[p->win32_soundcard] == NULL)
 			p->win32_soundcard = 0;
 		return 1;
 	}
 
-	if (cfgfile_string (option, value, _T("soundcardname"), tmpbuf, sizeof tmpbuf / sizeof (TCHAR))) {
-		int i, num;
+	if (cfgfile_string(option, value, _T("soundcardname"), tmpbuf, sizeof tmpbuf / sizeof(TCHAR))) {
+		int num;
 
 		num = p->win32_soundcard;
 		p->win32_soundcard = -1;
-		for (i = 0; i < MAX_SOUND_DEVICES && sound_devices[i] ; i++) {
+		for (int i = 0; i < MAX_SOUND_DEVICES && sound_devices[i] ; i++) {
 			if (i < num)
 				continue;
-			if (!_tcscmp (sound_devices[i]->cfgname, tmpbuf)) {
+			if (!_tcscmp(sound_devices[i]->cfgname, tmpbuf)) {
 				p->win32_soundcard = i;
 				break;
 			}
 		}
 		if (p->win32_soundcard < 0) {
-			for (i = 0; i < MAX_SOUND_DEVICES && sound_devices[i]; i++) {
-				if (!_tcscmp (sound_devices[i]->cfgname, tmpbuf)) {
+			for (int i = 0; i < MAX_SOUND_DEVICES && sound_devices[i]; i++) {
+				if (!_tcscmp(sound_devices[i]->cfgname, tmpbuf)) {
 					p->win32_soundcard = i;
 					break;
 				}
 			}
 		}
 		if (p->win32_soundcard < 0) {
-			for (i = 0; i < MAX_SOUND_DEVICES && sound_devices[i]; i++) {
+			for (int i = 0; i < MAX_SOUND_DEVICES && sound_devices[i]; i++) {
 				if (!sound_devices[i]->prefix)
 					continue;
 				int prefixlen = uaetcslen(sound_devices[i]->prefix);
@@ -4654,22 +4653,22 @@ int target_parse_option (struct uae_prefs *p, const TCHAR *option, const TCHAR *
 			p->win32_soundcard = num;
 		return 1;
 	}
-	if (cfgfile_string (option, value, _T("samplersoundcardname"), tmpbuf, sizeof tmpbuf / sizeof (TCHAR))) {
-		int i, num;
+	if (cfgfile_string(option, value, _T("samplersoundcardname"), tmpbuf, sizeof tmpbuf / sizeof(TCHAR))) {
+		int num;
 
 		num = p->win32_samplersoundcard;
 		p->win32_samplersoundcard = -1;
-		for (i = 0; i < MAX_SOUND_DEVICES && record_devices[i]; i++) {
+		for (int i = 0; i < MAX_SOUND_DEVICES && record_devices[i]; i++) {
 			if (i < num)
 				continue;
-			if (!_tcscmp (record_devices[i]->cfgname, tmpbuf)) {
+			if (!_tcscmp(record_devices[i]->cfgname, tmpbuf)) {
 				p->win32_samplersoundcard = i;
 				break;
 			}
 		}
 		if (p->win32_samplersoundcard < 0) {
-			for (i = 0; i < MAX_SOUND_DEVICES && record_devices[i]; i++) {
-				if (!_tcscmp (record_devices[i]->cfgname, tmpbuf)) {
+			for (int i = 0; i < MAX_SOUND_DEVICES && record_devices[i]; i++) {
+				if (!_tcscmp(record_devices[i]->cfgname, tmpbuf)) {
 					p->win32_samplersoundcard = i;
 					break;
 				}
@@ -4678,32 +4677,15 @@ int target_parse_option (struct uae_prefs *p, const TCHAR *option, const TCHAR *
 		return 1;
 	}
 
-	if (cfgfile_string (option, value, _T("rtg_vblank"), tmpbuf, sizeof tmpbuf / sizeof (TCHAR))) {
-		if (!_tcscmp (tmpbuf, _T("real"))) {
-			p->win32_rtgvblankrate = -1;
-			return 1;
-		}
-		if (!_tcscmp (tmpbuf, _T("disabled"))) {
-			p->win32_rtgvblankrate = -2;
-			return 1;
-		}
-		if (!_tcscmp (tmpbuf, _T("chipset"))) {
-			p->win32_rtgvblankrate = 0;
-			return 1;
-		}
-		p->win32_rtgvblankrate = _tstol (tmpbuf);
-		return 1;
-	}
-
-	if (cfgfile_string (option, value, _T("rtg_scale_aspect_ratio"), tmpbuf, sizeof tmpbuf / sizeof (TCHAR))) {
+	if (cfgfile_string(option, value, _T("rtg_scale_aspect_ratio"), tmpbuf, sizeof tmpbuf / sizeof (TCHAR))) {
 		int v1, v2;
 		TCHAR *s;
 
 		p->win32_rtgscaleaspectratio = -1;
-		v1 = _tstol (tmpbuf);
-		s = _tcschr (tmpbuf, ':');
+		v1 = _tstol(tmpbuf);
+		s = _tcschr(tmpbuf, ':');
 		if (s) {
-			v2 = _tstol (s + 1);
+			v2 = _tstol(s + 1);
 			if (v1 < 0 || v2 < 0)
 				p->win32_rtgscaleaspectratio = -1;
 			else if (v1 == 0 || v2 == 0)
@@ -4714,17 +4696,17 @@ int target_parse_option (struct uae_prefs *p, const TCHAR *option, const TCHAR *
 		return 1;
 	}
 
-	if (cfgfile_strval (option, value, _T("uaescsimode"), &p->win32_uaescsimode, scsimode, 0)) {
+	if (cfgfile_strval(option, value, _T("uaescsimode"), &p->win32_uaescsimode, scsimode, 0)) {
 		// force SCSIEMU if pre 2.3 configuration
 		if (p->config_version < ((2 << 16) | (3 << 8)))
 			p->win32_uaescsimode = UAESCSI_CDEMU;
 		return 1;
 	}
 
-	if (cfgfile_strval (option, value, _T("statusbar"), &p->win32_statusbar, statusbarmode, 0))
+	if (cfgfile_strval(option, value, _T("statusbar"), &p->win32_statusbar, statusbarmode, 0))
 		return 1;
 
-	if (cfgfile_intval (option, value, _T("active_priority"), &v, 1) || cfgfile_intval (option, value, _T("activepriority"), &v, 1)) {
+	if (cfgfile_intval(option, value, _T("active_priority"), &v, 1) || cfgfile_intval (option, value, _T("activepriority"), &v, 1)) {
 		p->win32_active_capture_priority = fetchpri (v, 1);
 		p->win32_active_nocapture_pause = false;
 		p->win32_active_nocapture_nosound = false;
@@ -4741,26 +4723,26 @@ int target_parse_option (struct uae_prefs *p, const TCHAR *option, const TCHAR *
 	if (cfgfile_yesno(option, value, _T("active_capture_automatically"), &p->win32_capture_always))
 		return 1;
 
-	if (cfgfile_intval (option, value, _T("inactive_priority"), &v, 1)) {
+	if (cfgfile_intval(option, value, _T("inactive_priority"), &v, 1)) {
 		p->win32_inactive_priority = fetchpri (v, 1);
 		return 1;
 	}
-	if (cfgfile_intval (option, value, _T("iconified_priority"), &v, 1)) {
+	if (cfgfile_intval(option, value, _T("iconified_priority"), &v, 1)) {
 		p->win32_iconified_priority = fetchpri (v, 2);
 		return 1;
 	}
 	
-	if (cfgfile_yesno (option, value, _T("inactive_iconify"), &p->win32_minimize_inactive))
+	if (cfgfile_yesno(option, value, _T("inactive_iconify"), &p->win32_minimize_inactive))
 		return 1;
 
-	if (cfgfile_yesno (option, value, _T("start_iconified"), &p->win32_start_minimized))
+	if (cfgfile_yesno(option, value, _T("start_iconified"), &p->win32_start_minimized))
 		return 1;
 
-	if (cfgfile_yesno (option, value, _T("start_not_captured"), &p->win32_start_uncaptured))
+	if (cfgfile_yesno(option, value, _T("start_not_captured"), &p->win32_start_uncaptured))
 		return 1;
 
 	if (cfgfile_string_escape(option, value, _T("serial_port"), &p->sername[0], 256)) {
-		sernametodev (p->sername);
+		sernametodev(p->sername);
 		if (p->sername[0])
 			p->use_serial = 1;
 		else
@@ -4769,12 +4751,12 @@ int target_parse_option (struct uae_prefs *p, const TCHAR *option, const TCHAR *
 	}
 
 	if (cfgfile_string_escape(option, value, _T("parallel_port"), &p->prtname[0], 256)) {
-		if (!_tcscmp (p->prtname, _T("none")))
+		if (!_tcscmp(p->prtname, _T("none")))
 			p->prtname[0] = 0;
-		if (!_tcscmp (p->prtname, _T("default"))) {
+		if (!_tcscmp(p->prtname, _T("default"))) {
 			p->prtname[0] = 0;
 			DWORD size = 256;
-			GetDefaultPrinter (p->prtname, &size);
+			GetDefaultPrinter(p->prtname, &size);
 		}
 		return 1;
 	}
@@ -4800,15 +4782,29 @@ int target_parse_option (struct uae_prefs *p, const TCHAR *option, const TCHAR *
 		return 1;
 	}
 
-	i = 0;
+	return 0;
+}
+
+int target_parse_option(struct uae_prefs *p, const TCHAR *option, const TCHAR *value, int type)
+{
+	int v = 0;
+	if (type & CONFIG_TYPE_HARDWARE) {
+		v = target_parse_option_hardware(p, option, value);
+	} else if (type & CONFIG_TYPE_HOST) {
+		v = target_parse_option_host(p, option, value);
+	}
+	if (v) {
+		return v;
+	}
+	
+	int i = 0;
 	while (obsolete[i]) {
-		if (!strcasecmp (obsolete[i], option)) {
-			write_log (_T("obsolete config entry '%s'\n"), option);
+		if (!strcasecmp(obsolete[i], option)) {
+			write_log(_T("obsolete config entry '%s'\n"), option);
 			return 1;
 		}
 		i++;
 	}
-
 	return 0;
 }
 
@@ -5656,7 +5652,7 @@ static void WIN32_HandleRegistryStuff (void)
 	if (regexists (NULL, _T("SoundDriverMask"))) {
 		regqueryint (NULL, _T("SoundDriverMask"), &sounddrivermask);
 	} else {
-		sounddrivermask = 3;
+		sounddrivermask = 2;
 		regsetint (NULL, _T("SoundDriverMask"), sounddrivermask);
 	}
 
@@ -5829,7 +5825,7 @@ static int betamessage (void)
 	return 1;
 }
 
-int os_admin, os_64bit, os_win7, os_win8, os_win10, os_vista, cpu_number, os_touch;
+int os_admin, os_64bit, os_win7, os_win8, os_win10, cpu_number, os_touch;
 BOOL os_dwm_enabled;
 BOOL dpi_aware_v2;
 
@@ -5907,9 +5903,6 @@ static int osdetect (void)
 		pGetNativeSystemInfo (&SystemInfo);
 	osVersion.dwOSVersionInfoSize = sizeof (OSVERSIONINFO);
 	if (GetVersionEx (&osVersion)) {
-		if (osVersion.dwMajorVersion >= 6) {
-			os_vista = 1;
-		}
 		if (osVersion.dwMajorVersion >= 7 || (osVersion.dwMajorVersion == 6 && osVersion.dwMinorVersion >= 1)) {
 			os_win7 = 1;
 		}
@@ -5948,18 +5941,16 @@ static int osdetect (void)
 		}
 	}
 
-	if (os_vista) {
-		typedef HRESULT(CALLBACK* DWMISCOMPOSITIONENABLED)(BOOL*);
-		HMODULE dwmapihandle;
-		DWMISCOMPOSITIONENABLED pDwmIsCompositionEnabled;
-		dwmapihandle = LoadLibrary(_T("dwmapi.dll"));
-		if (dwmapihandle) {
-			pDwmIsCompositionEnabled = (DWMISCOMPOSITIONENABLED)GetProcAddress(dwmapihandle, "DwmIsCompositionEnabled");
-			if (pDwmIsCompositionEnabled) {
-				pDwmIsCompositionEnabled(&os_dwm_enabled);
-			}
-			FreeLibrary(dwmapihandle);
+	typedef HRESULT(CALLBACK* DWMISCOMPOSITIONENABLED)(BOOL*);
+	HMODULE dwmapihandle;
+	DWMISCOMPOSITIONENABLED pDwmIsCompositionEnabled;
+	dwmapihandle = LoadLibrary(_T("dwmapi.dll"));
+	if (dwmapihandle) {
+		pDwmIsCompositionEnabled = (DWMISCOMPOSITIONENABLED)GetProcAddress(dwmapihandle, "DwmIsCompositionEnabled");
+		if (pDwmIsCompositionEnabled) {
+			pDwmIsCompositionEnabled(&os_dwm_enabled);
 		}
+		FreeLibrary(dwmapihandle);
 	}
 
 	return 1;
@@ -6460,6 +6451,10 @@ static int parseargs(const TCHAR *argx, const TCHAR *np, const TCHAR *np2)
 		no_windowsmouse = 1;
 		return 1;
 	}
+	if (!_tcscmp(arg, _T("winekeyboard"))) {
+		winekeyboard = 1;
+		return 1;
+	}
 	if (!_tcscmp(arg, _T("rawhid"))) {
 		rawinput_enabled_hid = 1;
 		return 1;
@@ -6567,6 +6562,10 @@ static int parseargs(const TCHAR *argx, const TCHAR *np, const TCHAR *np2)
 	}
 	if (!_tcscmp(arg, _T("screenshotbmp"))) {
 		screenshotmode = 0;
+		return 1;
+	}
+	if (!_tcscmp(arg, _T("screenshotiff"))) {
+		screenshotmode = 2;
 		return 1;
 	}
 	if (!_tcscmp(arg, _T("psprintdebug"))) {
@@ -6681,6 +6680,15 @@ static int parseargs(const TCHAR *argx, const TCHAR *np, const TCHAR *np2)
 		nocrashdump = 1;
 		return 1;
 	}
+	if (!_tcscmp(arg, _T("rpprinter"))) {
+		rp_printer = 1;
+		return 1;
+	}
+	if (!_tcscmp(arg, _T("rpmodem"))) {
+		rp_modem = 1;
+		return 1;
+	}
+
 	if (!np)
 		return 0;
 
@@ -7078,13 +7086,8 @@ static int PASCAL WinMain2 (HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR
 	if (!osdetect ())
 		return 0;
 
-	if (os_vista) {
-		max_uae_width = 8192;
-		max_uae_height = 8192;
-	} else {
-		max_uae_width = 3072;
-		max_uae_height = 2048;
-	}
+	max_uae_width = 8192;
+	max_uae_height = 8192;
 
 	hInst = hInstance;
 	hMutex = CreateMutex (NULL, FALSE, _T("WinUAE Instantiated")); // To tell the installer we're running
@@ -7158,7 +7161,6 @@ static int PASCAL WinMain2 (HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR
 		}
 #endif
 		WIN32_InitLang ();
-		WIN32_InitHtmlHelp ();
 		unicode_init ();
 		can_D3D11(false);
 		if (betamessage ()) {
@@ -7468,7 +7470,9 @@ LONG WINAPI WIN32_ExceptionFilter (struct _EXCEPTION_POINTERS *pExceptionPointer
 					int got = 0;
 					uaecptr opc = m68k_getpc ();
 					void *ps = get_real_address (0);
-					m68k_dumpstate(NULL, 0xffffffff);
+					if (is_console_open()) {
+						m68k_dumpstate(NULL, 0xffffffff);
+					}
 					efix (&ctx->Eax, p, ps, &got);
 					efix (&ctx->Ebx, p, ps, &got);
 					efix (&ctx->Ecx, p, ps, &got);
@@ -7506,7 +7510,7 @@ LONG WINAPI WIN32_ExceptionFilter (struct _EXCEPTION_POINTERS *pExceptionPointer
 		FreeLibrary (hFaultRepDll );
 	}
 #endif
-	return lRet ;
+	return lRet;
 }
 
 #endif
@@ -7654,7 +7658,7 @@ static void systraymenu (HWND hwnd)
 	menu2 = GetSubMenu (menu, 0);
 	drvmenu = GetSubMenu (menu2, 1);
 	cdmenu = GetSubMenu (menu2, 2);
-	EnableMenuItem (menu2, ID_ST_HELP, pHtmlHelp ? MF_ENABLED : MF_GRAYED);
+	EnableMenuItem (menu2, ID_ST_HELP, MF_ENABLED);
 	i = 0;
 	while (drvs[i] >= 0) {
 		TCHAR s[MAX_DPATH];
@@ -7944,7 +7948,8 @@ void *uaenative_get_uaevar (void)
 #ifdef _WIN32
     uaevar.amigawnd = mon->hAmigaWnd;
 #endif
-    uaevar.z3offset = (uae_u32)get_real_address (z3fastmem_bank[0].start) - z3fastmem_bank[0].start;
+	// WARNING: not 64-bit safe!
+    uaevar.z3offset = (uae_u32)(uae_u64)get_real_address(z3fastmem_bank[0].start) - z3fastmem_bank[0].start;
     return &uaevar;
 }
 

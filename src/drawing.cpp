@@ -256,6 +256,7 @@ static int vblank_top_start, vblank_bottom_stop;
 static int hblank_left_start, hblank_right_stop;
 static int hblank_left_start_hard, hblank_right_stop_hard;
 static bool exthblank, extborder, exthblanken, exthblankon;
+static bool ehb_enable;
 
 static int linetoscr_x_adjust_pixbytes, linetoscr_x_adjust_pixels;
 static int thisframe_y_adjust;
@@ -284,6 +285,7 @@ static int hposblank;
 static bool ecs_genlock_features_active;
 static uae_u8 ecs_genlock_features_mask;
 static bool ecs_genlock_features_colorkey;
+static bool aga_genlock_features_zdclken;
 static int hsync_shift_hack;
 static bool sprite_smaller_than_64, sprite_smaller_than_64_inuse;
 static bool full_blank;
@@ -600,15 +602,17 @@ int get_vertical_visible_height(bool useoldsize)
 	if (interlace_seen && currprefs.gfx_vresolution > 0) {
 		h -= 1 << (currprefs.gfx_vresolution - 1);
 	}
-	bool hardwired = true;
-	if (ecs_agnus) {
-		hardwired = (new_beamcon0 & BEAMCON0_VARVBEN) == 0;
-	}
-	if (hardwired) {
-		get_vblanking_limits(&vbstrt, &vbstop, true);
-		int hh = vbstop - vbstrt;
-		if (h > hh) {
-			h = hh;
+	if (currprefs.gfx_overscanmode < OVERSCANMODE_ULTRA) {
+		bool hardwired = true;
+		if (ecs_agnus) {
+			hardwired = (new_beamcon0 & BEAMCON0_VARVBEN) == 0;
+		}
+		if (hardwired) {
+			get_vblanking_limits(&vbstrt, &vbstop, true);
+			int hh = vbstop - vbstrt;
+			if (h > hh) {
+				h = hh;
+			}
 		}
 	}
 	return h;
@@ -719,7 +723,8 @@ void get_custom_raw_limits(int *pw, int *ph, int *pdx, int *pdy)
 
 void check_custom_limits(void)
 {
-	struct gfx_filterdata *fd = &currprefs.gf[0];
+	struct amigadisplay *ad = &adisplays[0];
+	struct gfx_filterdata *fd = &currprefs.gf[ad->gf_index];
 	int vls = visible_left_start;
 	int vrs = visible_right_stop;
 	int vts = visible_top_start;
@@ -749,7 +754,8 @@ void check_custom_limits(void)
 
 void set_custom_limits (int w, int h, int dx, int dy, bool blank)
 {
-	struct gfx_filterdata *fd = &currprefs.gf[0];
+	struct amigadisplay *ad = &adisplays[0];
+	struct gfx_filterdata *fd = &currprefs.gf[ad->gf_index];
 	int vls = visible_left_start;
 	int vrs = visible_right_stop;
 	int vts = visible_top_start;
@@ -1445,6 +1451,67 @@ STATIC_INLINE uae_u32 merge_2pixel32 (uae_u32 p1, uae_u32 p2)
 	return v;
 }
 
+static bool get_genlock_very_rare_and_complex_case(uae_u8 v)
+{
+	if (ecs_genlock_features_colorkey) {
+		if (currprefs.genlock_effects) {
+			if (v < 64 && (currprefs.ecs_genlock_features_colorkey_mask[0] & (1LL << v))) {
+				return false;
+			}
+			if (v >= 64 && v < 128 && (currprefs.ecs_genlock_features_colorkey_mask[1] & (1LL << (v - 64)))) {
+				return false;
+			}
+			if (v >= 128 && v < 192 && (currprefs.ecs_genlock_features_colorkey_mask[2] & (1LL << (v - 128)))) {
+				return false;
+			}
+			if (v >= 192 && v < 256 && (currprefs.ecs_genlock_features_colorkey_mask[3] & (1LL << (v - 192)))) {
+				return false;
+			}
+		} else {
+			// color key match?
+			if (aga_mode) {
+				if (colors_for_drawing.color_regs_aga[v] & 0x80000000)
+					return false;
+			} else {
+				if (colors_for_drawing.color_regs_ecs[v] & 0x8000)
+					return false;
+			}
+		}
+	}
+	// plane mask match?
+	if (currprefs.genlock_effects) {
+		if (v & currprefs.ecs_genlock_features_plane_mask)
+			return false;
+	} else {
+		if (v & ecs_genlock_features_mask)
+			return false;
+	}
+	return true;
+}
+// false = transparent
+STATIC_INLINE bool get_genlock_transparency(uae_u8 v)
+{
+	if (!ecs_genlock_features_active) {
+		if (v == 0)
+			return false;
+		return true;
+	} else {
+		return get_genlock_very_rare_and_complex_case(v);
+	}
+}
+
+STATIC_INLINE bool get_genlock_transparency_border(void)
+{
+	if (!ecs_genlock_features_active) {
+		return false;
+	} else {
+		// border color with BRDNTRAN bit set = not transparent
+		if (ce_is_borderntrans(colors_for_drawing.extra))
+			return true;
+		return get_genlock_very_rare_and_complex_case(0);
+	}
+}
+
 STATIC_INLINE void fill_line_16 (uae_u8 *buf, int start, int stop, int blank)
 {
 	uae_u16 *b = (uae_u16 *)buf;
@@ -1486,7 +1553,7 @@ static void pfield_do_fill_line (int start, int stop, int blank)
 	case 4: fill_line_32 (xlinebuffer, start, stop, blank); break;
 	}
 	if (need_genlock_data) {
-		memset(xlinebuffer_genlock + start, 0, stop - start);
+		memset(xlinebuffer_genlock + start, get_genlock_transparency_border(), stop - start);
 	}
 }
 
@@ -1553,7 +1620,7 @@ static void fill_line_border(int lineno)
 		hposblank = 3;
 		fill_line2(lastpos, w);
 		if (need_genlock_data) {
-			memset(xlinebuffer_genlock + lastpos, 0, w);
+			memset(xlinebuffer_genlock + lastpos, get_genlock_transparency_border(), w);
 		}
 		hposblank = b;
 		return;
@@ -1564,7 +1631,7 @@ static void fill_line_border(int lineno)
 		hposblank = 3;
 		fill_line2(lastpos, w);
 		if (need_genlock_data) {
-			memset(xlinebuffer_genlock + lastpos, 0, w);
+			memset(xlinebuffer_genlock + lastpos, get_genlock_transparency_border(), w);
 		}
 		return;
 	}
@@ -1572,7 +1639,7 @@ static void fill_line_border(int lineno)
 	if (hblank_left <= lastpos && hblank_right >= endpos) {
 		fill_line2(lastpos, w);
 		if (need_genlock_data) {
-			memset(xlinebuffer_genlock + lastpos, 0, w);
+			memset(xlinebuffer_genlock + lastpos, get_genlock_transparency_border(), w);
 		}
 		return;
 	}
@@ -1684,38 +1751,6 @@ static uae_u8 render_sprites(int pos, int dualpf, uae_u8 apixel, int aga)
 	}
 
 	return 0;
-}
-
-static bool get_genlock_very_rare_and_complex_case(uae_u8 v)
-{
-	// border color without BRDNTRAN bit set = transparent
-	if (v == 0 && !ce_is_borderntrans(colors_for_drawing.extra))
-		return false;
-	if (ecs_genlock_features_colorkey) {
-		// color key match?
-		if (aga_mode) {
-			if (colors_for_drawing.color_regs_aga[v] & 0x80000000)
-				return false;
-		} else {
-			if (colors_for_drawing.color_regs_ecs[v] & 0x8000)
-				return false;
-		}
-	}
-	// plane mask match?
-	if (v & ecs_genlock_features_mask)
-		return false;
-	return true;
-}
-// false = transparent
-STATIC_INLINE bool get_genlock_transparency(uae_u8 v)
-{
-	if (!ecs_genlock_features_active) {
-		if (v == 0)
-			return false;
-		return true;
-	} else {
-		return get_genlock_very_rare_and_complex_case(v);
-	}
 }
 
 #include "linetoscr.cpp"
@@ -3254,7 +3289,7 @@ static void pfield_expand_dp_bplcon(void)
 	bplres = dp_for_drawing->bplres;
 	bplplanecnt = dp_for_drawing->nr_planes;
 	bplham = dp_for_drawing->ham_seen;
-	bplehb = dp_for_drawing->ehb_seen;
+	bplehb = dp_for_drawing->ehb_seen && ehb_enable;
 	if (ecs_denise) {
 		// Check for KillEHB bit in ECS/AGA
 		if (dp_for_drawing->bplcon2 & 0x0200) {
@@ -3311,16 +3346,22 @@ static void pfield_expand_dp_bplcon(void)
 		sprite_smaller_than_64_inuse = true;
 	sprite_smaller_than_64 = (dp_for_drawing->fmode & 0x0c) != 0x0c;
 #endif
-	ecs_genlock_features_active = ecs_denise && ((dp_for_drawing->bplcon2 & 0x0c00) || ce_is_borderntrans(colors_for_drawing.extra)) ? 1 : 0;
+ 	ecs_genlock_features_active = (ecs_denise && ((dp_for_drawing->bplcon2 & 0x0c00) || ce_is_borderntrans(colors_for_drawing.extra))) ||
+ 		(currprefs.genlock_effects ? 1 : 0) || (aga_mode && (dp_for_drawing->bplcon3 & 0x004) && (dp_for_drawing->bplcon0 & 1));
 	if (ecs_genlock_features_active) {
-		ecs_genlock_features_colorkey = false;
-		ecs_genlock_features_mask = 0;
-		if (dp_for_drawing->bplcon3 & 0x0800) {
+ 		ecs_genlock_features_colorkey = currprefs.ecs_genlock_features_colorkey_mask[0] || currprefs.ecs_genlock_features_colorkey_mask[1] ||
+ 			currprefs.ecs_genlock_features_colorkey_mask[2] || currprefs.ecs_genlock_features_colorkey_mask[3];
+ 		ecs_genlock_features_mask = currprefs.ecs_genlock_features_plane_mask;
+ 		aga_genlock_features_zdclken = false;
+ 		if (dp_for_drawing->bplcon2 & 0x0800) {
 			ecs_genlock_features_mask = 1 << ((dp_for_drawing->bplcon2 >> 12) & 7);
 		}
-		if (dp_for_drawing->bplcon3 & 0x0400) {
+		if (dp_for_drawing->bplcon2 & 0x0400) {
 			ecs_genlock_features_colorkey = true;
 		}
+ 		if ((dp_for_drawing->bplcon3 & 0x0004) && (dp_for_drawing->bplcon0 & 1)) {
+ 			aga_genlock_features_zdclken = true;
+ 		}
 	}
 
 	if (pfield_mode_changed)
@@ -3369,6 +3410,9 @@ static void pfield_expand_dp_bplconx (int regno, int v, int hp, int vp)
 		dp_for_drawing->bplcon0 |= v & (0x0800 | 0x0400 | 0x0080 | 0x0001);
 		dp_for_drawing->ham_seen = isham(v);
 		extblankcheck();
+		break;
+	case 0x201: // AGA EHB immediate change
+		ehb_enable = (v & 0x7010) == 0x6000;
 		break;
 	case 0x104: // BPLCON2
 		dp_for_drawing->bplcon2 = v;
@@ -3489,6 +3533,7 @@ static void do_color_changes(line_draw_func worker_border, line_draw_func worker
 		// used for OCS Denise blanking bug when not ECS Denise or AGA.
 		exthblank = false;
 	}
+	ehb_enable = true;
 	for (i = dip_for_drawing->first_color_change; i <= dip_for_drawing->last_color_change; i++) {
 		int regno = curr_color_changes[i].regno;
 		uae_u32 value = curr_color_changes[i].value;
@@ -3953,6 +3998,7 @@ static void center_image (void)
 #endif
 #endif
 	struct amigadisplay *ad = &adisplays[0];
+	struct gfx_filterdata *fd = &currprefs.gf[ad->gf_index];
 	struct vidbuf_description *vidinfo = &ad->gfxvidinfo;
 	int prev_x_adjust = visible_left_border;
 	int prev_y_adjust = thisframe_y_adjust;
@@ -3961,7 +4007,7 @@ static void center_image (void)
 	int ew = vidinfo->drawbuffer.extrawidth;
 	int maxdiw = max_diwlastword;
 
-	if (currprefs.gfx_overscanmode <= OVERSCANMODE_OVERSCAN && currprefs.gfx_xcenter && !currprefs.gf[0].gfx_filter_autoscale && max_diwstop > 0) {
+	if (currprefs.gfx_overscanmode <= OVERSCANMODE_OVERSCAN && currprefs.gfx_xcenter && !fd->gfx_filter_autoscale && max_diwstop > 0) {
 
 		if (max_diwstop - min_diwstart < w && currprefs.gfx_xcenter == 2)
 			/* Try to center. */
@@ -4020,7 +4066,7 @@ static void center_image (void)
 	max_drawn_amiga_line_tmp >>= linedbl;
 
 	thisframe_y_adjust = minfirstline;
-	if (currprefs.gfx_ycenter && !currprefs.gf[0].gfx_filter_autoscale) {
+	if (currprefs.gfx_ycenter && !fd->gfx_filter_autoscale) {
 
 		if (thisframe_first_drawn_line >= 0 && thisframe_last_drawn_line > thisframe_first_drawn_line) {
 
@@ -4154,54 +4200,47 @@ static void init_drawing_frame (void)
 					if (frame_res_cnt == 0) {
 						int m = frame_res_detected * 2 + frame_res_lace_detected;
 						struct wh *dst = currprefs.gfx_apmode[0].gfx_fullscreen ? &changed_prefs.gfx_monitor[0].gfx_size_fs : &changed_prefs.gfx_monitor[0].gfx_size_win;
-						while (m < 3 * 2) {
-							struct wh *src = currprefs.gfx_apmode[0].gfx_fullscreen ? &currprefs.gfx_monitor[0].gfx_size_fs_xtra[m] : &currprefs.gfx_monitor[0].gfx_size_win_xtra[m];
-							if (src->width > 0 && src->height > 0) {
-								int nr = m >> 1;
-								int nl = (m & 1) == 0 ? 0 : 1;
-								int nr_o = nr;
-								int nl_o = nl;
+						struct wh *src = currprefs.gfx_apmode[0].gfx_fullscreen ? &currprefs.gfx_monitor[0].gfx_size_fs_xtra[m] : &currprefs.gfx_monitor[0].gfx_size_win_xtra[m];
+						int nr = m >> 1;
+						int nl = (m & 1) == 0 ? 0 : 1;
+						int nr_o = nr;
+						int nl_o = nl;
 
-								if (currprefs.gfx_autoresolution >= 100 && nl == 0 && nr > 0) {
-									nl = 1;
-								}
+						if (currprefs.gfx_autoresolution >= 100 && nl == 0 && nr > 0) {
+							nl = 1;
+						}
+						if (currprefs.gfx_autoresolution_minh < 0) {
+							if (nr < nl)
+								nr = nl;
+						} else if (nr < currprefs.gfx_autoresolution_minh) {
+							nr = currprefs.gfx_autoresolution_minh;
+						}
+						if (currprefs.gfx_autoresolution_minv < 0) {
+							if (nl < nr)
+								nl = nr;
+						} else if (nl < currprefs.gfx_autoresolution_minv) {
+							nl = currprefs.gfx_autoresolution_minv;
+						}
 
-								if (currprefs.gfx_autoresolution_minh < 0) {
-									if (nr < nl)
-										nr = nl;
-								} else if (nr < currprefs.gfx_autoresolution_minh) {
-									nr = currprefs.gfx_autoresolution_minh;
-								}
-								if (currprefs.gfx_autoresolution_minv < 0) {
-									if (nl < nr)
-										nl = nr;
-								} else if (nl < currprefs.gfx_autoresolution_minv) {
-									nl = currprefs.gfx_autoresolution_minv;
-								}
+						if (nr > vidinfo->gfx_resolution_reserved)
+							nr = vidinfo->gfx_resolution_reserved;
+						if (nl > vidinfo->gfx_vresolution_reserved)
+							nl = vidinfo->gfx_vresolution_reserved;
 
-								if (nr > vidinfo->gfx_resolution_reserved)
-									nr = vidinfo->gfx_resolution_reserved;
-								if (nl > vidinfo->gfx_vresolution_reserved)
-									nl = vidinfo->gfx_vresolution_reserved;
+						if (changed_prefs.gfx_resolution != nr || changed_prefs.gfx_vresolution != nl) {
+							changed_prefs.gfx_resolution = nr;
+							changed_prefs.gfx_vresolution = nl;
 
-								if (changed_prefs.gfx_resolution != nr || changed_prefs.gfx_vresolution != nl) {
-									changed_prefs.gfx_resolution = nr;
-									changed_prefs.gfx_vresolution = nl;
-
-									write_log (_T("RES -> %d (%d) LINE -> %d (%d) (%d - %d, %d - %d)\n"), nr, nr_o, nl, nl_o,
-										currprefs.gfx_autoresolution_minh, currprefs.gfx_autoresolution_minv,
-										vidinfo->gfx_resolution_reserved, vidinfo->gfx_vresolution_reserved);
-									set_config_changed ();
-								}
-								if (src->width > 0 && src->height > 0) {
-									if (memcmp (dst, src, sizeof *dst)) {
-										*dst = *src;
-										set_config_changed ();
-									}
-								}
-								break;
+							write_log(_T("RES -> %d (%d) LINE -> %d (%d) (%d - %d, %d - %d)\n"), nr, nr_o, nl, nl_o,
+								currprefs.gfx_autoresolution_minh, currprefs.gfx_autoresolution_minv,
+								vidinfo->gfx_resolution_reserved, vidinfo->gfx_vresolution_reserved);
+							set_config_changed();
+						}
+						if (src->width > 0 && src->height > 0) {
+							if (memcmp(dst, src, sizeof(*dst))) {
+								*dst = *src;
+								set_config_changed();
 							}
-							m++;
 						}
 						frame_res_cnt = currprefs.gfx_autoresolution_delay;
 					}
@@ -4872,14 +4911,14 @@ static void finish_drawing_frame(bool drawlines)
 	}
 
 	// genlock
-	if (currprefs.genlock_image && currprefs.genlock && !currprefs.monitoremu && vidinfo->tempbuffer.bufmem_allocated) {
+	if (currprefs.genlock_image && (currprefs.genlock || currprefs.genlock_effects) && !currprefs.monitoremu && vidinfo->tempbuffer.bufmem_allocated) {
 		setspecialmonitorpos(&vidinfo->tempbuffer);
 		if (init_genlock_data != specialmonitor_need_genlock()) {
 			need_genlock_data = init_genlock_data = specialmonitor_need_genlock();
 			init_row_map();
 			pfield_set_linetoscr();
 		}
-		emulate_genlock(vb, &vidinfo->tempbuffer);
+		emulate_genlock(vb, &vidinfo->tempbuffer, aga_genlock_features_zdclken);
 		vb = vidinfo->outbuffer = &vidinfo->tempbuffer;
 		if (vb->nativepositioning)
 			setnativeposition(vb);
@@ -4945,10 +4984,13 @@ void check_prefs_picasso(void)
 		ad->picasso_requested_forced_on = false;
 		ad->picasso_on = ad->picasso_requested_on;
 
-		if (!ad->picasso_on)
+		if (!ad->picasso_on) {
 			clear_inhibit_frame(monid, IHF_PICASSO);
-		else
+			ad->gf_index = ad->interlace_on ? GF_INTERLACE : GF_NORMAL;
+		} else {
 			set_inhibit_frame(monid, IHF_PICASSO);
+			ad->gf_index = GF_RTG;
+		}
 
 		gfx_set_picasso_state(monid, ad->picasso_on);
 		picasso_enablescreen(monid, ad->picasso_requested_on);
@@ -5019,7 +5061,7 @@ bool vsync_handle_check (void)
 	return changed != 0;
 }
 
-void vsync_handle_redraw(int long_field, int lof_changed, uae_u16 bplcon0p, uae_u16 bplcon3p, bool drawlines)
+void vsync_handle_redraw(int long_field, int lof_changed, uae_u16 bplcon0p, uae_u16 bplcon3p, bool drawlines, bool initial)
 {
 #ifdef FSUAE
 #ifdef FSUAE_FRAME_DEBUG
@@ -5032,13 +5074,16 @@ void vsync_handle_redraw(int long_field, int lof_changed, uae_u16 bplcon0p, uae_
 	if (lof_changed || interlace_seen <= 0 || (currprefs.gfx_iscanlines && interlace_seen > 0) || last_redraw_point >= 2 || long_field || doublescan < 0) {
 		last_redraw_point = 0;
 
-		if (ad->framecnt == 0) {
-			finish_drawing_frame(drawlines);
+		if (!initial) {
+			if (ad->framecnt == 0) {
+				finish_drawing_frame(drawlines);
 #ifdef AVIOUTPUT
-			if (!ad->picasso_on) {
-				frame_drawn(monid);
-			}
+				if (!ad->picasso_on) {
+					frame_drawn(monid);
+				}
 #endif
+			}
+			count_frame(monid);
 		}
 #if 0
 		if (interlace_seen > 0) {
@@ -5066,7 +5111,6 @@ void vsync_handle_redraw(int long_field, int lof_changed, uae_u16 bplcon0p, uae_
 			return;
 		}
 
-		count_frame(monid);
 
 		if (ad->framecnt == 0) {
 			init_drawing_frame();
@@ -5199,13 +5243,17 @@ void notice_resolution_seen (int res, bool lace)
 		frame_res_lace = lace;
 }
 
-bool notice_interlace_seen (bool lace)
+bool notice_interlace_seen (int monid, bool lace)
 {
+	struct amigadisplay *ad = &adisplays[0];
 	bool changed = false;
+	bool interlace_on = false;
+
 	// non-lace to lace switch (non-lace active at least one frame)?
 	if (lace) {
 		if (interlace_seen == 0) {
 			changed = true;
+			interlace_on = true;
 			//write_log (_T("->lace PC=%x\n"), m68k_getpc ());
 		}
 		interlace_seen = currprefs.gfx_vresolution ? 1 : -1;
@@ -5216,6 +5264,30 @@ bool notice_interlace_seen (bool lace)
 		}
 		interlace_seen = 0;
 	}
+
+	if (changed) {
+		if (currprefs.gf[GF_INTERLACE].enable && memcmp(&currprefs.gf[GF_NORMAL], &currprefs.gf[GF_INTERLACE], sizeof(struct gfx_filterdata))) {
+			changed_prefs.gf[GF_NORMAL].changed = true;
+			changed_prefs.gf[GF_INTERLACE].changed = true;
+			if (ad->interlace_on != interlace_on) {
+				ad->interlace_on = interlace_on;
+				set_config_changed();
+			}
+		} else {
+			ad->interlace_on = false;
+		}
+	}
+
+	if (!ad->picasso_on) {
+		if (ad->interlace_on) {
+			ad->gf_index = GF_INTERLACE;
+		} else {
+			ad->gf_index = GF_NORMAL;
+		}
+	} else {
+		ad->gf_index = GF_RTG;
+	}
+
 	return changed;
 }
 
@@ -5259,6 +5331,7 @@ void reset_drawing(void)
 	exthblankon = false;
 	extborder = false;
 	display_reset = 1;
+	ehb_enable = true;
 
 	lores_reset ();
 
@@ -5295,6 +5368,9 @@ void reset_drawing(void)
 	ad->specialmonitoron = false;
 	bplcolorburst_field = 1;
 	hsync_shift_hack = 0;
+	ecs_genlock_features_active = false;
+	aga_genlock_features_zdclken = false;
+	ecs_genlock_features_colorkey = false;
 }
 
 static void gen_direct_drawing_table(void)
@@ -5325,6 +5401,7 @@ void drawing_init (void)
 	if (!isrestore ()) {
 		ad->picasso_on = 0;
 		ad->picasso_requested_on = 0;
+		ad->gf_index = GF_NORMAL;
 		gfx_set_picasso_state(0, 0);
 	}
 #endif

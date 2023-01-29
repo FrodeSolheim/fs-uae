@@ -422,7 +422,7 @@ static void to_iff_ilbm(TrapContext *ctx, HBITMAP hbmp)
 		for (y = 0; y < h; y++) {
 			uae_u8 *s = (uae_u8*)(((uae_u8*)bmp.bmBits) + y * bmpw);
 			int b;
-			for (b = 0; b < 8; b++) {
+			for (b = 0; b < iffbpp; b++) {
 				int mask2 = 1 << b;
 				for (x = 0; x < w; x++) {
 					int off = x / 8;
@@ -454,7 +454,7 @@ static void to_iff_ilbm(TrapContext *ctx, HBITMAP hbmp)
 		}
 	}
 
-	tsize = (int)(p - iff - 8);
+	tsize = addrdiff(p, iff) - 8;
 	p = iff + 4;
 	p[0] = tsize >> 24;
 	p[1] = tsize >> 16;
@@ -608,8 +608,10 @@ static void from_iff_ilbm(uae_u8 *saddr, uae_u32 len)
 			bmpw = (w * (bmpdepth / 8) + 3) & ~3;
 
 			bmsize = sizeof (BITMAPINFO);
-			if (bmpdepth <= 8)
-				bmsize += (1 << planes) * sizeof (RGBQUAD);
+			if (bmpdepth <= 8) {
+				int psize = (1 << planes);
+				bmsize += psize * sizeof (RGBQUAD);
+			}
 			bmih = (BITMAPINFO*)xcalloc (uae_u8, bmsize);
 			bmih->bmiHeader.biSize = sizeof (bmih->bmiHeader);
 			bmih->bmiHeader.biWidth = w;

@@ -40,17 +40,17 @@ typedef wchar_t * LPCWSTR;
 #define GETBDM(x) (((x) - ((x / 10000) * 10000)) / 100)
 #define GETBDD(x) ((x) % 100)
 
-#define WINUAEPUBLICBETA 0 // BARTO
+#define WINUAEPUBLICBETA 0
 #define LANG_DLL 1
-#define LANG_DLL_FULL_VERSION_MATCH 0
+#define LANG_DLL_FULL_VERSION_MATCH 1
 
 #if WINUAEPUBLICBETA
-#define WINUAEBETA _T("Beta 0")
+#define WINUAEBETA _T("")
 #else
 #define WINUAEBETA _T("")
 #endif
 
-#define WINUAEDATE MAKEBD(2022, 2, 2)
+#define WINUAEDATE MAKEBD(2023, 1, 23)
 
 //#define WINUAEEXTRA _T("AmiKit Preview")
 //#define WINUAEEXTRA _T("Amiga Forever Edition")
@@ -82,9 +82,7 @@ extern int getcapslock (void);
 
 void releasecapture (struct AmigaMonitor*);
 int WIN32_RegisterClasses (void);
-int WIN32_InitHtmlHelp (void);
 int WIN32_InitLibraries (void);
-int WIN32_CleanupLibraries (void);
 void WIN32_HandleRegistryStuff (void);
 extern void setup_brkhandler (void);
 extern void remove_brkhandler (void);
@@ -116,7 +114,7 @@ extern int pause_emulation;
 extern int sound_available;
 extern TCHAR VersionStr[256];
 extern TCHAR BetaStr[64];
-extern int os_admin, os_64bit, os_vista, os_win7, os_win8, os_win10, cpu_number, os_touch;
+extern int os_admin, os_64bit, os_win8, os_win10, cpu_number, os_touch;
 extern BOOL os_dwm_enabled, dpi_aware_v2;
 extern OSVERSIONINFO osVersion;
 extern int paraport_mask;
@@ -251,8 +249,6 @@ void associate_file_extensions (void);
 #define PATHPREFIX _T("\\\\?\\")
 DWORD GetFileAttributesSafe (const TCHAR *name);
 BOOL SetFileAttributesSafe (const TCHAR *name, DWORD attr);
-
-void HtmlHelp(HWND a, LPCWSTR b, UINT c, const TCHAR *d);
 
 #ifdef FSUAE
 #else

@@ -33,9 +33,9 @@ extern frame_time_t vsynctimebase, syncbase;
 extern void reset_frame_rate_hack(void);
 extern evt_t vsync_cycles;
 extern evt_t start_cycles;
-extern int event2_count;
 extern bool event_wait;
 
+extern void event_init(void);
 extern void compute_vsynctime(void);
 extern void init_eventtab(void);
 extern void do_cycles_ce(int cycles);
@@ -55,27 +55,28 @@ typedef void (*evfunc2)(uae_u32);
 
 struct ev
 {
-    bool active;
+	bool active;
 	evt_t evtime, oldcycles;
-    evfunc handler;
+	evfunc handler;
 };
 
 struct ev2
 {
-    bool active;
+	bool active;
 	evt_t evtime;
-    uae_u32 data;
-    evfunc2 handler;
+	uae_u32 data;
+	evfunc2 handler;
+	ev2 *next;
 };
 
 enum {
-    ev_cia, ev_audio, ev_misc, ev_hsync, ev_hsynch,
-    ev_max
+	ev_cia, ev_audio, ev_misc, ev_hsync, ev_hsynch,
+	ev_max
 };
 
 enum {
-    ev2_blitter, ev2_disk, ev2_misc,
-    ev2_max = 12
+	ev2_blitter, ev2_disk, ev2_misc,
+	ev2_max = 12
 };
 
 extern int pissoff_value;
@@ -148,6 +149,7 @@ STATIC_INLINE bool cycles_in_range(evt_t endcycles)
 extern void MISC_handler(void);
 extern void event2_newevent_xx(int no, evt_t t, uae_u32 data, evfunc2 func);
 extern void event2_newevent_x_replace(evt_t t, uae_u32 data, evfunc2 func);
+extern void event2_newevent_x_replace_exists(evt_t t, uae_u32 data, evfunc2 func);
 
 STATIC_INLINE void event2_newevent_x(int no, evt_t t, uae_u32 data, evfunc2 func)
 {

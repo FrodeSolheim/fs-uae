@@ -53,7 +53,7 @@ static frame_time_t lastcycle;
 static uae_u32 cycleoffset;
 
 static uae_u32 pcs[16];
-static uae_u32 pcs2[16];
+static uae_u64 pcs2[16];
 extern void activate_debugger (void);
 static int warned;
 
@@ -135,7 +135,7 @@ static void inprec_rend (void)
 {
 	if (!input_record || !inprec_zf)
 		return;
-	int size = inprec_p - inprec_plast;
+	int size = addrdiff(inprec_p, inprec_plast);
 	inprec_plast[1] = size >> 8;
 	inprec_plast[2] = size >> 0;
 	flush ();
@@ -150,7 +150,7 @@ static bool inprec_realtime (bool stopstart)
 	write_log (_T("INPREC: play -> record\n"));
 	input_record = INPREC_RECORD_RERECORD;
 	input_play = 0;
-	int offset = inprec_p - inprec_buffer;
+	int offset = addrdiff(inprec_p, inprec_buffer);
 	zfile_fseek (inprec_zf, offset, SEEK_SET);
 	zfile_truncate (inprec_zf, offset);
 	xfree (inprec_buffer);
@@ -236,7 +236,7 @@ static int inprec_pstart (uae_u8 type)
 				if (warned > 0) {
 					warned--;
 					for (int i = 0; i < 7; i++)
-						write_log (_T("%08x (%08x) "), pcs[i], pcs2[i]);
+						write_log (_T("%08x (%016llx) "), pcs[i], pcs2[i]);
 					write_log (_T("\n"));
 				}
 				cycleoffset = (uae_u32)(cycles - cycles2);
@@ -401,7 +401,7 @@ int inprec_open (const TCHAR *fname, const TCHAR *statefilename)
 		i = inprec_pu32 ();
 		while (i-- > 0)
 			inprec_pu8 ();
-		header_end = inprec_plastptr - inprec_buffer;
+		header_end = addrdiff(inprec_plastptr, inprec_buffer);
 		inprec_pstr (savestate_fname);
 		if (savestate_fname[0]) {
 			savestate_state = STATE_RESTORE;
@@ -445,7 +445,7 @@ int inprec_open (const TCHAR *fname, const TCHAR *statefilename)
 			}
 		}
 		inprec_p = inprec_plastptr;
-		header_end2 = inprec_plastptr - inprec_buffer;
+		header_end2 = addrdiff(inprec_plastptr,  inprec_buffer);
 		findlast ();
 	} else if (input_record) {
 		seed = uaesrand (seed);
@@ -644,10 +644,10 @@ void inprec_playdebug_cpu (int mode)
 			}
 			err = 1;
 		} else {
-			memmove (pcs + 1, pcs, 15 * 4);
+			memmove(pcs + 1, pcs, 15 * sizeof(uae_u32));
 			pcs[0] = pc1;
-			memmove (pcs2 + 1, pcs2, 15 * 4);
-			pcs2[0] = get_cycles ();
+			memmove(pcs2 + 1, pcs2, 15 * sizeof(uae_u64));
+			pcs2[0] = get_cycles();
 		}
 		if (v1 != v2) {
 			if (warned > 0) {
@@ -749,7 +749,7 @@ int inprec_getposition (void)
 {
 	int pos = -1;
 	if (input_play == INPREC_PLAY_RERECORD) {
-		pos = inprec_p - inprec_buffer;
+		pos = addrdiff(inprec_p, inprec_buffer);
 	} else if (input_record) {
 		pos = zfile_ftell32(inprec_zf);
 	}
@@ -871,7 +871,7 @@ static int savedisk (const TCHAR *path, const TCHAR *file, uae_u8 *data, uae_u8 
 			char *fn = uutf8 (filename);
 			strcpy ((char*)outdata + 2, fn);
 			xfree (fn);
-			len = 2 + strlen ((char*)outdata + 2) + 1;
+			len = 2 + uaestrlen((char*)outdata + 2) + 1;
 		}
 	}
 	xfree (fname);

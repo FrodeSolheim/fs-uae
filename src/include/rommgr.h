@@ -5,7 +5,7 @@
 #include "uae/types.h"
 #endif
 
-#define MAX_ROMMGR_ROMS 300
+#define MAX_ROMMGR_ROMS 310
 
 extern int decode_cloanto_rom_do(uae_u8 *mem, int size, int real_size);
 
@@ -209,6 +209,7 @@ extern int decode_cloanto_rom_do(uae_u8 *mem, int size, int real_size);
 #define ROMTYPE_HD20A		0x0010008b
 #define ROMTYPE_DEVHD		0x0010008c
 #define ROMTYPE_CSMK1SCSI	0x0010008d
+#define ROMTYPE_GVPA1208	0x0010008e
 
 #define ROMTYPE_NOT			0x00800000
 #define ROMTYPE_QUAD		0x01000000

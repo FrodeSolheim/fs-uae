@@ -64,13 +64,17 @@ extern int fpp_movem_next[256];
 
 extern int hardware_bus_error;
 
-typedef uae_u32 REGPARAM3 cpuop_func (uae_u32) REGPARAM;
-typedef void REGPARAM3 cpuop_func_ce (uae_u32) REGPARAM;
+typedef uae_u32 REGPARAM3 cpuop_func(uae_u32) REGPARAM;
+typedef void REGPARAM3 cpuop_func_noret(uae_u32) REGPARAM;
 
 struct cputbl {
 	cpuop_func *handler_ff;
 #ifdef NOFLAGS_SUPPORT_GENCPU
-	cpuop_func *handler_nf;
+	cpuop_func_ret *handler_nf;
+#endif
+	cpuop_func_noret *handler_ff_noret;
+#ifdef NOFLAGS_SUPPORT_GENCPU
+	cpuop_func_ret *handler_nf_noret;
 #endif
 	uae_u16 opcode;
 	uae_s8 length;
@@ -103,8 +107,9 @@ struct comptbl {
 
 extern cpuop_func *loop_mode_table[];
 
-extern uae_u32 REGPARAM3 op_illg (uae_u32) REGPARAM;
-extern void REGPARAM3 op_unimpl (uae_u32) REGPARAM;
+extern uae_u32 REGPARAM3 op_illg(uae_u32) REGPARAM;
+extern void REGPARAM3 op_illg_noret(uae_u32) REGPARAM;
+extern void REGPARAM3 op_unimpl(uae_u32) REGPARAM;
 
 typedef uae_u8 flagtype;
 
@@ -214,15 +219,16 @@ struct regstruct
 	int halted;
 	int exception;
 	int intmask;
-	int ipl[2], ipl_pin;
+	int ipl[2], ipl_pin, ipl_pin_p;
+	evt_t ipl_pin_change_evt, ipl_pin_change_evt_p;
+	evt_t ipl_evt, ipl_evt_pre;
+	int ipl_evt_pre_mode;
 
 	uae_u32 vbr, sfc, dfc;
 
 #ifdef FPUEMU
 	fpdata fp[8];
-#ifdef JIT
 	fpdata fp_result;
-#endif
 	uae_u32 fpcr, fpsr, fpiar;
 	uae_u32 fpu_state;
 	uae_u32 fpu_exp_state;
@@ -321,7 +327,7 @@ STATIC_INLINE uae_u32 munge24 (uae_u32 x)
 
 extern int mmu_enabled, mmu_triggered;
 extern int cpu_cycles;
-extern int cpucycleunit;
+extern int cpucycleunit, cpuipldelay2, cpuipldelay4;
 extern int m68k_pc_indirect;
 extern bool m68k_interrupt_delay;
 
@@ -695,7 +701,6 @@ extern void REGPARAM3 MakeSR (void) REGPARAM;
 extern void REGPARAM3 MakeFromSR(void) REGPARAM;
 extern void REGPARAM3 MakeFromSR_T0(void) REGPARAM;
 extern void REGPARAM3 MakeFromSR_STOP(void) REGPARAM;
-extern void REGPARAM3 MakeFromSR_intmask(uae_u16 oldsr, uae_u16 newsr) REGPARAM;
 extern void REGPARAM3 Exception (int) REGPARAM;
 extern void REGPARAM3 Exception_cpu(int) REGPARAM;
 extern void REGPARAM3 Exception_cpu_oldpc(int, uaecptr) REGPARAM;
@@ -706,6 +711,8 @@ extern void prepare_interrupt (uae_u32);
 extern void doint(void);
 extern void checkint(void);
 extern void intlev_load(void);
+extern void ipl_fetch_now_pre(void);
+extern void ipl_fetch_next_pre(void);
 extern void ipl_fetch_now(void);
 extern void ipl_fetch_next(void);
 extern void dump_counts (void);
@@ -716,11 +723,12 @@ extern int m68k_mull (uae_u32, uae_u32, uae_u16);
 extern void init_m68k (void);
 extern void m68k_go (int);
 extern void m68k_dumpstate(uaecptr *, uaecptr);
-extern void m68k_dumpcache (bool);
+extern void m68k_dumpcache(bool);
+extern bool m68k_readcache(uaecptr memaddr, bool dc, uae_u32* valp);
 extern int getMulu68kCycles(uae_u16 src);
 extern int getMuls68kCycles(uae_u16 src);
 extern int getDivu68kCycles (uae_u32 dividend, uae_u16 divisor);
-extern int getDivs68kCycles (uae_s32 dividend, uae_s16 divisor);
+extern int getDivs68kCycles (uae_s32 dividend, uae_s16 divisor, int *extra);
 extern void divbyzero_special(bool issigned, uae_s32 dst);
 extern void setdivuflags(uae_u32 dividend, uae_u16 divisor);
 extern void setdivsflags(uae_s32 dividend, uae_s16 divisor);
@@ -778,14 +786,15 @@ extern void exception2_read(uae_u32 opcode, uaecptr addr, int size, int fc);
 extern void exception2_write(uae_u32 opcode, uaecptr addr, int size, uae_u32 val, int fc);
 extern void exception2_fetch_opcode(uae_u32 opcode, int offset, int pcoffset);
 extern void exception2_fetch(uae_u32 opcode, int offset, int pcoffset);
-extern void m68k_reset (void);
-extern bool cpureset (void);
-extern void cpu_halt (int id);
+extern void m68k_reset(void);
+extern bool cpureset(void);
+extern void cpu_halt(int id);
+extern void cpu_inreset(void);
 extern int cpu_sleep_millis(int ms);
 extern void cpu_change(int newmodel);
 extern void cpu_fallback(int mode);
 
-extern void fill_prefetch (void);
+extern void fill_prefetch(void);
 extern void fill_prefetch_020_ntx(void);
 extern void fill_prefetch_030_ntx(void);
 extern void fill_prefetch_030_ntx_continue(void);
@@ -834,7 +843,8 @@ extern const struct cputbl op_smalltbl_55[];
 extern const struct cputbl op_smalltbl_12[]; // prefetch
 extern const struct cputbl op_smalltbl_14[]; // CE
 
-extern cpuop_func *cpufunctbl[65536] ASM_SYM_FOR_FUNC ("cpufunctbl");
+extern cpuop_func_noret *cpufunctbl_noret[65536] ASM_SYM_FOR_FUNC("cpufunctbl_noret");
+extern cpuop_func *cpufunctbl[65536] ASM_SYM_FOR_FUNC("cpufunctbl");
 
 #ifdef JIT
 extern void (*flush_icache)(int);

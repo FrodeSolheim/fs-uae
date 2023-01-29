@@ -67,6 +67,7 @@
 #include "a2091.h"
 #include "devices.h"
 #include "fsdb.h"
+#include "gfxboard.h"
 
 #ifdef FSUAE // NL
 #include "uae/fs.h"
@@ -205,11 +206,9 @@ struct staterecord
 
 static struct staterecord **staterecords;
 
-static void state_incompatible_warn (void)
+bool is_savestate_incompatible(void)
 {
-	static int warned;
 	int dowarn = 0;
-	int i;
 
 #ifdef BSDSOCKET
 	if (currprefs.socket_emu)
@@ -228,17 +227,25 @@ static void state_incompatible_warn (void)
 		dowarn = 1;
 #endif
 #ifdef FILESYS
-	for(i = 0; i < currprefs.mountitems; i++) {
+	for(int i = 0; i < currprefs.mountitems; i++) {
 		struct mountedinfo mi;
 		int type = get_filesys_unitconfig (&currprefs, i, &mi);
 		if (mi.ismounted && type != FILESYS_VIRTUAL && type != FILESYS_HARDFILE && type != FILESYS_HARDFILE_RDB)
 			dowarn = 1;
 	}
-#endif
-	if (!warned && dowarn) {
-		warned = 1;
-		notify_user (NUMSG_STATEHD);
+	if (currprefs.rtgboards[0].rtgmem_type >= GFXBOARD_HARDWARE) {
+		dowarn = 1;
 	}
+	if (currprefs.rtgboards[1].rtgmem_size > 0) {
+		dowarn = 1;
+	}
+#endif
+#ifdef WITH_PPC
+	if (currprefs.ppc_model) {
+		dowarn = 1;
+	}
+#endif
+	return dowarn != 0;
 }
 
 /* functions for reading/writing bytes, shorts and longs in big-endian
@@ -509,7 +516,6 @@ TCHAR *restore_path_full_func(uae_u8 **dstp)
 static void save_chunk (struct zfile *f, uae_u8 *chunk, size_t len, const TCHAR *name, int compress)
 {
 	uae_u8 tmp[8], *dst;
-	uae_u8 zero[4]= { 0, 0, 0, 0 };
 	uae_u32 flags;
 	size_t pos;
 	size_t chunklen, len2;
@@ -566,8 +572,10 @@ static void save_chunk (struct zfile *f, uae_u8 *chunk, size_t len, const TCHAR 
 		zfile_fwrite (chunk, 1, len, f);
 	/* alignment */
 	len2 = 4 - (len & 3);
-	if (len2)
-		zfile_fwrite (zero, 1, len2, f);
+	if (len2) {
+		uae_u8 zero[4] = { 0, 0, 0, 0 };
+		zfile_fwrite(zero, 1, len2, f);
+	}
 
 	write_log (_T("Chunk '%s' chunk size %u (%u)\n"), name, chunklen, len);
 }
@@ -1359,7 +1367,13 @@ int save_state (const TCHAR *filename, const TCHAR *description)
 	int comp = savestate_docompress;
 
 	if (!savestate_specialdump && !savestate_nodialogs) {
-		state_incompatible_warn ();
+		if (is_savestate_incompatible()) {
+			static int warned;
+			if (!warned) {
+				warned = 1;
+				notify_user(NUMSG_STATEHD);
+			}
+		}
 		if (!save_filesys_cando ()) {
 			gui_message (_T("Filesystem active. Try again later."));
 			return -1;
@@ -1449,7 +1463,7 @@ void savestate_quick (int slot, int save)
 #endif
 }
 
-bool savestate_check (void)
+bool savestate_check(void)
 {
 	if (vpos == 0 && !savestate_state) {
 		if (hsync_counter == 0 && input_play == INPREC_PLAY_NORMAL)
@@ -1462,6 +1476,10 @@ bool savestate_check (void)
 	} else if (savestate_state == STATE_DOREWIND) {
 		savestate_state = STATE_REWIND;
 		return true;
+	} else if (savestate_state == STATE_SAVE) {
+		savestate_initsave(savestate_fname, 1, true, true);
+		save_state(savestate_fname, STATE_SAVE_DESCRIPTION);
+		return false;
 	}
 	return false;
 }

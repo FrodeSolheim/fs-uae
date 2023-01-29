@@ -54,6 +54,7 @@
 #define _tstol atol
 #define _vsnprintf vsnprintf
 #define _vsntprintf vsnprintf
+#define _stscanf sscanf
 #endif
 
 static inline size_t uae_tcslcpy(TCHAR *dst, const TCHAR *src, size_t size)

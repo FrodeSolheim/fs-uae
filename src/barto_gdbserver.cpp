@@ -975,6 +975,8 @@ namespace barto_gdbserver {
 		static uae_u32 profile_start_cycles{};
 		static size_t profile_custom_regs_size{};
 		static uae_u8* profile_custom_regs{}; // at start of profile 
+		static size_t profile_custom_agacolors_size{};
+		static uae_u8* profile_custom_agacolors{};
 		static FILE* profile_outfile{};
 
 		if(debugger_state == state::profile) {
@@ -1039,7 +1041,8 @@ start_profile:
 			}
 
 			// store custom registers
-			profile_custom_regs = save_custom(&profile_custom_regs_size, 0, TRUE);
+			profile_custom_regs = save_custom(&profile_custom_regs_size, nullptr, TRUE);
+			profile_custom_agacolors = save_custom_agacolors(&profile_custom_agacolors_size, nullptr);
 
 			// reset idle
 			if(barto_debug_idle_count > 0) {
@@ -1096,6 +1099,15 @@ start_profile:
 			fwrite(profile_custom_regs, 1, custom_len, profile_outfile);
 			free(profile_custom_regs);
 			profile_custom_regs = nullptr;
+
+			// AGA colors
+			int custom_agacolors_len = (int)profile_custom_agacolors_size;
+			fwrite(&custom_agacolors_len, sizeof(int), 1, profile_outfile);
+			if(profile_custom_agacolors) {
+				fwrite(profile_custom_agacolors, 1, custom_agacolors_len, profile_outfile);
+				free(profile_custom_agacolors);
+			}
+			profile_custom_agacolors = nullptr;
 
 			// DMA
 			int dmarec_size = sizeof(dma_rec);

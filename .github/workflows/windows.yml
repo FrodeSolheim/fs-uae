@@ -3,13 +3,14 @@ name: Windows
 on:
   push:
     branches:
-      - master
+      - actions
       - beta
+      - master
       - stable
   pull_request:
     branches:
-      - master
       - beta
+      - master
       - stable
 
 jobs:
@@ -44,12 +45,11 @@ jobs:
             mingw-w64-x86_64-pkg-config
             mingw-w64-x86_64-python
             mingw-w64-x86_64-python-pip
-            mingw-w64-x86_64-python2
             tar
             unzip
             zip
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 

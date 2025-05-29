@@ -3,13 +3,14 @@ name: Linux
 on:
   push:
     branches:
-      - master
+      - actions
       - beta
+      - master
       - stable
   pull_request:
     branches:
-      - master
       - beta
+      - master
       - stable
 
 jobs:
@@ -68,7 +69,7 @@ jobs:
           sudo python3 -m pip install -U pip setuptools
           sudo python3 -m pip install -U meson ninja
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 

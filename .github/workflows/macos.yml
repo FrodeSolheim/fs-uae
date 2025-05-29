@@ -3,13 +3,14 @@ name: macOS
 on:
   push:
     branches:
-      - master
+      - actions
       - beta
+      - master
       - stable
   pull_request:
     branches:
-      - master
       - beta
+      - master
       - stable
 
 jobs:
@@ -24,7 +25,7 @@ jobs:
       - name: Install brew packages
         run: brew install autoconf automake dos2unix meson
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 

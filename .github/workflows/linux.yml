@@ -75,15 +75,15 @@ jobs:
 
       - name: Cache dependencies
         uses: actions/cache@v4
-        id: fsdeps_cache
+        id: build_env_cache
         with:
-          path: fsdeps/_prefix
-          key: fsdeps_${{ hashFiles('fsdeps/**/*') }}_${{ runner.os }}
+          path: build/env/_prefix
+          key: build_env_${{ hashFiles('build/env/**/*') }}_${{ runner.os }}
 
       - name: Build dependencies
-        if: steps.fsdeps_cache.outputs.cache-hit != 'true'
+        if: steps.build_env_cache.outputs.cache-hit != 'true'
         run: |
-          fsdeps/make
+          build/env/setup
 
       - name: Update version
         if: hashFiles('fsbuild/version') != ''
@@ -93,20 +93,20 @@ jobs:
       - name: Bootstrap
         if: hashFiles('fsbuild/bootstrap') != ''
         run: |
-          fsdeps/use fsbuild/bootstrap
+          build/env/shell fsbuild/bootstrap
 
       - name: Configure
         if: hashFiles('fsbuild/configure') != ''
         run: |
-          fsdeps/use fsbuild/configure
+          build/env/shell fsbuild/configure
 
       - name: Build
         run: |
-          fsdeps/use fsbuild/make
+          build/env/shell fsbuild/make
 
       - name: Bundle
         run: |
-          fsdeps/use fsbuild/bundle
+          build/env/shell fsbuild/bundle
 
       - name: Archive
         run: |

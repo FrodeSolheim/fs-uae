@@ -9,14 +9,14 @@ REVISION=5
 # Depends on libasound (deb: libasound2-dev) on Linux. Maybe this should be
 # considered a system library and not built/included.
 
-. fsdeps/dep.sh
+. build/env/scripts/package.sh
 
-python3 fsdeps/download.py \
+build/env/scripts/download.py \
 https://downloads.sourceforge.net/project/portmedia/portmidi/\
 217/portmidi-src-217.zip \
 sha256:$CHECKSUM
 
-rm -Rf fsdeps/_build && mkdir fsdeps/_build && cd fsdeps/_build
+rm -Rf build/env/_temp && mkdir build/env/_temp && cd build/env/_temp
 unzip ../_sources/portmidi-src-217.zip
 cd portmidi
 
@@ -549,5 +549,10 @@ install_name_tool -id \
 $PREFIX/lib/libportmidi.0.dylib \
 $PREFIX/lib/libportmidi.0.dylib
 fi
+
+# if [ "$SYSTEM_OS" = "macOS" ]; then
+# DYLIB=libportmidi.0.dylib
+# install_name_tool -id @rpath/$DYLIB $FSENV_PREFIX/lib/$DYLIB
+# fi
 
 touch $INSTALLED

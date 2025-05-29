@@ -15,5 +15,25 @@ case "`uname -m`" in
     *)        SYSTEM_ARCH=Unknown;;
 esac
 
+if [ $SYSTEM_OS = "Windows" ]; then
+SYSTEM_EXE=.exe
+SYSTEM_DLL=.dll
+else
+SYSTEM_EXE=
+SYSTEM_DLL=.so
+fi
+
 # FIXME: Deprecated alias
 SYSTEM=$SYSTEM_OS
+
+if [ "$FSBUILD_ARCH" != "" ]; then
+SYSTEM_ARCH=$FSBUILD_ARCH
+fi
+
+if [ "$SYSTEM_OS_DIST" = "" ]; then
+SYSTEM_OS_DIST=$SYSTEM_OS
+fi
+
+if [ "$SYSTEM_ARCH_DIST" = "" ]; then
+SYSTEM_ARCH_DIST=$SYSTEM_ARCH
+fi

@@ -6,13 +6,13 @@ PACKAGE=libmpeg2-0.5.1
 CHECKSUM=dee22e893cb5fc2b2b6ebd60b88478ab8556cb3b93f9a0d7ce8f3b61851871d4
 REVISION=0
 
-. fsdeps/dep.sh
+. build/env/scripts/package.sh
 
-python3 fsdeps/download.py \
+build/env/scripts/download.py \
 https://libmpeg2.sourceforge.io/files/$PACKAGE.tar.gz \
 sha256:$CHECKSUM
 
-rm -Rf fsdeps/_build && mkdir fsdeps/_build && cd fsdeps/_build
+rm -Rf build/env/_temp && mkdir build/env/_temp && cd build/env/_temp
 tar xf ../_sources/$PACKAGE.tar.gz
 cd $PACKAGE
 
@@ -45,5 +45,12 @@ cd libmpeg2
 make install
 cd ../include
 make install
+
+# if [ "$SYSTEM_OS" = "macOS" ]; then
+# DYLIB=libmpeg2.0.dylib
+# install_name_tool -id @rpath/$DYLIB $FSENV_PREFIX/lib/$DYLIB
+# DYLIB=libmpeg2convert.0.dylib
+# install_name_tool -id @rpath/$DYLIB $FSENV_PREFIX/lib/$DYLIB
+# fi
 
 touch $INSTALLED

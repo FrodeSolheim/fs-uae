@@ -1,3 +1,7 @@
+# Build folders
+/build/env/_prefix/
+/build/env/_temp/
+
 *~
 *.a
 /aclocal.m4

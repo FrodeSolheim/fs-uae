@@ -1,0 +1,13 @@
+#!/bin/sh
+
+set -e
+
+. build/env/scripts/env.sh
+
+COMMAND=$1
+if [ "$COMMAND" = "" ]; then
+exec bash --rcfile build/env/scripts/bashrc
+else
+shift
+$COMMAND "$@"
+fi

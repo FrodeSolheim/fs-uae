@@ -14,7 +14,7 @@ on:
 
 jobs:
   Linux_x86-64:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
 
     env:
       UPLOAD_ENABLED: ${{ secrets.DROPBOX_ACCESS_TOKEN }}
@@ -73,7 +73,7 @@ jobs:
           fetch-depth: 0
 
       - name: Cache dependencies
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         id: fsdeps_cache
         with:
           path: fsdeps/_prefix

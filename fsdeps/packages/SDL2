@@ -5,9 +5,9 @@ set -e
 # Dependency: pulseaudio?
 # Dependency: wayland?
 
-PACKAGE=SDL2-2.0.22
-CHECKSUM=fe7cbf3127882e3fc7259a75a0cb585620272c51745d3852ab9dd87960697f2e
-REVISION=1
+PACKAGE=SDL2-2.32.0
+CHECKSUM=f5c2b52498785858f3de1e2996eba3c1b805d08fe168a47ea527c7fc339072d0
+REVISION=0
 
 . fsdeps/dep.sh
 
@@ -18,52 +18,6 @@ sha256:$CHECKSUM
 rm -Rf fsdeps/_build && mkdir fsdeps/_build && cd fsdeps/_build
 tar xf ../_sources/$PACKAGE.tar.gz
 cd $PACKAGE
-
-patch -p1 <<EOF
-diff --git a/src/joystick/windows/SDL_windows_gaming_input.c b/src/joystick/windows/SDL_windows_gaming_input.c
-index 8b552bb7dad..c1608a797ae 100644
---- a/src/joystick/windows/SDL_windows_gaming_input.c
-+++ b/src/joystick/windows/SDL_windows_gaming_input.c
-@@ -34,6 +34,11 @@
- #include <cfgmgr32.h>
- #include <roapi.h>
- 
-+#ifdef __MINGW32__
-+#define __FIReference_1_int __FIReference_1_INT32
-+#define __FIReference_1_int_get_Value __FIReference_1_INT32_get_Value
-+#define __FIReference_1_int_Release __FIReference_1_INT32_Release
-+#endif
- 
- struct joystick_hwdata
- {
-EOF
-
-if [ "`uname`" = "Darwin" ]; then
-python3 ../../replace.py \
-src/video/cocoa/SDL_cocoaevents.m \
-"keyEquivalent:@\"q\"];" \
-"keyEquivalent:@\"\"];"
-python3 ../../replace.py \
-src/video/cocoa/SDL_cocoaevents.m \
-"keyEquivalent:@\"h\"];" \
-"keyEquivalent:@\"\"];"
-python3 ../../replace.py \
-src/video/cocoa/SDL_cocoaevents.m \
-"keyEquivalent:@\"m\"];" \
-"keyEquivalent:@\"\"];"
-python3 ../../replace.py \
-src/video/cocoa/SDL_cocoaevents.m \
-"keyEquivalent:@\"f\"];" \
-"keyEquivalent:@\"\"];"
-python3 ../../replace.py \
-src/video/cocoa/SDL_cocoaevents.m \
-"keyEquivalent:@\"w\"];" \
-"keyEquivalent:@\"\"];"
-python3 ../../replace.py \
-src/video/cocoa/SDL_cocoaevents.m \
-"keyEquivalent:@\",\"];" \
-"keyEquivalent:@\"\"];"
-fi
 
 if [ "`uname`" = "Linux" ]; then
 ./configure \

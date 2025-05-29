@@ -3,10 +3,10 @@ name: Linux
 on:
   push:
     branches:
-      - actions
       - beta
       - master
       - stable
+      - test
   pull_request:
     branches:
       - beta

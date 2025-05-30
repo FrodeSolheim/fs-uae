@@ -10,7 +10,6 @@ import re
 import subprocess
 import sys
 import time
-import xml.etree.ElementTree as ET
 from os import path
 from typing import Dict, List, Optional
 
@@ -168,36 +167,38 @@ def isMacOS() -> bool:
     return sys.platform == "darwin"
 
 
-def notarizeApp(pathToNotarize: str, bundleId: str) -> str:
+def notarizeApp(pathToNotarize: str, bundleId: str):
     assert path.exists(pathToNotarize)
     print(f"Notarizing {path.basename(pathToNotarize)}")
 
     result = shell(
-        "xcrun altool --notarize-app -t osx "
-        "-f {pathToNotarize} "
-        "--primary-bundle-id {bundleId} "
-        "-u {appleIdUser} "
-        "-p @env:NOTARIZATION_PASSWORD "
-        "-itc_provider {itcProvider} "
-        "--output-format xml".format(
+        "xcrun notarytool submit "
+        # "--primary-bundle-id {bundleId} "
+        "--apple-id {appleIdUser} "
+        "--password qjqg-faqk-kirg-ahvb "
+        "--team-id 69R669CQU7 "
+        "--wait "
+        # "-itc_provider {itcProvider} "
+        # "--output-format xml "
+        "{pathToNotarize}".format(
             appleIdUser=getNotarizationUserName(),
-            bundleId=bundleId,
-            itcProvider=getNotarizationItcProvider(),
             pathToNotarize=pathToNotarize,
         )
     )
     print(result)
-    root = ET.fromstring(result)
-    dictNode = root.find("dict")
-    assert dictNode is not None
-    dictNode2 = dictNode.find("dict")
-    assert dictNode2 is not None
-    stringNode = dictNode2.find("string")
-    assert stringNode is not None
-    requestUuid = stringNode.text
-    assert requestUuid
-    print(requestUuid)
-    return requestUuid
+    # root = ET.fromstring(result)
+    # dictNode = root.find("dict")
+    # assert dictNode is not None
+    # dictNode2 = dictNode.find("dict")
+    # assert dictNode2 is not None
+    # stringNode = dictNode2.find("string")
+    # assert stringNode is not None
+    # requestUuid = stringNode.text
+    # assert requestUuid
+    # print(requestUuid)
+    if "status: Accepted" not in result:
+        raise Exception("Notarization failed")
+    # return requestUuid
 
 
 def run(args: List[str]) -> str:
@@ -311,19 +312,19 @@ def updateConfigureAc(version: Version, commit: str = "") -> None:
                 if "_major" in line:
                     k = "FSBUILD_VERSION_MAJOR"
                     v = str(version.major)
-                    d = "Major version"
+                    # d = "Major version"
                 elif "_minor" in line:
                     k = "FSBUILD_VERSION_MINOR"
                     v = str(version.minor)
-                    d = "Minor version"
+                    # d = "Minor version"
                 elif "_revision" in line:
                     k = "FSBUILD_VERSION_REVISION"
                     v = str(version.revision)
-                    d = "Revision"
+                    # d = "Revision"
                 else:
                     k = "FSBUILD_VERSION"
                     v = str(version)
-                    d = "Full version"
+                    # d = "Full version"
                 line = "m4_define([{}], [{}])\n".format(k.lower(), v)
             # if line.startswith("AC_DEFINE_UNQUOTED([FSBUILD_VERSION"):
             #     if "_MAJOR" in line:
@@ -647,8 +648,7 @@ def notarizeDmg():
     bundleId = packageInformation.bundleId
     dmgPath = getDmgPath()
     assert path.exists(dmgPath)
-    requestUuid = notarizeApp(dmgPath, bundleId)
-    checkNotarizationResult(requestUuid)
+    notarizeApp(dmgPath, bundleId)
 
     print('xcrun stapler staple "{}"'.format(dmgPath))
     assert os.system('xcrun stapler staple "{}"'.format(dmgPath)) == 0

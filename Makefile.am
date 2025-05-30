@@ -32,6 +32,9 @@ endif
 if W_ADDRESS
 CM_CFLAGS += -Waddress
 endif
+if W_NO_CPP11_NARROWING
+CM_CFLAGS += -Wno-c++11-narrowing
+endif
 #if W_MISSING_FORMAT_ATTRIBUTE
 #CM_CFLAGS += -Wmissing-format-attribute
 #endif

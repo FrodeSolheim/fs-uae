@@ -1,4 +1,4 @@
-name: Linux_x86-64
+name: Linux_ARM64
 
 on:
   push:
@@ -14,7 +14,7 @@ on:
       - stable
 
 jobs:
-  Linux_x86-64:
+  Linux_ARM64:
     runs-on: ubuntu-22.04-arm
 
     env:
@@ -68,6 +68,10 @@ jobs:
         run: |
           sudo python3 -m pip install -U pip setuptools
           sudo python3 -m pip install -U meson ninja
+
+      - name: Install libtool
+        run: |
+          brew install libtool
 
       - uses: actions/checkout@v4
         with:

@@ -1242,7 +1242,7 @@ int host_socket (TrapContext *context, SB, int af, int type, int protocol)
 
 uae_u32 host_bind (TrapContext *context, SB, uae_u32 sd, uae_u32 name, uae_u32 namelen)
 {
-    uae_u32 success = 0;
+    int success = 0;
     struct sockaddr_in addr;
     int len = sizeof (struct sockaddr_in);
     int s;

@@ -189,8 +189,8 @@ AC_CHECK_LIB([dl], [dlopen])
 # not using freetype right now
 # AC_DEFINE([USE_FREETYPE], [1], [Define to 1 to use FreeType])
 # PKG_CHECK_MODULES([FREETYPE], [freetype2])
-AC_SUBST([FREETYPE_CFLAGS])
-AC_SUBST([FREETYPE_LIBS])
+# AC_SUBST([FREETYPE_CFLAGS])
+# AC_SUBST([FREETYPE_LIBS])
 
 AC_CHECK_LIB([gdi32], [main])
 

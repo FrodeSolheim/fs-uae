@@ -4,8 +4,8 @@ set -e
 
 # FIXME: libiconv (except on macOS) ??
 
-PACKAGE=gettext-0.24
-CHECKSUM=c918503d593d70daf4844d175a13d816afacb667c06fba1ec9dcd5002c1518b7
+PACKAGE=gettext-0.25
+CHECKSUM=aee02dab79d9138fdcc7226b67ec985121bce6007edebe30d0e39d42f69a340e
 REVISION=0
 
 . build/env/scripts/package.sh

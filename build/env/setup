@@ -1,0 +1,50 @@
+#!/bin/sh
+
+set -e
+
+echo "Build dependencies"
+echo -------------------------------------------------------------------------\
+-------
+
+. build/env/scripts/env.sh
+. build/scripts/system.sh
+
+echo FSENV_PREFIX=$FSENV_PREFIX
+echo LIBRARY_PATH=$LIBRARY_PATH
+echo PKG_CONFIG_PATH=$PKG_CONFIG_PATH
+
+# Create the lib64 dir since is is added to LIBRARY_PATH always for simplicity
+# even though it is only used on some platforms.
+mkdir -p $FSENV_PREFIX/lib64
+
+if [ $SYSTEM_OS = "macOS" ]; then
+echo MACOSX_DEPLOYMENT_TARGET=$MACOSX_DEPLOYMENT_TARGET
+fi
+
+for package_script in build/env/packages/*; do
+$package_script
+done
+
+
+# if [ -f fsenv/build.sh ]; then
+# sh fsenv/build.sh
+# elif [ -f ./deps.sh ]; then
+# sh ./deps.sh
+# fi
+
+if [ $SYSTEM_OS = "Windows" ]; then
+if [ -d $FSENV_PREFIX/bin ]; then
+FIND_DLLS="`find $FSENV_PREFIX/bin -maxdepth 1 -mindepth 1 -name '*.dll'`"
+if [ "$FIND_DLLS" != "" ]; then
+# Copy DLL files to root directory for running executables during development
+echo "cp $FSENV_PREFIX/bin/*.dll ."
+cp $FSENV_PREFIX/bin/*.dll .
+else
+echo "No DLL files to copy from $FSENV_PREFIX/bin"
+fi
+fi
+fi
+
+echo -------------------------------------------------------------------------\
+-------
+echo "Built dependencies for ${SYSTEM_OS}/${SYSTEM_ARCH}"

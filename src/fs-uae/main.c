@@ -1021,7 +1021,7 @@ static void check_linux_cpu_governor()
     }
     g_strstrip(governor);
     fs_log("CPU scaling governor: '%s'\n", governor);
-    if (fs_config_get_boolean(OPTION_GOVERNOR_WARNING) == 0) {
+    if (fs_config_get_boolean(OPTION_GOVERNOR_WARNING) != 1) {
         return;
     }
     if (strcmp(governor, "performance") != 0) {

@@ -47,14 +47,14 @@ def upload(dbx, package, version, path):
     if not branch:
         print("No upload branch name, skipping upload")
         return
-    dst = f"/Builds/CI/{package}/{branch}/{version}/{name}"
+    dst = f"/{package}/{branch}/{version}/{name}"
     with open(path, "rb") as f:
         dbx.files_upload(f.read(), dst)
     print("Uploaded ->", dst)
     if os.getenv("DISCORD_WEBHOOK_URL"):
-        result = dbx.sharing_list_shared_links(f"/Builds/CI/{package}")
+        result = dbx.sharing_list_shared_links(f"/{package}")
         for link in result.links:
-            if link.path_lower == f"/Builds/CI/{package}".lower():
+            if link.path_lower == f"/{package}".lower():
                 url = link.url
                 print("Found Dropbox shared link:", url)
                 break

@@ -1,20 +1,16 @@
 [fs-uae-controller]
-name = Microsoft SideWinder
+name = Microsoft SideWinder Plug and Play
 platform = linux
 
 [default]
 include = universal_gamepad
-axis_0_neg = lstick_left
-axis_0_pos = lstick_right
-axis_1_neg = lstick_up
-axis_1_pos = lstick_down
+axis_0_neg = dpad_left
+axis_0_pos = dpad_right
+axis_1_neg = dpad_up
+axis_1_pos = dpad_down
 button_0 = south_button
 button_1 = east_button
 button_2 = west_button
 button_3 = north_button
-button_4 = right_shoulder
+button_4 = left_trigger
 button_5 = right_trigger
-hat_0_down = dpad_down
-hat_0_left = dpad_left
-hat_0_right = dpad_right
-hat_0_up = dpad_up

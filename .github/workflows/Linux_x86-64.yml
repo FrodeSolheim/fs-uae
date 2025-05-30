@@ -1,0 +1,136 @@
+name: Linux_x86-64
+
+on:
+  push:
+    branches:
+      - beta
+      - master
+      - stable
+      - test
+  pull_request:
+    branches:
+      - beta
+      - master
+      - stable
+
+jobs:
+  Linux_x86-64:
+    runs-on: ubuntu-22.04
+
+    env:
+      UPLOAD_ENABLED: ${{ secrets.DROPBOX_ACCESS_TOKEN }}
+
+    steps:
+      - name: Update package repositories
+        run: >-
+          sudo apt update
+
+      - name: Install deb packages
+        run: >-
+          sudo apt install
+          dos2unix
+          gettext
+          intltool
+          libao-dev
+          libasound2-dev
+          libevdev-dev
+          libgbm-dev
+          libgl-dev
+          libglu-dev
+          libopenal-dev
+          libpulse-dev
+          libudev-dev
+          libusb-1.0-0-dev
+          libx11-dev
+          libx11-xcb-dev
+          libxcb1-dev
+          libxcb-glx0-dev
+          libxcb-icccm4-dev
+          libxcb-image0-dev
+          libxcb-keysyms1-dev
+          libxcb-randr0-dev
+          libxcb-render-util0-dev
+          libxcb-shape0-dev
+          libxcb-shm0-dev
+          libxcb-sync0-dev
+          libxcb-xfixes0-dev
+          libxcb-xinerama0-dev
+          libxcursor-dev
+          libxext-dev
+          libxfixes-dev
+          libxi-dev
+          libxinerama-dev
+          libxrandr-dev
+          libxrender-dev
+          x11proto-dev
+
+      - name: Install pip packages
+        run: |
+          sudo python3 -m pip install -U pip setuptools
+          sudo python3 -m pip install -U meson ninja
+
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        id: build_env_cache
+        with:
+          path: build/env/_prefix
+          key: build_env_${{ hashFiles('build/env/**/*') }}_${{ runner.os }}_${{ runner.arch }}
+
+      - name: Build dependencies
+        if: steps.build_env_cache.outputs.cache-hit != 'true'
+        run: |
+          build/env/setup
+
+      - name: Update version
+        if: hashFiles('fsbuild/version') != ''
+        run: |
+          fsbuild/version
+
+      - name: Bootstrap
+        if: hashFiles('fsbuild/bootstrap') != ''
+        run: |
+          build/env/shell fsbuild/bootstrap
+
+      - name: Configure
+        if: hashFiles('fsbuild/configure') != ''
+        run: |
+          build/env/shell fsbuild/configure
+
+      - name: Build
+        run: |
+          build/env/shell fsbuild/make
+
+      - name: Bundle
+        run: |
+          build/env/shell fsbuild/bundle
+
+      - name: Archive
+        run: |
+          fsbuild/archive
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Linux_x86-64
+          path: fsbuild/_dist/*
+
+      - name: Upload build to Dropbox folder
+        if: >-
+          env.UPLOAD_ENABLED != null && (
+            github.ref == 'refs/heads/beta' ||
+            github.ref == 'refs/heads/dev' ||
+            github.ref == 'refs/heads/master' ||
+            github.ref == 'refs/heads/stable' ||
+            github.ref == 'refs/heads/test'
+          )
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          DROPBOX_ACCESS_TOKEN: ${{ secrets.DROPBOX_ACCESS_TOKEN }}
+        run: |
+          python3 -m venv .venv
+          source .venv/bin/activate
+          python3 -m pip install dropbox==12.0.2
+          fsbuild/upload

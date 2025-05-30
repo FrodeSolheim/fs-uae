@@ -52,7 +52,7 @@ BuildRequires: pkgconfig(openal)
 BuildRequires: pkgconfig(sdl2)
 BuildRequires: pkgconfig(x11)
 BuildRequires: pkgconfig(zlib)
-BuildRequires: pkgconfig(freetype2)
+# BuildRequires: pkgconfig(freetype2)
 BuildRequires: zip
 
 %description

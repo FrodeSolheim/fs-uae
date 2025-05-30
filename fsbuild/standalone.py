@@ -412,6 +412,7 @@ def macos_main():
 
 windows_system_dlls = [
     "advapi32.dll",
+    "avrt.dll",
     "dinput.dll",
     "dsound.dll",
     "dwmapi.dll",
@@ -478,7 +479,7 @@ def fix_windows_binary(path: str, app_dir: str):
         print(dll_name)
 
         if True:
-            src = os.path.join("fsdeps", "_prefix", "bin", dll_name)
+            src = os.path.join("build", "env", "_prefix", "bin", dll_name)
             print("Checking", src)
             if not os.path.exists(src):
                 src = os.environ["MINGW_PREFIX"] + "/bin/" + dll_name

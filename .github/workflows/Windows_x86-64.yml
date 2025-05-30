@@ -1,0 +1,116 @@
+name: Windows_x86-64
+
+on:
+  push:
+    branches:
+      - beta
+      - master
+      - stable
+      - test
+  pull_request:
+    branches:
+      - beta
+      - master
+      - stable
+
+jobs:
+  Windows_x86-64:
+    runs-on: windows-2019
+
+    env:
+      UPLOAD_ENABLED: ${{ secrets.DROPBOX_ACCESS_TOKEN }}
+
+    defaults:
+      run:
+        shell: msys2 {0}
+
+    steps:
+      - uses: msys2/setup-msys2@v2
+        with:
+          update: true
+          install: >-
+            autoconf
+            automake
+            base-devel
+            gettext
+            git
+            libtool
+            make
+            mingw-w64-x86_64-cmake
+            mingw-w64-x86_64-gcc
+            mingw-w64-x86_64-ducible
+            mingw-w64-x86_64-icoutils
+            mingw-w64-x86_64-meson
+            mingw-w64-x86_64-openal
+            mingw-w64-x86_64-pkg-config
+            mingw-w64-x86_64-python
+            mingw-w64-x86_64-python-pip
+            tar
+            unzip
+            zip
+
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        id: build_env_cache
+        with:
+          path: build/env/_prefix
+          key: build_env_${{ hashFiles('build/env/**/*') }}_${{ runner.os }}_${{ runner.arch }}
+
+      - name: Build dependencies
+        if: steps.build_env_cache.outputs.cache-hit != 'true'
+        run: |
+          build/env/setup
+
+      - name: Update version
+        if: hashFiles('fsbuild/version') != ''
+        run: |
+          fsbuild/version
+
+      - name: Bootstrap
+        if: hashFiles('fsbuild/bootstrap') != ''
+        run: |
+          build/env/shell fsbuild/bootstrap
+
+      - name: Configure
+        if: hashFiles('fsbuild/configure') != ''
+        run: |
+          build/env/shell fsbuild/configure
+
+      - name: Build
+        run: |
+          build/env/shell fsbuild/make
+
+      - name: Bundle
+        run: |
+          fsbuild/bundle
+
+      - name: Archive
+        run: |
+          fsbuild/archive
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Windows_x86-64
+          path: fsbuild/_dist/*
+
+      - name: Upload build to Dropbox folder
+        if: >-
+          env.UPLOAD_ENABLED != null && (
+            github.ref == 'refs/heads/beta' ||
+            github.ref == 'refs/heads/dev' ||
+            github.ref == 'refs/heads/master' ||
+            github.ref == 'refs/heads/stable' ||
+            github.ref == 'refs/heads/test'
+          )
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          DROPBOX_ACCESS_TOKEN: ${{ secrets.DROPBOX_ACCESS_TOKEN }}
+        run: |
+          python3 -m venv .venv
+          source .venv/bin/activate
+          python3 -m pip install dropbox==12.0.2
+          fsbuild/upload

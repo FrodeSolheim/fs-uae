@@ -1,5 +1,5 @@
 [fs-uae-controller]
-name = Sony DualSense
+name = PS5 Controller
 platform = linux
 
 [default]

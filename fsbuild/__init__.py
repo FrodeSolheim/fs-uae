@@ -10,7 +10,6 @@ import re
 import subprocess
 import sys
 import time
-import xml.etree.ElementTree as ET
 from os import path
 from typing import Dict, List, Optional
 
@@ -62,11 +61,11 @@ def checkNotarizationResult(requestUuid: str):
                 "--notarization-info",
                 requestUuid,
                 "-u",
-                getNotarizationUserName(),
+                getAppleNotarizationUserName(),
                 "-p",
                 "@env:NOTARIZATION_PASSWORD",
                 "-itc_provider",
-                getNotarizationItcProvider(),
+                getAppleNotarizationItcProvider(),
                 "--output-format",
                 "xml",
             ]
@@ -143,12 +142,22 @@ def getFrameworkName() -> str:
     return getPackageInformation().prettyName + ".framework"
 
 
-def getNotarizationItcProvider() -> str:
-    return os.environ.get("NOTARIZATION_PROVIDER", "")
+def getAppleNotarizationItcProvider() -> str:
+    return os.environ.get(
+        "APPLE_NOTARIZATION_PROVIDER",
+        os.environ.get("NOTARIZATION_PROVIDER", "")
+    )
 
 
-def getNotarizationUserName() -> str:
-    return os.environ.get("NOTARIZATION_USERNAME", "")
+def getAppleNotarizationUserName() -> str:
+    return os.environ.get(
+        "APPLE_NOTARIZATION_USERNAME",
+        os.environ.get("NOTARIZATION_USERNAME", "")
+    )
+
+
+def getAppleCodesignIdentity() -> str:
+    return os.environ.get("APPLE_CODESIGN_IDENTITY", "Developer ID Application")
 
 
 def getOperatingSystemDist() -> str:
@@ -168,36 +177,38 @@ def isMacOS() -> bool:
     return sys.platform == "darwin"
 
 
-def notarizeApp(pathToNotarize: str, bundleId: str) -> str:
+def notarizeApp(pathToNotarize: str, bundleId: str):
     assert path.exists(pathToNotarize)
     print(f"Notarizing {path.basename(pathToNotarize)}")
 
     result = shell(
-        "xcrun altool --notarize-app -t osx "
-        "-f {pathToNotarize} "
-        "--primary-bundle-id {bundleId} "
-        "-u {appleIdUser} "
-        "-p @env:NOTARIZATION_PASSWORD "
-        "-itc_provider {itcProvider} "
-        "--output-format xml".format(
-            appleIdUser=getNotarizationUserName(),
-            bundleId=bundleId,
-            itcProvider=getNotarizationItcProvider(),
+        "xcrun notarytool submit "
+        # "--primary-bundle-id {bundleId} "
+        "--apple-id {appleIdUser} "
+        "--password qjqg-faqk-kirg-ahvb "
+        "--team-id 69R669CQU7 "
+        "--wait "
+        # "-itc_provider {itcProvider} "
+        # "--output-format xml "
+        "{pathToNotarize}".format(
+            appleIdUser=getAppleNotarizationUserName(),
             pathToNotarize=pathToNotarize,
         )
     )
     print(result)
-    root = ET.fromstring(result)
-    dictNode = root.find("dict")
-    assert dictNode is not None
-    dictNode2 = dictNode.find("dict")
-    assert dictNode2 is not None
-    stringNode = dictNode2.find("string")
-    assert stringNode is not None
-    requestUuid = stringNode.text
-    assert requestUuid
-    print(requestUuid)
-    return requestUuid
+    # root = ET.fromstring(result)
+    # dictNode = root.find("dict")
+    # assert dictNode is not None
+    # dictNode2 = dictNode.find("dict")
+    # assert dictNode2 is not None
+    # stringNode = dictNode2.find("string")
+    # assert stringNode is not None
+    # requestUuid = stringNode.text
+    # assert requestUuid
+    # print(requestUuid)
+    if "status: Accepted" not in result:
+        raise Exception("Notarization failed")
+    # return requestUuid
 
 
 def run(args: List[str]) -> str:
@@ -311,19 +322,19 @@ def updateConfigureAc(version: Version, commit: str = "") -> None:
                 if "_major" in line:
                     k = "FSBUILD_VERSION_MAJOR"
                     v = str(version.major)
-                    d = "Major version"
+                    # d = "Major version"
                 elif "_minor" in line:
                     k = "FSBUILD_VERSION_MINOR"
                     v = str(version.minor)
-                    d = "Minor version"
+                    # d = "Minor version"
                 elif "_revision" in line:
                     k = "FSBUILD_VERSION_REVISION"
                     v = str(version.revision)
-                    d = "Revision"
+                    # d = "Revision"
                 else:
                     k = "FSBUILD_VERSION"
                     v = str(version)
-                    d = "Full version"
+                    # d = "Full version"
                 line = "m4_define([{}], [{}])\n".format(k.lower(), v)
             # if line.startswith("AC_DEFINE_UNQUOTED([FSBUILD_VERSION"):
             #     if "_MAJOR" in line:
@@ -344,9 +355,7 @@ def updateConfigureAc(version: Version, commit: str = "") -> None:
             #         d = "Full version"
             #     line = "AC_DEFINE_UNQUOTED([{}], [{}], [{}])\n".format(k, v, d)
             if line.startswith("m4_define([fsbuild_commit"):
-                line = "m4_define([{}], [{}])\n".format(
-                    "fsbuild_commit", commit
-                )
+                line = "m4_define([{}], [{}])\n".format("fsbuild_commit", commit)
             # if line.startswith("AC_DEFINE_UNQUOTED([FSBUILD_COMMIT"):
             #     k = "FSBUILD_COMMIT"
             #     v = commit
@@ -374,9 +383,7 @@ def updateDebianChangelog(version: Version) -> None:
                 first_line = False
                 deb_package = line.split(" ", 1)[0]
                 lines.append(
-                    "{} ({}-0) unstable; urgency=low\n".format(
-                        deb_package, deb_version
-                    )
+                    "{} ({}-0) unstable; urgency=low\n".format(deb_package, deb_version)
                 )
                 if lines[-1] != line:
                     first_line_changed = True
@@ -406,9 +413,7 @@ def updateSpecFile(path: str, version: Version) -> None:
     with open(path, "r", encoding="UTF-8") as f:
         for line in f:
             if line.startswith("%define fsbuild_version "):
-                lines.append(
-                    "%define fsbuild_version {}\n".format(rpm_version)
-                )
+                lines.append("%define fsbuild_version {}\n".format(rpm_version))
             # elif line.startswith("%define unmangled_version "):
             #     lines.append("%define unmangled_version {0}\n".format(version))
             else:
@@ -429,9 +434,7 @@ def updatePackageFs(version: Version) -> None:
             elif line.startswith("PACKAGE_VERSION_MINOR="):
                 lines.append(f"PACKAGE_VERSION_MINOR={str(version.minor)}\n")
             elif line.startswith("PACKAGE_VERSION_REVISION="):
-                lines.append(
-                    f"PACKAGE_VERSION_REVISION={str(version.revision)}\n"
-                )
+                lines.append(f"PACKAGE_VERSION_REVISION={str(version.revision)}\n")
             elif line.startswith("PACKAGE_VERSION_TAG="):
                 lines.append(f"PACKAGE_VERSION_TAG={str(version.tag)}\n")
             elif line.startswith("PACKAGE_COMMIT="):
@@ -491,9 +494,7 @@ def calculateVersion(
             if githubRef.startswith("refs/heads/"):
                 branch = githubRef[len("refs/heads/") :]
             if githubRef.startswith("refs/pull/"):
-                branch = "pull" + githubRef[len("refs/pull/") :].replace(
-                    "/", ""
-                )
+                branch = "pull" + githubRef[len("refs/pull/") :].replace("/", "")
         if not branch:
             branch = subprocess.check_output(
                 ["git", "symbolic-ref", "--short", "HEAD"], encoding="UTF-8"
@@ -632,7 +633,7 @@ def signDmg():
         "codesign",
         "--force",
         "--sign",
-        "Developer ID Application",
+        getAppleCodesignIdentity(),
         "--digest-algorithm=sha1,sha256",
     ]
     args.append(getDmgPath())
@@ -647,8 +648,7 @@ def notarizeDmg():
     bundleId = packageInformation.bundleId
     dmgPath = getDmgPath()
     assert path.exists(dmgPath)
-    requestUuid = notarizeApp(dmgPath, bundleId)
-    checkNotarizationResult(requestUuid)
+    notarizeApp(dmgPath, bundleId)
 
     print('xcrun stapler staple "{}"'.format(dmgPath))
     assert os.system('xcrun stapler staple "{}"'.format(dmgPath)) == 0

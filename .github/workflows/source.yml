@@ -3,13 +3,14 @@ name: Source
 on:
   push:
     branches:
+      - beta
       - master
-      - dev
       - stable
+      - test
   pull_request:
     branches:
+      - beta
       - master
-      - dev
       - stable
 
 jobs:
@@ -68,21 +69,21 @@ jobs:
           sudo python3 -m pip install -U pip setuptools
           sudo python3 -m pip install -U meson ninja
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - name: Cache dependencies
         uses: actions/cache@v4
-        id: fsdeps_cache
+        id: build_env_cache
         with:
-          path: fsdeps/_prefix
-          key: fsdeps_${{ hashFiles('fsdeps/**/*') }}_${{ runner.os }}
+          path: build/env/_prefix
+          key: build_env_${{ hashFiles('build/env/**/*') }}_${{ runner.os }}
 
       - name: Build dependencies
-        if: steps.fsdeps_cache.outputs.cache-hit != 'true'
+        if: steps.build_env_cache.outputs.cache-hit != 'true'
         run: |
-          fsdeps/make
+          build/env/setup
 
       - name: Update version
         if: hashFiles('fsbuild/version') != ''
@@ -92,21 +93,21 @@ jobs:
       - name: Bootstrap
         if: hashFiles('fsbuild/bootstrap') != ''
         run: |
-          fsdeps/use fsbuild/bootstrap
+          build/env/shell fsbuild/bootstrap
 
       - name: Configure
         if: hashFiles('fsbuild/configure') != ''
         run: |
-          fsdeps/use fsbuild/configure
+          build/env/shell fsbuild/configure
 
       - name: Distcheck
         if: hashFiles('fsbuild/distcheck') != ''
         run: |
-          fsdeps/use fsbuild/distcheck
+          build/env/shell fsbuild/distcheck
 
       - name: Source
         run: |
-          fsdeps/use fsbuild/source
+          build/env/shell fsbuild/source
 
       - uses: actions/upload-artifact@v4
         with:
@@ -116,14 +117,17 @@ jobs:
       - name: Upload build to Dropbox folder
         if: >-
           env.UPLOAD_ENABLED != null && (
-            github.ref == 'refs/heads/master' ||
-            github.ref == 'refs/heads/dev' ||
             github.ref == 'refs/heads/beta' ||
-            github.ref == 'refs/heads/stable'
+            github.ref == 'refs/heads/dev' ||
+            github.ref == 'refs/heads/master' ||
+            github.ref == 'refs/heads/stable' ||
+            github.ref == 'refs/heads/test'
           )
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
           DROPBOX_ACCESS_TOKEN: ${{ secrets.DROPBOX_ACCESS_TOKEN }}
         run: |
-          python3 -m pip install dropbox==11.23.0
+          python3 -m venv .venv
+          source .venv/bin/activate
+          python3 -m pip install dropbox==12.0.2
           fsbuild/upload

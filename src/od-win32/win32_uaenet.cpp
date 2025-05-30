@@ -8,15 +8,14 @@
 
 #include "sysconfig.h"
 
-#ifdef WITH_SLIRP
-#include "../slirp/slirp.h"
-#endif
-
 #ifdef FSUAE // NL
 
 #include "ethernet.h"
 
 #else
+#ifdef WITH_SLIRP
+#include "../slirp/slirp.h"
+#endif
 
 #include <stdio.h>
 

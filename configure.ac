@@ -134,6 +134,12 @@ AX_CHECK_COMPILE_FLAG(-Wmissing-format-attribute,
 AM_CONDITIONAL([W_MISSING_FORMAT_ATTRIBUTE],
 [test x$w_missing_format_attribute = xyes])
 
+AX_CHECK_COMPILE_FLAG(-Wno-c++11-narrowing,
+[w_no_cpp11_narrowing=yes],
+[w_no_cpp11_narrowing=no])
+AM_CONDITIONAL([W_NO_CPP11_NARROWING],
+[test x$w_no_cpp11_narrowing = xyes])
+
 AX_CHECK_COMPILE_FLAG(-fno-pie,
 [fno_pie=yes],
 [fno_pie=no])
@@ -183,8 +189,8 @@ AC_CHECK_LIB([dl], [dlopen])
 # not using freetype right now
 # AC_DEFINE([USE_FREETYPE], [1], [Define to 1 to use FreeType])
 # PKG_CHECK_MODULES([FREETYPE], [freetype2])
-AC_SUBST([FREETYPE_CFLAGS])
-AC_SUBST([FREETYPE_LIBS])
+# AC_SUBST([FREETYPE_CFLAGS])
+# AC_SUBST([FREETYPE_LIBS])
 
 AC_CHECK_LIB([gdi32], [main])
 

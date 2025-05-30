@@ -94,6 +94,8 @@ def ignore_library(name):
         return True
     if name.startswith("ld-linux-x86-64.so"):
         return True
+    if name.startswith("ld-linux-aarch64.so.1"):
+        return True
 
     if name.startswith("libc.so"):
         return True

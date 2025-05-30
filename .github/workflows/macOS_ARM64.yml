@@ -1,0 +1,154 @@
+name: macOS_ARM64
+
+on:
+  push:
+    branches:
+      - beta
+      - master
+      - stable
+      - test
+  pull_request:
+    branches:
+      - beta
+      - master
+      - stable
+
+jobs:
+  macOS_ARM64:
+    runs-on: macos-14
+
+    env:
+      SIGNING_ENABLED: ${{ secrets.MACOS_CERTIFICATE_P12_DATA }}
+      UPLOAD_ENABLED: ${{ secrets.DROPBOX_ACCESS_TOKEN }}
+
+    steps:
+      - name: Install brew packages
+        run: brew install autoconf automake dos2unix libtool meson
+
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        id: build_env_cache
+        with:
+          path: build/env/_prefix
+          key: build_env_${{ hashFiles('build/env/**/*') }}_${{ runner.os }}_${{ runner.arch }}
+
+      - name: Build dependencies
+        if: steps.build_env_cache.outputs.cache-hit != 'true'
+        run: |
+          build/env/setup
+
+      - name: Update version
+        if: hashFiles('fsbuild/version') != ''
+        run: |
+          fsbuild/version
+
+      - name: Bootstrap
+        if: hashFiles('fsbuild/bootstrap') != ''
+        run: |
+          build/env/shell fsbuild/bootstrap
+
+      - name: Configure
+        if: hashFiles('fsbuild/configure') != ''
+        run: |
+          build/env/shell fsbuild/configure
+
+      - name: Build
+        run: |
+          build/env/shell fsbuild/make
+
+      - name: Bundle
+        run: |
+          fsbuild/bundle
+
+      - name: Prepare signing certificate
+        if: env.SIGNING_ENABLED != null
+        env:
+          KEYCHAIN_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+          SIGNING_CERTIFICATE_P12_DATA: ${{ secrets.MACOS_CERTIFICATE_P12_DATA }}
+          SIGNING_CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+        run: |
+          echo $SIGNING_CERTIFICATE_P12_DATA | base64 --decode > certificate.p12
+          security create-keychain -p $KEYCHAIN_PASSWORD build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p $KEYCHAIN_PASSWORD build.keychain
+          security import certificate.p12 -k build.keychain -P $SIGNING_CERTIFICATE_PASSWORD -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple: -s -k $KEYCHAIN_PASSWORD build.keychain
+
+      - name: Sign
+        if: env.SIGNING_ENABLED != null
+        run: |
+          fsbuild/sign
+
+      - name: Notarize
+        if: env.SIGNING_ENABLED != null
+        env:
+          NOTARIZATION_PASSWORD: ${{ secrets.MACOS_NOTARIZATION_PASSWORD }}
+          NOTARIZATION_PROVIDER: ${{ secrets.MACOS_NOTARIZATION_PROVIDER }}
+          NOTARIZATION_USERNAME: ${{ secrets.MACOS_NOTARIZATION_USERNAME }}
+        run: |
+          fsbuild/notarize
+
+      - name: Archive
+        run: |
+          fsbuild/archive
+
+      - name: Install appdmg
+        if: hashFiles('fsbuild/build-dmg') != ''
+        run: |
+          npm install -g appdmg
+
+      - name: Build DMG
+        if: hashFiles('fsbuild/build-dmg') != ''
+        run: |
+          fsbuild/build-dmg
+
+      - name: Unlock keychain again
+        if: env.SIGNING_ENABLED != null
+        env:
+          KEYCHAIN_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+          SIGNING_CERTIFICATE_P12_DATA: ${{ secrets.MACOS_CERTIFICATE_P12_DATA }}
+          SIGNING_CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+        run: |
+          echo $SIGNING_CERTIFICATE_P12_DATA | base64 --decode > certificate.p12
+          security unlock-keychain -p $KEYCHAIN_PASSWORD build.keychain
+
+      - name: Sign DMG
+        if: hashFiles('fsbuild/sign-dmg') != '' && env.SIGNING_ENABLED != null
+        run: |
+          fsbuild/sign-dmg
+
+      - name: Notarize DMG
+        if: hashFiles('fsbuild/notarize-dmg') != '' && env.SIGNING_ENABLED != null
+        env:
+          NOTARIZATION_PASSWORD: ${{ secrets.MACOS_NOTARIZATION_PASSWORD }}
+          NOTARIZATION_PROVIDER: ${{ secrets.MACOS_NOTARIZATION_PROVIDER }}
+          NOTARIZATION_USERNAME: ${{ secrets.MACOS_NOTARIZATION_USERNAME }}
+        run: |
+          fsbuild/notarize-dmg
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macOS_ARM64
+          path: fsbuild/_dist/*
+
+      - name: Upload build to Dropbox folder
+        if: >-
+          env.UPLOAD_ENABLED != null && (
+            github.ref == 'refs/heads/beta' ||
+            github.ref == 'refs/heads/dev' ||
+            github.ref == 'refs/heads/master' ||
+            github.ref == 'refs/heads/stable' ||
+            github.ref == 'refs/heads/test'
+          )
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          DROPBOX_ACCESS_TOKEN: ${{ secrets.DROPBOX_ACCESS_TOKEN }}
+        run: |
+          python3 -m venv .venv
+          source .venv/bin/activate
+          python3 -m pip install dropbox==12.0.2
+          fsbuild/upload

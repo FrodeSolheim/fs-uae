@@ -21,7 +21,7 @@ https://download.gnome.org/sources/glib/2.84/$PACKAGE.tar.xz \
 sha256:$CHECKSUM
 
 rm -Rf build/env/_temp && mkdir build/env/_temp && cd build/env/_temp
-tar xf ../_sources/$PACKAGE.tar.xz
+tar xf ../_sources/$PACKAGE.tar.xz || true
 cd $PACKAGE
 
 #python3 ../../replace.py \

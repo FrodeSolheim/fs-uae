@@ -48,9 +48,9 @@ make install
 
 # if [ "$SYSTEM_OS" = "macOS" ]; then
 # DYLIB=libmpeg2.0.dylib
-# install_name_tool -id @rpath/$DYLIB $FSENV_PREFIX/lib/$DYLIB
+# install_name_tool -id @rpath/$DYLIB $PREFIX/lib/$DYLIB
 # DYLIB=libmpeg2convert.0.dylib
-# install_name_tool -id @rpath/$DYLIB $FSENV_PREFIX/lib/$DYLIB
+# install_name_tool -id @rpath/$DYLIB $PREFIX/lib/$DYLIB
 # fi
 
 touch $INSTALLED

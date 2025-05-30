@@ -46,7 +46,7 @@ meson install -C _build
 
 # if [ "$SYSTEM_OS" = "macOS" ]; then
 # DYLIB=libglib-2.0.0.dylib
-# install_name_tool -id @rpath/$DYLIB $FSENV_PREFIX/lib/$DYLIB
+# install_name_tool -id @rpath/$DYLIB $PREFIX/lib/$DYLIB
 # fi
 
 touch $INSTALLED

@@ -9,8 +9,8 @@ build/env/packages/gettext
 build/env/packages/libiconv
 build/env/packages/zlib
 
-PACKAGE=glib-2.84.0
-CHECKSUM=f8823600cb85425e2815cfad82ea20fdaa538482ab74e7293d58b3f64a5aff6a
+PACKAGE=glib-2.84.2
+CHECKSUM=88e960dd937057407d61fcb3b45a860704b25923c37ae2478b85f2ecb5a4021f
 REVISION=1
 
 . build/env/scripts/package.sh

@@ -10,6 +10,8 @@ if "386" in exe_info:
     arch = "x86"
 elif "x86-64" in exe_info:
     arch = "x86-64"
+elif "aarch64" in exe_info:
+    arch = "ARM64"
 else:
     raise Exception("unrecognized arch " + repr(exe_info))
 

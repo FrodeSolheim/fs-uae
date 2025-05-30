@@ -64,12 +64,6 @@ jobs:
           libxrender-dev
           x11proto-dev
 
-      - name: Print system information
-        run: |
-          uname -a
-          uname
-          uname -m
-
       - name: Install pip packages
         run: |
           sudo python3 -m pip install -U pip setuptools
@@ -84,7 +78,7 @@ jobs:
         id: build_env_cache
         with:
           path: build/env/_prefix
-          key: build_env_${{ hashFiles('build/env/**/*') }}_${{ runner.os }}
+          key: build_env_${{ hashFiles('build/env/**/*') }}_${{ runner.os }}_${{ runner.arch }}
 
       - name: Build dependencies
         if: steps.build_env_cache.outputs.cache-hit != 'true'

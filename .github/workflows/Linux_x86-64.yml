@@ -129,5 +129,5 @@ jobs:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
           DROPBOX_ACCESS_TOKEN: ${{ secrets.DROPBOX_ACCESS_TOKEN }}
         run: |
-          python3 -m pip install dropbox==11.23.0
+          python3 -m pip install dropbox==12.0.2
           fsbuild/upload

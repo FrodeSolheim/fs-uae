@@ -34,4 +34,9 @@ fi
 make VERBOSE=1
 make install
 
+if [ "$SYSTEM_OS" = "macOS" ]; then
+DYLIB=libopenal.1.dylib
+install_name_tool -id $FSENV_PREFIX/lib/$DYLIB $FSENV_PREFIX/lib/$DYLIB
+fi
+
 touch $INSTALLED

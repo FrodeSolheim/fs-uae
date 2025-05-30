@@ -64,6 +64,12 @@ jobs:
           libxrender-dev
           x11proto-dev
 
+      - name: Print system information
+        run: |
+          uname -a
+          uname
+          uname -m
+
       - name: Install pip packages
         run: |
           sudo python3 -m pip install -U pip setuptools

@@ -412,6 +412,7 @@ def macos_main():
 
 windows_system_dlls = [
     "advapi32.dll",
+    "avrt.dll",
     "dinput.dll",
     "dsound.dll",
     "dwmapi.dll",

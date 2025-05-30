@@ -28,7 +28,11 @@ automake --add-missing --copy --force-missing || true
 fi
 
 # Using -std=gnu89 to avoid some inline problems causing linker errors
+if [ "$SYSTEM_OS-$SYSTEM_ARCH" = "Linux-ARM64" ]; then
+./configure --prefix=$PREFIX --build=aarch64-unknown-linux CFLAGS="-std=gnu89 -O2"
+else
 ./configure --prefix=$PREFIX CFLAGS="-std=gnu89 -O2"
+fi
 # make
 cd libmpeg2
 make

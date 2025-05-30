@@ -120,10 +120,11 @@ jobs:
       - name: Upload build to Dropbox folder
         if: >-
           env.UPLOAD_ENABLED != null && (
-            github.ref == 'refs/heads/master' ||
-            github.ref == 'refs/heads/dev' ||
             github.ref == 'refs/heads/beta' ||
-            github.ref == 'refs/heads/stable'
+            github.ref == 'refs/heads/dev' ||
+            github.ref == 'refs/heads/master' ||
+            github.ref == 'refs/heads/stable' ||
+            github.ref == 'refs/heads/test'
           )
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}

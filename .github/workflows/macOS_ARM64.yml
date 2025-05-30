@@ -23,7 +23,7 @@ jobs:
 
     steps:
       - name: Install brew packages
-        run: brew install autoconf automake dos2unix meson
+        run: brew install autoconf automake dos2unix libtool meson
 
       - uses: actions/checkout@v4
         with:

@@ -4,8 +4,8 @@ set -e
 
 build/env/packages/gettext
 
-PACKAGE=openal-soft-1.21.1
-CHECKSUM=c8ad767e9a3230df66756a21cc8ebf218a9d47288f2514014832204e666af5d8
+PACKAGE=openal-soft-1.24.3
+CHECKSUM=cb5e6197a1c0da0edcf2a81024953cc8fa8545c3b9474e48c852af709d587892
 REVISION=1
 
 . build/env/scripts/package.sh

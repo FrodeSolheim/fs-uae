@@ -1,5 +1,6 @@
 # Build folders
 /build/env/_prefix/
+/build/env/_sources/
 /build/env/_temp/
 
 *~

@@ -138,14 +138,15 @@ jobs:
       - name: Upload build to Dropbox folder
         if: >-
           env.UPLOAD_ENABLED != null && (
-            github.ref == 'refs/heads/master' ||
-            github.ref == 'refs/heads/dev' ||
             github.ref == 'refs/heads/beta' ||
-            github.ref == 'refs/heads/stable'
+            github.ref == 'refs/heads/dev' ||
+            github.ref == 'refs/heads/master' ||
+            github.ref == 'refs/heads/stable' ||
+            github.ref == 'refs/heads/test'
           )
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
           DROPBOX_ACCESS_TOKEN: ${{ secrets.DROPBOX_ACCESS_TOKEN }}
         run: |
-          python3 -m pip install dropbox==11.23.0
+          python3 -m pip install dropbox==12.0.2
           fsbuild/upload

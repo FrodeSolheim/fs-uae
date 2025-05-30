@@ -1257,7 +1257,7 @@ uae_u32 host_bind (TrapContext *context, SB, uae_u32 sd, uae_u32 name, uae_u32 n
     DEBUG_LOG ("bind(%u[%d], 0x%x, %u) -> ", sd, s, name, namelen);
     copysockaddr_a2n (&addr, name, namelen);
     printSockAddr (&addr);
-    if ((success = bind (s, (struct sockaddr *)&addr, len)) != 0) {
+    if ((success = ::bind (s, (struct sockaddr *)&addr, len)) != 0) {
         SETERRNO;
         DEBUG_LOG ("failed (%d)\n",sb->sb_errno);
     } else {

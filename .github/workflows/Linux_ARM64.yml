@@ -1,4 +1,4 @@
-name: Linux
+name: Linux_x86-64
 
 on:
   push:
@@ -15,7 +15,7 @@ on:
 
 jobs:
   Linux_x86-64:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-22.04-arm
 
     env:
       UPLOAD_ENABLED: ${{ secrets.DROPBOX_ACCESS_TOKEN }}
@@ -114,7 +114,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: Linux_x86-64
+          name: Linux_ARM64
           path: fsbuild/_dist/*
 
       - name: Upload build to Dropbox folder

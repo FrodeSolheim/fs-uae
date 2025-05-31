@@ -185,7 +185,7 @@ def notarizeApp(pathToNotarize: str, bundleId: str):
         "xcrun notarytool submit "
         # "--primary-bundle-id {bundleId} "
         "--apple-id {appleIdUser} "
-        "--password qjqg-faqk-kirg-ahvb "
+        "-p @env:NOTARIZATION_PASSWORD "
         "--team-id 69R669CQU7 "
         "--wait "
         # "-itc_provider {itcProvider} "

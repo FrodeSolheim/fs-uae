@@ -25,9 +25,7 @@ def notarizeForMacOS():
     shell(
         f'cd {bundleParentDir} && ditto -c -k --keepParent "{bundleName}" "{zip}"'
     )
-    # requestUuid =
     notarizeApp("fsbuild/_build/notarize.zip", bundleId)
-    # checkNotarizationResult(requestUuid)
 
     if bundlePath.endswith(".framework"):
         print(

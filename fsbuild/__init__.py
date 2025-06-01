@@ -51,37 +51,6 @@ class PackageInformation:
 _packageInformation: Optional[PackageInformation] = None
 
 
-def checkNotarizationResult(requestUuid: str):
-    for _ in range(60):
-        time.sleep(10.0)
-        result = run(
-            [
-                "xcrun",
-                "altool",
-                "--notarization-info",
-                requestUuid,
-                "-u",
-                getAppleNotarizationUserName(),
-                "-p",
-                "@env:NOTARIZATION_PASSWORD",
-                "-itc_provider",
-                getAppleNotarizationItcProvider(),
-                "--output-format",
-                "xml",
-            ]
-        )
-        if "<string>success</string>" in result:
-            break
-        elif "<string>in progress</string>" in result:
-            print("in progress...")
-            continue
-        else:
-            print(result)
-            raise Exception("Unknown notarization result")
-    else:
-        raise Exception("Gave up notarization")
-
-
 def getPackageInformation() -> PackageInformation:
     global _packageInformation
     if _packageInformation is None:
@@ -142,18 +111,16 @@ def getFrameworkName() -> str:
     return getPackageInformation().prettyName + ".framework"
 
 
-def getAppleNotarizationItcProvider() -> str:
-    return os.environ.get(
-        "APPLE_NOTARIZATION_PROVIDER",
-        os.environ.get("NOTARIZATION_PROVIDER", "")
-    )
+def getAppleTeamId() -> str:
+    return os.environ.get("APPLE_TEAM_ID", "")
 
 
-def getAppleNotarizationUserName() -> str:
-    return os.environ.get(
-        "APPLE_NOTARIZATION_USERNAME",
-        os.environ.get("NOTARIZATION_USERNAME", "")
-    )
+def getAppleId() -> str:
+    return os.environ.get("APPLE_ID", "")
+
+
+def getApplePassword() -> str:
+    return os.environ.get("APPLE_PASSWORD", "")
 
 
 def getAppleCodesignIdentity() -> str:
@@ -183,42 +150,25 @@ def notarizeApp(pathToNotarize: str, bundleId: str):
 
     result = shell(
         "xcrun notarytool submit "
-        # "--primary-bundle-id {bundleId} "
-        "--apple-id {appleIdUser} "
-        "-p @env:NOTARIZATION_PASSWORD "
-        "--team-id 69R669CQU7 "
+        "--apple-id {appleId} "
+        "--password {applePassword} "
+        "--team-id {appleTeamId} "
         "--wait "
-        # "-itc_provider {itcProvider} "
-        # "--output-format xml "
         "{pathToNotarize}".format(
-            appleIdUser=getAppleNotarizationUserName(),
+            appleTeamId=getAppleTeamId(),
+            appleId=getAppleId(),
+            applePassword=getApplePassword(),
             pathToNotarize=pathToNotarize,
-        )
+        ),
+        censor=True
     )
     print(result)
-    # root = ET.fromstring(result)
-    # dictNode = root.find("dict")
-    # assert dictNode is not None
-    # dictNode2 = dictNode.find("dict")
-    # assert dictNode2 is not None
-    # stringNode = dictNode2.find("string")
-    # assert stringNode is not None
-    # requestUuid = stringNode.text
-    # assert requestUuid
-    # print(requestUuid)
     if "status: Accepted" not in result:
         raise Exception("Notarization failed")
-    # return requestUuid
 
 
 def run(args: List[str]) -> str:
     print(quoteArgs(args))
-    # p = subprocess.Popen(args, stdout = subprocess.PIPE)
-    # assert p.wait() == 0
-    # assert p.stdout
-    # output = p.stdout.read().decode("UTF-8")
-    # assert p.wait() == 0
-    # return output
     return subprocess.check_output(args).decode("UTF-8")
 
 
@@ -247,8 +197,11 @@ def quoteArgs(args: List[str]) -> str:
     return " ".join(f"{quoteArg(a)}" for a in args)
 
 
-def shell(cmd: str) -> str:
-    print(cmd)
+def shell(cmd: str, censor: bool=False) -> str:
+    if censor:
+        print("Running command (censored)")
+    else:
+        print(cmd)
     return subprocess.run(
         cmd, shell=True, check=True, stdout=subprocess.PIPE
     ).stdout.decode("UTF-8")

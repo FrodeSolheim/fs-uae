@@ -68,7 +68,11 @@ def upload(dbx, package, version, path):
 def main():
     dist_dir = "fsbuild/_dist"
     upload_items = os.listdir(dist_dir)
-    dbx = dropbox.Dropbox(os.getenv("DROPBOX_ACCESS_TOKEN"))
+    dbx = dropbox.Dropbox(
+        app_key=os.getenv("DROPBOX_APP_KEY"),
+        app_secret=os.getenv("DROPBOX_APP_SECRET"),
+        oauth2_refresh_token=os.getenv("DROPBOX_REFRESH_TOKEN"),
+    )
     package = package_data["PACKAGE_NAME_PRETTY"]
     version = package_data["PACKAGE_VERSION"]
     for item in upload_items:

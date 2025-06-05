@@ -114,16 +114,20 @@ int close(int socket) {
 #define MESSAGE_PLAYER_TAG_3      12
 #define MESSAGE_PLAYER_TAG_4      13
 #define MESSAGE_PLAYER_TAG_5      14
-#define MESSAGE_PLAYER_PING       15
-#define MESSAGE_PLAYER_LAG        16
-#define MESSAGE_SET_PLAYER_TAG    17
-#define MESSAGE_PROTOCOL_VERSION  18
-#define MESSAGE_EMULATION_VERSION 19
+#define MESSAGE_PLAYER_TAG_6      15
+#define MESSAGE_PLAYER_TAG_7      16
+#define MESSAGE_PLAYER_TAG_8      17
 
-#define MESSAGE_ERROR             20
-#define MESSAGE_TEXT              21
-#define MESSAGE_SESSION_KEY       22
-#define MESSAGE_HALT              23
+#define MESSAGE_PLAYER_PING       18
+#define MESSAGE_PLAYER_LAG        19
+#define MESSAGE_SET_PLAYER_TAG    20
+#define MESSAGE_PROTOCOL_VERSION  21
+#define MESSAGE_EMULATION_VERSION 22
+
+#define MESSAGE_ERROR             23
+#define MESSAGE_TEXT              24
+#define MESSAGE_SESSION_KEY       25
+#define MESSAGE_HALT              26
 
 #define MESSAGE_MEMCHECK  (0x80000000 | (5 << 24))
 #define MESSAGE_RNDCHECK  (0x80000000 | (6 << 24))
@@ -523,6 +527,15 @@ static void handle_ext_message(int message, int data) {
     }
     else if (message == MESSAGE_PLAYER_TAG_5) {
         handle_player_tag_message(5, data);
+    }
+    else if (message == MESSAGE_PLAYER_TAG_6) {
+        handle_player_tag_message(6, data);
+    }
+    else if (message == MESSAGE_PLAYER_TAG_7) {
+        handle_player_tag_message(7, data);
+    }
+    else if (message == MESSAGE_PLAYER_TAG_8) {
+        handle_player_tag_message(8, data);
     }
     else if (message == MESSAGE_PLAYER_PING) {
         int ply = (data & 0x00ff0000) >> 16;

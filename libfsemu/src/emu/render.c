@@ -2118,7 +2118,7 @@ void fs_emu_video_render_function()
 
         for (int i = 0; i < MAX_PLAYERS; i++) {
             fs_emu_player *player = g_fs_emu_players + i;
-            int x = i * 1920 / 6 + 20;
+            int x = i * 1920 / MAX_PLAYERS + 20;
             int y = 1038;
 
             int rendered_tag = 0;
@@ -2131,7 +2131,7 @@ void fs_emu_video_render_function()
             }
             if (rendered_tag || player->ping) {
                 str = g_strdup_printf("%03d", player->ping);
-                fs_emu_font_render(menu_font, str, x + 100, y,
+                fs_emu_font_render(menu_font, str, x, y + 24,  // <== moved down
                         1.0, 1.0, 1.0, 1.0);
                 free(str);
             }

@@ -24,7 +24,7 @@ extern int g_fs_emu_audio_buffer_underruns;
 extern int g_fs_emu_throttling;
 extern int g_fs_emu_full_sync_allowed;
 
-#define MAX_PLAYERS 6
+#define MAX_PLAYERS 9
 
 typedef struct fs_emu_player {
     char tag[4];

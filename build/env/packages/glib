@@ -49,4 +49,8 @@ meson install -C _build
 # install_name_tool -id @rpath/$DYLIB $PREFIX/lib/$DYLIB
 # fi
 
+if [ "$SYSTEM_OS" = "Linux" ]; then
+patchelf --set-rpath $PREFIX/lib $PREFIX/lib/libglib-2.0.so
+fi
+
 touch $INSTALLED

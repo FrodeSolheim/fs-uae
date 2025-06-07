@@ -2131,7 +2131,7 @@ void fs_emu_video_render_function()
             }
             if (rendered_tag || player->ping) {
                 str = g_strdup_printf("%03d", player->ping);
-                fs_emu_font_render(menu_font, str, x, y - 24,  // <== moved down
+                fs_emu_font_render(menu_font, str, x, y - 32,  // <== moved down
                         1.0, 1.0, 1.0, 1.0);
                 free(str);
             }

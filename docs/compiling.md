@@ -19,7 +19,7 @@ Supported options:
 
 Install dependencies for running bootstrap:
 
-    sudo apt-get install autoconf automake libtool gettext
+    sudo apt-get install autoconf automake libtool gettext pkgconf
 
 Run bootstrap (only when building from git repo):
 

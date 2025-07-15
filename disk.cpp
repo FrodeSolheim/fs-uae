@@ -69,6 +69,7 @@ int disk_debug_track = -1;
 #include "floppybridge/floppybridge_abstract.h"
 #include "floppybridge/floppybridge_lib.h"
 #endif
+#include "uae/io.h"
 
 #undef CATWEASEL
 
@@ -3367,6 +3368,7 @@ void disk_insert_force (int num, const TCHAR *name, bool forcedwriteprotect)
 	disk_insert_2 (num, name, 1, forcedwriteprotect);
 }
 
+#ifdef FLOPPYBRIDGE
 static void floppybridge_getsetprofile(int i)
 {
 	if (currprefs.floppyslots[i].dfxsubtype == 0 || currprefs.floppyslots[i].dfxsubtypeid[0] == 0) {
@@ -3384,6 +3386,7 @@ static void floppybridge_getsetprofile(int i)
 		}
 	}
 }
+#endif
 
 static void DISK_check_change (void)
 {
@@ -5520,7 +5523,7 @@ static void abrcheck(struct diskinfo *di)
 		for (int i = 0; abr_files[i] && !error; i++) {
 			get_plugin_path(path, sizeof(path) / sizeof(TCHAR), _T("abr"));
 			_tcscat(path, abr_files[i]);
-			FILE *f = _tfopen(path, _T("rb"));
+			FILE *f = uae_tfopen(path, _T("rb"));
 			if (f) {
 				tinyxml2::XMLError err = abr_xml[i].LoadFile(f);
 				if (err != XML_SUCCESS) {

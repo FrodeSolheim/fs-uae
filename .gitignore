@@ -1,3 +1,10 @@
+# fs-uae
+
+.deps/
+.dirstamp
+
+# WinUAE
+
 *.lib
 *.old
 *.dsp

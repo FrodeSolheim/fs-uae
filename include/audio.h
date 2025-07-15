@@ -11,7 +11,15 @@
 
 #include "uae/types.h"
 
+#ifdef FSUAE
+// both int and long are 32 bits on Windows, so using ULONG_MAX is probably
+// not good. Although ULONG_MAX is also used with a signed int variable in
+// audio.cpp...
+#warning Testing with #define PERIOD_MAX UINT_MAX
+#define PERIOD_MAX UINT_MAX
+#else
 #define PERIOD_MAX ULONG_MAX
+#endif
 #define MAX_EV ~0u
 
 void AUDxDAT (int nr, uae_u16 value);

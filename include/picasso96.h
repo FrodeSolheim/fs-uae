@@ -13,7 +13,7 @@ uae_u32 picasso_demux (uae_u32 arg, TrapContext *ctx);
 
 #else
 #ifdef FSUAE
-#include "picasso96_win.h"
+#include "picasso96-fs.h"
 #endif
 /*
  * UAE - The U*nix Amiga Emulator

@@ -206,7 +206,7 @@ nodist_fs_uae_SOURCES += src/fsuae/fs-uae.rc
 .rc.o:
 	windres $< -o $@ -I$(s)
 else
-AM_CPPFLAGS += -I$(s)/od-fs/non-win32
+AM_CPPFLAGS += -I$(s)/../od-fs/non-win32
 endif
 
 fs_uae_LDADD =
@@ -214,14 +214,12 @@ fs_uae_LDADD =
 noinst_LIBRARIES += .libs/libuae.a
 AM_CPPFLAGS += -I$(b)/gen
 AM_CPPFLAGS += -I$(s)/include
-AM_CPPFLAGS += -I$(s)/od-fs
-AM_CPPFLAGS += -I$(s)/od-fs/include
+AM_CPPFLAGS += -I$(s)/../od-fs
+AM_CPPFLAGS += -I$(s)/../od-fs/include
 AM_CPPFLAGS += -I$(s)/src/flac/include
 AM_CPPFLAGS += -I$(s)/..
 AM_CPPFLAGS += -I$(s)/../include
 AM_CPPFLAGS += -I$(s)/../jit
-AM_CPPFLAGS += -I$(s)/../od-win32
-AM_CPPFLAGS += -I$(s)/../od-win32/caps
 fs_uae_LDADD += src/libuae.a
 # libuae_a_CXXFLAGS = $(CM_CFLAGS) -fpermissive
 _libs_libuae_a_SOURCES = \
@@ -280,7 +278,6 @@ _libs_libuae_a_SOURCES = \
 	../crc32.cpp \
 	../custom.cpp \
 	../debug.cpp \
-	../debuginfo.cpp \
 	../debugmem.cpp \
 	../def_icons.cpp \
 	../devices.cpp \

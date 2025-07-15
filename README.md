@@ -1,3 +1,9 @@
+# FS-UAE
+
+This is the new repository for FS-UAE 5+ which is now based on a fork of the
+WinUAE repository for practical reasons. The repository name is temporary!
+
+The original README.md from the WinUAE repository follows:
 
 # WinUAE
 

@@ -19,6 +19,7 @@
 /* Using the real _tcs* functions */
 #else
 #define _istdigit isdigit
+#define _istxdigit isxdigit
 #define _istspace isspace
 #define _istupper isupper
 #define _sntprintf snprintf

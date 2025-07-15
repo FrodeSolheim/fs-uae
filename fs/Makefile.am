@@ -266,7 +266,6 @@ _libs_libuae_a_SOURCES = \
 	../blkdev_cdimage.cpp \
 	../bsdsocket.cpp \
 	../calc.cpp \
-	../casablanca.cpp \
 	../cd32_fmv.cpp \
 	../cd32_fmv_genlock.cpp \
 	../cdrom.cpp \

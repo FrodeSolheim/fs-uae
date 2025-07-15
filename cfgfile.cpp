@@ -12,6 +12,12 @@
 
 #include <ctype.h>
 
+#ifdef _WIN32
+#include <winsock2.h>
+#else
+#include <arpa/inet.h>
+#endif
+
 #include "options.h"
 #include "uae.h"
 #include "audio.h"
@@ -529,7 +535,7 @@ TCHAR *cfgfile_option_get(const TCHAR *s, const TCHAR *option)
 	return cfgfile_option_find_it(s, option, true);
 }
 
-bool cfgfile_option_get_bool(const TCHAR *s, const TCHAR *option)
+static bool cfgfile_option_get_bool(const TCHAR *s, const TCHAR *option)
 {
 	TCHAR *d = cfgfile_option_find_it(s, option, true);
 	bool ret = d && (!_tcsicmp(d, _T("true")) || !_tcsicmp(d, _T("1")));
@@ -537,7 +543,7 @@ bool cfgfile_option_get_bool(const TCHAR *s, const TCHAR *option)
 	return ret;
 }
 
-bool cfgfile_option_get_nbool(const TCHAR *s, const TCHAR *option)
+static bool cfgfile_option_get_nbool(const TCHAR *s, const TCHAR *option)
 {
 	TCHAR *d = cfgfile_option_find_it(s, option, true);
 	bool ret = d && (!_tcsicmp(d, _T("false")) || !_tcsicmp(d, _T("0")));
@@ -909,7 +915,7 @@ void cfgfile_write_str(struct zfile *f, const TCHAR *option, const TCHAR *value)
 {
 	cfg_dowrite(f, option, value, 0, 0, 0);
 }
-void cfgfile_write_strarr(struct zfile *f, const TCHAR *option, const TCHAR *arr[], int value)
+static void cfgfile_write_strarr(struct zfile *f, const TCHAR *option, const TCHAR *arr[], int value)
 {
 	checkstrarr(option, arr, value);
 	const TCHAR *v = arr[value];
@@ -931,13 +937,13 @@ static void cfgfile_dwrite_str(struct zfile *f, const TCHAR *option, const TCHAR
 {
 	cfg_dowrite(f, option, optionext, value, 1, 0, 0);
 }
-void cfgfile_dwrite_strarr(struct zfile *f, const TCHAR *option, const TCHAR *optionext, const TCHAR *arr[], int value)
+static void cfgfile_dwrite_strarr(struct zfile *f, const TCHAR *option, const TCHAR *optionext, const TCHAR *arr[], int value)
 {
 	checkstrarr(option, arr, value);
 	const TCHAR *v = arr[value];
 	cfg_dowrite(f, option, optionext, v, 1, 0, 0);
 }
-void cfgfile_dwrite_strarr(struct zfile *f, const TCHAR *option, const TCHAR *arr[], int value)
+static void cfgfile_dwrite_strarr(struct zfile *f, const TCHAR *option, const TCHAR *arr[], int value)
 {
 	cfgfile_dwrite_strarr(f, option, NULL, arr, value);
 }
@@ -986,7 +992,7 @@ void cfgfile_write(struct zfile *f, const TCHAR *option, const TCHAR *format,...
 	cfg_dowrite(f, option, tmp, 0, 0, 0);
 	va_end(parms);
 }
-void cfgfile_write_escape(struct zfile *f, const TCHAR *option, const TCHAR *format,...)
+static void cfgfile_write_escape(struct zfile *f, const TCHAR *option, const TCHAR *format,...)
 {
 	va_list parms;
 	TCHAR tmp[CONFIG_BLEN];
@@ -1020,7 +1026,7 @@ void cfgfile_dwrite(struct zfile *f, const TCHAR *option, const TCHAR *format,..
 	cfg_dowrite(f, option, tmp, 1, 0, 0);
 	va_end(parms);
 }
-void cfgfile_dwrite_escape(struct zfile *f, const TCHAR *option, const TCHAR *format,...)
+static void cfgfile_dwrite_escape(struct zfile *f, const TCHAR *option, const TCHAR *format,...)
 {
 	va_list parms;
 	TCHAR tmp[CONFIG_BLEN];
@@ -1040,7 +1046,7 @@ void cfgfile_target_write(struct zfile *f, const TCHAR *option, const TCHAR *for
 	cfg_dowrite(f, option, tmp, 0, 1, 0);
 	va_end(parms);
 }
-void cfgfile_target_write_escape(struct zfile *f, const TCHAR *option, const TCHAR *format,...)
+static void cfgfile_target_write_escape(struct zfile *f, const TCHAR *option, const TCHAR *format,...)
 {
 	va_list parms;
 	TCHAR tmp[CONFIG_BLEN];
@@ -1060,7 +1066,7 @@ void cfgfile_target_dwrite(struct zfile *f, const TCHAR *option, const TCHAR *fo
 	cfg_dowrite(f, option, tmp, 1, 1, 0);
 	va_end(parms);
 }
-void cfgfile_target_dwrite_escape(struct zfile *f, const TCHAR *option, const TCHAR *format,...)
+static void cfgfile_target_dwrite_escape(struct zfile *f, const TCHAR *option, const TCHAR *format,...)
 {
 	va_list parms;
 	TCHAR tmp[CONFIG_BLEN];
@@ -7387,7 +7393,7 @@ int cfgfile_get_description (struct uae_prefs *p, const TCHAR *filename, TCHAR *
 	return 1;
 }
 
-bool cfgfile_detect_art_path(const TCHAR *path, TCHAR *outpath)
+static bool cfgfile_detect_art_path(const TCHAR *path, TCHAR *outpath)
 {
 	TCHAR tmp[MAX_DPATH];
 	const TCHAR *p;

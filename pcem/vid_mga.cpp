@@ -33,6 +33,10 @@
 #include "vid_svga.h"
 #include "vid_svga_render.h"
 
+#ifdef FSUAE
+#include "uae/declarations.h"
+#endif
+
 #if 1
 
 #define THREADED_QUEUE 1

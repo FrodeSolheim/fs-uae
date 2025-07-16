@@ -18,6 +18,10 @@
 #include "vid_voodoo_render.h"
 #include "x86.h"
 
+#ifdef FSUAE
+#include "uae/declarations.h"
+#endif
+
 #ifdef CLAMP
 #undef CLAMP
 #endif

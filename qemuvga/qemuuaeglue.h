@@ -21,7 +21,11 @@ extern void write_log (const char *, ...);
 #define tostring(s)	#s
 #endif
 
+#ifdef FSUAE
+#warning Not defining ssize_t as int because it is incorrect (but does some code now assume ssize_t is 32-bit?)
+#else
 typedef int ssize_t;
+#endif
 
 #ifdef _MSC_VER
 #include <windows.h>

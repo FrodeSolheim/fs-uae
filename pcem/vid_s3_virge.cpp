@@ -12,6 +12,10 @@
 #include "vid_svga.h"
 #include "vid_svga_render.h"
 
+#ifdef FSUAE
+#include "uae/declarations.h"
+#endif
+
 #ifdef MIN
 #undef MIN
 #endif

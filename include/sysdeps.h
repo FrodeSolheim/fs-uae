@@ -550,4 +550,12 @@ extern void xfree (const void*);
 #define NOWARN_UNUSED(x) x
 #endif
 
+#ifdef FSUAE
+#include "uae/byteswap.h"
+#include "uae/declarations.h"
+#endif
+#include "uae/inline.h"
+#include "uae/types.h"
+#include "uae/likely.h"
+
 #endif /* UAE_SYSDEPS_H */

@@ -23,6 +23,11 @@
 #include "fsdb.h"
 #include "uae/io.h"
 
+#ifdef FSUAE
+// We want the generic fsdb_search_dir also for the Windows version of FS-UAE
+#undef _WIN32
+#endif
+
 /* The on-disk format is as follows:
 * Offset 0, 1 byte, valid
 * Offset 1, 4 bytes, mode
@@ -52,12 +57,14 @@ TCHAR *nname_begin (TCHAR *nname)
 * has the same name when compared case-insensitively, return a
 * malloced string that contains the name we found.  If no file
 * exists that compares equal to REL, return 0.  */
-TCHAR *fsdb_search_dir (const TCHAR *dirname, TCHAR *rel)
+TCHAR *fsdb_search_dir (const TCHAR *dirname, TCHAR *rel, TCHAR **relalt)
 {
 	TCHAR *p = 0;
 	int de;
 	my_opendir_s *dir;
 	TCHAR fn[MAX_DPATH];
+
+	*relalt = NULL;
 
 	dir = my_opendir (dirname);
 	/* This really shouldn't happen...  */

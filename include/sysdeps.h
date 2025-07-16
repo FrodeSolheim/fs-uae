@@ -204,7 +204,12 @@ typedef uae_u32 uaecptr;
 #undef uae_s64
 #undef uae_u64
 
-#if SIZEOF_LONG_LONG == 8
+#if SIZEOF_LONG == 8
+#define uae_s64 long
+#define uae_u64 unsigned long
+#define VAL64(a) (a ## l)
+#define UVAL64(a) (a ## ul)
+#elif SIZEOF_LONG_LONG == 8
 #define uae_s64 long long
 #define uae_u64 unsigned long long
 #define VAL64(a) (a ## LL)
@@ -214,11 +219,6 @@ typedef uae_u32 uaecptr;
 #define uae_u64 unsigned __int64
 #define VAL64(a) (a)
 #define UVAL64(a) (a)
-#elif SIZEOF_LONG == 8
-#define uae_s64 long;
-#define uae_u64 unsigned long;
-#define VAL64(a) (a ## l)
-#define UVAL64(a) (a ## ul)
 #endif
 
 uae_atomic atomic_and(volatile uae_atomic *p, uae_u32 v);

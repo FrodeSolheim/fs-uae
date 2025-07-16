@@ -326,8 +326,10 @@ static inline int8_t inf_clear_intbit(float_status *status)
 | Routine to raise any or all of the software IEC/IEEE floating-point
 | exception flags.
 *----------------------------------------------------------------------------*/
+#if 0
+// Defined as static inline in softfloat-specialize.h
 void float_raise(uint8_t flags, float_status *status);
-
+#endif
 
 /*----------------------------------------------------------------------------
  | The pattern for a default generated single-precision NaN.

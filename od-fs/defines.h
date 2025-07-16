@@ -66,6 +66,7 @@ extern FILE *g_fs_uae_sync_debug_file;
 #define SUPPORT_THREADS
 #define UAE_FILESYS_THREADS
 #define WITH_SPECIALMONITORS
+#define WITH_SNDBOARD
 
 // #define UAE_FILESYS_ASYNCHRONOUS
 // #define USE_SDL

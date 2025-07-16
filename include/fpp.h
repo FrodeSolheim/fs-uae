@@ -40,6 +40,8 @@ extern void init_fpucw_x87_80(void);
 #endif
 extern void fpu_reset(void);
 
+double softfloat_tan(double v);
+
 #define PREC_NORMAL 0
 #define PREC_FLOAT 1
 #define PREC_DOUBLE 2

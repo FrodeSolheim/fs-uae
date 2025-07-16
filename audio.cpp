@@ -47,6 +47,7 @@
 #endif
 #endif
 #include "threaddep/thread.h"
+#include "fpp.h"
 
 #include <math.h>
 
@@ -2106,8 +2107,6 @@ static int sound_prefs_changed (void)
 		return -1;
 	return 0;
 }
-
-double softfloat_tan(double v);
 
 /* This computes the 1st order low-pass filter term b0.
 * The a1 term is 1.0 - b0. The center frequency marks the -3 dB point. */

@@ -46,6 +46,24 @@ static long adjust_blocks (long blocks, int fromsize, int tosize)
 		return (blocks + (blocks < 0 ? -1 : 1)) / (tosize / fromsize);
 }
 
+#ifdef FSUAE
+
+static int get_fs_usage_fake (const TCHAR *path, const TCHAR *disk,
+                struct fs_usage *fsp)
+{
+        fsp->total = 2ll * 1024 * 1024 * 1024;
+        fsp->avail = 1ll * 1024 * 1024 * 1024;
+        return 0;
+}
+
+int get_fs_usage (const TCHAR *path, const TCHAR *disk, struct fs_usage *fsp)
+{
+        // FIXME: if net play only
+        return get_fs_usage_fake(path, disk, fsp);
+}
+
+#else
+
 #ifdef WINDOWS
 #include "od-win32/posixemu.h"
 #include <windows.h>
@@ -339,3 +357,5 @@ struct statfs *fsb;
 #endif /* _AIX && _I386 */
 
 #endif /* ! _WIN32 */
+
+#endif // FSUAE

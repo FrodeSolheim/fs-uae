@@ -291,7 +291,6 @@ _libs_libuae_a_SOURCES = \
 	../ethernet.cpp \
 	../events.cpp \
 	../expansion.cpp \
-	../fake86_cpu.cpp \
 	../fdi2raw.cpp \
 	../filesys.cpp \
 	../flashrom.cpp \

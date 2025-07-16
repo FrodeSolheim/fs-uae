@@ -1644,88 +1644,6 @@ struct romscandata {
 	int got;
 };
 
-static struct romdata *scan_single_rom_2 (struct zfile *f)
-{
-	uae_u8 buffer[20] = { 0 };
-	uae_u8 *rombuf;
-	int cl = 0, size;
-	struct romdata *rd = 0;
-
-	zfile_fseek(f, 0, SEEK_END);
-	size = zfile_ftell32(f);
-	zfile_fseek(f, 0, SEEK_SET);
-	if (size > 524288 * 2)  {/* don't skip KICK disks or 1M ROMs */
-		write_log (_T("'%s': too big %d, ignored\n"), zfile_getname(f), size);
-		return 0;
-	}
-	zfile_fread (buffer, 1, 11, f);
-	if (!memcmp (buffer, "KICK", 4)) {
-		zfile_fseek (f, 512, SEEK_SET);
-		if (size > 262144)
-			size = 262144;
-	} else if (!memcmp (buffer, "AMIROMTYPE1", 11)) {
-		cl = 1;
-		size -= 11;
-	} else {
-		zfile_fseek (f, 0, SEEK_SET);
-	}
-	rombuf = xcalloc (uae_u8, size);
-	if (!rombuf)
-		return 0;
-	zfile_fread (rombuf, 1, size, f);
-	if (cl > 0) {
-		decode_cloanto_rom_do (rombuf, size, size);
-		cl = 0;
-	}
-	if (!cl) {
-		rd = getromdatabydata (rombuf, size);
-		if (!rd && (size & 65535) == 0) {
-			/* check byteswap */
-			int i;
-			for (i = 0; i < size; i+=2) {
-				uae_u8 b = rombuf[i];
-				rombuf[i] = rombuf[i + 1];
-				rombuf[i + 1] = b;
-			}
-			rd = getromdatabydata (rombuf, size);
-		}
-	}
-	if (!rd) {
-		const TCHAR *name = my_getfilepart(zfile_getname(f));
-		rd = getfrombydefaultname(name, size);
-	}
-	if (!rd) {
-		write_log (_T("!: Name='%s':%d\nCRC32=%08X SHA1=%s\n"),
-			zfile_getname (f), size, get_crc32 (rombuf, size), get_sha1_txt (rombuf, size));
-	} else {
-		TCHAR tmp[MAX_DPATH];
-		getromname (rd, tmp);
-		write_log (_T("*: %s:%d = %s\nCRC32=%08X SHA1=%s\n"),
-			zfile_getname (f), size, tmp, get_crc32 (rombuf, size), get_sha1_txt (rombuf, size));
-	}
-	xfree (rombuf);
-	return rd;
-}
-
-static struct romdata *scan_single_rom (const TCHAR *path)
-{
-	struct zfile *z;
-	TCHAR tmp[MAX_DPATH];
-	struct romdata *rd;
-
-	_tcscpy (tmp, path);
-	rd = scan_arcadia_rom (tmp, 0);
-	if (rd)
-		return rd;
-	rd = getromdatabypath (path);
-	if (rd && rd->crc32 == 0xffffffff)
-		return rd;
-	z = zfile_fopen (path, _T("rb"), ZFD_NORMAL);
-	if (!z)
-		return 0;
-	return scan_single_rom_2 (z);
-}
-
 static void abspathtorelative (TCHAR *name)
 {
 	if (!_tcsncmp (start_path_exe, name, _tcslen (start_path_exe)))
@@ -1889,7 +1807,7 @@ static int scan_rom_2 (struct zfile *f, void *vrsd)
 	scan_rom_hook (NULL, 0);
 	if (!isromext (path, true))
 		return 0;
-	rd = scan_single_rom_2 (f);
+	rd = scan_single_rom_file(f);
 	if (rd) {
 		TCHAR name[MAX_DPATH];
 		getromname (rd, name);
@@ -2391,6 +2309,7 @@ static void m(int monid)
 
 static void flipgui(int opengui)
 {
+	end_draw_denise();
 	D3D_guimode(0, opengui);
 	if (full_property_sheet)
 		return;
@@ -11644,6 +11563,7 @@ static INT_PTR CALLBACK Expansion2DlgProc(HWND hDlg, UINT msg, WPARAM wParam, LP
 
 static void enable_for_expansiondlg(HWND hDlg)
 {
+	struct rtgboardconfig *rbc = &workprefs.rtgboards[gui_rtg_index];
 	int z3 = true;
 	int en;
 
@@ -11681,6 +11601,8 @@ static void enable_for_expansiondlg(HWND hDlg)
 	ew(hDlg, IDC_RTG_VBINTERRUPT, rtg3);
 	ew(hDlg, IDC_RTG_THREAD, rtg3 && en);
 	ew(hDlg, IDC_RTG_HWSPRITE, rtg3);
+
+	ew(hDlg, IDC_RTG_SWITCHER, rbc->rtgmem_size > 0 && !gfxboard_get_switcher(rbc));
 }
 
 static void values_to_expansiondlg(HWND hDlg)
@@ -11793,6 +11715,7 @@ static void values_to_expansiondlg(HWND hDlg)
 	CheckDlgButton(hDlg, IDC_RTG_VBINTERRUPT, workprefs.rtg_hardwareinterrupt);
 	CheckDlgButton(hDlg, IDC_RTG_HWSPRITE, workprefs.rtg_hardwaresprite);
 	CheckDlgButton(hDlg, IDC_RTG_THREAD, workprefs.rtg_multithread);
+	CheckDlgButton(hDlg, IDC_RTG_SWITCHER, rbc->rtgmem_size > 0 && (rbc->autoswitch || gfxboard_get_switcher(rbc) || rbc->rtgmem_type < GFXBOARD_HARDWARE));
 
 	xSendDlgItemMessage(hDlg, IDC_RTG_SCALE_ASPECTRATIO, CB_SETCURSEL,
 					   (workprefs.win32_rtgscaleaspectratio == 0) ? 0 :
@@ -11944,6 +11867,12 @@ static INT_PTR CALLBACK ExpansionDlgProc (HWND hDlg, UINT msg, WPARAM wParam, LP
 			case IDC_RTG_THREAD:
 				workprefs.rtg_multithread = ischecked(hDlg, IDC_RTG_THREAD);
 				break;
+			case IDC_RTG_SWITCHER:
+				{
+					struct rtgboardconfig *rbc = &workprefs.rtgboards[gui_rtg_index];
+					rbc->autoswitch = ischecked(hDlg, IDC_RTG_SWITCHER);
+					break;
+				}
 			}
 			if (HIWORD (wParam) == CBN_SELENDOK || HIWORD (wParam) == CBN_KILLFOCUS || HIWORD (wParam) == CBN_EDITCHANGE)  {
 				uae_u32 mask = workprefs.picasso96_modeflags;

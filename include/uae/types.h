@@ -62,25 +62,7 @@ typedef uae_u32 uaecptr;
 
 typedef char uae_char;
 
-#ifdef _WIN32
-#include <tchar.h>
-#ifdef UNICODE
-#define SIZEOF_TCHAR 2
-#else
-#define SIZEOF_TCHAR 1
-#endif
-#else
-typedef char TCHAR;
-#define SIZEOF_TCHAR 1
-#endif
-
-#ifndef _T
-#if SIZEOF_TCHAR == 1
-#define _T(x) x
-#else
-#define _T(x) Lx
-#endif
-#endif
+#include "uae/tchar.h"
 
 #ifndef FALSE
 #define FALSE 0
@@ -90,5 +72,18 @@ typedef char TCHAR;
 #endif
 
 typedef signed long long evt_t;
+
+#ifdef _WIN32
+// Presumable these type names already exists on win32
+#else
+typedef int8_t INT8;
+typedef int16_t INT16;
+typedef int32_t INT32;
+typedef int64_t INT64;
+typedef uint8_t UINT8;
+typedef uint16_t UINT16;
+typedef uint32_t UINT32;
+typedef uint64_t UINT64;
+#endif
 
 #endif /* UAE_TYPES_H */

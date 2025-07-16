@@ -12,6 +12,8 @@
 #include "uae/types.h"
 #include "threaddep/thread.h"
 
+#include <stdlib.h>
+
 typedef union {
 	int i;
 	uae_u32 u32;

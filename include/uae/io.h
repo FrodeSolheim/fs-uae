@@ -1,7 +1,7 @@
 #ifndef UAE_IO_H
 #define UAE_IO_H
 
-#include "uae/types.h"
+#include "uae/tchar.h"
 #include <stdio.h>
 
 #ifdef WINUAE

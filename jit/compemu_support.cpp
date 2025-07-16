@@ -64,6 +64,10 @@
 #ifdef JIT
 
 #ifdef UAE
+#ifdef FSUAE
+//#define WINUAE_ARANYM
+#endif
+
 #define bug write_log
 #include "options.h"
 #include "events.h"
@@ -83,7 +87,7 @@
 #ifdef UAE
 #include "compemu.h"
 #ifdef FSUAE
-#include "codegen_udis86.h"
+//#include "codegen_udis86.h"
 #endif
 #else
 #include "compiler/compemu.h"
@@ -98,7 +102,7 @@ static void build_comp(void);
 
 #ifdef UAE
 #ifdef FSUAE
-#include "uae/fs.h"
+//#include "uae/fs.h"
 #endif
 #include "uae/log.h"
 
@@ -257,6 +261,11 @@ static int __cdecl untranslated_compfn(const void *e1, const void *e2)
 	int v2 = *(const uae_u16*)e2;
 	return (int)raw_cputbl_count[v2] - (int)raw_cputbl_count[v1];
 }
+#endif
+
+#ifdef FSUAE
+// FIXME: MOVE THIS
+#define NOFLAGS_SUPPORT_GENCOMP
 #endif
 
 static compop_func *compfunctbl[65536];
@@ -4281,10 +4290,11 @@ static bool merge_blacklist(void)
 void build_comp(void)
 {
 #ifdef FSUAE
-	if (!g_fs_uae_jit_compiler) {
-		jit_log("JIT: JIT compiler is not enabled");
-		return;
-	}
+#warning Clean up this later
+	// if (!g_fs_uae_jit_compiler) {
+	// 	jit_log("JIT: JIT compiler is not enabled");
+	// 	return;
+	// }
 #endif
 	int i, j;
 	unsigned long opcode;
@@ -4299,7 +4309,6 @@ void build_comp(void)
 	if (cpu_level > 4)
 		cpu_level--;
 #ifdef NOFLAGS_SUPPORT_GENCOMP
-	extern const struct cputbl *uaegetjitcputbl(void);
 	const struct cputbl *nfctbl = uaegetjitcputbl();
 #endif
 #endif

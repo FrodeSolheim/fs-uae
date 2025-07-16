@@ -169,21 +169,21 @@ struct ini_data *ini_load(const TCHAR *path, bool sort)
 
 	if (path == NULL || path[0] == 0)
 		return NULL;
-	FILE *f = _tfopen(path, _T("rb"));
+	FILE *f = uae_tfopen(path, _T("rb"));
 	if (!f)
 		return NULL;
 	size_t v = fread(tmp, 1, sizeof tmp, f);
 	fclose (f);
 	if (v == 3 && tmp[0] == 0xef && tmp[1] == 0xbb && tmp[2] == 0xbf) {
-		f = _tfopen (path, _T("rt, ccs=UTF-8"));
+		f = uae_tfopen(path, _T("rt, ccs=UTF-8"));
 	} else {
-		f = _tfopen (path, _T("rt"));
+		f = uae_tfopen(path, _T("rt"));
 	}
 	section[0] = 0;
 	for (;;) {
 		TCHAR tbuffer[MAX_DPATH];
 		tbuffer[0] = 0;
-		if (!fgetws(tbuffer, MAX_DPATH, f))
+		if (!_fgetts(tbuffer, MAX_DPATH, f))
 			break;
 		TCHAR *s = initrim(tbuffer);
 		if (_tcslen(s) < 3)
@@ -218,7 +218,7 @@ struct ini_data *ini_load(const TCHAR *path, bool sort)
 				TCHAR *otxt = xcalloc(TCHAR, len);
 				for (;;) {
 					tbuffer[0] = 0;
-					if (!fgetws(tbuffer, MAX_DPATH, f))
+					if (!_fgetts(tbuffer, MAX_DPATH, f))
 						break;
 					s3 = initrim(tbuffer);
 					if (s3[0] == 0)
@@ -268,7 +268,7 @@ bool ini_save(struct ini_data *ini, const TCHAR *path)
 	if (!ini)
 		return false;
 	ini_sort(ini);
-	FILE *f = _tfopen(path, _T("wt, ccs=UTF-8"));
+	FILE *f = uae_tfopen(path, _T("wt, ccs=UTF-8"));
 	if (!f)
 		return false;
 	section[0] = 0;
@@ -283,18 +283,18 @@ bool ini_save(struct ini_data *ini, const TCHAR *path)
 			_tcscat(out, il->section);
 			_tcscat(out, right);
 			_tcscat(out, lf);
-			fputws(out, f);
+			_fputts(out, f);
 			_tcscpy(section, il->section);
 		}
 		if (il->key[0] != 0 || il->value[0] != 0) {
 			if (il->key[0] == 0) {
-				fputws(com, f);
+				_fputts(com, f);
 			} else {
-				fputws(il->key, f);
-				fputws(sep, f);
+				_fputts(il->key, f);
+				_fputts(sep, f);
 			}
-			fputws(il->value, f);
-			fputws(lf, f);
+			_fputts(il->value, f);
+			_fputts(lf, f);
 		}
 	}
 	fclose(f);

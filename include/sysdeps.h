@@ -51,6 +51,10 @@ using namespace std;
 #define CPU_x86_64 1
 #define CPU_64_BIT 1
 #define X86_64_ASSEMBLY 1
+#ifdef FSUAE
+// FIXME: Cleanup this (?)
+#define SAHF_SETO_PROFITABLE
+#endif
 #elif defined(__i386__) || defined(_M_IX86)
 #define CPU_i386 1
 #define X86_ASSEMBLY 1
@@ -81,7 +85,7 @@ using namespace std;
 #define REGPARAM2 JITCALL
 #define REGPARAM3 JITCALL
 
-#include <tchar.h>
+#include "uae/tchar.h"
 
 #if CPU_64_BIT
 #define addrdiff(a, b) ((int)((a) - (b)))
@@ -555,6 +559,7 @@ extern void xfree (const void*);
 #include "uae/declarations.h"
 #endif
 #include "uae/inline.h"
+#include "uae/io.h"
 #include "uae/types.h"
 #include "uae/likely.h"
 

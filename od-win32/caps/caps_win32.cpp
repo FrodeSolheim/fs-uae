@@ -66,6 +66,9 @@ int caps_init (void)
 
 	if (init)
 		return 1;
+#ifdef FSUAE
+	UAE_DLHANDLE h = uae_dlopen_plugin(_T("capsimg"));
+#else
 	UAE_DLHANDLE h = uae_dlopen_plugin(_T("CAPSImg"));
 	if (!h) {
 		TCHAR tmp[MAX_DPATH];
@@ -75,6 +78,7 @@ int caps_init (void)
 			h = uae_dlopen(tmp);
 		}
 	}
+#endif
 	if (!h) {
 		if (noticed)
 			return 0;

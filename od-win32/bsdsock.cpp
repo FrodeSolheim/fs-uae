@@ -9,6 +9,8 @@
 * GNU Public License
 *
 */
+#ifdef _WIN32
+
 #include <winsock2.h>
 #include <Ws2tcpip.h>
 
@@ -3006,3 +3008,5 @@ uae_u32 host_gethostname(TrapContext *ctx, uae_u32 name, uae_u32 namelen)
 #endif
 
 #endif
+
+#endif // _WIN32

@@ -2,6 +2,7 @@
 
 .deps/
 .dirstamp
+*~
 
 # WinUAE
 

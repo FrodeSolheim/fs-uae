@@ -135,17 +135,18 @@ libexec_PROGRAMS =
 
 dist_doc_DATA = README.md COPYING
 
-noinst_PROGRAMS = \
-	gen/build68k \
-	gen/genblitter \
-	gen/gencomp \
-	gen/gencpu \
-	gen/genlinetoscr
+#noinst_PROGRAMS = \
+#	gen/build68k \
+#	gen/genblitter \
+#	gen/gencomp \
+#	gen/gencpu \
+#	gen/genlinetoscr
 
 noinst_LIBRARIES =
 
-BUILT_SOURCES = \
-	gen/linetoscr.cpp
+BUILT_SOURCES =
+#BUILT_SOURCES += \
+#	gen/linetoscr.cpp
 
 nodist_fs_uae_SOURCES =
 
@@ -211,450 +212,450 @@ endif
 
 fs_uae_LDADD =
 
-noinst_LIBRARIES += .libs/libuae.a
-AM_CPPFLAGS += -I$(b)/gen
-AM_CPPFLAGS += -I$(s)/include
-AM_CPPFLAGS += -I$(s)/../od-fs
-AM_CPPFLAGS += -I$(s)/../od-fs/include
-AM_CPPFLAGS += -I$(s)/src/flac/include
-AM_CPPFLAGS += -I$(s)/..
+noinst_LIBRARIES += libuae.a
+AM_CPPFLAGS += -I$(b)/../gen
 AM_CPPFLAGS += -I$(s)/../include
-AM_CPPFLAGS += -I$(s)/../jit
-fs_uae_LDADD += src/libuae.a
+AM_CPPFLAGS += -I$(s)/../../od-fs
+AM_CPPFLAGS += -I$(s)/../../od-fs/include
+AM_CPPFLAGS += -I$(s)/../src/flac/include
+AM_CPPFLAGS += -I$(s)/../..
+AM_CPPFLAGS += -I$(s)/../../include
+AM_CPPFLAGS += -I$(s)/../../jit
+fs_uae_LDADD += libuae.a
 # libuae_a_CXXFLAGS = $(CM_CFLAGS) -fpermissive
-_libs_libuae_a_SOURCES = \
-	../a2065.cpp \
-	../a2091.cpp \
-	../akiko.cpp \
-	../amax.cpp \
-	../ar.cpp \
-	../arcadia.cpp \
-	../archivers/dms/cdata.h \
-	../archivers/dms/crc_csum.cpp \
-	../archivers/dms/crc_csum.h \
-	../archivers/dms/getbits.cpp \
-	../archivers/dms/getbits.h \
-	../archivers/dms/maketbl.cpp \
-	../archivers/dms/maketbl.h \
-	../archivers/dms/pfile.cpp \
-	../archivers/dms/pfile.h \
-	../archivers/dms/tables.cpp \
-	../archivers/dms/tables.h \
-	../archivers/dms/u_deep.cpp \
-	../archivers/dms/u_deep.h \
-	../archivers/dms/u_heavy.cpp \
-	../archivers/dms/u_heavy.h \
-	../archivers/dms/u_init.cpp \
-	../archivers/dms/u_init.h \
-	../archivers/dms/u_medium.cpp \
-	../archivers/dms/u_medium.h \
-	../archivers/dms/u_quick.cpp \
-	../archivers/dms/u_quick.h \
-	../archivers/dms/u_rle.cpp \
-	../archivers/dms/u_rle.h \
-	../archivers/mp2/kjmp2.cpp \
-	../archivers/mp2/kjmp2.h \
-	../archivers/wrp/warp.h \
-	../archivers/zip/unzip.cpp \
-	../archivers/zip/unzip.h \
-	../audio.cpp \
-	../autoconf.cpp \
-	../blitter.cpp \
-	../blkdev_cdimage.cpp \
-	../blkdev.cpp \
-	../bsdsocket.cpp \
-	../calc.cpp \
-	../cd32_fmv_genlock.cpp \
-	../cd32_fmv.cpp \
-	../cdrom.cpp \
-	../cdtv.cpp \
-	../cdtvcr.cpp \
-	../cfgfile.cpp \
-	../cia.cpp \
-	../consolehook.cpp \
-	../cpuboard.cpp \
-	../cpummu.cpp \
-	../cpummu30.cpp \
-	../crc32.cpp \
-	../custom.cpp \
-	../debug.cpp \
-	../debugmem.cpp \
-	../def_icons.cpp \
-	../devices.cpp \
-	../disk.cpp \
-	../diskutil.cpp \
-	../dlopen.cpp \
-	../dongle.cpp \
-	../drawing.cpp \
-	../driveclick.cpp \
-	../enforcer.cpp \
-	../ethernet.cpp \
-	../events.cpp \
-	../expansion.cpp \
-	../fdi2raw.cpp \
-	../filesys.cpp \
-	../flashrom.cpp \
-	../fpp_native.cpp \
-	../fpp_softfloat.cpp \
-	../fpp.cpp \
-	../framebufferboards.cpp \
-	../fsdb.cpp \
-	../fsusage.cpp \
-	../gayle.cpp \
-	../gfxboard.cpp \
-	../gfxutil.cpp \
-	../hardfile.cpp \
-	../hrtmon.rom.cpp \
-	../ide.cpp \
-	../idecontrollers.cpp \
-	../identify.cpp \
-	../include/a2065.h \
-	../include/a2091.h \
-	../include/akiko.h \
-	../include/amax.h \
-	../include/ar.h \
-	../include/arcadia.h \
-	../include/audio.h \
-	../include/autoconf.h \
-	../include/blitter.h \
-	../include/blkdev.h \
-	../include/bsdsocket.h \
-	../include/calc.h \
-	../include/casablanca.h \
-	../include/catweasel.h \
-	../include/cd32_fmv.h \
-	../include/cdtv.h \
-	../include/cdtvcr.h \
-	../include/cia.h \
-	../include/clipboard.h \
-	../include/commpipe.h \
-	../include/consolehook.h \
-	../include/cpu_prefetch.h \
-	../include/cpuboard.h \
-	../include/cpummu.h \
-	../include/cpummu030.h \
-	../include/crc32.h \
-	../include/custom.h \
-	../include/debug.h \
-	../include/debugmem.h \
-	../include/devices.h \
-	../include/disk.h \
-	../include/diskutil.h \
-	../include/dongle.h \
-	../include/drawing.h \
-	../include/driveclick.h \
-	../include/enforcer.h \
-	../include/epsonprinter.h \
-	../include/ersatz.h \
-	../include/ethernet.h \
-	../include/events.h \
-	../include/execio.h \
-	../include/execlib.h \
-	../include/fake86_cpu.h \
-	../include/fdi2raw.h \
-	../include/filesys.h \
-	../include/flashrom.h \
-	../include/fpp-ieee-be.h \
-	../include/fpp-unknown.h \
-	../include/fpp.h \
-	../include/framebufferboards.h \
-	../include/fsdb.h \
-	../include/fsusage.h \
-	../include/gayle.h \
-	../include/genblitter.h \
-	../include/gensound.h \
-	../include/gfxboard.h \
-	../include/gfxfilter.h \
-	../include/gui.h \
-	../include/ide.h \
-	../include/idecontrollers.h \
-	../include/identify.h \
-	../include/ini.h \
-	../include/inputdevice.h \
-	../include/inputrecord.h \
-	../include/isofs_api.h \
-	../include/isofs.h \
-	../include/keyboard.h \
-	../include/keybuf.h \
-	../include/luascript.h \
-	../include/mackbd.h \
-	../include/mmu_common.h \
-	../include/moduleripper.h \
-	../include/native2amiga_api.h \
-	../include/native2amiga.h \
-	../include/ncr_scsi.h \
-	../include/ncr9x_scsi.h \
-	../include/newcpu.h \
-	../include/options.h \
-	../include/osemu.h \
-	../include/packed.h \
-	../include/parallel.h \
-	../include/pci_hw.h \
-	../include/pci.h \
-	../include/picasso96.h \
-	../include/readcpu.h \
-	../include/rommgr.h \
-	../include/rtc.h \
-	../include/rtgmodes.h \
-	../include/sampler.h \
-	../include/sana2.h \
-	../include/savestate.h \
-	../include/scp.h \
-	../include/scsi.h \
-	../include/scsidev.h \
-	../include/serial.h \
-	../include/sndboard.h \
-	../include/specialmonitors.h \
-	../include/statusline.h \
-	../include/sysdeps.h \
-	../include/tabletlibrary.h \
-	../include/traps.h \
-	../include/uae.h \
-	../include/uae/ahi.h \
-	../include/uae/api.h \
-	../include/uae/asm.h \
-	../include/uae/assert.h \
-	../include/uae/atomic.h \
-	../include/uae/attributes.h \
-	../include/uae/byteswap.h \
-	../include/uae/caps.h \
-	../include/uae/cdrom.h \
-	../include/uae/cycleunit.h \
-	../include/uae/debuginfo.h \
-	../include/uae/dlopen.h \
-	../include/uae/endian.h \
-	../include/uae/enum.h \
-	../include/uae/fs.h \
-	../include/uae/funcattr.h \
-	../include/uae/glib.h \
-	../include/uae/inline.h \
-	../include/uae/io.h \
-	../include/uae/jitconfig.h \
-	../include/uae/likely.h \
-	../include/uae/limits.h \
-	../include/uae/log.h \
-	../include/uae/maccess.h \
-	../include/uae/memory.h \
-	../include/uae/mman.h \
-	../include/uae/parser.h \
-	../include/uae/patch.h \
-	../include/uae/ppc.h \
-	../include/uae/qemu.h \
-	../include/uae/segtracker.h \
-	../include/uae/seh.h \
-	../include/uae/slirp.h \
-	../include/uae/socket.h \
-	../include/uae/string.h \
-	../include/uae/time.h \
-	../include/uae/types.h \
-	../include/uae/vm.h \
-	../include/uaeexe.h \
-	../include/uaeipc.h \
-	../include/uaenative.h \
-	../include/uaeresource.h \
-	../include/uaeserial.h \
-	../include/uni_common.h \
-	../include/unpacked.h \
-	../include/videograb.h \
-	../include/x86.h \
-	../include/xwin.h \
-	../include/zarchive.h \
-	../include/zfile.h \
-	../ini.cpp \
-	../inputdevice.cpp \
-	../isofs.cpp \
-	../jit/codegen_udis86.h \
-	../jit/codegen_x86.h \
-	../jit/compemu_fpp.cpp \
-	../jit/compemu_midfunc_arm.h \
-	../jit/compemu_midfunc_x86.h \
-	../jit/compemu_support.cpp \
-	../jit/compemu.h \
-	../jit/flags_x86.h \
-	../keybuf.cpp \
-	../logging.cpp \
-	../main.cpp \
-	../mame/a2410.cpp \
-	../mame/mameglue.h \
-	../mame/tm34010/tms34010.cpp \
-	../mame/tm34010/tms34010.h \
-	../memory.cpp \
-	../native2amiga.cpp \
-	../ncr_scsi.cpp \
-	../ncr9x_scsi.cpp \
-	../newcpu_common.cpp \
-	../newcpu.cpp \
-	../od-fs/ahi_winuae.cpp \
-	../od-fs/ahidsound_new.cpp \
-	../od-fs/ahidsound_new.h \
-	../od-fs/ahidsound.h \
-	../od-fs/blkdev-linux.cpp \
-	../od-fs/bridge.cpp \
-	../od-fs/bsdsocket_posix.cpp \
-	../od-fs/callbacks.h \
-	../od-fs/cda_play.cpp \
-	../od-fs/cda_play.h \
-	../od-fs/cdimage_stubs.cpp \
-	../od-fs/charset.cpp \
-	../od-fs/clock.cpp \
-	../od-fs/config-fs.cpp \
-	../od-fs/defines.h \
-	../od-fs/driveclick.cpp \
-	../od-fs/filesys_host.cpp \
-	../od-fs/fsdb_host.cpp \
-	../od-fs/fsdb_host.h \
-	../od-fs/fsvideo.cpp \
-	../od-fs/gui.cpp \
-	../od-fs/hardfile_host.cpp \
-	../od-fs/include/direct3d.h \
-	../od-fs/include/registry.h \
-	../od-fs/include/resource.h \
-	../od-fs/include/uae/uae_inputevents_def.h \
-	../od-fs/include/uae/uae.h \
-	../od-fs/include/win32gui.h \
-	../od-fs/input.cpp \
-	../od-fs/inputrecord.cpp \
-	../od-fs/ioport.cpp \
-	../od-fs/ioport.h \
-	../od-fs/joystick.cpp \
-	../od-fs/keyboard-fs.cpp \
-	../od-fs/libamiga.cpp \
-	../od-fs/libuae.cpp \
-	../od-fs/libuae.h \
-	../od-fs/machdep/arm/maccess.h \
-	../od-fs/machdep/generic/maccess.h \
-	../od-fs/machdep/m68k.h \
-	../od-fs/machdep/maccess.h \
-	../od-fs/machdep/machdep.h \
-	../od-fs/machdep/ppc/maccess.h \
-	../od-fs/machdep/rpt.h \
-	../od-fs/machdep/x86/maccess.h \
-	../od-fs/midi.cpp \
-	../od-fs/midi.h \
-	../od-fs/mman.cpp \
-	../od-fs/mouse.cpp \
-	../od-fs/mp3decoder.h \
-	../od-fs/parser.cpp \
-	../od-fs/paths.cpp \
-	../od-fs/random.cpp \
-	../od-fs/roms.cpp \
-	../od-fs/sleep.h \
-	../od-fs/sound_fs.cpp \
-	../od-fs/sounddep/sound.h \
-	../od-fs/spin.cpp \
-	../od-fs/statusline.cpp \
-	../od-fs/stubs.cpp \
-	../od-fs/support.cpp \
-	../od-fs/sysconfig.h \
-	../od-fs/target.h \
-	../od-fs/threaddep/sem.h \
-	../od-fs/threaddep/thread.h \
-	../od-fs/threading.cpp \
-	../od-fs/uae_host.cpp \
-	../od-fs/uaemisc.cpp \
-	../od-fs/videograb_fs.cpp \
-	../od-fs/vpar.cpp \
-	../od-fs/vpar.h \
-	../od-fs/winuae_compat.h \
-	../od-fs/writelog_fs.cpp \
-	../od-win32/bsdsock.cpp \
-	../od-win32/caps/caps_win32.cpp \
-	../od-win32/caps/caps_win32.h \
-	../od-win32/caps/CapsAPI.h \
-	../od-win32/caps/Comtype.h \
-	../od-win32/clipboard_win32.cpp \
-	../od-win32/clipboard_win32.h \
-	../od-win32/debug_win32.h \
-	../od-win32/dxwrap.h \
-	../od-win32/md-fpp.h \
-	../od-win32/midi.h \
-	../od-win32/parser.h \
-	../od-win32/picasso96_win.cpp \
-	../od-win32/picasso96_win.h \
-	../od-win32/serial_win32.cpp \
-	../od-win32/win32_uaenet.cpp \
-	../od-win32/win32.h \
-	../od-win32/win32gfx.h \
-	../pcem/codegen_x86-64.h \
-	../pcem/codegen.h \
-	../pcem/cpu.h \
-	../pcem/dma.h \
-	../pcem/ibm.h \
-	../pcem/keyboard_at.h \
-	../pcem/keyboard.h \
-	../pcem/mem.h \
-	../pcem/model.h \
-	../pcem/mouse_serial.h \
-	../pcem/mouse.h \
-	../pcem/nvr.h \
-	../pcem/pcemglue.h \
-	../pcem/pic.h \
-	../pcem/pit.h \
-	../pcem/sound_cms.h \
-	../pcem/sound_speaker.h \
-	../pcem/sound.h \
-	../pcem/timer.h \
-	../pcem/x86_ops.h \
-	../pcem/x86.h \
-	../pci.cpp \
-	../ppc/ppc.cpp \
-	../qemuvga/cirrus_vga_rop.h \
-	../qemuvga/cirrus_vga_rop2.h \
-	../qemuvga/cirrus_vga_template.h \
-	../qemuvga/cirrus_vga.cpp \
-	../qemuvga/es1370.cpp \
-	../qemuvga/esp.cpp \
-	../qemuvga/lsi53c710.cpp \
-	../qemuvga/lsi53c895a.cpp \
-	../qemuvga/ne2000.cpp \
-	../qemuvga/ne2000.h \
-	../qemuvga/pixel_ops.h \
-	../qemuvga/qemu.cpp \
-	../qemuvga/qemuaudio.h \
-	../qemuvga/qemumemory.h \
-	../qemuvga/qemuuaeglue.cpp \
-	../qemuvga/qemuuaeglue.h \
-	../qemuvga/queue.h \
-	../qemuvga/scsi/esp.h \
-	../qemuvga/scsi/scsi.h \
-	../qemuvga/vga_int.h \
-	../qemuvga/vga_template.h \
-	../qemuvga/vga.cpp \
-	../qemuvga/vga.h \
-	../readcpu.cpp \
-	../rommgr.cpp \
-	../rtc.cpp \
-	../sana2.cpp \
-	../savestate.cpp \
-	../scp.cpp \
-	../scsi.cpp \
-	../scsiemul.cpp \
-	../scsitape.cpp \
-	../slirp_uae.cpp \
-	../softfloat/softfloat_decimal.cpp \
-	../softfloat/softfloat_decimal.cpp \
-	../softfloat/softfloat_fpsp_tables.h \
-	../softfloat/softfloat_fpsp.cpp \
-	../softfloat/softfloat_fpsp.cpp \
-	../softfloat/softfloat-macros.h \
-	../softfloat/softfloat-specialize.h \
-	../softfloat/softfloat.cpp \
-	../softfloat/softfloat.cpp \
-	../softfloat/softfloat.h \
-	../specialmonitors.cpp \
-	../statusline.cpp \
-	../support/time.cpp \
-	../test_card.cpp \
-	../traps.cpp \
-	../uaeexe.cpp \
-	../uaelib.cpp \
-	../uaenative.cpp \
-	../uaeresource.cpp \
-	../uaeserial.cpp \
-	../vm.cpp \
-	../x86.cpp \
-	../zfile_archive.cpp \
-	../zfile.cpp
+libuae_a_SOURCES = \
+	../../a2065.cpp \
+	../../a2091.cpp \
+	../../akiko.cpp \
+	../../amax.cpp \
+	../../ar.cpp \
+	../../arcadia.cpp \
+	../../archivers/dms/cdata.h \
+	../../archivers/dms/crc_csum.cpp \
+	../../archivers/dms/crc_csum.h \
+	../../archivers/dms/getbits.cpp \
+	../../archivers/dms/getbits.h \
+	../../archivers/dms/maketbl.cpp \
+	../../archivers/dms/maketbl.h \
+	../../archivers/dms/pfile.cpp \
+	../../archivers/dms/pfile.h \
+	../../archivers/dms/tables.cpp \
+	../../archivers/dms/tables.h \
+	../../archivers/dms/u_deep.cpp \
+	../../archivers/dms/u_deep.h \
+	../../archivers/dms/u_heavy.cpp \
+	../../archivers/dms/u_heavy.h \
+	../../archivers/dms/u_init.cpp \
+	../../archivers/dms/u_init.h \
+	../../archivers/dms/u_medium.cpp \
+	../../archivers/dms/u_medium.h \
+	../../archivers/dms/u_quick.cpp \
+	../../archivers/dms/u_quick.h \
+	../../archivers/dms/u_rle.cpp \
+	../../archivers/dms/u_rle.h \
+	../../archivers/mp2/kjmp2.cpp \
+	../../archivers/mp2/kjmp2.h \
+	../../archivers/wrp/warp.h \
+	../../archivers/zip/unzip.cpp \
+	../../archivers/zip/unzip.h \
+	../../audio.cpp \
+	../../autoconf.cpp \
+	../../blitter.cpp \
+	../../blkdev_cdimage.cpp \
+	../../blkdev.cpp \
+	../../bsdsocket.cpp \
+	../../calc.cpp \
+	../../cd32_fmv_genlock.cpp \
+	../../cd32_fmv.cpp \
+	../../cdrom.cpp \
+	../../cdtv.cpp \
+	../../cdtvcr.cpp \
+	../../cfgfile.cpp \
+	../../cia.cpp \
+	../../consolehook.cpp \
+	../../cpuboard.cpp \
+	../../cpummu.cpp \
+	../../cpummu30.cpp \
+	../../crc32.cpp \
+	../../custom.cpp \
+	../../debug.cpp \
+	../../debugmem.cpp \
+	../../def_icons.cpp \
+	../../devices.cpp \
+	../../disk.cpp \
+	../../diskutil.cpp \
+	../../dlopen.cpp \
+	../../dongle.cpp \
+	../../drawing.cpp \
+	../../driveclick.cpp \
+	../../enforcer.cpp \
+	../../ethernet.cpp \
+	../../events.cpp \
+	../../expansion.cpp \
+	../../fdi2raw.cpp \
+	../../filesys.cpp \
+	../../flashrom.cpp \
+	../../fpp_native.cpp \
+	../../fpp_softfloat.cpp \
+	../../fpp.cpp \
+	../../framebufferboards.cpp \
+	../../fsdb.cpp \
+	../../fsusage.cpp \
+	../../gayle.cpp \
+	../../gfxboard.cpp \
+	../../gfxutil.cpp \
+	../../hardfile.cpp \
+	../../hrtmon.rom.cpp \
+	../../ide.cpp \
+	../../idecontrollers.cpp \
+	../../identify.cpp \
+	../../include/a2065.h \
+	../../include/a2091.h \
+	../../include/akiko.h \
+	../../include/amax.h \
+	../../include/ar.h \
+	../../include/arcadia.h \
+	../../include/audio.h \
+	../../include/autoconf.h \
+	../../include/blitter.h \
+	../../include/blkdev.h \
+	../../include/bsdsocket.h \
+	../../include/calc.h \
+	../../include/casablanca.h \
+	../../include/catweasel.h \
+	../../include/cd32_fmv.h \
+	../../include/cdtv.h \
+	../../include/cdtvcr.h \
+	../../include/cia.h \
+	../../include/clipboard.h \
+	../../include/commpipe.h \
+	../../include/consolehook.h \
+	../../include/cpu_prefetch.h \
+	../../include/cpuboard.h \
+	../../include/cpummu.h \
+	../../include/cpummu030.h \
+	../../include/crc32.h \
+	../../include/custom.h \
+	../../include/debug.h \
+	../../include/debugmem.h \
+	../../include/devices.h \
+	../../include/disk.h \
+	../../include/diskutil.h \
+	../../include/dongle.h \
+	../../include/drawing.h \
+	../../include/driveclick.h \
+	../../include/enforcer.h \
+	../../include/epsonprinter.h \
+	../../include/ersatz.h \
+	../../include/ethernet.h \
+	../../include/events.h \
+	../../include/execio.h \
+	../../include/execlib.h \
+	../../include/fake86_cpu.h \
+	../../include/fdi2raw.h \
+	../../include/filesys.h \
+	../../include/flashrom.h \
+	../../include/fpp-ieee-be.h \
+	../../include/fpp-unknown.h \
+	../../include/fpp.h \
+	../../include/framebufferboards.h \
+	../../include/fsdb.h \
+	../../include/fsusage.h \
+	../../include/gayle.h \
+	../../include/genblitter.h \
+	../../include/gensound.h \
+	../../include/gfxboard.h \
+	../../include/gfxfilter.h \
+	../../include/gui.h \
+	../../include/ide.h \
+	../../include/idecontrollers.h \
+	../../include/identify.h \
+	../../include/ini.h \
+	../../include/inputdevice.h \
+	../../include/inputrecord.h \
+	../../include/isofs_api.h \
+	../../include/isofs.h \
+	../../include/keyboard.h \
+	../../include/keybuf.h \
+	../../include/luascript.h \
+	../../include/mackbd.h \
+	../../include/mmu_common.h \
+	../../include/moduleripper.h \
+	../../include/native2amiga_api.h \
+	../../include/native2amiga.h \
+	../../include/ncr_scsi.h \
+	../../include/ncr9x_scsi.h \
+	../../include/newcpu.h \
+	../../include/options.h \
+	../../include/osemu.h \
+	../../include/packed.h \
+	../../include/parallel.h \
+	../../include/pci_hw.h \
+	../../include/pci.h \
+	../../include/picasso96.h \
+	../../include/readcpu.h \
+	../../include/rommgr.h \
+	../../include/rtc.h \
+	../../include/rtgmodes.h \
+	../../include/sampler.h \
+	../../include/sana2.h \
+	../../include/savestate.h \
+	../../include/scp.h \
+	../../include/scsi.h \
+	../../include/scsidev.h \
+	../../include/serial.h \
+	../../include/sndboard.h \
+	../../include/specialmonitors.h \
+	../../include/statusline.h \
+	../../include/sysdeps.h \
+	../../include/tabletlibrary.h \
+	../../include/traps.h \
+	../../include/uae.h \
+	../../include/uae/ahi.h \
+	../../include/uae/api.h \
+	../../include/uae/asm.h \
+	../../include/uae/assert.h \
+	../../include/uae/atomic.h \
+	../../include/uae/attributes.h \
+	../../include/uae/byteswap.h \
+	../../include/uae/caps.h \
+	../../include/uae/cdrom.h \
+	../../include/uae/cycleunit.h \
+	../../include/uae/debuginfo.h \
+	../../include/uae/dlopen.h \
+	../../include/uae/endian.h \
+	../../include/uae/enum.h \
+	../../include/uae/fs.h \
+	../../include/uae/funcattr.h \
+	../../include/uae/glib.h \
+	../../include/uae/inline.h \
+	../../include/uae/io.h \
+	../../include/uae/jitconfig.h \
+	../../include/uae/likely.h \
+	../../include/uae/limits.h \
+	../../include/uae/log.h \
+	../../include/uae/maccess.h \
+	../../include/uae/memory.h \
+	../../include/uae/mman.h \
+	../../include/uae/parser.h \
+	../../include/uae/patch.h \
+	../../include/uae/ppc.h \
+	../../include/uae/qemu.h \
+	../../include/uae/segtracker.h \
+	../../include/uae/seh.h \
+	../../include/uae/slirp.h \
+	../../include/uae/socket.h \
+	../../include/uae/string.h \
+	../../include/uae/time.h \
+	../../include/uae/types.h \
+	../../include/uae/vm.h \
+	../../include/uaeexe.h \
+	../../include/uaeipc.h \
+	../../include/uaenative.h \
+	../../include/uaeresource.h \
+	../../include/uaeserial.h \
+	../../include/uni_common.h \
+	../../include/unpacked.h \
+	../../include/videograb.h \
+	../../include/x86.h \
+	../../include/xwin.h \
+	../../include/zarchive.h \
+	../../include/zfile.h \
+	../../ini.cpp \
+	../../inputdevice.cpp \
+	../../isofs.cpp \
+	../../jit/codegen_udis86.h \
+	../../jit/codegen_x86.h \
+	../../jit/compemu_fpp.cpp \
+	../../jit/compemu_midfunc_arm.h \
+	../../jit/compemu_midfunc_x86.h \
+	../../jit/compemu_support.cpp \
+	../../jit/compemu.h \
+	../../jit/flags_x86.h \
+	../../keybuf.cpp \
+	../../logging.cpp \
+	../../main.cpp \
+	../../mame/a2410.cpp \
+	../../mame/mameglue.h \
+	../../mame/tm34010/tms34010.cpp \
+	../../mame/tm34010/tms34010.h \
+	../../memory.cpp \
+	../../native2amiga.cpp \
+	../../ncr_scsi.cpp \
+	../../ncr9x_scsi.cpp \
+	../../newcpu_common.cpp \
+	../../newcpu.cpp \
+	../../od-fs/ahi_winuae.cpp \
+	../../od-fs/ahidsound_new.cpp \
+	../../od-fs/ahidsound_new.h \
+	../../od-fs/ahidsound.h \
+	../../od-fs/blkdev-linux.cpp \
+	../../od-fs/bridge.cpp \
+	../../od-fs/bsdsocket_posix.cpp \
+	../../od-fs/callbacks.h \
+	../../od-fs/cda_play.cpp \
+	../../od-fs/cda_play.h \
+	../../od-fs/cdimage_stubs.cpp \
+	../../od-fs/charset.cpp \
+	../../od-fs/clock.cpp \
+	../../od-fs/config-fs.cpp \
+	../../od-fs/defines.h \
+	../../od-fs/driveclick.cpp \
+	../../od-fs/filesys_host.cpp \
+	../../od-fs/fsdb_host.cpp \
+	../../od-fs/fsdb_host.h \
+	../../od-fs/fsvideo.cpp \
+	../../od-fs/gui.cpp \
+	../../od-fs/hardfile_host.cpp \
+	../../od-fs/include/direct3d.h \
+	../../od-fs/include/registry.h \
+	../../od-fs/include/resource.h \
+	../../od-fs/include/uae/uae_inputevents_def.h \
+	../../od-fs/include/uae/uae.h \
+	../../od-fs/include/win32gui.h \
+	../../od-fs/input.cpp \
+	../../od-fs/inputrecord.cpp \
+	../../od-fs/ioport.cpp \
+	../../od-fs/ioport.h \
+	../../od-fs/joystick.cpp \
+	../../od-fs/keyboard-fs.cpp \
+	../../od-fs/libamiga.cpp \
+	../../od-fs/libuae.cpp \
+	../../od-fs/libuae.h \
+	../../od-fs/machdep/arm/maccess.h \
+	../../od-fs/machdep/generic/maccess.h \
+	../../od-fs/machdep/m68k.h \
+	../../od-fs/machdep/maccess.h \
+	../../od-fs/machdep/machdep.h \
+	../../od-fs/machdep/ppc/maccess.h \
+	../../od-fs/machdep/rpt.h \
+	../../od-fs/machdep/x86/maccess.h \
+	../../od-fs/midi.cpp \
+	../../od-fs/midi.h \
+	../../od-fs/mman.cpp \
+	../../od-fs/mouse.cpp \
+	../../od-fs/mp3decoder.h \
+	../../od-fs/parser.cpp \
+	../../od-fs/paths.cpp \
+	../../od-fs/random.cpp \
+	../../od-fs/roms.cpp \
+	../../od-fs/sleep.h \
+	../../od-fs/sound_fs.cpp \
+	../../od-fs/sounddep/sound.h \
+	../../od-fs/spin.cpp \
+	../../od-fs/statusline.cpp \
+	../../od-fs/stubs.cpp \
+	../../od-fs/support.cpp \
+	../../od-fs/sysconfig.h \
+	../../od-fs/target.h \
+	../../od-fs/threaddep/sem.h \
+	../../od-fs/threaddep/thread.h \
+	../../od-fs/threading.cpp \
+	../../od-fs/uae_host.cpp \
+	../../od-fs/uaemisc.cpp \
+	../../od-fs/videograb_fs.cpp \
+	../../od-fs/vpar.cpp \
+	../../od-fs/vpar.h \
+	../../od-fs/winuae_compat.h \
+	../../od-fs/writelog_fs.cpp \
+	../../od-win32/bsdsock.cpp \
+	../../od-win32/caps/caps_win32.cpp \
+	../../od-win32/caps/caps_win32.h \
+	../../od-win32/caps/CapsAPI.h \
+	../../od-win32/caps/Comtype.h \
+	../../od-win32/clipboard_win32.cpp \
+	../../od-win32/clipboard_win32.h \
+	../../od-win32/debug_win32.h \
+	../../od-win32/dxwrap.h \
+	../../od-win32/md-fpp.h \
+	../../od-win32/midi.h \
+	../../od-win32/parser.h \
+	../../od-win32/picasso96_win.cpp \
+	../../od-win32/picasso96_win.h \
+	../../od-win32/serial_win32.cpp \
+	../../od-win32/win32_uaenet.cpp \
+	../../od-win32/win32.h \
+	../../od-win32/win32gfx.h \
+	../../pcem/codegen_x86-64.h \
+	../../pcem/codegen.h \
+	../../pcem/cpu.h \
+	../../pcem/dma.h \
+	../../pcem/ibm.h \
+	../../pcem/keyboard_at.h \
+	../../pcem/keyboard.h \
+	../../pcem/mem.h \
+	../../pcem/model.h \
+	../../pcem/mouse_serial.h \
+	../../pcem/mouse.h \
+	../../pcem/nvr.h \
+	../../pcem/pcemglue.h \
+	../../pcem/pic.h \
+	../../pcem/pit.h \
+	../../pcem/sound_cms.h \
+	../../pcem/sound_speaker.h \
+	../../pcem/sound.h \
+	../../pcem/timer.h \
+	../../pcem/x86_ops.h \
+	../../pcem/x86.h \
+	../../pci.cpp \
+	../../ppc/ppc.cpp \
+	../../qemuvga/cirrus_vga_rop.h \
+	../../qemuvga/cirrus_vga_rop2.h \
+	../../qemuvga/cirrus_vga_template.h \
+	../../qemuvga/cirrus_vga.cpp \
+	../../qemuvga/es1370.cpp \
+	../../qemuvga/esp.cpp \
+	../../qemuvga/lsi53c710.cpp \
+	../../qemuvga/lsi53c895a.cpp \
+	../../qemuvga/ne2000.cpp \
+	../../qemuvga/ne2000.h \
+	../../qemuvga/pixel_ops.h \
+	../../qemuvga/qemu.cpp \
+	../../qemuvga/qemuaudio.h \
+	../../qemuvga/qemumemory.h \
+	../../qemuvga/qemuuaeglue.cpp \
+	../../qemuvga/qemuuaeglue.h \
+	../../qemuvga/queue.h \
+	../../qemuvga/scsi/esp.h \
+	../../qemuvga/scsi/scsi.h \
+	../../qemuvga/vga_int.h \
+	../../qemuvga/vga_template.h \
+	../../qemuvga/vga.cpp \
+	../../qemuvga/vga.h \
+	../../readcpu.cpp \
+	../../rommgr.cpp \
+	../../rtc.cpp \
+	../../sana2.cpp \
+	../../savestate.cpp \
+	../../scp.cpp \
+	../../scsi.cpp \
+	../../scsiemul.cpp \
+	../../scsitape.cpp \
+	../../slirp_uae.cpp \
+	../../softfloat/softfloat_decimal.cpp \
+	../../softfloat/softfloat_decimal.cpp \
+	../../softfloat/softfloat_fpsp_tables.h \
+	../../softfloat/softfloat_fpsp.cpp \
+	../../softfloat/softfloat_fpsp.cpp \
+	../../softfloat/softfloat-macros.h \
+	../../softfloat/softfloat-specialize.h \
+	../../softfloat/softfloat.cpp \
+	../../softfloat/softfloat.cpp \
+	../../softfloat/softfloat.h \
+	../../specialmonitors.cpp \
+	../../statusline.cpp \
+	../../support/time.cpp \
+	../../test_card.cpp \
+	../../traps.cpp \
+	../../uaeexe.cpp \
+	../../uaelib.cpp \
+	../../uaenative.cpp \
+	../../uaeresource.cpp \
+	../../uaeserial.cpp \
+	../../vm.cpp \
+	../../x86.cpp \
+	../../zfile_archive.cpp \
+	../../zfile.cpp
 #nodist__libs_libuae_a_SOURCES = \
 #	gen/blit.h \
 #	gen/blitfunc.cpp \
@@ -668,30 +669,47 @@ _libs_libuae_a_SOURCES = \
 #	gen/cputbl.h
 BUILT_SOURCES += $(nodist__libs_libuae_a_SOURCES)
 
-noinst_LIBRARIES += src/libcpuemu.a
-fs_uae_LDADD += src/libcpuemu.a
-nodist_src_libcpuemu_a_SOURCES = \
-        gen/cpuemu_0.cpp \
-        gen/cpuemu_11.cpp \
-        gen/cpuemu_13.cpp \
-        gen/cpuemu_20.cpp \
-        gen/cpuemu_21.cpp \
-        gen/cpuemu_22.cpp \
-        gen/cpuemu_23.cpp \
-        gen/cpuemu_24.cpp \
-        gen/cpuemu_31.cpp \
-        gen/cpuemu_32.cpp \
-        gen/cpuemu_33.cpp \
-        gen/cpuemu_34.cpp \
-        gen/cpuemu_35.cpp \
-        gen/cpuemu_40.cpp \
-        gen/cpuemu_50.cpp
-BUILT_SOURCES += $(nodist_src_libcpuemu_a_SOURCES)
+noinst_LIBRARIES += libcpuemu.a
+fs_uae_LDADD += libcpuemu.a
+libcpuemu_a_SOURCES = \
+        ../../cpuemu_0.cpp \
+        ../../cpuemu_11.cpp \
+        ../../cpuemu_13.cpp \
+        ../../cpuemu_20.cpp \
+        ../../cpuemu_21.cpp \
+        ../../cpuemu_22.cpp \
+        ../../cpuemu_23.cpp \
+        ../../cpuemu_24.cpp \
+        ../../cpuemu_31.cpp \
+        ../../cpuemu_32.cpp \
+        ../../cpuemu_33.cpp \
+        ../../cpuemu_34.cpp \
+        ../../cpuemu_35.cpp \
+        ../../cpuemu_40.cpp \
+        ../../cpuemu_50.cpp
 
-noinst_LIBRARIES += src/libfsemu/libfsemu.a
-AM_CPPFLAGS += -I$(s)/libfsemu/include
-fs_uae_LDADD += src/libfsemu/libfsemu.a
-src_libfsemu_libfsemu_a_SOURCES = \
+#nodist_src_libcpuemu_a_SOURCES = \
+#        gen/cpuemu_0.cpp \
+#        gen/cpuemu_11.cpp \
+#        gen/cpuemu_13.cpp \
+#        gen/cpuemu_20.cpp \
+#        gen/cpuemu_21.cpp \
+#        gen/cpuemu_22.cpp \
+#        gen/cpuemu_23.cpp \
+#        gen/cpuemu_24.cpp \
+#        gen/cpuemu_31.cpp \
+#        gen/cpuemu_32.cpp \
+#        gen/cpuemu_33.cpp \
+#        gen/cpuemu_34.cpp \
+#        gen/cpuemu_35.cpp \
+#        gen/cpuemu_40.cpp \
+#        gen/cpuemu_50.cpp
+#BUILT_SOURCES += $(nodist_src_libcpuemu_a_SOURCES)
+
+noinst_LIBRARIES += libfsemu.a
+AM_CPPFLAGS += -I$(s)/../libfsemu/include
+fs_uae_LDADD += libfsemu.a
+libfsemu_a_SOURCES = \
 	src/libfsemu/include/fs/base.h \
 	src/libfsemu/include/fs/conf.h \
 	src/libfsemu/include/fs/data.h \
@@ -731,10 +749,10 @@ src_libfsemu_libfsemu_a_SOURCES = \
 
 if FSEMU
 
-noinst_LIBRARIES += src/fsemu/libfsemu.a
-AM_CPPFLAGS += -I$(s)/fsemu
-fs_uae_LDADD += src/fsemu/libfsemu.a
-src_fsemu_libfsemu_a_SOURCES = \
+noinst_LIBRARIES += libfsemu2.a
+AM_CPPFLAGS += -I$(s)/../fsemu
+fs_uae_LDADD += libfsemu2.a
+libfsemu2_a_SOURCES = \
 	src/fsemu/fsemu-action.c \
 	src/fsemu/fsemu-action.h \
 	src/fsemu/fsemu-actions.h \
@@ -917,7 +935,7 @@ fsemu_data_files =
 fsuae_data_files =
 
 # FIXME: EXTRA_DIST ?
-src_fsemu_libfsemu_a_SOURCES += $(fsemu_data_files)
+libfsemu2_a_SOURCES += $(fsemu_data_files)
 
 #data/.fsemu: $(fsemu_data_files) ${fsuae_data_files}
 #	mkdir -p $(b)/data/
@@ -1396,33 +1414,33 @@ endif
 #gen/cppdummy.cpp:
 #	echo "int cppdummy;" > $(b)/gen/cppdummy.cpp
 
-gen_build68k_SOURCES = \
-	src/build68k.cpp \
-	src/writelog.cpp
+#gen_build68k_SOURCES = \
+#	src/build68k.cpp \
+#	src/writelog.cpp
 
-gen_genblitter_SOURCES = \
-	src/blitops.cpp \
-	src/genblitter.cpp \
-	src/writelog.cpp
+#gen_genblitter_SOURCES = \
+#	src/blitops.cpp \
+#	src/genblitter.cpp \
+#	src/writelog.cpp
 
-gen_gencomp_SOURCES = \
-	src/jit/gencomp.cpp \
-	src/missing.cpp \
-	src/readcpu.cpp
+#gen_gencomp_SOURCES = \
+#	src/jit/gencomp.cpp \
+#	src/missing.cpp \
+#	src/readcpu.cpp
 
-nodist_gen_gencomp_SOURCES = \
-	gen/cpudefs.cpp
+#nodist_gen_gencomp_SOURCES = \
+#	gen/cpudefs.cpp
 
-gen_gencpu_SOURCES = \
-	src/gencpu.cpp \
-	src/missing.cpp \
-	src/readcpu.cpp
+#gen_gencpu_SOURCES = \
+#	src/gencpu.cpp \
+#	src/missing.cpp \
+#	src/readcpu.cpp
 
-nodist_gen_gencpu_SOURCES = \
-	gen/cpudefs.cpp
+#nodist_gen_gencpu_SOURCES = \
+#	gen/cpudefs.cpp
 
-gen_genlinetoscr_SOURCES = \
-	src/genlinetoscr.cpp
+#gen_genlinetoscr_SOURCES = \
+#	src/genlinetoscr.cpp
 
 TESTS = \
 	tests/dummy-test
@@ -1535,65 +1553,65 @@ CLEANFILES = $(BUILT_SOURCES)
 
 if CODEGEN
 
-gen/blit.h: gen/genblitter$(EXEEXT)
-	$(b)/gen/genblitter$(EXEEXT) i > $(b)/gen/blit.h
+#gen/blit.h: gen/genblitter$(EXEEXT)
+#	$(b)/gen/genblitter$(EXEEXT) i > $(b)/gen/blit.h
 
-gen/blitfunc.cpp: gen/genblitter$(EXEEXT) gen/blitfunc.h
-	$(b)/gen/genblitter$(EXEEXT) f > $(b)/gen/blitfunc.cpp
+#gen/blitfunc.cpp: gen/genblitter$(EXEEXT) gen/blitfunc.h
+#	$(b)/gen/genblitter$(EXEEXT) f > $(b)/gen/blitfunc.cpp
 
-gen/blitfunc.h: gen/genblitter$(EXEEXT)
-	$(b)/gen/genblitter$(EXEEXT) h > $(b)/gen/blitfunc.h
+#gen/blitfunc.h: gen/genblitter$(EXEEXT)
+#	$(b)/gen/genblitter$(EXEEXT) h > $(b)/gen/blitfunc.h
 
-gen/blittable.cpp: gen/genblitter$(EXEEXT) gen/blitfunc.h
-	$(b)/gen/genblitter$(EXEEXT) t > $(b)/gen/blittable.cpp
+#gen/blittable.cpp: gen/genblitter$(EXEEXT) gen/blitfunc.h
+#	$(b)/gen/genblitter$(EXEEXT) t > $(b)/gen/blittable.cpp
 
-gen/compemu.cpp: gen/gencomp$(EXEEXT)
-	$(b)/gen/gencomp$(EXEEXT)
+#gen/compemu.cpp: gen/gencomp$(EXEEXT)
+#	$(b)/gen/gencomp$(EXEEXT)
 
-gen/compstbl.cpp: gen/compemu.cpp
+#gen/compstbl.cpp: gen/compemu.cpp
 
-gen/comptbl.h: gen/compemu.cpp
+#gen/comptbl.h: gen/compemu.cpp
 
-gen/cpudefs.cpp: gen/build68k$(EXEEXT) src/table68k
-	$(b)/gen/build68k$(EXEEXT) < $(s)/src/table68k > $(b)/gen/cpudefs.cpp
+#gen/cpudefs.cpp: gen/build68k$(EXEEXT) src/table68k
+#	$(b)/gen/build68k$(EXEEXT) < $(s)/src/table68k > $(b)/gen/cpudefs.cpp
 
-gen/cpuemu_0.cpp: gen/gencpu$(EXEEXT)
-	cd $(b)/gen && ./gencpu$(EXEEXT) --optimized-flags
+#gen/cpuemu_0.cpp: gen/gencpu$(EXEEXT)
+#	cd $(b)/gen && ./gencpu$(EXEEXT) --optimized-flags
 
-gen/cpuemu_11.cpp: gen/cpuemu_0.cpp
+#gen/cpuemu_11.cpp: gen/cpuemu_0.cpp
 
-gen/cpuemu_13.cpp: gen/cpuemu_0.cpp
+#gen/cpuemu_13.cpp: gen/cpuemu_0.cpp
 
-gen/cpuemu_20.cpp: gen/cpuemu_0.cpp
+#gen/cpuemu_20.cpp: gen/cpuemu_0.cpp
 
-gen/cpuemu_21.cpp: gen/cpuemu_0.cpp
+#gen/cpuemu_21.cpp: gen/cpuemu_0.cpp
 
-gen/cpuemu_22.cpp: gen/cpuemu_0.cpp
+#gen/cpuemu_22.cpp: gen/cpuemu_0.cpp
 
-gen/cpuemu_23.cpp: gen/cpuemu_0.cpp
+#gen/cpuemu_23.cpp: gen/cpuemu_0.cpp
 
-gen/cpuemu_24.cpp: gen/cpuemu_0.cpp
+#gen/cpuemu_24.cpp: gen/cpuemu_0.cpp
 
-gen/cpuemu_31.cpp: gen/cpuemu_0.cpp
+#gen/cpuemu_31.cpp: gen/cpuemu_0.cpp
 
-gen/cpuemu_32.cpp: gen/cpuemu_0.cpp
+#gen/cpuemu_32.cpp: gen/cpuemu_0.cpp
 
-gen/cpuemu_33.cpp: gen/cpuemu_0.cpp
+#gen/cpuemu_33.cpp: gen/cpuemu_0.cpp
 
-gen/cpuemu_34.cpp: gen/cpuemu_0.cpp
+#gen/cpuemu_34.cpp: gen/cpuemu_0.cpp
 
-gen/cpuemu_35.cpp: gen/cpuemu_0.cpp
+#gen/cpuemu_35.cpp: gen/cpuemu_0.cpp
 
-gen/cpuemu_40.cpp: gen/cpuemu_0.cpp
+#gen/cpuemu_40.cpp: gen/cpuemu_0.cpp
 
-gen/cpuemu_50.cpp: gen/cpuemu_0.cpp
+#gen/cpuemu_50.cpp: gen/cpuemu_0.cpp
 
-gen/cpustbl.cpp: gen/cpuemu_0.cpp
+#gen/cpustbl.cpp: gen/cpuemu_0.cpp
 
-gen/cputbl.h: gen/cpuemu_0.cpp
+#gen/cputbl.h: gen/cpuemu_0.cpp
 
-gen/linetoscr.cpp: gen/genlinetoscr$(EXEEXT)
-	$(b)/gen/genlinetoscr$(EXEEXT) > $(b)/gen/linetoscr.cpp
+#gen/linetoscr.cpp: gen/genlinetoscr$(EXEEXT)
+#	$(b)/gen/genlinetoscr$(EXEEXT) > $(b)/gen/linetoscr.cpp
 
 endif
 

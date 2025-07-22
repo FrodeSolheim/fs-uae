@@ -12,8 +12,8 @@ m4_define([fsbuild_commit], [])
 AC_INIT([FS-UAE],[fsbuild_version],[frode@fs-uae.net],[fs-uae],[https://fs-uae.net])
 AC_CONFIG_AUX_DIR([.])
 AC_CANONICAL_HOST
-AC_CONFIG_SRCDIR([src/main.cpp])
-AC_CONFIG_HEADERS([src/config.h])
+AC_CONFIG_SRCDIR([../../main.cpp])
+AC_CONFIG_HEADERS([config.h])
 
 AC_DEFINE([FSBUILD_VERSION], ["fsbuild_version"], [Version])
 AC_DEFINE_UNQUOTED([FSBUILD_VERSION_MAJOR], [fsbuild_version_major], [Major])
@@ -898,7 +898,7 @@ AC_DEFINE([FPU_UAE], [1], [Define to 1])
 # Write Makefile
 
 AC_CONFIG_FILES([
-    src/fsuae/fs-uae.rc
+    fs-uae.rc
     Makefile
 ])
 AC_OUTPUT

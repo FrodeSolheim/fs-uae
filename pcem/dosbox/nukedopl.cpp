@@ -1074,6 +1074,7 @@ static void OPL3_GenerateRhythm2(opl3_chip *chip)
     OPL3_SlotGeneratePhase(channel8->slots[1], phase);
 }
 
+static
 void OPL3_Generate(opl3_chip *chip, Bit16s *buf)
 {
     Bit8u ii;
@@ -1189,6 +1190,7 @@ void OPL3_Generate(opl3_chip *chip, Bit16s *buf)
     chip->timer++;
 }
 
+static
 void OPL3_GenerateResampled(opl3_chip *chip, Bit16s *buf)
 {
     while (chip->samplecnt >= chip->rateratio)

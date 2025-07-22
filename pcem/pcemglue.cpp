@@ -34,6 +34,11 @@
 #include "video.h"
 #include "vid_svga.h"
 
+#ifdef FSUAE
+// To avoid clashes with main/global midi_open symbol
+#define midi_open pcem_midi_open
+#endif
+
 CPU_STATE cpu_state;
 
 PIT pit, pit2;
@@ -816,6 +821,12 @@ int rom_init(rom_t *rom, const char *fn, uint32_t address, int size, int mask, i
 	return 0;
 }
 
+#ifdef FSUAE
+
+#warning NOT DEFINING THREAD FUNCTIONS RIGHT NOW
+
+#else
+
 void thread_sleep(int n)
 {
 	sleep_millis(n);
@@ -914,7 +925,7 @@ int thread_test_mutex(mutex_t *_mutex)
 	return 0;
 }
 
-
+#endif
 
 static mem_mapping_t *getmm(uaecptr *addrp)
 {

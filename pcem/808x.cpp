@@ -334,6 +334,7 @@ uint32_t *mod1seg[8];
 
 int slowrm[8];
 
+static
 void makemod1table()
 {
         mod1add[0][0]=&BX; mod1add[0][1]=&BX; mod1add[0][2]=&BP; mod1add[0][3]=&BP;
@@ -427,6 +428,7 @@ static inline void seteaw(uint16_t val)
 uint8_t znptable8[256];
 static uint16_t znptable16[65536];
 
+static
 void makeznptable()
 {
         int c,d;

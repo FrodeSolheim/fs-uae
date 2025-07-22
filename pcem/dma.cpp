@@ -56,6 +56,7 @@ void dma_reset()
         }
 }
 
+static
 uint8_t dma_read(uint16_t addr, void *priv)
 {
         int channel = (addr >> 1) & 3;
@@ -89,6 +90,7 @@ uint8_t dma_read(uint16_t addr, void *priv)
         return dmaregs[addr & 0xf];
 }
 
+static
 void dma_write(uint16_t addr, uint8_t val, void *priv)
 {
         int channel = (addr >> 1) & 3;
@@ -317,6 +319,7 @@ static void dma_ps2_write(uint16_t addr, uint8_t val, void *priv)
         }
 }
 
+static
 uint8_t dma16_read(uint16_t addr, void *priv)
 {
         int channel = ((addr >> 2) & 3) + 4;
@@ -353,6 +356,7 @@ uint8_t dma16_read(uint16_t addr, void *priv)
         return dma16regs[addr & 0xf];
 }
 
+static
 void dma16_write(uint16_t addr, uint8_t val, void *priv)
 {
         int channel = ((addr >> 2) & 3) + 4;
@@ -430,6 +434,7 @@ void dma16_write(uint16_t addr, uint8_t val, void *priv)
 }
 
 
+static
 void dma_page_write(uint16_t addr, uint8_t val, void *priv)
 {
         dmapages[addr & 0xf] = val;
@@ -473,6 +478,7 @@ void dma_page_write(uint16_t addr, uint8_t val, void *priv)
         }
 }
 
+static
 uint8_t dma_page_read(uint16_t addr, void *priv)
 {
         return dmapages[addr & 0xf];
@@ -499,12 +505,14 @@ void ps2_dma_init()
 }
 
 
+static
 uint8_t _dma_read(uint32_t addr)
 {
         uint8_t temp = mem_readb_phys(addr);
         return temp;
 }
 
+static
 void _dma_write(uint32_t addr, uint8_t val)
 {
         mem_writeb_phys(addr, val);

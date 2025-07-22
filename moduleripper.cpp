@@ -19,6 +19,19 @@
 #include "gui.h"
 #include "uae.h"
 
+#ifdef FSUAE
+
+typedef unsigned char Uchar;
+typedef unsigned long Ulong;
+
+extern "C" {
+#include "../prowizard/include/globals.h"
+#include "../prowizard/include/extern.h"
+}
+
+#endif
+
+
 static int got, canceled;
 
 static void mc (uae_u8 *d, uaecptr s, int size)

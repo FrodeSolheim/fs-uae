@@ -181,6 +181,7 @@ void keyboard_at_poll()
         }
 }
 
+static
 void keyboard_at_adddata(uint8_t val)
 {
         key_ctrl_queue[key_ctrl_queue_end] = val;

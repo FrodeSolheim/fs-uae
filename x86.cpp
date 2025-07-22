@@ -2316,6 +2316,7 @@ end:
 		xb->amiga_io[aio] = v;
 	xb->io_ports[portnum] = v;
 }
+
 void portout16(uint16_t portnum, uint16_t value)
 {
 	struct x86_bridge *xb = bridges[0];
@@ -3834,6 +3835,7 @@ static void set_mouse(struct x86_bridge *xb)
 static const uae_u8 a1060_autoconfig[16] = { 0xc4, 0x01, 0x80, 0x00, 0x02, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
 static const uae_u8 a2386_autoconfig[16] = { 0xc4, 0x67, 0x80, 0x00, 0x02, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
 
+static
 bool x86_bridge_init(struct autoconfig_info *aci, uae_u32 romtype, int type)
 {
 	const uae_u8 *ac;

@@ -1,3 +1,68 @@
+#ifdef FSUAE
+// FIXME: Move first section to picasso69-fs.cpp ?
+
+#include "sysconfig.h"
+#include "sysdeps.h"
+
+// Avoid these from being loaded
+#define REGISTRY_H
+#define WIN32GUI_H
+// #define __WIN32GFX_H__
+
+#ifdef _WIN32
+// Already define
+#else
+typedef void* ICONINFO;
+typedef void* HBITMAP;
+typedef void* HCURSOR;
+typedef void* HDC;
+
+static HCURSOR wincursor = NULL;
+
+#include <stdint.h>
+// ./../od-fs/winuae_compat.h:63:24
+//typedef uint32_t ULONG;
+typedef uintptr_t ULONG_PTR;
+#endif
+
+typedef int LPDIRECT3DSURFACE9;
+
+typedef int CRITICAL_SECTION;
+
+typedef void* PVOID;
+typedef size_t SIZE_T;
+typedef uintptr_t* PULONG_PTR;
+
+// typedef unsigned long ULONG;
+typedef ULONG* PULONG;
+
+void InitializeCriticalSection(CRITICAL_SECTION *c);
+void EnterCriticalSection(CRITICAL_SECTION *c);
+void LeaveCriticalSection(CRITICAL_SECTION *c);
+
+#include <uae/byteswap.h>
+
+#define _byteswap_ushort uae_bswap16
+#define _byteswap_ulong uae_bswap32
+
+// FIXME
+void gfx_lock(void);
+void gfx_unlock(void);
+
+// FIXME
+#define RGB(r, g, b) 0
+
+typedef int COLORREF;
+COLORREF SetPixel(HDC hdc, int x, int y, COLORREF color);
+
+// FIXME: This should be included also
+#include "uae.h"
+
+// For uaegfx_freertgbuffer
+#include "gfxfilter.h"
+
+#endif
+
 /*
 * UAE - The U*nix Amiga Emulator
 *
@@ -91,7 +156,9 @@ static int picasso96_PCT = PCT_Unknown;
 int mman_GetWriteWatch (PVOID lpBaseAddress, SIZE_T dwRegionSize, PVOID *lpAddresses, PULONG_PTR lpdwCount, PULONG lpdwGranularity);
 void mman_ResetWatch (PVOID lpBaseAddress, SIZE_T dwRegionSize);
 
+static
 void picasso_flushpixels(int index, uae_u8 *src, int offset, bool render);
+static
 int createwindowscursor(int monid, int set, int chipset);
 
 int p96refresh_active;
@@ -164,7 +231,10 @@ static uae_u8 *cursordata;
 static uae_u32 cursorrgb[4], cursorrgbn[4];
 static int cursordeactivate, setupcursor_needed;
 static bool cursorvisible;
+#ifdef FSUAE
+#else
 static HCURSOR wincursor;
+#endif
 static int wincursor_shown;
 static uaecptr boardinfo, ABI_interrupt;
 static int interrupt_enabled;
@@ -962,6 +1032,7 @@ enum {
 	RGBFB_Y4U1V1_32,
 };
 
+static
 int getconvert(int rgbformat)
 {
 	int v = 0;
@@ -1806,6 +1877,10 @@ extern uae_u32 sprite_0_colors[4];
 
 static int createwindowscursor(int monid, int set, int chipset)
 {
+#ifdef FSUAE
+	UAE_LOG_STUB("");
+	return 0;
+#else
 	HBITMAP andBM, xorBM;
 	HBITMAP andoBM, xoroBM;
 	HDC andDC, xorDC, DC, mainDC;
@@ -1981,10 +2056,14 @@ exit:
 	}
 
 	return ret;
+#endif
 }
 
 int picasso_setwincursor(int monid)
 {
+#ifdef FSUAE
+	UAE_LOG_STUB("");
+#else
 	struct amigadisplay *ad = &adisplays[monid];
 	if (wincursor) {
 		SetCursor(wincursor);
@@ -1994,6 +2073,7 @@ int picasso_setwincursor(int monid)
 			return 1;
 	}
 	return 0;
+#endif
 }
 
 static uae_u32 setspriteimage(TrapContext *ctx, uaecptr bi)
@@ -2349,6 +2429,9 @@ static void CopyLibResolutionStructureU2A(TrapContext *ctx, struct LibResolution
 
 void picasso_allocatewritewatch (int index, int gfxmemsize)
 {
+#ifdef FSUAE
+	// FS-UAE does not support write watch
+#else
 	SYSTEM_INFO si;
 
 	xfree (gwwbuf[index]);
@@ -2357,12 +2440,17 @@ void picasso_allocatewritewatch (int index, int gfxmemsize)
 	gwwbufsize[index] = gfxmemsize / gwwpagesize[index] + 1;
 	gwwpagemask[index] = gwwpagesize[index] - 1;
 	gwwbuf[index] = xmalloc (void*, gwwbufsize[index]);
+#endif
 }
 
 static ULONG_PTR writewatchcount[MAX_RTG_BOARDS];
 static int watch_offset[MAX_RTG_BOARDS];
 int picasso_getwritewatch (int index, int offset, uae_u8 ***gwwbufp, uae_u8 **startp)
 {
+#ifdef FSUAE
+	// FS-UAE does not support write watch.
+	return -1;
+#else
 	ULONG ps;
 	writewatchcount[index] = gwwbufsize[index];
 	watch_offset[index] = offset;
@@ -2381,9 +2469,14 @@ int picasso_getwritewatch (int index, int offset, uae_u8 ***gwwbufp, uae_u8 **st
 	if (startp)
 		*startp = start;
 	return (int)writewatchcount[index];
+#endif
 }
 bool picasso_is_vram_dirty (int index, uaecptr addr, int size)
 {
+#ifdef FSUAE
+	// FS-UAE does not support write watch
+	return true;
+#else
 	static ULONG_PTR last;
 	uae_u8 *a = addr + natmem_offset + watch_offset[index];
 	int s = size;
@@ -2405,6 +2498,7 @@ bool picasso_is_vram_dirty (int index, uaecptr addr, int size)
 		last = 0;
 	}
 	return false;
+#endif
 }
 
 static void init_alloc (TrapContext *ctx, int size)
@@ -2420,6 +2514,14 @@ static void init_alloc (TrapContext *ctx, int size)
 	picasso96_amemend = picasso96_amem + size;
 	write_log (_T("P96 RESINFO: %08X-%08X (%d,%d)\n"), picasso96_amem, picasso96_amemend, size / PSSO_ModeInfo_sizeof, size);
 	picasso_allocatewritewatch (0, gfxmem_bank.allocated_size);
+#ifdef FSUAE
+	printf("FIXME: setting gwwpagesize to something...\n");
+	gwwpagesize[0] = 1024*1024*4; // FIXME:...
+
+	gwwbufsize[0] = gfxmem_bank.allocated_size / gwwpagesize[0] + 1;
+	gwwpagemask[0] = gwwpagesize[0] - 1;
+	gwwbuf[0] = xmalloc (void*, gwwbufsize[0]);
+#endif
 }
 
 static int p96depth (int depth)
@@ -5449,6 +5551,9 @@ addrbank *gfxmem_banks[MAX_RTG_BOARDS];
 * Also put it in reset_drawing() for safe-keeping.  */
 void InitPicasso96(int monid)
 {
+#ifdef FSUAE
+	printf("InitPicasso96\n");
+#endif
 	struct picasso96_state_struct *state = &picasso96_state[monid];
 	int i;
 
@@ -5472,6 +5577,11 @@ void InitPicasso96(int monid)
 			| ((i & 2) ? 0x0100 : 0)
 			| ((i & 1) ? 0x01 : 0));
 	}
+#ifdef FSUAE
+	struct picasso_vidbuf_description *vidinfo = &picasso_vidinfo[0];
+	#warning vidinfo->pixbytes = g_amiga_video_bpp ?
+	// vidinfo->pixbytes = g_amiga_video_bpp;
+#endif
 }
 
 #endif

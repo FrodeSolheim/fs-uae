@@ -1865,6 +1865,7 @@ struct romlist *getromlistbyids (const int *ids, const TCHAR *romname)
 	return NULL;
 }
 
+static
 struct romdata *getromdatabyids (const int *ids)
 {
 	struct romdata *rd;

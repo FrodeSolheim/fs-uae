@@ -25,4 +25,52 @@ void x86_initfloppy(X86_INTERRUPT_CALLBACK);
 void x86_floppy_run(void);
 uae_u16 floppy_get_raw_data(int*);
 
+
+// ---------
+// used by pcem
+void x86_ack_keyboard(void);
+uint8_t x86_get_jumpers(void);
+void x86_clearirq(uint8_t irqnum);
+
+void portout(uint16_t portnum, uint8_t v);
+void portout16(uint16_t portnum, uint16_t value);
+void portout32(uint16_t portnum, uint32_t value);
+
+uint8_t portin(uint16_t portnum);
+uint16_t portin16(uint16_t portnum);
+uint32_t portin32(uint16_t portnum);
+
+// used by qemuvga
+
+void x86_map_lfb(int v);
+
+// ---------
+
+// Used by other parts of code FIXME: remove extra declarations
+
+void x86_xt_ide_bios(struct zfile *z, struct romconfig *rc);
+void x86_rt1000_bios(struct zfile *z, struct romconfig *rc);
+
+// ----- ??
+
+void io_sethandler(uint16_t base, int size,
+	uint8_t(*inb)(uint16_t addr, void *priv),
+	uint16_t(*inw)(uint16_t addr, void *priv),
+	uint32_t(*inl)(uint16_t addr, void *priv),
+	void(*outb)(uint16_t addr, uint8_t  val, void *priv),
+	void(*outw)(uint16_t addr, uint16_t val, void *priv),
+	void(*outl)(uint16_t addr, uint32_t val, void *priv),
+	void *priv);
+
+void io_removehandler(uint16_t base, int size,
+	uint8_t(*inb)(uint16_t addr, void *priv),
+	uint16_t(*inw)(uint16_t addr, void *priv),
+	uint32_t(*inl)(uint16_t addr, void *priv),
+	void(*outb)(uint16_t addr, uint8_t  val, void *priv),
+	void(*outw)(uint16_t addr, uint16_t val, void *priv),
+	void(*outl)(uint16_t addr, uint32_t val, void *priv),
+	void *priv);
+
+// ----
+
 #endif /* UAE_X86_H */

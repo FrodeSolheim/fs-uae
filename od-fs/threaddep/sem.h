@@ -26,6 +26,9 @@ static inline int uae_sem_post(uae_sem_t *sem)
     return fsemu_semaphore_post(*sem);
 }
 
+// FIXME: ...
+extern void uae_sem_unpost(uae_sem_t*);
+
 static inline int uae_sem_wait(uae_sem_t *sem)
 {
     return fsemu_semaphore_wait(*sem);

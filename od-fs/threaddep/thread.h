@@ -25,6 +25,7 @@ int uae_start_thread(const char *name,
                      uae_thread_function fn,
                      void *arg,
                      uae_thread_id *tid);
+extern int uae_start_thread_fast(void (*f)(void *), void *arg, uae_thread_id *thread);
 int uae_wait_thread(uae_thread_id thread);
 void uae_end_thread(uae_thread_id *thread);
 

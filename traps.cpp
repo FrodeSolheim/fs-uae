@@ -1363,6 +1363,7 @@ uae_char *trap_get_alloc_string(TrapContext *ctx, uaecptr addr, int maxlen)
 	return buf;
 }
 
+static
 int trap_get_bstr(TrapContext *ctx, uae_u8 *haddr, uaecptr addr, int maxlen)
 {
 	int len = 0;

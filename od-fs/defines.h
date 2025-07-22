@@ -134,19 +134,6 @@ typedef unsigned short USHORT;
 // FIXME: IMPLEMENT
 // void _stprintf(wchar_t* buffer, wchar_t* format, ...);
 
-extern TCHAR start_path_data[];
-extern void picasso_reset(void);
-extern void picasso_handle_hsync(void);
-extern void init_hz_p96(void);
-int GetDriveType(TCHAR *vol);
-
-// void sleep_millis(int ms);
-// void install_driver(int flags);
-
-extern int uae_start_thread_fast(void *(*f)(void *),
-                                 void *arg,
-                                 uae_thread_id *thread);
-
 #ifdef WINDOWS
 
 #else

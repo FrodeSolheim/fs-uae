@@ -260,12 +260,12 @@ _libs_libuae_a_SOURCES = \
 	../audio.cpp \
 	../autoconf.cpp \
 	../blitter.cpp \
-	../blkdev.cpp \
 	../blkdev_cdimage.cpp \
+	../blkdev.cpp \
 	../bsdsocket.cpp \
 	../calc.cpp \
-	../cd32_fmv.cpp \
 	../cd32_fmv_genlock.cpp \
+	../cd32_fmv.cpp \
 	../cdrom.cpp \
 	../cdtv.cpp \
 	../cdtvcr.cpp \
@@ -294,9 +294,9 @@ _libs_libuae_a_SOURCES = \
 	../fdi2raw.cpp \
 	../filesys.cpp \
 	../flashrom.cpp \
-	../fpp.cpp \
 	../fpp_native.cpp \
 	../fpp_softfloat.cpp \
+	../fpp.cpp \
 	../framebufferboards.cpp \
 	../fsdb.cpp \
 	../fsusage.cpp \
@@ -354,12 +354,12 @@ _libs_libuae_a_SOURCES = \
 	../include/fdi2raw.h \
 	../include/filesys.h \
 	../include/flashrom.h \
-	../include/fpp.h \
 	../include/fpp-ieee-be.h \
 	../include/fpp-unknown.h \
+	../include/fpp.h \
+	../include/framebufferboards.h \
 	../include/fsdb.h \
 	../include/fsusage.h \
-	../include/framebufferboards.h \
 	../include/gayle.h \
 	../include/genblitter.h \
 	../include/gensound.h \
@@ -372,25 +372,25 @@ _libs_libuae_a_SOURCES = \
 	../include/ini.h \
 	../include/inputdevice.h \
 	../include/inputrecord.h \
-	../include/isofs.h \
 	../include/isofs_api.h \
+	../include/isofs.h \
 	../include/keyboard.h \
 	../include/keybuf.h \
 	../include/luascript.h \
 	../include/mackbd.h \
 	../include/mmu_common.h \
 	../include/moduleripper.h \
-	../include/native2amiga.h \
 	../include/native2amiga_api.h \
-	../include/ncr9x_scsi.h \
+	../include/native2amiga.h \
 	../include/ncr_scsi.h \
+	../include/ncr9x_scsi.h \
 	../include/newcpu.h \
 	../include/options.h \
 	../include/osemu.h \
 	../include/packed.h \
 	../include/parallel.h \
-	../include/pci.h \
 	../include/pci_hw.h \
+	../include/pci.h \
 	../include/picasso96.h \
 	../include/readcpu.h \
 	../include/rommgr.h \
@@ -465,11 +465,11 @@ _libs_libuae_a_SOURCES = \
 	../isofs.cpp \
 	../jit/codegen_udis86.h \
 	../jit/codegen_x86.h \
-	../jit/compemu.h \
 	../jit/compemu_fpp.cpp \
 	../jit/compemu_midfunc_arm.h \
 	../jit/compemu_midfunc_x86.h \
 	../jit/compemu_support.cpp \
+	../jit/compemu.h \
 	../jit/flags_x86.h \
 	../keybuf.cpp \
 	../logging.cpp \
@@ -480,14 +480,14 @@ _libs_libuae_a_SOURCES = \
 	../mame/tm34010/tms34010.h \
 	../memory.cpp \
 	../native2amiga.cpp \
-	../ncr9x_scsi.cpp \
 	../ncr_scsi.cpp \
-	../newcpu.cpp \
+	../ncr9x_scsi.cpp \
 	../newcpu_common.cpp \
+	../newcpu.cpp \
 	../od-fs/ahi_winuae.cpp \
-	../od-fs/ahidsound.h \
 	../od-fs/ahidsound_new.cpp \
 	../od-fs/ahidsound_new.h \
+	../od-fs/ahidsound.h \
 	../od-fs/blkdev-linux.cpp \
 	../od-fs/bridge.cpp \
 	../od-fs/bsdsocket_posix.cpp \
@@ -509,8 +509,8 @@ _libs_libuae_a_SOURCES = \
 	../od-fs/include/direct3d.h \
 	../od-fs/include/registry.h \
 	../od-fs/include/resource.h \
-	../od-fs/include/uae/uae.h \
 	../od-fs/include/uae/uae_inputevents_def.h \
+	../od-fs/include/uae/uae.h \
 	../od-fs/include/win32gui.h \
 	../od-fs/input.cpp \
 	../od-fs/inputrecord.cpp \
@@ -536,11 +536,12 @@ _libs_libuae_a_SOURCES = \
 	../od-fs/mp3decoder.h \
 	../od-fs/parser.cpp \
 	../od-fs/paths.cpp \
+	../od-fs/random.cpp \
 	../od-fs/roms.cpp \
 	../od-fs/sleep.h \
 	../od-fs/sound_fs.cpp \
-	../od-fs/spin.cpp \
 	../od-fs/sounddep/sound.h \
+	../od-fs/spin.cpp \
 	../od-fs/statusline.cpp \
 	../od-fs/stubs.cpp \
 	../od-fs/support.cpp \
@@ -557,10 +558,10 @@ _libs_libuae_a_SOURCES = \
 	../od-fs/winuae_compat.h \
 	../od-fs/writelog_fs.cpp \
 	../od-win32/bsdsock.cpp \
-	../od-win32/caps/CapsAPI.h \
-	../od-win32/caps/Comtype.h \
 	../od-win32/caps/caps_win32.cpp \
 	../od-win32/caps/caps_win32.h \
+	../od-win32/caps/CapsAPI.h \
+	../od-win32/caps/Comtype.h \
 	../od-win32/clipboard_win32.cpp \
 	../od-win32/clipboard_win32.h \
 	../od-win32/debug_win32.h \
@@ -571,39 +572,36 @@ _libs_libuae_a_SOURCES = \
 	../od-win32/picasso96_win.cpp \
 	../od-win32/picasso96_win.h \
 	../od-win32/serial_win32.cpp \
+	../od-win32/win32_uaenet.cpp \
 	../od-win32/win32.h \
 	../od-win32/win32gfx.h \
-	../od-win32/win32_uaenet.cpp \
-	../patch.cpp \
-	../pcem/codegen.h \
 	../pcem/codegen_x86-64.h \
+	../pcem/codegen.h \
 	../pcem/cpu.h \
 	../pcem/dma.h \
 	../pcem/ibm.h \
-	../pcem/keyboard.h \
 	../pcem/keyboard_at.h \
+	../pcem/keyboard.h \
 	../pcem/mem.h \
 	../pcem/model.h \
-	../pcem/mouse.h \
 	../pcem/mouse_serial.h \
+	../pcem/mouse.h \
 	../pcem/nvr.h \
 	../pcem/pcemglue.h \
 	../pcem/pic.h \
 	../pcem/pit.h \
-	../pcem/sound.h \
 	../pcem/sound_cms.h \
 	../pcem/sound_speaker.h \
+	../pcem/sound.h \
 	../pcem/timer.h \
-	../pcem/x86.h \
 	../pcem/x86_ops.h \
+	../pcem/x86.h \
 	../pci.cpp \
-	../ppc/pixman-stubs.cpp \
 	../ppc/ppc.cpp \
-	../qemu.cpp \
-	../qemuvga/cirrus_vga.cpp \
 	../qemuvga/cirrus_vga_rop.h \
 	../qemuvga/cirrus_vga_rop2.h \
 	../qemuvga/cirrus_vga_template.h \
+	../qemuvga/cirrus_vga.cpp \
 	../qemuvga/es1370.cpp \
 	../qemuvga/esp.cpp \
 	../qemuvga/lsi53c710.cpp \
@@ -611,6 +609,7 @@ _libs_libuae_a_SOURCES = \
 	../qemuvga/ne2000.cpp \
 	../qemuvga/ne2000.h \
 	../qemuvga/pixel_ops.h \
+	../qemuvga/qemu.cpp \
 	../qemuvga/qemuaudio.h \
 	../qemuvga/qemumemory.h \
 	../qemuvga/qemuuaeglue.cpp \
@@ -618,11 +617,10 @@ _libs_libuae_a_SOURCES = \
 	../qemuvga/queue.h \
 	../qemuvga/scsi/esp.h \
 	../qemuvga/scsi/scsi.h \
-	../qemuvga/vga.cpp \
-	../qemuvga/vga.h \
 	../qemuvga/vga_int.h \
 	../qemuvga/vga_template.h \
-	../random.cpp \
+	../qemuvga/vga.cpp \
+	../qemuvga/vga.h \
 	../readcpu.cpp \
 	../rommgr.cpp \
 	../rtc.cpp \
@@ -632,21 +630,19 @@ _libs_libuae_a_SOURCES = \
 	../scsi.cpp \
 	../scsiemul.cpp \
 	../scsitape.cpp \
-	../segtracker.cpp \
 	../slirp_uae.cpp \
-	../softfloat/softfloat.cpp \
 	../softfloat/softfloat_decimal.cpp \
-	../softfloat/softfloat_fpsp.cpp \
+	../softfloat/softfloat_decimal.cpp \
 	../softfloat/softfloat_fpsp_tables.h \
-	../softfloat/softfloat.h \
+	../softfloat/softfloat_fpsp.cpp \
+	../softfloat/softfloat_fpsp.cpp \
 	../softfloat/softfloat-macros.h \
 	../softfloat/softfloat-specialize.h \
 	../softfloat/softfloat.cpp \
-	../softfloat/softfloat_decimal.cpp \
-	../softfloat/softfloat_fpsp.cpp \
+	../softfloat/softfloat.cpp \
+	../softfloat/softfloat.h \
 	../specialmonitors.cpp \
 	../statusline.cpp \
-	../support/socket.cpp \
 	../support/time.cpp \
 	../test_card.cpp \
 	../traps.cpp \
@@ -657,19 +653,19 @@ _libs_libuae_a_SOURCES = \
 	../uaeserial.cpp \
 	../vm.cpp \
 	../x86.cpp \
-	../zfile.cpp \
-	../zfile_archive.cpp
-nodist__libs_libuae_a_SOURCES = \
-	gen/blit.h \
-	gen/blitfunc.cpp \
-	gen/blitfunc.h \
-	gen/blittable.cpp \
-	gen/compemu.cpp \
-	gen/compstbl.cpp \
-	gen/comptbl.h \
-	gen/cpudefs.cpp \
-	gen/cpustbl.cpp \
-	gen/cputbl.h
+	../zfile_archive.cpp \
+	../zfile.cpp
+#nodist__libs_libuae_a_SOURCES = \
+#	gen/blit.h \
+#	gen/blitfunc.cpp \
+#	gen/blitfunc.h \
+#	gen/blittable.cpp \
+#	gen/compemu.cpp \
+#	gen/compstbl.cpp \
+#	gen/comptbl.h \
+#	gen/cpudefs.cpp \
+#	gen/cpustbl.cpp \
+#	gen/cputbl.h
 BUILT_SOURCES += $(nodist__libs_libuae_a_SOURCES)
 
 noinst_LIBRARIES += src/libcpuemu.a

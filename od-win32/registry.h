@@ -1,3 +1,5 @@
+#ifndef REGISTRY_H
+#define REGISTRY_H
 
 typedef struct UAEREG {
     HKEY fkey;
@@ -30,3 +32,4 @@ extern int regenumstr (UAEREG*, int idx, TCHAR *name, int *nsize, TCHAR *str, in
 extern UAEREG *regcreatetree (UAEREG*, const TCHAR *name);
 extern void regclosetree (UAEREG *key);
 
+#endif // REGISTRY_H

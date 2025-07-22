@@ -6,11 +6,17 @@
 #define likely(x)   __builtin_expect(!!(x), 1)
 #define unlikely(x) __builtin_expect(!!(x), 0)
 
+#define uae_likely(x)   __builtin_expect(!!(x), 1)
+#define uae_unlikely(x) __builtin_expect(!!(x), 0)
+
 #else
 
 #define likely(x)   x
 #define unlikely(x) x
 
+#define uae_likely(x)   x
+#define uae_unlikely(x) x
+
 #endif
 
-#endif /* UAE_LIKELY_H */
+#endif // UAE_LIKELY_H

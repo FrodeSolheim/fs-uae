@@ -175,5 +175,4 @@ INT_PTR darkmode_ctlcolor(WPARAM wParam, bool *handled);
 void regsetfont(UAEREG *reg, const TCHAR *prefix, const TCHAR *name, const TCHAR *fontname, int fontsize, int fontstyle, int fontweight);
 bool regqueryfont(UAEREG *reg, const TCHAR *prefix, const TCHAR *name, TCHAR *fontname, int *pfontsize, int *pfontstyle, int *pfontweight);
 
-
-#endif
+#endif // WIN32GUI_H

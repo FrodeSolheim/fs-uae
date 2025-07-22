@@ -6,12 +6,22 @@
 * Copyright 2007 Toni Wilen
 */
 
+#ifdef FSUAE
+#else
 #include <winsock2.h>
 #include <Ws2tcpip.h>
 #include <Iphlpapi.h>
+#endif
 
 #include "sysconfig.h"
 #include "sysdeps.h"
+
+#ifdef FSUAE
+
+#include "ethernet.h"
+static int ethernet_paused;
+
+#else
 
 #include <stdio.h>
 
@@ -545,6 +555,8 @@ void uaenet_close_driver (struct netdriverdata *tc)
 		tc[i].active = 0;
 	}
 }
+
+#endif
 
 void ethernet_pause(int pause)
 {

@@ -1,3 +1,6 @@
+#if 0
+#warning Skipping serial_win32.cpp for now
+
 /*
 * UAE - The Un*x Amiga Emulator
 *
@@ -38,7 +41,10 @@
 #define SERIAL_BREAK_DELAY (20 * maxvpos)
 #define SERIAL_BREAK_TRANSMIT_DELAY 4
 
+#ifdef FSUAE
+#else
 #define SERIAL_MAP
+#endif
 
 #ifdef SERIAL_MAP
 #define SERMAP_SIZE 256
@@ -1667,3 +1673,5 @@ int enet_readser (uae_u16 *data)
 	return 1;
 }
 #endif
+
+#endif // FIXME

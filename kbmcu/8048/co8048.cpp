@@ -19,7 +19,7 @@
 //	modified under an alternate license. See COPYING.RMT in the same source
 //	archive for details.
 
-#include <string>
+#include <string.h>
 #include "co8048.h"
 
 ATCoProc8048::ATCoProc8048() {

@@ -64,7 +64,7 @@ void Depack_Skizzo ( void )
   long Total_Sample_Size=0;
   long Where = PW_Start_Address;
   Uchar poss[37][2];
-  FILE *out,*DEBUG;
+  FILE *out;
 
   /* filling up the possible PTK notes */
   fillPTKtable(poss);

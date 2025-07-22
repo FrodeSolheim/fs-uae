@@ -6,6 +6,12 @@
 #include "globals.h"
 #include "extern.h"
 
+#ifdef FSUAE
+#ifdef __GNUC__
+#pragma GCC diagnostic ignored "-Wunused-result"
+#endif
+#endif
+
 short testSoundFX13 ( void )
 {
   /* test 1 */

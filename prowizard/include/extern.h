@@ -331,7 +331,6 @@ extern short test_smps ( long, long, long, Uchar, Uchar );
 extern long  PWGetFileSize ( char * );
 extern FILE * PW_fopen ( char *, char * );
 extern void fillPTKtable ( Uchar[37][2] );
-extern int htonl(int);
 
 /* globals */
 /* Some say it's badly coding when using Globals ... sure it is, now what's the solution ? */
@@ -357,3 +356,4 @@ extern void pw_write_log (const char *, ...);
 extern FILE *moduleripper2_fopen (const char *name, const char *mode, const char *aid, int addr, int size);
 extern FILE *moduleripper_fopen (const char *aname, const char *amode);
 
+void Crap15 ( char *Format , Uchar Delta , Uchar Pack , FILE *out );

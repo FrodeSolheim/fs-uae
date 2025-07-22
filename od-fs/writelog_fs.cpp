@@ -174,6 +174,16 @@ static void flushmsgpump(void)
 
 #endif
 
+void deactivate_console(void)
+{
+#if 0
+	if (previousactivewindow) {
+		SetForegroundWindow(previousactivewindow);
+		previousactivewindow = NULL;
+	}
+#endif
+}
+
 void activate_console (void)
 {
 	if (!consoleopen)

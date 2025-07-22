@@ -72,7 +72,7 @@ AM_CXXFLAGS += $(CM_CFLAGS)
 
 AM_CPPFLAGS =
 AM_CPPFLAGS += @OS_CPPFLAGS@
-AM_CPPFLAGS += -DUAE -DFSUAE
+AM_CPPFLAGS += -DUAE -DFSUAE -DFSEMU
 
 LIBS += @ALSA_LIBS@
 LIBS += @CARBON_LIBS@
@@ -151,10 +151,10 @@ BUILT_SOURCES =
 
 nodist_fs_uae_SOURCES =
 
-AM_CPPFLAGS += -I$(s)/src/fsapp
-AM_CPPFLAGS += -I$(s)/src/fsgui
-AM_CPPFLAGS += -I$(s)/src/fslib
-AM_CPPFLAGS += -I$(s)/src/fsuae
+AM_CPPFLAGS += -I$(s)/../fsapp
+AM_CPPFLAGS += -I$(s)/../fsgui
+AM_CPPFLAGS += -I$(s)/../fslib
+AM_CPPFLAGS += -I$(s)/../fsuae
 fs_uae_SOURCES = \
 fs_uae_SOURCES = \
 	../fsapp/fsapp-channel.c \
@@ -261,6 +261,10 @@ libuae_a_SOURCES = \
 	../../archivers/zip/unzip.h \
 	../../audio.cpp \
 	../../autoconf.cpp \
+	../../blit.h \
+	../../blitfunc.cpp \
+	../../blitfunc.h \
+	../../blittable.cpp \
 	../../blitter.cpp \
 	../../blkdev_cdimage.cpp \
 	../../blkdev.cpp \
@@ -275,8 +279,11 @@ libuae_a_SOURCES = \
 	../../cia.cpp \
 	../../consolehook.cpp \
 	../../cpuboard.cpp \
+	../../cpudefs.cpp \
 	../../cpummu.cpp \
 	../../cpummu30.cpp \
+	../../cpustbl.cpp \
+	../../cputbl.h \
 	../../crc32.cpp \
 	../../custom.cpp \
 	../../debug.cpp \
@@ -471,8 +478,20 @@ libuae_a_SOURCES = \
 	../../jit/compemu_midfunc_arm.h \
 	../../jit/compemu_midfunc_x86.h \
 	../../jit/compemu_support.cpp \
+	../../jit/compemu.cpp \
 	../../jit/compemu.h \
+	../../jit/compstbl.cpp \
+	../../jit/comptbl.h \
 	../../jit/flags_x86.h \
+	../../kbmcu/8048/co8048.cpp \
+	../../kbmcu/8048/co8048.h \
+	../../kbmcu/keyboard_mcu_6500_1.cpp \
+	../../kbmcu/keyboard_mcu_d8039hlc.cpp \
+	../../kbmcu/m6805/m68_internal.h \
+	../../kbmcu/m6805/m68_ops.cpp \
+	../../kbmcu/m6805/m68_optab_hc05.h \
+	../../kbmcu/m6805/m68emu.cpp \
+	../../kbmcu/m6805/m68emu.h \
 	../../keybuf.cpp \
 	../../logging.cpp \
 	../../main.cpp \
@@ -577,27 +596,6 @@ libuae_a_SOURCES = \
 	../../od-win32/win32_uaenet.cpp \
 	../../od-win32/win32.h \
 	../../od-win32/win32gfx.h \
-	../../pcem/codegen_x86-64.h \
-	../../pcem/codegen.h \
-	../../pcem/cpu.h \
-	../../pcem/dma.h \
-	../../pcem/ibm.h \
-	../../pcem/keyboard_at.h \
-	../../pcem/keyboard.h \
-	../../pcem/mem.h \
-	../../pcem/model.h \
-	../../pcem/mouse_serial.h \
-	../../pcem/mouse.h \
-	../../pcem/nvr.h \
-	../../pcem/pcemglue.h \
-	../../pcem/pic.h \
-	../../pcem/pit.h \
-	../../pcem/sound_cms.h \
-	../../pcem/sound_speaker.h \
-	../../pcem/sound.h \
-	../../pcem/timer.h \
-	../../pcem/x86_ops.h \
-	../../pcem/x86.h \
 	../../pci.cpp \
 	../../ppc/ppc.cpp \
 	../../qemuvga/cirrus_vga_rop.h \
@@ -654,9 +652,11 @@ libuae_a_SOURCES = \
 	../../uaeresource.cpp \
 	../../uaeserial.cpp \
 	../../vm.cpp \
+	../../mos6502.cpp \
 	../../x86.cpp \
 	../../zfile_archive.cpp \
 	../../zfile.cpp
+
 #nodist__libs_libuae_a_SOURCES = \
 #	gen/blit.h \
 #	gen/blitfunc.cpp \
@@ -1055,6 +1055,7 @@ if WITH_X86
 noinst_LIBRARIES += libpcem.a
 fs_uae_LDADD += libpcem.a
 libpcem_a_SOURCES = \
+	../../pcem/386_common.cpp \
 	../../pcem/386_common.h \
 	../../pcem/386.cpp \
 	../../pcem/386_dynarec.cpp \

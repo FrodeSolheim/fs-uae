@@ -120,7 +120,7 @@ void uae_fs_end_frame()
 
     // FIXME: PERFORMANCE
     // FIXME: Maybe replace this function with some possibly more efficient
-    int length;
+    size_t length;
     //char *config = (char*) save_configuration(&length, false);
     char *config = (char*) save_configuration(&length, true);
 

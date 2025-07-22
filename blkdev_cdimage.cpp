@@ -35,6 +35,7 @@
 #endif
 
 #define FLAC__NO_DLL
+
 #include "FLAC/stream_decoder.h"
 
 #ifdef WITH_CHD

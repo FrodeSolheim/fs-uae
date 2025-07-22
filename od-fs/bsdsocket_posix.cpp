@@ -772,7 +772,7 @@ uae_u32 bsdthr_blockingstuff (uae_u32 (*tryfunc)(SB), SB)
 	return foo;
 }
 
-static void *bsdlib_threadfunc (void *arg)
+static void bsdlib_threadfunc (void *arg)
 {
 	struct socketbase *sb = (struct socketbase *) arg;
 
@@ -791,7 +791,7 @@ static void *bsdlib_threadfunc (void *arg)
 		DEBUG_LOG ("THREAD_END\n");
 
 		uae_sem_destroy (&sb->sem);
-		return NULL;
+		return;
 
 		case 1:       /* Connect */
 		sb->resultval = bsdthr_SendRecvAcceptConnect (bsdthr_Connect_2, sb);
@@ -841,7 +841,6 @@ static void *bsdlib_threadfunc (void *arg)
 	SETERRNO;
 	SETSIGNAL;
 	}
-	return NULL;        /* Just to keep GCC happy.. */
 }
 
 void clearsockabort (SB)

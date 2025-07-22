@@ -11,6 +11,7 @@
 #define UAE_INPUTDEVICE_H
 
 #include "uae/types.h"
+#include "options.h"
 
 #define DIR_LEFT_BIT 0
 #define DIR_RIGHT_BIT 1

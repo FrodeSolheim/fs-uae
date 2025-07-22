@@ -2,6 +2,7 @@
 #define UAE_BLKDEV_H
 
 #include "uae/types.h"
+#include "traps.h"
 
 #define DEVICE_SCSI_BUFSIZE (65536 - 1024)
 

@@ -11,6 +11,10 @@
 #define UAE_BSDSOCKET_H
 
 #include "uae/types.h"
+#ifdef FSUAE
+#include "traps.h"
+#include "threaddep/thread.h"
+#endif
 
 #define BSD_TRACING_ENABLED 0
 
@@ -96,6 +100,9 @@ struct socketbase {
     uae_u32 sets [3];
     uae_u32 timeout;
     uae_u32 sigmp;
+#endif
+#ifdef FSUAE
+    TrapContext *context;
 #endif
 };
 

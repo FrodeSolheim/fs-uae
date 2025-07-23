@@ -12,44 +12,22 @@
 #ifdef _WIN32
 // Already define
 #else
+#include "uae/compat/windows2.h"
+
 typedef void* ICONINFO;
-typedef void* HBITMAP;
-typedef void* HCURSOR;
-typedef void* HDC;
 
 static HCURSOR wincursor = NULL;
 
-#include <stdint.h>
-// ./../od-fs/winuae_compat.h:63:24
-//typedef uint32_t ULONG;
-typedef uintptr_t ULONG_PTR;
 #endif
 
-typedef int LPDIRECT3DSURFACE9;
-
-typedef int CRITICAL_SECTION;
-
-typedef void* PVOID;
-typedef size_t SIZE_T;
-typedef uintptr_t* PULONG_PTR;
-
-// typedef unsigned long ULONG;
-typedef ULONG* PULONG;
-
-void InitializeCriticalSection(CRITICAL_SECTION *c);
-void EnterCriticalSection(CRITICAL_SECTION *c);
-void LeaveCriticalSection(CRITICAL_SECTION *c);
-
-#include "uae/compat/windows.h"
-
 // FIXME
-void gfx_lock(void);
-void gfx_unlock(void);
+// void gfx_lock(void);
+// void gfx_unlock(void);
 
 // FIXME
 #define RGB(r, g, b) 0
 
-typedef int COLORREF;
+
 COLORREF SetPixel(HDC hdc, int x, int y, COLORREF color);
 
 // FIXME: This should be included also

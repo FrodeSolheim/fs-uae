@@ -3,6 +3,7 @@
 
 #include "rtgmodes.h"
 #ifdef FSUAE
+#include "uae/compat/windows.h"
 #else
 #include <d3d9.h>
 #include <D3dkmthk.h>
@@ -36,24 +37,18 @@ struct PicassoResolution
 
 struct MultiDisplay {
 	bool primary;
-#ifdef FSUAE
-#else
 	GUID ddguid;
 	HMONITOR monitor;
-#endif
 	TCHAR *adaptername, *adapterid, *adapterkey;
 	TCHAR *monitorname, *monitorid;
 	TCHAR *fullname;
 	struct PicassoResolution *DisplayModes;
-#ifdef FSUAE
-#else
 	RECT rect;
 	RECT workrect;
 	LUID AdapterLuid;
 	UINT VidPnSourceId;
 	UINT AdapterHandle;
 	bool HasAdapterData;
-#endif
 };
 extern struct MultiDisplay Displays[MAX_DISPLAYS + 1];
 
@@ -103,11 +98,8 @@ struct AmigaMonitor {
 	int p96_double_buffer_first, p96_double_buffer_last;
 	int p96_double_buffer_needs_flushing;
 
-#ifdef FSUAE
-#else
 	HWND hStatusWnd;
 	HBRUSH hStatusBkgB;
-#endif
 
 	struct winuae_currentmode currentmode;
 };

@@ -15,6 +15,8 @@
 #include "fsemu-mutex.h"
 #include "libuae.h"
 
+#include "uae/compat/windows.h"
+
 int log_scsi = 0;
 int log_net = 0;
 

@@ -13,12 +13,17 @@
 #include <stdlib.h>
 #include <stdarg.h>
 
+#ifdef FSUAE
+#else
+
 #include <windows.h>
 #include <commctrl.h>
 #include <shellapi.h>
 #include <dwmapi.h>
 #include <D3dkmthk.h>
 #include <process.h>
+
+#endif
 
 #include "sysdeps.h"
 
@@ -41,7 +46,7 @@
 #include "win32.h"
 #include "win32gfx.h"
 #include "win32gui.h"
-#include "sound.h"
+#include "sounddep/sound.h"
 #include "inputdevice.h"
 #include "direct3d.h"
 #include "midi.h"
@@ -103,8 +108,10 @@ int vsync_modechangetimeout = 10;
 int vsync_activeheight, vsync_totalheight;
 float vsync_vblank, vsync_hblank;
 bool beamracer_debug;
+extern bool gfx_hdr;
 bool gfx_hdr;
 
+static
 int reopen(struct AmigaMonitor *, int, bool);
 
 static CRITICAL_SECTION screen_cs;
@@ -200,6 +207,10 @@ void desktop_coords(int monid, int *dw, int *dh, int *ax, int *ay, int *aw, int 
 
 static int target_get_display2(const TCHAR *name, int mode)
 {
+#ifdef FSUAE
+	UAE_LOG_STUB("");
+	return -1;
+#else
 	int found, found2;
 
 	found = -1;
@@ -289,10 +300,15 @@ static int target_get_display2(const TCHAR *name, int mode)
 	}
 
 	return -1;
+#endif
 }
 
 int target_get_display(const TCHAR *name)
 {
+#ifdef FSUAE
+	UAE_LOG_STUB("");
+	return -1;
+#else
 	int disp;
 
 	//write_log(_T("target_get_display '%s'\n"), name);
@@ -313,6 +329,7 @@ int target_get_display(const TCHAR *name)
 	if (disp >= 0)
 		return disp;
 	return -1;
+#endif
 }
 
 static volatile int waitvblankthread_mode;
@@ -322,6 +339,9 @@ static MultiDisplay *wait_vblank_display;
 static volatile bool vsync_active;
 static bool scanlinecalibrating;
 
+#ifdef FSUAE
+#else
+
 typedef NTSTATUS(CALLBACK* D3DKMTOPENADAPTERFROMHDC)(D3DKMT_OPENADAPTERFROMHDC*);
 static D3DKMTOPENADAPTERFROMHDC pD3DKMTOpenAdapterFromHdc;
 typedef NTSTATUS(CALLBACK* D3DKMTGETSCANLINE)(D3DKMT_GETSCANLINE*);
@@ -330,8 +350,14 @@ typedef NTSTATUS(CALLBACK* D3DKMTWAITFORVERTICALBLANKEVENT)(const D3DKMT_WAITFOR
 static D3DKMTWAITFORVERTICALBLANKEVENT pD3DKMTWaitForVerticalBlankEvent;
 #define STATUS_SUCCESS ((NTSTATUS)0)
 
+#endif
+
 static int target_get_display_scanline2(int displayindex)
 {
+#ifdef FSUAE
+	UAE_LOG_STUB("");
+	return -1;
+#else
 	if (pD3DKMTGetScanLine) {
 		D3DKMT_GETSCANLINE sl = { 0 };
 		struct MultiDisplay *md = displayindex < 0 ? getdisplay(&currprefs, 0) : &Displays[displayindex];
@@ -361,6 +387,7 @@ static int target_get_display_scanline2(int displayindex)
 		return -14;
 	}
 	return -13;
+#endif
 }
 
 extern uae_s64 spincount;
@@ -368,6 +395,10 @@ bool calculated_scanline = true;
 
 int target_get_display_scanline(int displayindex)
 {
+#ifdef FSUAE
+	UAE_LOG_STUB("");
+	return -1;
+#else
 	if (!scanlinecalibrating && calculated_scanline) {
 		static int lastline;
 		float diff = (float)(read_processor_time() - wait_vblank_timestamp);
@@ -392,6 +423,7 @@ int target_get_display_scanline(int displayindex)
 		lastrdtsc = read_processor_time_rdtsc() + spincount * 4;
 		return lastvpos;
 	}
+#endif
 }
 
 typedef LONG(CALLBACK* QUERYDISPLAYCONFIG)(UINT32, UINT32*, DISPLAYCONFIG_PATH_INFO*, UINT32*, DISPLAYCONFIG_MODE_INFO*, DISPLAYCONFIG_TOPOLOGY_ID*);
@@ -400,6 +432,10 @@ typedef LONG(CALLBACK* DISPLAYCONFIGGETDEVICEINFO)(DISPLAYCONFIG_DEVICE_INFO_HEA
 
 static bool get_display_vblank_params(int displayindex, int *activeheightp, int *totalheightp, float *vblankp, float *hblankp)
 {
+#ifdef FSUAE
+	UAE_LOG_STUB("");
+	return false;
+#else
 	static QUERYDISPLAYCONFIG pQueryDisplayConfig;
 	static GETDISPLAYCONFIGBUFFERSIZES pGetDisplayConfigBufferSizes;
 	static DISPLAYCONFIGGETDEVICEINFO pDisplayConfigGetDeviceInfo;
@@ -462,7 +498,11 @@ static bool get_display_vblank_params(int displayindex, int *activeheightp, int 
 		xfree(displayPaths);
 	}
 	return ret;
+#endif
 }
+
+#ifdef FSUAE
+#else
 
 static unsigned int __stdcall waitvblankthread(void *dummy)
 {
@@ -481,8 +521,13 @@ static unsigned int __stdcall waitvblankthread(void *dummy)
 	return 0;
 }
 
+#endif // !FSUAE
+
 static void display_vblank_thread_kill(void)
 {
+#ifdef FSUAE
+	UAE_LOG_STUB("");
+#else
 	if (waitvblankthread_mode == 2) {
 		waitvblankthread_mode = 0;
 		while (waitvblankthread_mode != -1) {
@@ -492,10 +537,14 @@ static void display_vblank_thread_kill(void)
 		CloseHandle(waitvblankevent);
 		waitvblankevent = NULL;
 	}
+#endif
 }
 
 static void display_vblank_thread(struct AmigaMonitor *mon)
 {
+#ifdef FSUAE
+	UAE_LOG_STUB("");
+#else
 	struct amigadisplay *ad = &adisplays[mon->monitor_id];
 	struct apmode *ap = ad->picasso_on ? &currprefs.gfx_apmode[1] : &currprefs.gfx_apmode[0];
 
@@ -511,6 +560,7 @@ static void display_vblank_thread(struct AmigaMonitor *mon)
 	} else {
 		calculated_scanline = false;
 	}
+#endif
 }
 
 void target_cpu_speed(void)
@@ -521,6 +571,9 @@ void target_cpu_speed(void)
 extern void target_calibrate_spin(void);
 static void display_param_init(struct AmigaMonitor *mon)
 {
+#ifdef FSUAE
+	UAE_LOG_STUB("");
+#else
 	struct amigadisplay *ad = &adisplays[mon->monitor_id];
 	struct apmode *ap = ad->picasso_on ? &currprefs.gfx_apmode[1] : &currprefs.gfx_apmode[0];
 
@@ -546,10 +599,15 @@ static void display_param_init(struct AmigaMonitor *mon)
 	target_calibrate_spin();
 	scanlinecalibrating = false;
 	display_vblank_thread(mon);
+#endif
 }
 
 const TCHAR *target_get_display_name (int num, bool friendlyname)
 {
+#ifdef FSUAE
+	UAE_LOG_STUB("");
+	return "";
+#else
 	if (num <= 0)
 		return NULL;
 	struct MultiDisplay *md = getdisplay2(NULL, num - 1);
@@ -558,10 +616,14 @@ const TCHAR *target_get_display_name (int num, bool friendlyname)
 	if (friendlyname)
 		return md->monitorname;
 	return md->monitorid;
+#endif
 }
 
 void centerdstrect(struct AmigaMonitor *mon, RECT *dr)
 {
+#ifdef FSUAE
+	UAE_LOG_STUB("");
+#else
 	if(!(mon->currentmode.flags & (DM_DX_FULLSCREEN | DM_D3D_FULLSCREEN | DM_W_FULLSCREEN)))
 		OffsetRect (dr, mon->amigawin_rect.left, mon->amigawin_rect.top);
 	if (mon->currentmode.flags & DM_W_FULLSCREEN) {
@@ -572,6 +634,7 @@ void centerdstrect(struct AmigaMonitor *mon, RECT *dr)
 		OffsetRect (dr, (mon->currentmode.native_width - mon->currentmode.current_width) / 2,
 			(mon->currentmode.native_height - mon->currentmode.current_height) / 2);
 	}
+#endif
 }
 
 static int picasso_offset_x, picasso_offset_y;
@@ -647,6 +710,9 @@ int getrefreshrate(int monid, int width, int height)
 	return freq;
 }
 
+#ifdef FSUAE
+#else
+
 static void addmode (struct MultiDisplay *md, DEVMODE *dm, int rawmode)
 {
 	int i, j;
@@ -710,6 +776,8 @@ static void addmode (struct MultiDisplay *md, DEVMODE *dm, int rawmode)
 		md->DisplayModes[i].res.width, md->DisplayModes[i].res.height,
 		lace ? _T("i") : _T(""));
 }
+
+#endif
 
 static int _cdecl resolution_compare (const void *a, const void *b)
 {
@@ -803,6 +871,9 @@ static void modesList (struct MultiDisplay *md)
 
 static void adjustappbar(RECT *monitor, RECT *workrect)
 {
+#ifdef FSUAE
+	UAE_LOG_STUB("");
+#else
 	APPBARDATA abd;
 	// Isn't this ugly API?
 	for (int i = 0; i < 4; i++) {
@@ -841,10 +912,15 @@ static void adjustappbar(RECT *monitor, RECT *workrect)
 			break;
 		}
 	}
+#endif
 }
 
 static BOOL CALLBACK monitorEnumProc (HMONITOR h, HDC hdc, LPRECT rect, LPARAM data)
 {
+#ifdef FSUAE
+	UAE_LOG_STUB("");
+	return false;
+#else
 	struct MultiDisplay *md = Displays;
 	MONITORINFOEX lpmi;
 	lpmi.cbSize = sizeof lpmi;
@@ -869,10 +945,15 @@ static BOOL CALLBACK monitorEnumProc (HMONITOR h, HDC hdc, LPRECT rect, LPARAM d
 		md++;
 	}
 	return TRUE;
+#endif
 }
 
 static BOOL CALLBACK monitorEnumProc2(HMONITOR h, HDC hdc, LPRECT rect, LPARAM data)
 {
+#ifdef FSUAE
+	UAE_LOG_STUB("");
+	return false;
+#else
 	MONITORINFOEX lpmi;
 	lpmi.cbSize = sizeof lpmi;
 	GetMonitorInfo(h, (LPMONITORINFO)&lpmi);
@@ -886,19 +967,27 @@ static BOOL CALLBACK monitorEnumProc2(HMONITOR h, HDC hdc, LPRECT rect, LPARAM d
 		}
 	}
 	return TRUE;
+#endif
 }
 
 void reenumeratemonitors(void)
 {
+#ifdef FSUAE
+	UAE_LOG_STUB("");
+#else
 	for (int i = 0; i < MAX_DISPLAYS; i++) {
 		struct MultiDisplay *md = &Displays[i];
 		memcpy(&md->workrect, &md->rect, sizeof RECT);
 	}
 	EnumDisplayMonitors (NULL, NULL, monitorEnumProc2, NULL);
+#endif
 }
 
 static void getd3dmonitornames (void)
 {
+#ifdef FSUAE
+	UAE_LOG_STUB("");
+#else
 	// XP does not support hybrid displays, don't load Direct3D
 	// Windows 10+ seems to use same names by default
 	if (os_win10)
@@ -935,10 +1024,15 @@ static void getd3dmonitornames (void)
 		md++;
 	}
 	d3d->Release ();
+#endif
 }
 
 static bool enumeratedisplays2 (bool selectall)
 {
+#ifdef FSUAE
+	UAE_LOG_STUB("");
+	return false;
+#else
 	struct MultiDisplay *md = Displays;
 	int adapterindex = 0;
 	DISPLAY_DEVICE add;
@@ -1017,9 +1111,14 @@ static bool enumeratedisplays2 (bool selectall)
 	getd3dmonitornames ();
 	//sortmonitors ();
 	return true;
+#endif
 }
+
 void enumeratedisplays (void)
 {
+#ifdef FSUAE
+	UAE_LOG_STUB("");
+#else
 	if (!pD3DKMTWaitForVerticalBlankEvent) {
 		pD3DKMTOpenAdapterFromHdc = (D3DKMTOPENADAPTERFROMHDC)GetProcAddress(GetModuleHandle(_T("Gdi32.dll")), "D3DKMTOpenAdapterFromHdc");
 		pD3DKMTGetScanLine = (D3DKMTGETSCANLINE)GetProcAddress(GetModuleHandle(_T("Gdi32.dll")), "D3DKMTGetScanLine");
@@ -1027,10 +1126,14 @@ void enumeratedisplays (void)
 	}
 	if (!enumeratedisplays2 (false))
 		enumeratedisplays2(true);
+#endif
 }
 
 void sortdisplays (void)
 {
+#ifdef FSUAE
+	UAE_LOG_STUB("");
+#else
 	struct MultiDisplay *md;
 	int i, idx;
 
@@ -1101,7 +1204,7 @@ void sortdisplays (void)
 		md++;
 	}
 	write_log(_T("Desktop: W=%d H=%d B=%d HZ=%d. CXVS=%d CYVS=%d\n"), w, h, b, deskhz, wv, hv);
-
+#endif
 }
 
 /* DirectX will fail with "Mode not supported" if we try to switch to a full
@@ -1109,6 +1212,10 @@ void sortdisplays (void)
 * So try to find a best match for the given resolution in our list.  */
 int WIN32GFX_AdjustScreenmode (struct MultiDisplay *md, int *pwidth, int *pheight)
 {
+#ifdef FSUAE
+	UAE_LOG_STUB("");
+	return 0;
+#else
 	struct PicassoResolution *best;
 	int pass, i = 0, index = 0;
 
@@ -1149,6 +1256,7 @@ int WIN32GFX_AdjustScreenmode (struct MultiDisplay *md, int *pwidth, int *pheigh
 	*pheight = best->res.height;
 
 	return index;
+#endif
 }
 
 #if 0
@@ -1635,6 +1743,9 @@ void gfx_unlock_picasso(int monid, bool dorender)
 static HWND blankwindows[MAX_DISPLAYS];
 static void closeblankwindows (void)
 {
+#ifdef FSUAE
+	UAE_LOG_STUB("");
+#else
 	for (int i = 0; i < MAX_DISPLAYS; i++) {
 		HWND h = blankwindows[i];
 		if (h) {
@@ -1643,9 +1754,13 @@ static void closeblankwindows (void)
 			blankwindows[i] = NULL;
 		}
 	}
+#endif
 }
 static void createblankwindows (void)
 {
+#ifdef FSUAE
+	UAE_LOG_STUB("");
+#else
 	struct MultiDisplay *mdx = getdisplay(&currprefs, 0);
 	int i;
 
@@ -1666,10 +1781,14 @@ static void createblankwindows (void)
 			NULL,
 			NULL, hInst, NULL);
 	}
+#endif
 }
 
 static void close_hwnds(struct AmigaMonitor *mon)
 {
+#ifdef FSUAE
+	UAE_LOG_STUB("");
+#else
 	if (mon->screen_is_initialized)
 		releasecapture(mon);
 	mon->screen_is_initialized = 0;
@@ -1712,6 +1831,7 @@ static void close_hwnds(struct AmigaMonitor *mon)
 		mon->hMainWnd = 0;
 	}
 	gfx_hdr = false;
+#endif
 }
 
 static void updatemodes(struct AmigaMonitor *mon)
@@ -1743,6 +1863,8 @@ static void updatemodes(struct AmigaMonitor *mon)
 
 static void update_gfxparams(struct AmigaMonitor *mon)
 {
+#ifdef FSUAE
+#else
 	struct picasso96_state_struct *state = &picasso96_state[mon->monitor_id];
 
 	updatewinfsmode(mon->monitor_id, &currprefs);
@@ -1859,11 +1981,14 @@ static void update_gfxparams(struct AmigaMonitor *mon)
 			mon->currentmode.current_height = currprefs.gfx_monitor[mon->monitor_id].gfx_size.height;
 		}
 	}
-
+#endif
 }
 
 static int open_windows(struct AmigaMonitor *mon, bool mousecapture, bool started)
 {
+#ifdef FSUAE
+	return 0;
+#else
 	bool recapture = false;
 	int ret;
 
@@ -1946,6 +2071,7 @@ static int open_windows(struct AmigaMonitor *mon, bool mousecapture, bool starte
 	refreshtitle();
 
 	return ret;
+#endif
 }
 
 static void reopen_gfx(struct AmigaMonitor *mon)
@@ -1956,6 +2082,10 @@ static void reopen_gfx(struct AmigaMonitor *mon)
 
 static int getstatuswindowheight(int monid, HWND hwnd)
 {
+#ifdef FSUAE
+	UAE_LOG_STUB("");
+	return 0;
+#else
 	if (monid > 0)
 		return 0;
 	int def = GetSystemMetrics (SM_CYMENU) + 3;
@@ -1971,6 +2101,7 @@ static int getstatuswindowheight(int monid, HWND hwnd)
 	}
 	DestroyWindow(h);
 	return def;
+#endif
 }
 
 void graphics_reset(bool forced)
@@ -1994,6 +2125,10 @@ void WIN32GFX_DisplayChangeRequested(int mode)
 
 int check_prefs_changed_gfx(void)
 {
+#ifdef FSUAE
+	UAE_LOG_STUB("");
+	return 0;
+#else
 	int c = 0;
 	bool monitors[MAX_AMIGAMONITORS];
 
@@ -2527,6 +2662,7 @@ int check_prefs_changed_gfx(void)
 		currprefs.win32_powersavedisabled = changed_prefs.win32_powersavedisabled;
 	}
 	return 0;
+#endif
 }
 
 /* Color management */
@@ -2600,8 +2736,6 @@ void DX_Invalidate(struct AmigaMonitor *mon, int x, int y, int width, int height
 	mon->p96_double_buffer_lastx = lastx;
 	mon->p96_double_buffer_needs_flushing = 1;
 }
-
-#endif
 
 static void open_screen(struct AmigaMonitor *mon)
 {
@@ -2772,6 +2906,8 @@ bool vsync_switchmode(int monid, int hz)
 	}
 }
 
+#endif
+
 void vsync_clear(void)
 {
 	vsync_active = false;
@@ -2794,6 +2930,9 @@ int vsync_isdone(frame_time_t *dt)
 
 static int modeswitchneeded(struct AmigaMonitor *mon, struct winuae_currentmode *wc)
 {
+#ifdef FSUAE
+	return 0;
+#else
 	struct vidbuf_description *avidinfo = &adisplays[mon->monitor_id].gfxvidinfo;
 	struct picasso96_state_struct *state = &picasso96_state[mon->monitor_id];
 
@@ -2835,6 +2974,7 @@ static int modeswitchneeded(struct AmigaMonitor *mon, struct winuae_currentmode 
 		return -1;
 	}
 	return 0;
+#endif // !FSUAE
 }
 
 void gfx_set_picasso_state(int monid, int on)
@@ -2850,7 +2990,9 @@ void gfx_set_picasso_state(int monid, int on)
 	}
 	mon->screen_is_picasso = on;
 
+#ifdef RETROPLATFORM	
 	rp_rtg_switch ();
+#endif
 	memcpy (&wc, &mon->currentmode, sizeof (wc));
 
 	newmode = &currprefs.gfx_apmode[on ? 1 : 0];
@@ -2901,8 +3043,11 @@ void gfx_set_picasso_state(int monid, int on)
 end:
 #ifdef RETROPLATFORM
 	rp_set_hwnd_delayed();
+#else
+	(void) 0;
 #endif
 }
+
 
 static void updatepicasso96(struct AmigaMonitor *mon)
 {
@@ -3002,20 +3147,32 @@ int graphics_setup(void)
 
 void graphics_leave(void)
 {
+#ifdef FSUAE
+	UAE_LOG_STUB("");
+#else
 	for (int i = 0; i < MAX_AMIGAMONITORS; i++) {
 		close_windows(&AMonitors[i]);
 	}
+#endif
 }
 
 uae_u32 OSDEP_minimize_uae (void)
 {
+#ifdef FSUAE
+	UAE_LOG_STUB("");
+	return 0;
+#else
 	struct AmigaMonitor *mon = &AMonitors[0];
 	return ShowWindow(mon->hAmigaWnd, SW_MINIMIZE);
+#endif
 }
 
 typedef HRESULT (CALLBACK* DWMENABLEMMCSS)(BOOL);
 static void setDwmEnableMMCSS (bool state)
 {
+#ifdef FSUAE
+	UAE_LOG_STUB("");
+#else
 	HMODULE hm = GetModuleHandle(_T("dwmapi.dll"));
 	if (hm) {
 		DWMENABLEMMCSS pDwmEnableMMCSS;
@@ -3023,6 +3180,7 @@ static void setDwmEnableMMCSS (bool state)
 		if (pDwmEnableMMCSS)
 			pDwmEnableMMCSS(state);
 	}
+#endif
 }
 
 void close_windows(struct AmigaMonitor *mon)
@@ -3041,6 +3199,9 @@ void close_windows(struct AmigaMonitor *mon)
 
 static void createstatuswindow(struct AmigaMonitor *mon)
 {
+#ifdef FSUAE
+	UAE_LOG_STUB("");
+#else
 	RECT rc;
 	HLOCAL hloc;
 	LPINT lpParts;
@@ -3175,6 +3336,7 @@ static void createstatuswindow(struct AmigaMonitor *mon)
 		}
 	}
 	registertouch(mon->hStatusWnd);
+#endif
 }
 
 #if 0
@@ -3204,6 +3366,10 @@ static int createnotification (HWND hwnd)
 
 static int getbestmode(struct AmigaMonitor *mon, int nextbest)
 {
+#ifdef FSUAE
+	UAE_LOG_STUB("");
+	return 1;
+#else
 	int i, startidx;
 	struct MultiDisplay *md;
 	int ratio;
@@ -3267,6 +3433,7 @@ end:
 		write_log (L"Monitor switched to '%s'\n", md->adaptername);
 	}
 	return 1;
+#endif
 }
 
 float target_getcurrentvblankrate(int monid)
@@ -3284,12 +3451,19 @@ float target_getcurrentvblankrate(int monid)
 
 static void movecursor (int x, int y)
 {
+#ifdef FSUAE
+	UAE_LOG_STUB("");
+#else
 	write_log (_T("SetCursorPos %dx%d\n"), x, y);
 	SetCursorPos (x, y);
+#endif
 }
 
 static void getextramonitorpos(struct AmigaMonitor *mon, RECT *r)
 {
+#ifdef FSUAE
+	UAE_LOG_STUB("");
+#else
 	TCHAR buf[100];
 	RECT r1, r2;
 	int x, y;
@@ -3348,10 +3522,15 @@ static void getextramonitorpos(struct AmigaMonitor *mon, RECT *r)
 	}
 	r->bottom = r->top + height;
 	r->right = r->left + width;
+#endif
 }
 
 static int create_windows(struct AmigaMonitor *mon)
 {
+#ifdef FSUAE
+	UAE_LOG_STUB("");
+	return 1;
+#else
 	static bool firstwindow = true;
 	int dxfs = mon->currentmode.flags & (DM_DX_FULLSCREEN);
 	int d3dfs = mon->currentmode.flags & (DM_D3D_FULLSCREEN);
@@ -3723,6 +3902,7 @@ static int create_windows(struct AmigaMonitor *mon)
 
 	rawinput_alloc();
 	return 1;
+#endif
 }
 
 static void allocsoftbuffer(int monid, const TCHAR *name, struct vidbuffer *buf, int flags, int width, int height)
@@ -4090,8 +4270,6 @@ bool toggle_3d_debug(void)
 	return false;
 }
 
-
-
 int rtg_index = -1;
 
 // -2 = default
@@ -4266,7 +4444,7 @@ void releasehdc(int monid, HDC hdc)
 	}
 }
 
-TCHAR *outGUID(const GUID *guid)
+const TCHAR *outGUID(const GUID *guid)
 {
 	static TCHAR gb[64];
 	if (guid == NULL)
@@ -4280,6 +4458,9 @@ TCHAR *outGUID(const GUID *guid)
 
 const TCHAR *DXError(HRESULT ddrval)
 {
+#ifdef FSUAE
+	return "";
+#else
 	static TCHAR dderr[1000];
 	_stprintf(dderr, _T("%08X S=%d F=%04X C=%04X (%d)"),
 		ddrval, (ddrval & 0x80000000) ? 1 : 0,
@@ -4287,6 +4468,7 @@ const TCHAR *DXError(HRESULT ddrval)
 		HRESULT_CODE(ddrval),
 		HRESULT_CODE(ddrval));
 	return dderr;
+#endif
 }
 
 struct osd_kb
@@ -4317,6 +4499,10 @@ static void drawpixel(uae_u8 *p, uae_u32 c, uae_u8 trans)
 
 static void drawline(struct extoverlay *eo, int x1, int y1, int x2, int y2)
 {
+#ifdef FSUAE
+	UAE_LOG_STUB("");
+	return;
+#else
 	uae_u8 *p = eo->data + y1 * eo->width * 4 + x1 * 4;
 	if (x1 != x2) {
 		x2++;
@@ -4344,10 +4530,14 @@ static void drawline(struct extoverlay *eo, int x1, int y1, int x2, int y2)
 			p -= eo->width * 4;
 		}
 	}
+#endif
 }
 
 static void highlight(struct extoverlay *eo, struct osd_kb *kb, bool mode)
 {
+#ifdef FSUAE
+	UAE_LOG_STUB("");
+#else
 	if (kb->inverted) {
 		kb->inverted = false;
 		highlight(eo, kb, true);
@@ -4398,6 +4588,7 @@ static void highlight(struct extoverlay *eo, struct osd_kb *kb, bool mode)
 			osd_kb_y = kb->y + kb->h / 2;
 		}
 	}
+#endif
 }
 
 static const uae_s16 layout[] = {
@@ -4409,7 +4600,11 @@ static const uae_s16 layout[] = {
 	-8,13,13,90,13,13,-45,20,10,0,
 	0
 };
+#ifdef FSUAE
+static const wchar_t *key_labels[] = {
+#else
 static const TCHAR *key_labels[] = {
+#endif
 	L"Esc",L"F1",L"F2",L"F3",L"F4",L"F5",L"F6",L"F7",L"F8",L"F9",L"F10",L"GUI",L"J<>M",L"↑↓",L"X",
 	L"~|´",L"!|1",L"@|2",L"#|3",L"$|4",L"%|5",L"^|6",L"&|7",L"*|8",L"(|9",L")|0",L"_|-",L"+|=",L"\\||\\\\",L"←",L"Del",L"Help",L"(",L")",L"/",L"*",
 	L"←|→",L"Q",L"W",L"E",L"R",L"T",L"Y",L"U",L"I",L"O",L"P",L"{|[",L"}|]",L"Ret",L"7",L"8",L"9",L"-",
@@ -4430,6 +4625,9 @@ static const uae_u16 key_codes[] = {
 
 static void draw_key(HDC hdc, void *bm, int bmw, int bmh, struct extoverlay *eo, float sx, float sy, const TCHAR *key, int len, int fw, int fh)
 {
+#ifdef FSUAE
+	UAE_LOG_STUB("");
+#else
 	SetBkMode(hdc, OPAQUE);
 	BitBlt(hdc, 0, 0, bmw, bmh, NULL, 0, 0, BLACKNESS);
 	TextOut(hdc, 10, 10, key, len);
@@ -4448,10 +4646,15 @@ static void draw_key(HDC hdc, void *bm, int bmw, int bmh, struct extoverlay *eo,
 			dst += 4;
 		}
 	}
+#endif
 }
 
 static bool draw_keyboard(HDC hdc, HFONT *fonts, void *bm, int bmw, int bmh, struct extoverlay *eo, int fw, int fh)
 {
+#ifdef FSUAE
+	UAE_LOG_STUB("");
+	return false;
+#else
 	int num = 0, knum = 0;
 	int maxcols = 240;
 
@@ -4566,12 +4769,17 @@ static bool draw_keyboard(HDC hdc, HFONT *fonts, void *bm, int bmw, int bmh, str
 	}
 
 	return true;
+#endif
 }
 
 static const TCHAR *ab = _T("_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789");
 
 static bool drawkeys(HWND parent, struct extoverlay *eo)
 {
+#ifdef FSUAE
+	UAE_LOG_STUB("");
+	return false;
+#else
 	bool ret = false;
 	HDC hdc;
 	LPLOGPALETTE lp;
@@ -4685,10 +4893,14 @@ static bool drawkeys(HWND parent, struct extoverlay *eo)
 		ReleaseDC(NULL, hdc);
 	}
 	return ret;
+#endif
 }
 
 void target_osk_control(int x, int y, int button, int buttonstate)
 {
+#ifdef FSUAE
+	UAE_LOG_STUB("");
+#else
 	if (button == 2) {
 		if (buttonstate) {
 			struct osd_kb *kb = &osd_kb_data[osd_kb_selected];
@@ -4835,13 +5047,17 @@ void target_osk_control(int x, int y, int button, int buttonstate)
 			return;
 		}
 	}
-
+#endif
 }
 
 int on_screen_keyboard;
 
 bool target_osd_keyboard(int show)
 {
+#ifdef FSUAE
+	UAE_LOG_STUB("");
+	return false;
+#else
 	struct AmigaMonitor *amon = &AMonitors[0];
 	static bool first;
 
@@ -4891,4 +5107,5 @@ bool target_osd_keyboard(int show)
 
 	first = true;
 	return true;
+#endif
 }

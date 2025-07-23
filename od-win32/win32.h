@@ -10,6 +10,10 @@
 #ifndef __WIN32_H__
 #define __WIN32_H__
 
+#ifdef FSUAE
+#include "uae/compat/windows.h"
+#endif
+
 #define MAKEBD(x,y,z) ((((x) - 2000) * 10000 + (y)) * 100 + (z))
 #define GETBDY(x) ((x) / 1000000 + 2000)
 #define GETBDM(x) (((x) - ((x / 10000) * 10000)) / 100)
@@ -215,7 +219,7 @@ struct assext {
 	struct contextcommand *cc;
     int enabled;
 };
-struct assext exts[];
+extern struct assext exts[];
 void associate_file_extensions (void);
 
 #define PATHPREFIX _T("\\\\?\\")

@@ -486,6 +486,7 @@ libuae_a_SOURCES = \
 	../../kbmcu/8048/co8048.cpp \
 	../../kbmcu/8048/co8048.h \
 	../../kbmcu/keyboard_mcu_6500_1.cpp \
+	../../kbmcu/keyboard_mcu_6805.cpp \
 	../../kbmcu/keyboard_mcu_d8039hlc.cpp \
 	../../kbmcu/m6805/m68_internal.h \
 	../../kbmcu/m6805/m68_ops.cpp \
@@ -595,8 +596,11 @@ libuae_a_SOURCES = \
 	../../od-win32/picasso96_win.h \
 	../../od-win32/serial_win32.cpp \
 	../../od-win32/win32_uaenet.cpp \
+	../../od-win32/win32.cpp \
 	../../od-win32/win32.h \
 	../../od-win32/win32gfx.h \
+	../../od-win32/win32gui.cpp \
+	../../od-win32/win32gui.h \
 	../../pci.cpp \
 	../../ppc/ppc.cpp \
 	../../qemuvga/cirrus_vga_rop.h \
@@ -1262,10 +1266,10 @@ libslirp_a_SOURCES = \
 endif
 endif
 
-#if WITH_TOCCATA
-#fs_uae_SOURCES += \
-#	../../src/sndboard.cpp
-#endif
+if WITH_TOCCATA
+fs_uae_SOURCES += \
+	../../sndboard.cpp
+endif
 
 if WITH_UDIS86
 noinst_LIBRARIES += libudis86.a

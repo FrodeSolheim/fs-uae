@@ -1,3 +1,7 @@
+#ifdef FSUAE
+
+#else
+
 /*==========================================================================
 *
 *  Copyright (C) 1996 Brian King
@@ -24317,3 +24321,5 @@ void gui_lock (void)
 void gui_unlock (void)
 {
 }
+
+#endif // !FSUAE

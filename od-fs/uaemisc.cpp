@@ -28,11 +28,11 @@ int _timezone;
 int _daylight;
 #endif
 
-int pause_emulation = 0;
-int uaelib_debug = 0;
+// int pause_emulation = 0;
+// int uaelib_debug = 0;
 
-int sleep_resolution = 1000 / 1;
-int pissoff_value = 15000 * CYCLE_UNIT;
+// int sleep_resolution = 1000 / 1;
+// int pissoff_value = 15000 * CYCLE_UNIT;
 
 //int uaeser_getdatalenght (void) {
 //    return uaeser_getdatalength();

@@ -1,9 +1,6 @@
 #ifndef EXTRA_DEFINES_H
 #define EXTRA_DEFINES_H
 
-// FIXME: Move type uae/types.h ?
-typedef long uae_atomic;
-
 /*
 #ifdef WINDOWS
 #include <Windows.h>

@@ -1,7 +1,75 @@
 #include "sysconfig.h"
 #include "sysdeps.h"
 
-bool gfx_hdr;
+static uae_u8 *xD3D11_locktexture(int monid, int *pitch, int *width, int *height, int fullupdate)
+{
+    return NULL;
+}
+
+uae_u8 * (*D3D_locktexture)(int, int *, int *, int *, int) = xD3D11_locktexture;
+
+static void xD3D11_unlocktexture(int monid, int y_start, int y_end)
+{
+
+}
+
+void (*D3D_unlocktexture)(int, int, int) = xD3D11_unlocktexture;
+
+static bool xD3D11_renderframe(int monid, int mode, bool immediate)
+{
+    return false;
+}
+
+bool (*D3D_renderframe)(int, int, bool) = xD3D11_renderframe;
+
+static void xD3D11_showframe_special(int monid, int mode)
+{
+
+}
+
+void (*D3D_showframe_special)(int, int) = xD3D11_showframe_special;
+
+static void xD3D11_showframe(int monid)
+{
+
+}
+
+void (*D3D_showframe)(int) = xD3D11_showframe;
+
+void D3D_getpixelformat (int *rb, int *gb, int *bb, int *rs, int *gs, int *bs, int *ab, int *as, int *a)
+{
+	*rb = 8;
+	*gb = 8;
+	*bb = 8;
+	*ab = 8;
+	*rs = 16;
+	*gs = 8;
+	*bs = 0;
+	*as = 24;
+	*a = 0;
+}
+
+void d3d_select(struct uae_prefs *p)
+{
+
+}
+
+void Screenshot_RGBinfo (int rb, int gb, int bb, int ab, int rs, int gs, int bs, int as)
+{
+
+}
+
+#include "uae/compat/windows.h"
+#include "uae/compat/windows2.h"
+
+// Dummy types to allow some (unused) declarations
+
+typedef void DISPLAYCONFIG_PATH_INFO;
+typedef void DISPLAYCONFIG_DEVICE_INFO_HEADER;
+typedef void DISPLAYCONFIG_MODE_INFO;
+typedef void DISPLAYCONFIG_TOPOLOGY_ID;
+
+#include "../od-win32/win32gfx.cpp"
 
 #if 0
 

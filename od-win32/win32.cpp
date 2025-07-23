@@ -1,3 +1,15 @@
+#ifdef FSUAE
+
+#include "sysconfig.h"
+#include "sysdeps.h"
+
+#include "uae/compat/windows2.h"
+
+#include "options.h"
+#include "win32.h"
+
+#else
+
 /*
 * UAE - The Un*x Amiga Emulator
 *
@@ -118,6 +130,8 @@ const static GUID GUID_DEVINTERFACE_KEYBOARD = { 0x884b96c3, 0x56ef, 0x11d1,
 const static GUID GUID_DEVINTERFACE_MOUSE = { 0x378de44c, 0x56ef, 0x11d1,
 { 0xbc, 0x8c, 0x00, 0xa0, 0xc9, 0x14, 0x05, 0xdd } };
 
+#endif // !FSUAE
+
 extern int harddrive_dangerous, do_rdbdump;
 extern int no_rawinput, no_directinput, no_windowsmouse, winekeyboard;
 extern int force_directsound;
@@ -131,8 +145,10 @@ int log_net;
 int log_vsync, debug_vsync_min_delay, debug_vsync_forced_delay;
 static int log_winmouse;
 int uaelib_debug;
+
 int pissoff_value = 15000 * CYCLE_UNIT;
 int pissoff_nojit_value = 160 * CYCLE_UNIT;
+
 unsigned int fpucontrol;
 int extraframewait, extraframewait2;
 int busywait;
@@ -231,6 +247,9 @@ static TCHAR *inipath = NULL;
 static int guijoybutton[MAX_JPORTS];
 static int guijoyaxis[MAX_JPORTS][4];
 static bool guijoychange;
+
+#ifdef FSUAE
+#else
 
 typedef NTSTATUS(CALLBACK* NTDELAYEXECUTION)(BOOL, PLARGE_INTEGER);
 typedef NTSTATUS(CALLBACK* ZWSETTIMERRESOLUTION)(ULONG, BOOLEAN, PULONG);
@@ -8475,4 +8494,4 @@ int PASCAL wWinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdL
 	return FALSE;
 }
 
-
+#endif

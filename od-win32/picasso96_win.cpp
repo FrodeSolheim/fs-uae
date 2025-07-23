@@ -40,10 +40,7 @@ void InitializeCriticalSection(CRITICAL_SECTION *c);
 void EnterCriticalSection(CRITICAL_SECTION *c);
 void LeaveCriticalSection(CRITICAL_SECTION *c);
 
-#include <uae/byteswap.h>
-
-#define _byteswap_ushort uae_bswap16
-#define _byteswap_ulong uae_bswap32
+#include "uae/compat/windows.h"
 
 // FIXME
 void gfx_lock(void);

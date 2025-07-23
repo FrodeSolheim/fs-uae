@@ -500,6 +500,7 @@ libuae_a_SOURCES = \
 	../../mame/tm34010/tms34010.cpp \
 	../../mame/tm34010/tms34010.h \
 	../../memory.cpp \
+	../../mos6502.cpp \
 	../../native2amiga.cpp \
 	../../ncr_scsi.cpp \
 	../../ncr9x_scsi.cpp \
@@ -643,6 +644,7 @@ libuae_a_SOURCES = \
 	../../softfloat/softfloat.h \
 	../../specialmonitors.cpp \
 	../../statusline.cpp \
+	../../support/socket.cpp \
 	../../support/time.cpp \
 	../../test_card.cpp \
 	../../traps.cpp \
@@ -652,7 +654,6 @@ libuae_a_SOURCES = \
 	../../uaeresource.cpp \
 	../../uaeserial.cpp \
 	../../vm.cpp \
-	../../mos6502.cpp \
 	../../x86.cpp \
 	../../zfile_archive.cpp \
 	../../zfile.cpp
@@ -988,7 +989,6 @@ AM_CPPFLAGS += -I$(s)/src/ppc/pearpc
 fs_uae_LDADD += src/ppc/libpearpc.a
 src_ppc_libpearpc_a_SOURCES = \
 	src/ppc/pearpc/cpu/common.h \
-	src/ppc/pearpc/cpu/cpu.h \
 	src/ppc/pearpc/cpu/cpu_generic/ppc_alu.cpp \
 	src/ppc/pearpc/cpu/cpu_generic/ppc_alu.h \
 	src/ppc/pearpc/cpu/cpu_generic/ppc_cpu.cpp \
@@ -1006,6 +1006,7 @@ src_ppc_libpearpc_a_SOURCES = \
 	src/ppc/pearpc/cpu/cpu_generic/ppc_tools.h \
 	src/ppc/pearpc/cpu/cpu_generic/ppc_vec.cpp \
 	src/ppc/pearpc/cpu/cpu_generic/ppc_vec.h \
+	src/ppc/pearpc/cpu/cpu.h \
 	src/ppc/pearpc/cpu/debug.h \
 	src/ppc/pearpc/cpu/mem.h \
 	src/ppc/pearpc/info.h \
@@ -1015,10 +1016,10 @@ src_ppc_libpearpc_a_SOURCES = \
 	src/ppc/pearpc/system/arch/generic/sysfeatures.h \
 	src/ppc/pearpc/system/arch/sysendian.h \
 	src/ppc/pearpc/system/arch/sysfeatures.h \
-	src/ppc/pearpc/system/arch/x86/sysendian.h \
-	src/ppc/pearpc/system/arch/x86/sysfeatures.h \
 	src/ppc/pearpc/system/arch/x86_64/sysendian.h \
 	src/ppc/pearpc/system/arch/x86_64/sysfeatures.h \
+	src/ppc/pearpc/system/arch/x86/sysendian.h \
+	src/ppc/pearpc/system/arch/x86/sysfeatures.h \
 	src/ppc/pearpc/system/systhread.h \
 	src/ppc/pearpc/system/types.h \
 	src/ppc/pearpc/tools/debug.h \
@@ -1057,14 +1058,14 @@ fs_uae_LDADD += libpcem.a
 libpcem_a_SOURCES = \
 	../../pcem/386_common.cpp \
 	../../pcem/386_common.h \
-	../../pcem/386.cpp \
 	../../pcem/386_dynarec.cpp \
-	../../pcem/386.h \
 	../../pcem/386_ops.h \
+	../../pcem/386.cpp \
+	../../pcem/386.h \
 	../../pcem/808x.cpp \
-	../../pcem/codegen.h \
 	../../pcem/codegen_x86-64.h \
 	../../pcem/codegen_x86.h \
+	../../pcem/codegen.h \
 	../../pcem/config.h \
 	../../pcem/cpu.cpp \
 	../../pcem/cpu.h \
@@ -1087,18 +1088,19 @@ libpcem_a_SOURCES = \
 	../../pcem/mem.cpp \
 	../../pcem/mem.h \
 	../../pcem/model.h \
-	../../pcem/mouse.h \
 	../../pcem/mouse_ps2.cpp \
 	../../pcem/mouse_ps2.h \
 	../../pcem/mouse_serial.cpp \
 	../../pcem/mouse_serial.h \
+	../../pcem/mouse.h \
 	../../pcem/nmi.h \
+	../../pcem/nvr_tc8521.h \
 	../../pcem/nvr.cpp \
 	../../pcem/nvr.h \
-	../../pcem/nvr_tc8521.h \
 	../../pcem/paths.h \
 	../../pcem/pcemglue.cpp \
 	../../pcem/pcemglue.h \
+	../../pcem/pcemrtc.cpp \
 	../../pcem/pci.h \
 	../../pcem/pic.cpp \
 	../../pcem/pic.h \
@@ -1117,24 +1119,28 @@ libpcem_a_SOURCES = \
 	../../pcem/sound_dbopl.cpp \
 	../../pcem/sound_dbopl.h \
 	../../pcem/sound_emu8k.h \
-	../../pcem/sound.h \
 	../../pcem/sound_mpu401_uart.cpp \
 	../../pcem/sound_mpu401_uart.h \
 	../../pcem/sound_opl.cpp \
 	../../pcem/sound_opl.h \
-	../../pcem/sound_sb.cpp \
 	../../pcem/sound_sb_dsp.cpp \
 	../../pcem/sound_sb_dsp.h \
+	../../pcem/sound_sb.cpp \
 	../../pcem/sound_sb.h \
 	../../pcem/sound_speaker.cpp \
 	../../pcem/sound_speaker.h \
+	../../pcem/sound.h \
 	../../pcem/t1000.h \
 	../../pcem/t3100e.h \
 	../../pcem/timer.cpp \
 	../../pcem/timer.h \
+	../../pcem/vid_svga_render.cpp \
+	../../pcem/vid_svga_render.h \
+	../../pcem/vid_svga.cpp \
+	../../pcem/vid_svga.h \
+	../../pcem/vid_svga.h \
 	../../pcem/video.h \
 	../../pcem/x86_flags.h \
-	../../pcem/x86.h \
 	../../pcem/x86_ops_arith.h \
 	../../pcem/x86_ops_atomic.h \
 	../../pcem/x86_ops_bcd.h \
@@ -1143,7 +1149,6 @@ libpcem_a_SOURCES = \
 	../../pcem/x86_ops_call.h \
 	../../pcem/x86_ops_flag.h \
 	../../pcem/x86_ops_fpu.h \
-	../../pcem/x86_ops.h \
 	../../pcem/x86_ops_inc_dec.h \
 	../../pcem/x86_ops_int.h \
 	../../pcem/x86_ops_io.h \
@@ -1151,14 +1156,14 @@ libpcem_a_SOURCES = \
 	../../pcem/x86_ops_misc.h \
 	../../pcem/x86_ops_mmx_arith.h \
 	../../pcem/x86_ops_mmx_cmp.h \
-	../../pcem/x86_ops_mmx.h \
 	../../pcem/x86_ops_mmx_logic.h \
 	../../pcem/x86_ops_mmx_mov.h \
 	../../pcem/x86_ops_mmx_pack.h \
 	../../pcem/x86_ops_mmx_shift.h \
+	../../pcem/x86_ops_mmx.h \
 	../../pcem/x86_ops_mov_ctrl.h \
-	../../pcem/x86_ops_mov.h \
 	../../pcem/x86_ops_mov_seg.h \
+	../../pcem/x86_ops_mov.h \
 	../../pcem/x86_ops_movx.h \
 	../../pcem/x86_ops_msr.h \
 	../../pcem/x86_ops_mul.h \
@@ -1171,13 +1176,17 @@ libpcem_a_SOURCES = \
 	../../pcem/x86_ops_stack.h \
 	../../pcem/x86_ops_string.h \
 	../../pcem/x86_ops_xchg.h \
+	../../pcem/x86_ops.h \
+	../../pcem/x86.h \
 	../../pcem/x86seg.cpp \
-	../../pcem/x87.cpp \
-	../../pcem/x87.h \
 	../../pcem/x87_ops_arith.h \
-	../../pcem/x87_ops.h \
 	../../pcem/x87_ops_loadstore.h \
 	../../pcem/x87_ops_misc.h \
+	../../pcem/x87_ops.h \
+	../../pcem/x87_timings.cpp \
+	../../pcem/x87_timings.h \
+	../../pcem/x87.cpp \
+	../../pcem/x87.h \
 	../../pcem/xi8088.h
 endif
 
@@ -1203,25 +1212,25 @@ libslirp_a_SOURCES = \
 	../slirp/src/dnssearch.c \
 	../slirp/src/if.c \
 	../slirp/src/if.h \
-	../slirp/src/ip6.h \
-	../slirp/src/ip6_icmp.c \
-	../slirp/src/ip6_icmp.h \
-	../slirp/src/ip6_input.c \
-	../slirp/src/ip6_output.c \
-	../slirp/src/ip.h \
 	../slirp/src/ip_icmp.c \
 	../slirp/src/ip_icmp.h \
 	../slirp/src/ip_input.c \
 	../slirp/src/ip_output.c \
-	../slirp/src/libslirp.h \
+	../slirp/src/ip.h \
+	../slirp/src/ip6_icmp.c \
+	../slirp/src/ip6_icmp.h \
+	../slirp/src/ip6_input.c \
+	../slirp/src/ip6_output.c \
+	../slirp/src/ip6.h \
 	../slirp/src/libslirp-version.h \
+	../slirp/src/libslirp.h \
 	../slirp/src/main.h \
 	../slirp/src/mbuf.c \
 	../slirp/src/mbuf.h \
 	../slirp/src/misc.c \
 	../slirp/src/misc.h \
-	../slirp/src/ncsi.c \
 	../slirp/src/ncsi-pkt.h \
+	../slirp/src/ncsi.c \
 	../slirp/src/ndp_table.c \
 	../slirp/src/sbuf.c \
 	../slirp/src/sbuf.h \
@@ -1232,19 +1241,19 @@ libslirp_a_SOURCES = \
 	../slirp/src/state.c \
 	../slirp/src/stream.c \
 	../slirp/src/stream.h \
-	../slirp/src/tcp.h \
 	../slirp/src/tcp_input.c \
-	../slirp/src/tcpip.h \
 	../slirp/src/tcp_output.c \
 	../slirp/src/tcp_subr.c \
 	../slirp/src/tcp_timer.c \
 	../slirp/src/tcp_timer.h \
 	../slirp/src/tcp_var.h \
+	../slirp/src/tcp.h \
+	../slirp/src/tcpip.h \
 	../slirp/src/tftp.c \
 	../slirp/src/tftp.h \
-	../slirp/src/udp6.c \
 	../slirp/src/udp.c \
 	../slirp/src/udp.h \
+	../slirp/src/udp6.c \
 	../slirp/src/util.c \
 	../slirp/src/util.h \
 	../slirp/src/version.c \
@@ -1343,8 +1352,8 @@ libprowizard_a_SOURCES = \
 	../../prowizard/rippers/skizzo.c \
 	../../prowizard/rippers/SkytPacker.c \
 	../../prowizard/rippers/SoundFX.c \
-	../../prowizard/rippers/SoundTracker26.c \
 	../../prowizard/rippers/SoundTracker.c \
+	../../prowizard/rippers/SoundTracker26.c \
 	../../prowizard/rippers/StartrekkerPack.c \
 	../../prowizard/rippers/StimPacker.c \
 	../../prowizard/rippers/StoneArtsPlayer.c \
@@ -1361,8 +1370,8 @@ libprowizard_a_SOURCES = \
 	../../prowizard/rippers/TrackerPacker1.c \
 	../../prowizard/rippers/TrackerPacker2.c \
 	../../prowizard/rippers/TrackerPacker3.c \
-	../../prowizard/rippers/UnicTracker2.c \
 	../../prowizard/rippers/UnicTracker.c \
+	../../prowizard/rippers/UnicTracker2.c \
 	../../prowizard/rippers/WantonPacker.c \
 	../../prowizard/rippers/XannPlayer.c \
 	../../prowizard/rippers/ZenPacker.c

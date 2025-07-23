@@ -1,6 +1,9 @@
-#if 0
 #include "sysconfig.h"
 #include "sysdeps.h"
+
+bool gfx_hdr;
+
+#if 0
 
 #include "custom.h"
 #include "devices.h"

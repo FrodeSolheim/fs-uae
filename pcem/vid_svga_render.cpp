@@ -8,6 +8,7 @@
 #include "vid_svga_render.h"
 #include "vid_svga_render_remap.h"
 
+#include "uae/compat/windows.h"
 
 uint32_t
 svga_lookup_lut_ram(svga_t *svga, uint32_t val)

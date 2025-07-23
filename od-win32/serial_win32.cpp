@@ -1,6 +1,3 @@
-#if 0
-#warning Skipping serial_win32.cpp for now
-
 /*
 * UAE - The Un*x Amiga Emulator
 *
@@ -46,6 +43,18 @@
 #define SERIAL_MAP
 #endif
 
+static bool serloop_enabled;
+static bool serempty_enabled;
+static bool serxdevice_enabled;
+static uae_u8 serstatus;
+static bool ser_accurate;
+static bool safe_receive;
+static uae_u16 *receive_buf;
+static bool sticky_receive_interrupt;
+static int receive_buf_size, receive_buf_count;
+
+static void flushqueue(void);
+
 #ifdef SERIAL_MAP
 #define SERMAP_SIZE 256
 struct sermap_buffer
@@ -63,16 +72,6 @@ static uae_u8 *sermap_data;
 static bool sermap_master;
 static bool sermap_enabled;
 static uae_u32 sermap_flags;
-static bool serloop_enabled;
-static bool serempty_enabled;
-static bool serxdevice_enabled;
-static uae_u8 serstatus;
-static bool ser_accurate;
-static bool safe_receive;
-static uae_u16 *receive_buf;
-static bool sticky_receive_interrupt;
-static int receive_buf_size, receive_buf_count;
-static void flushqueue(void);
 
 #define SER_MEMORY_MAPPING _T("WinUAE_Serial")
 
@@ -292,7 +291,11 @@ void SERPER (uae_u16 w)
 		serial_period_receive_ccks = maxhpos;
 		safe_receive = true;
 	}
-	if (sermap_enabled || serxdevice_enabled) {
+	if (serxdevice_enabled
+#ifdef SERIAL_MAP
+		|| sermap_enabled
+#endif
+	) {
 		safe_receive = true;
 	}
 
@@ -1140,6 +1143,7 @@ uae_u8 serial_readstatus(uae_u8 v, uae_u8 dir)
 		if (serstatus & 0x10) { // RTS -> CTS
 			status |= TIOCM_CTS;
 		}
+#ifdef RETROPLATFORM
 	} else if (rp_ismodem()) {
 		bool dsr, cd, cts, ri;
 		rp_readmodemstatus(&dsr, &cd, &cts, &ri);
@@ -1155,6 +1159,7 @@ uae_u8 serial_readstatus(uae_u8 v, uae_u8 dir)
 		if (ri) {
 			status |= TIOCM_RI;
 		}
+#endif
 #ifdef SERIAL_MAP
 	} else if (sermap_enabled) {
 		if (sermap_flags & 1) {
@@ -1304,6 +1309,7 @@ uae_u8 serial_writestatus (uae_u8 newstate, uae_u8 dir)
 		}
 	}
 
+#ifdef RETROPLATFORM
 	if (rp_ismodem()) {
 		if ((oldserbits & (0x80 | 0x40)) != (newstate & (0x80 | 0x40))) {
 			rp_writemodemstatus(
@@ -1311,6 +1317,7 @@ uae_u8 serial_writestatus (uae_u8 newstate, uae_u8 dir)
 				(newstate & 0x80) == 0, (oldserbits & 0x80) != (newstate & 0x80));
 		}
 	}
+#endif
 
 #ifdef SERIAL_MAP
 	if (sermap_data && sermap_enabled) {
@@ -1377,7 +1384,14 @@ void serial_open (void)
 			return;
 		}
 	}
-	if (alg_flag || currprefs.genlock_image >= 7 || cubo_enabled || sermap_enabled || rp_ismodem()) {
+	if (alg_flag || currprefs.genlock_image >= 7 || cubo_enabled
+#ifdef SERIAL_MAP
+		|| sermap_enabled
+#endif
+#ifdef RETROPLATFORM
+		|| rp_ismodem()
+#endif	
+	) {
 		serxdevice_enabled = true;
 	}
 	serdev = 1;
@@ -1673,5 +1687,3 @@ int enet_readser (uae_u16 *data)
 	return 1;
 }
 #endif
-
-#endif // FIXME

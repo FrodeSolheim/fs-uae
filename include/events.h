@@ -13,6 +13,7 @@
 #define UAE_EVENTS_H
 
 #include "uae/types.h"
+#include "options.h"
 
 #undef EVENT_DEBUG
 

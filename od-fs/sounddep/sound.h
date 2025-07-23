@@ -1,12 +1,5 @@
- /*
-  * UAE - The Un*x Amiga Emulator
-  *
-  * Support for SDL sound
-  *
-  * Copyright 1997 Bernd Schmidt
-  */
-
-// #define SOUNDSTUFF 1
+#ifndef UAE_OD_FS_SOUND_H
+#define UAE_OD_FS_SOUND_H
 
 #include "fsemu-audiobuffer.h"
 
@@ -150,3 +143,5 @@ STATIC_INLINE void xxx_clear_sound_buffers (void)
 #define FILTER_SOUND_TYPE_A1200 1
 
 #endif
+
+#endif // UAE_OD_FS_SOUND_H

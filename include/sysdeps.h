@@ -254,8 +254,12 @@ extern TCHAR *utf8u (const char *s);
 extern void unicode_init (void);
 extern void to_lower (TCHAR *s, int len);
 extern void to_upper (TCHAR *s, int len);
+#ifdef FSUAE
+// Defined in uae/string.h instead
+#else
 extern int uaestrlen(const char*);
 extern int uaetcslen(const TCHAR*);
+#endif
 
 #define ENUMDECL typedef enum
 #define ENUMNAME(name) name
@@ -554,13 +558,26 @@ extern void xfree (const void*);
 #define NOWARN_UNUSED(x) x
 #endif
 
-#ifdef FSUAE
-#include "uae/byteswap.h"
-#include "uae/declarations.h"
-#endif
 #include "uae/inline.h"
 #include "uae/io.h"
 #include "uae/types.h"
 #include "uae/likely.h"
+
+#ifdef FSUAE
+
+#include "uae/byteswap.h"
+#include "uae/declarations.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+extern int fsemu;
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif
 
 #endif /* UAE_SYSDEPS_H */

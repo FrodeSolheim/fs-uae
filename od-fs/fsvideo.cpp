@@ -1,27 +1,39 @@
+#if 0
+#include "sysconfig.h"
+#include "sysdeps.h"
+
+#include "custom.h"
 #include "devices.h"
 #include "drawing.h"
-#include "dxwrap.h"
+#include "../od-win32/render.h"
 #include "gfxboard.h"
 #include "gfxfilter.h"
 #include "gui.h"
 #include "options.h"
-#include "sysconfig.h"
-#include "sysdeps.h"
 #include "uae.h"
 #include "uae/fs.h"
-#include "win32gfx.h"
+
+// FIXME: Include WINDOWS COMPAT HEADER FILE?
+
+#ifndef _WIN32
+typedef void* HDC;
+typedef void* HCURSOR;
+typedef bool BOOL;
+#endif
+
+#include "../od-win32/win32gfx.h"
 #include "xwin.h"
 
 #ifdef PICASSO96
 #include "picasso96.h"
-#include "picasso96_win.h"
+#include "../od-win32/picasso96_win.h"
 #endif
 
 // #include <fs/emu/video.h>
 #include <limits.h>
 #include <stdlib.h>
 
-#include "win32.h"
+// #include "win32.h"
 
 #define uae_fsvideo_log(format, ...) uae_log("[VIDEO] " format, ##__VA_ARGS__)
 
@@ -2551,3 +2563,5 @@ bool uae_fsvideo_renderframe(int monid, int mode, bool immediate)
     }
     return 1;
 }
+
+#endif

@@ -68,4 +68,4 @@
 
 #endif
 
-#endif  // UAE_BYTESWAP_H
+#endif /* UAE_BYTESWAP_H */

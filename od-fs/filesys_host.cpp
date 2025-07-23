@@ -2,9 +2,10 @@
 #include "config.h"
 #endif
 
-#include <fs/fs.h>
 #include "sysconfig.h"
 #include "sysdeps.h"
+
+#include <fs/fs.h>
 
 #include "fsdb.h"
 #include "uae/fs.h"

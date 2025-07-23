@@ -1,3 +1,6 @@
+#include "sysconfig.h"
+#include "sysdeps.h"
+
 #include <string.h>
 
 #include "autoconf.h"

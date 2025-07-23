@@ -9,6 +9,10 @@
 #ifndef UAE_MEMORY_H
 #define UAE_MEMORY_H
 
+#include "options.h"
+
+#include <stddef.h>
+
 extern void memory_reset(void);
 extern void memory_restore(void);
 extern void a1000_reset(void);

@@ -10,10 +10,10 @@ struct _uae_led_data g_uae_led_data = {};
 
 void od_fs_update_leds(void) {
     for (int i = 0; i < 4; i++) {
-        int track = gui_data.drive_track[i];
+        int track = gui_data.drives[i].drive_track;
         int a = 0;
         int b = 0;
-        if (!gui_data.drive_disabled[i]) {
+        if (!gui_data.drives[i].drive_disabled) {
             a = track / 10;
             b = track % 10;
             if (a == 0) {
@@ -116,7 +116,7 @@ void gui_led (int led, int state, int brightness)
     else if (led == LED_MD) out_led = 11;
 
     if (led >= LED_DF0 && led <= LED_DF3) {
-        if (gui_data.drive_writing[led - 1]) {
+        if (gui_data.drives[led - LED_DF0].drive_writing) {
             out_state = 2;
         }
     }

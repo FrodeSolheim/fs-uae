@@ -11,6 +11,7 @@
 
 #include "uae/types.h"
 #include "machdep/rpt.h"
+#include "options.h"
 
 typedef uae_u32 xcolnr;
 

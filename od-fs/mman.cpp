@@ -1,5 +1,6 @@
 #include "sysconfig.h"
 #include "sysdeps.h"
+
 #include "uae/memory.h"
 #include "uae/mman.h"
 #include "uae/vm.h"
@@ -34,6 +35,7 @@ static int os_64bit = 0;
 #define MEM_TOP_DOWN     0x00100000
 
 #define PAGE_EXECUTE_READWRITE 0x40
+#define PAGE_NOACCESS          0x01
 #define PAGE_READONLY          0x02
 #define PAGE_READWRITE         0x04
 
@@ -79,6 +81,9 @@ static void *VirtualAlloc(void *lpAddress, size_t dwSize, int flAllocationType,
 	} else if (flProtect == PAGE_EXECUTE_READWRITE) {
 		write_log("  PAGE_EXECUTE_READWRITE\n");
 		prot = UAE_VM_READ_WRITE_EXECUTE;
+	} else if (flProtect == PAGE_NOACCESS) {
+		write_log("  PAGE_NOACCESS\n");
+		prot = UAE_VM_NO_ACCESS;
 	} else {
 		write_log("  WARNING: unknown protection\n");
 	}

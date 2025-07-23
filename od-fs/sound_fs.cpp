@@ -4,6 +4,7 @@
 #include "include/uae.h"
 #include "include/options.h"
 #include "gensound.h"
+#include "sounddep/sound.h"
 #include "audio.h"
 #include "uae/fs.h"
 
@@ -24,27 +25,6 @@ float sampler_evtime;
 
 static int (*g_audio_callback)(int type, int16_t *buffer, int size) = NULL;
 static int g_audio_buffer_size = 512 * 2 * 2;
-
-struct sound_data
-{
-#if 0
-	int waiting_for_buffer;
-	int deactive;
-	int devicetype;
-#endif
-	int obtainedfreq;
-#if 0
-	int paused;
-	int mute;
-	int channels;
-	int freq;
-	int samplesize;
-	int sndbufsize;
-	int sndbufframes;
-	int softvolume;
-	struct sound_dp *data;
-#endif
-};
 
 static struct sound_data sdpaula;
 static struct sound_data *sdp = &sdpaula;

@@ -1,14 +1,36 @@
+#include "sysconfig.h"
+#include "sysdeps.h"
+
 #include <fs/thread.h>
 
 #include "fsemu-sdl.h"
-#include "sysconfig.h"
-#include "sysdeps.h"
 #include "uae.h"
 
-int uae_start_thread_fast(void *(*f)(void *), void *arg, uae_thread_id *thread)
+#include <SDL3/SDL.h>
+
+// An intermediate thread function is needed because the return type of
+// uae_thread_function is different.
+
+typedef struct thread_data {
+    uae_thread_function function;
+    void *data;
+} thread_data;
+
+static void* thread_function (void *data)
+{
+    thread_data *tdata = (struct thread_data *) data;
+    tdata->function(tdata->data);
+    free(tdata);
+    // return 0;
+    return NULL;
+}
+
+int uae_start_thread_fast(void (*f)(void *), void *arg, uae_thread_id *thread)
 {
     // FIXME: what is the supposed difference between uae_start_thread and
     // uae_start_thread_fast?
+    #warning Not adjusting thread priority at the moment
+    // FIXME: ANSWER - HIGHER THREAD priority if possible
     return uae_start_thread(NULL, f, arg, thread);
 }
 
@@ -22,7 +44,12 @@ int uae_start_thread(const char *name,
         write_log(
             "uae_start_tread \"%s\" function at %p arg %p\n", name, fn, arg);
     }
-    uae_thread_id thread_id = fs_thread_create(name, fn, arg);
+
+    thread_data *tdata = (thread_data *) malloc(sizeof(thread_data));
+    tdata->function = fn;
+    tdata->data = arg;
+
+    uae_thread_id thread_id = fs_thread_create(name, thread_function, tdata);
     if (thread_id == NULL) {
         write_log("ERROR creating thread\n");
         result = 0;
@@ -49,8 +76,6 @@ void uae_end_thread(uae_thread_id *thread)
         *thread = NULL;
     }
 }
-
-#include <SDL3/SDL.h>
 
 static SDL_ThreadID g_main_thread_id;
 static SDL_ThreadID g_emulation_thread_id;

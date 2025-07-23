@@ -10,6 +10,7 @@
 // http://eab.abime.net/showthread.php?t=71953
 
 #include "sysconfig.h"
+#include "sysdeps.h"
 
 #if defined(AHI)
 
@@ -21,7 +22,6 @@
 #include <stdio.h>
 #include <math.h>
 
-#include "sysdeps.h"
 #include "options.h"
 #include "audio.h"
 #include "memory.h"

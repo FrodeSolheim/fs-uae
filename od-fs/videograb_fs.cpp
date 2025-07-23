@@ -1,7 +1,7 @@
 #include "sysconfig.h"
 #include "sysdeps.h"
-#include "options.h"
 
+#include "options.h"
 #include "videograb.h"
 
 void uninitvideograb(void)

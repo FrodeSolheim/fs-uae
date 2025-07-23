@@ -46,7 +46,7 @@ static int uae_slirp_log_level = UAE_LOG_INFO;
 
 #include "uae/time.h"
 
-#include "slirp2/src/libslirp.h"
+#include "od-fs/slirp/src/libslirp.h"
 
 void uae_slirp_output(const uint8_t *pkt, int pkt_len);
 

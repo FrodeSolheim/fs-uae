@@ -1,4 +1,5 @@
 #include "sysconfig.h"
+#include "sysdeps.h"
 
 #include "uae/ahi.h"
 

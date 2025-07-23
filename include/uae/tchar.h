@@ -79,4 +79,4 @@ typedef char TCHAR;
 #endif
 #endif
 
-#endif // UAE_TCHAR_T
+#endif /* UAE_TCHAR_T */

@@ -5,8 +5,6 @@
 #include "config.h"
 #endif
 
-#define MAX_DPATH 1000
-
 #ifdef HAVE_LIMITS_H
 #include <limits.h>
 #endif
@@ -14,5 +12,7 @@
 #ifndef MAX_PATH
 #define MAX_PATH PATH_MAX
 #endif
+
+#define MAX_DPATH PATH_MAX
 
 #endif /* UAE_LIMITS_H */

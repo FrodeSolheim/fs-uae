@@ -15,4 +15,4 @@ FILE *uae_tfopen(const TCHAR *path, const TCHAR *mode);
 int64_t uae_ftello64(FILE *stream);
 int uae_fseeko64(FILE *stream, int64_t offset, int whence);
 
-#endif // UAE_IO_H
+#endif /* UAE_IO_H */

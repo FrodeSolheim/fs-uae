@@ -198,4 +198,11 @@ extern int custom_fsdb_used_as_nname (a_inode *base, const TCHAR *nname);
 
 extern int my_getvolumeinfo (const TCHAR *root);
 
+#ifdef FSUAE
+char *fsdb_native_path(const char *root_dir, const char *amiga_path);
+void fsdb_get_file_time(a_inode *node, int *days, int *mins, int *ticks);
+int fsdb_set_file_time(a_inode *node, int days, int mins, int ticks);
+int host_errno_to_dos_errno(int err);
+#endif
+
 #endif /* UAE_FSDB_H */

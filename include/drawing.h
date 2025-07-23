@@ -10,6 +10,8 @@
 #define DISABLE_BPLCON1 0
 
 #include "uae/types.h"
+#include "custom.h"
+#include "xwin.h"
 
 #ifdef AGA
 #define MAX_PLANES 8

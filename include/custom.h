@@ -10,6 +10,8 @@
 #define UAE_CUSTOM_H
 
 #include "uae/types.h"
+#include "uae/inline.h"
+#include "options.h"
 #include "machdep/rpt.h"
 
 #define BEAMCON0_HARDDIS	0x4000

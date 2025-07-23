@@ -19,4 +19,4 @@
 
 #endif
 
-#endif // UAE_LIKELY_H
+#endif /* UAE_LIKELY_H */

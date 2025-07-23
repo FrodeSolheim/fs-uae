@@ -7,8 +7,8 @@
   * Copyright 2019 Frode Solheim
   */
 
-#ifndef UAE_MACCESS_H_
-#define UAE_MACCESS_H_
+#ifndef UAE_MACCESS_H
+#define UAE_MACCESS_H
 
 #include "uae/byteswap.h"
 
@@ -93,4 +93,4 @@ static inline uae_u16 do_byteswap_16(uae_u16 v)
 	return uae_bswap16(v);
 }
 
-#endif  // UAE_MACCESS_H_
+#endif /* UAE_MACCESS_H */

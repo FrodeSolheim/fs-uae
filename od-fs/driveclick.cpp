@@ -1,6 +1,7 @@
-#include <fs/filesys.h>
 #include "sysconfig.h"
 #include "sysdeps.h"
+
+#include <fs/filesys.h>
 
 #include "driveclick.h"
 #include "uae/fs.h"

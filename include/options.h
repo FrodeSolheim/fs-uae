@@ -10,6 +10,7 @@
 #ifndef UAE_OPTIONS_H
 #define UAE_OPTIONS_H
 
+#include "uae/limits.h"
 #include "uae/types.h"
 
 #include "traps.h"

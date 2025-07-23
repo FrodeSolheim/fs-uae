@@ -9,6 +9,9 @@
 #ifndef UAE_AUTOCONF_H
 #define UAE_AUTOCONF_H
 
+#include "memory.h"
+#include "traps.h"
+#include "uae/limits.h"
 #include "uae/types.h"
 
 #define AFTERDOS_INIT_PRI ((-121) & 0xff)

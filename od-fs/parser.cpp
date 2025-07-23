@@ -7,6 +7,7 @@
  */
 
 #include "sysconfig.h"
+#include "sysdeps.h"
 
 #undef SERIAL_ENET
 
@@ -29,7 +30,6 @@
 #endif
 
 #include "config.h"
-#include "sysdeps.h"
 #include "options.h"
 #include "gensound.h"
 #include "events.h"
@@ -43,7 +43,7 @@
 #include "picasso96.h"
 #include "threaddep/thread.h"
 #include "serial.h"
-#include "parser.h"
+#include "../od-win32/parser.h"
 #include "ioport.h"
 #include "parallel.h"
 #include "cia.h"

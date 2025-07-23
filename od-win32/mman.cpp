@@ -96,6 +96,8 @@ static uae_u32 lowmem (void)
 	return change;
 }
 
+#ifdef FSUAE
+#else
 int mman_GetWriteWatch (PVOID lpBaseAddress, SIZE_T dwRegionSize, PVOID *lpAddresses, PULONG_PTR lpdwCount, PULONG lpdwGranularity)
 {
 	return GetWriteWatch (WRITE_WATCH_FLAG_RESET, lpBaseAddress, dwRegionSize, lpAddresses, lpdwCount, lpdwGranularity);
@@ -105,6 +107,7 @@ void mman_ResetWatch (PVOID lpBaseAddress, SIZE_T dwRegionSize)
 	if (ResetWriteWatch (lpBaseAddress, dwRegionSize))
 		write_log (_T("ResetWriteWatch() failed, %d\n"), GetLastError ());
 }
+#endif
 
 static uae_u64 size64;
 #ifdef _WIN32
@@ -1114,6 +1117,11 @@ int uae_shmctl (int shmid, int cmd, struct uae_shmid_ds *buf)
 
 #endif
 
+#ifdef FSUAE
+/* The function isinf is provided by libc. */
+/* FIXME: Replace with HAVE_ISINF? */
+// Also exits on Windows/MSVC, so not sure why this is here...
+#else
 int isinf (double x)
 {
 	const int nClass = _fpclass (x);
@@ -1124,3 +1132,4 @@ int isinf (double x)
 		result = 0;
 	return result;
 }
+#endif

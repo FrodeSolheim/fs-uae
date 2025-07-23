@@ -63,4 +63,4 @@ static inline int uaetcslen(const TCHAR* s)
 
 #endif
 
-#endif // UAE_STRING_H
+#endif /* UAE_STRING_H */

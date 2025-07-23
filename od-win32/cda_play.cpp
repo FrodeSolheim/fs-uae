@@ -19,13 +19,19 @@
 #include "blkdev.h"
 #include "threaddep/thread.h"
 
+#ifdef FSUAE
+#else
 #include <dsound.h>
 #include <mmreg.h>
+#endif
 #include <sys/timeb.h>
 
+#ifdef FSUAE
+#else
 #include "win32.h"
+#endif
 #include "gui.h"
-
+#include "uae.h"
 #include "cda_play.h"
 
 cda_audio::~cda_audio()
@@ -80,6 +86,7 @@ static void sub_deinterleave(const uae_u8 *s, uae_u8 *d)
 	}
 }
 
+#if 0
 static void sub_to_deinterleaved(const uae_u8 *s, uae_u8 *d)
 {
 	for (int i = 0; i < 8 * 12; i++) {
@@ -93,18 +100,26 @@ static void sub_to_deinterleaved(const uae_u8 *s, uae_u8 *d)
 		d++;
 	}
 }
+#endif
 
 static void cdda_closewav(struct cda_play *ciw)
 {
+#ifdef FSUAE
+
+#else
 	if (ciw->cdda_wavehandle != NULL)
 		waveOutClose(ciw->cdda_wavehandle);
 	ciw->cdda_wavehandle = NULL;
+#endif
 }
 
 // DAE CDDA based on Larry Osterman's "Playing Audio CDs" blog series
 
 static int cdda_openwav(struct cda_play *ciw)
 {
+#ifdef FSUAE
+	return 0;
+#else
 	WAVEFORMATEX wav = { 0 };
 	MMRESULT mmr;
 
@@ -122,6 +137,7 @@ static int cdda_openwav(struct cda_play *ciw)
 		return 0;
 	}
 	return 1;
+#endif
 }
 
 int ciw_cdda_setstate(struct cda_play *ciw, int state, int playpos)

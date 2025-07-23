@@ -19,6 +19,8 @@
 // clipboard_win32.cpp
 
 void clipboard_init(void);
+void clipboard_reset(void);
+
 void target_paste_to_keyboard(void);
 
 // gfxboard.cpp
@@ -61,4 +63,4 @@ int GetDriveType(TCHAR *vol);
 // void sleep_millis(int ms);
 // void install_driver(int flags);
 
-#endif  // UAE_DECLARATIONS_H
+#endif /* UAE_DECLARATIONS_H */

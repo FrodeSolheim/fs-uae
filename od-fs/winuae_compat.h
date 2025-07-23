@@ -79,6 +79,7 @@ typedef struct tagRECT {
 //#endif
 #endif
 
-#define STATIC_INLINE static inline
+// #define STATIC_INLINE static inline
+#include "uae/inline.h"
 
 #endif // UAE_OD_FS_WINUAE_COMPAT_H

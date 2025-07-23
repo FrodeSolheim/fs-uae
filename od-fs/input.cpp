@@ -1,10 +1,11 @@
+#include "sysconfig.h"
+#include "sysdeps.h"
+
 #include "custom.h"
 #include "gui.h"
 #include "inputdevice.h"
 #include "moduleripper.h"
 #include "options.h"
-#include "sysconfig.h"
-#include "sysdeps.h"
 #include "uae/fs.h"
 #include "xwin.h"
 

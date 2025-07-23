@@ -13,6 +13,8 @@
 #include "machdep/rpt.h"
 #include "options.h"
 
+#include <stdbool.h>
+
 typedef uae_u32 xcolnr;
 
 typedef int (*allocfunc_type)(int, int, int, xcolnr *);

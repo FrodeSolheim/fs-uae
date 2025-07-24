@@ -82,6 +82,8 @@ void write_log (const char *, ...) UAE_PRINTF_FORMAT(1, 2);
 void write_log (const TCHAR *, ...) UAE_WPRINTF_FORMAT(1, 2);
 #endif
 
+#define uae_log_warning(format, ...) write_log("\nWARNING: " format "\n", ##__VA_ARGS__)
+
 #endif
 
 /* Deprecated defines */

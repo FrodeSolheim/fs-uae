@@ -839,6 +839,9 @@ void thread_kill(thread_t *handle)
 event_t *thread_create_event(void)
 {
 	uae_sem_t sem = { 0 };
+#ifdef FSUAE
+	#warning uae_sem_init used with manual flag
+#endif
 	uae_sem_init(&sem, 1, 0);
 	return sem;
 }
@@ -856,6 +859,9 @@ void thread_set_event(event_t *event)
 }
 void thread_reset_event(event_t *_event)
 {
+#ifdef FSUAE
+	#warning uae_sem_init being used to "reset" a semaphore here
+#endif
 	uae_sem_init((uae_sem_t*)&_event, 1, 0);
 }
 int thread_wait_event(event_t *event, int timeout)

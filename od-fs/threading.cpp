@@ -8,6 +8,24 @@
 
 #include <SDL3/SDL.h>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // An intermediate thread function is needed because the return type of
 // uae_thread_function is different.
 

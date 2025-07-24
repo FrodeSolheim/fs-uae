@@ -51,8 +51,9 @@ int get_guid_target (uae_u8 *out) {
     return 0;
 }
 
-uae_u8 *save_log (int bootlog, int *len) {
-    STUB("");
+uae_u8 *save_log(int bootlog, size_t *len)
+{
+    UAE_LOG_STUB("");
     return NULL;
 }
 
@@ -260,7 +261,7 @@ void target_getdate(int *y, int *m, int *d)
     *d = 8;
 }
 
-uae_u8 *save_screenshot(int monid, int *len)
+uae_u8 *save_screenshot(int monid, size_t *len)
 {
     STUB("");
     return NULL;
@@ -270,4 +271,9 @@ uae_u8 *save_screenshot(int monid, int *len)
 bool frame_drawn (int monid)
 {
     return false;
+}
+
+void systray (HWND hwnd, int remove)
+{
+
 }

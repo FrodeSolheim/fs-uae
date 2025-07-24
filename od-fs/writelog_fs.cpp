@@ -17,8 +17,8 @@
 
 #include "uae/compat/windows.h"
 
-int log_scsi = 0;
-int log_net = 0;
+//int log_scsi = 0;
+//int log_net = 0;
 
 void gui_message (const char *format,...)
 {

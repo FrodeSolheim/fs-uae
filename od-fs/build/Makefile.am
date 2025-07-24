@@ -231,6 +231,7 @@ libuae_a_SOURCES = \
 	../../amax.cpp \
 	../../ar.cpp \
 	../../arcadia.cpp \
+	../../aros.rom.cpp \
 	../../archivers/dms/cdata.h \
 	../../archivers/dms/crc_csum.cpp \
 	../../archivers/dms/crc_csum.h \
@@ -471,6 +472,7 @@ libuae_a_SOURCES = \
 	../../include/zfile.h \
 	../../ini.cpp \
 	../../inputdevice.cpp \
+	../../inputrecord.cpp \
 	../../isofs.cpp \
 	../../jit/codegen_udis86.h \
 	../../jit/codegen_x86.h \
@@ -1138,10 +1140,15 @@ libpcem_a_SOURCES = \
 	../../pcem/t3100e.h \
 	../../pcem/timer.cpp \
 	../../pcem/timer.h \
+	../../pcem/vid_cl5429.cpp \
+	../../pcem/vid_cl5429.h \
+	../../pcem/vid_s3.cpp \
+	../../pcem/vid_s3.h \
+	../../pcem/vid_sdac_ramdac.cpp \
+	../../pcem/vid_sdac_ramdac.h \
 	../../pcem/vid_svga_render.cpp \
 	../../pcem/vid_svga_render.h \
 	../../pcem/vid_svga.cpp \
-	../../pcem/vid_svga.h \
 	../../pcem/vid_svga.h \
 	../../pcem/video.h \
 	../../pcem/x86_flags.h \

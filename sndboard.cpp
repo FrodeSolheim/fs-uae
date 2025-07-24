@@ -3008,6 +3008,31 @@ static void snd_init(void)
 	device_add_exit(uaesndboard_free, NULL);
 }
 
+#ifdef FSUAE
+
+static uae_u8 *sndboard_get_buffer(int *frames)
+{
+	// FIXME: Assert not called
+	return NULL;
+}
+
+static void sndboard_release_buffer(uae_u8 *buffer, int frames)
+{
+	// FIXME: Assert not called
+}
+
+static void sndboard_free_capture(void)
+{
+	// FIXME: Assert not called
+}
+
+static bool sndboard_init_capture(int freq)
+{
+	// FIXME: Assert not called
+	return false;
+}
+
+#else
 
 #ifdef _WIN32
 
@@ -3153,3 +3178,4 @@ Exit:;
 }
 
 #endif
+#endif // !FSUAE

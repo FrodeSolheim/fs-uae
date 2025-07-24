@@ -29,6 +29,8 @@ static int g_audio_buffer_size = 512 * 2 * 2;
 static struct sound_data sdpaula;
 static struct sound_data *sdp = &sdpaula;
 
+int active_sound_stereo;
+
 #if 0
 static uae_u8 *extrasndbuf;
 static int extrasndbufsize;
@@ -78,7 +80,7 @@ void amiga_set_audio_frequency_adjust(double adjust)
     update_sound(g_clk);
 }
 
-void update_sound (double clk)
+void update_sound (float clk)
 {
 	if (!have_sound)
 		return;

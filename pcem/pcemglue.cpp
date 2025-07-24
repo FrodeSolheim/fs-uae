@@ -821,12 +821,6 @@ int rom_init(rom_t *rom, const char *fn, uint32_t address, int size, int mask, i
 	return 0;
 }
 
-#ifdef FSUAE
-
-#warning NOT DEFINING THREAD FUNCTIONS RIGHT NOW
-
-#else
-
 void thread_sleep(int n)
 {
 	sleep_millis(n);
@@ -866,13 +860,23 @@ void thread_reset_event(event_t *_event)
 }
 int thread_wait_event(event_t *event, int timeout)
 {
+#ifdef FSUAE
+	UAE_LOG_STUB("");
+#else
 	uae_sem_trywait_delay((uae_sem_t*)&event, timeout < 0 ? INFINITE : timeout);
+#endif
 	return 0;
 }
 void thread_destroy_event(event_t *_event)
 {
 	uae_sem_destroy((uae_sem_t*)&_event);
 }
+
+#ifdef FSUAE
+
+#warning NOT DEFINING THREAD FUNCTIONS RIGHT NOW
+
+#else
 
 typedef struct win_mutex_t
 {

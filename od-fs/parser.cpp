@@ -555,7 +555,8 @@ int checkserwrite(int spaceneeded)
 	return 1;
 }
 
-int readseravail (void)
+#warning Not handling breakcound...
+int readseravail(bool *breakcond)
 {
 	if (tcpserial) {
 		if (tcp_is_connected ()) {

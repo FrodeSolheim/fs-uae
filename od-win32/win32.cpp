@@ -6,6 +6,8 @@
 #include "uae/compat/windows2.h"
 
 #include "options.h"
+#include "savestate.h"
+#include "uae.h"
 #include "win32.h"
 
 #else
@@ -6017,6 +6019,8 @@ static void WIN32_HandleRegistryStuff (void)
 	target_load_debugger_config();
 }
 
+#endif // !FSUAE
+
 void target_setdefaultstatefilename(const TCHAR *name)
 {
 	TCHAR path[MAX_DPATH];
@@ -6045,6 +6049,9 @@ void target_setdefaultstatefilename(const TCHAR *name)
 	}
 	_tcscpy(savestate_fname, path);
 }
+
+#ifdef FSUAE
+#else
 
 #if WINUAEPUBLICBETA == 1
 static const TCHAR *BETAMESSAGE = {

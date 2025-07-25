@@ -12,6 +12,7 @@
 #include "threaddep/thread.h"
 #include "uae/inline.h"
 #include "uae/types.h"
+#include "threaddep/thread.h"
 
 #include <stdlib.h>
 

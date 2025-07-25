@@ -454,6 +454,7 @@ uae_u32 get_ilong_debug (uaecptr addr)
 		return 0xffffffff;
 	}
 }
+
 static uae_u8 *get_real_address_debug(uaecptr addr)
 {
 	if (debug_mmu_mode) {
@@ -3615,7 +3616,9 @@ static int debug_mem_off (uaecptr *addrp)
 	if (ba->mask || ba->startmask) {
 		uae_u32 start = ba->startmask ? ba->startmask : ba->start;
 		addr -= start;
-		addr &= ba->mask;
+		if (ba->mask) {
+			addr &= ba->mask;
+		}
 		addr += start;
 	}
 	*addrp = addr;

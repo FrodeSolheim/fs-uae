@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+    },
+    "files.exclude": {
+        "gtkui.cpp": true,
+        "nogui.cpp": true
+    }
+}

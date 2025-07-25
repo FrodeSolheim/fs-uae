@@ -76,6 +76,18 @@
 #include "rp.h"
 #endif
 
+#ifdef FSUAE
+
+#include "uae/debuginfo.h"
+#include "uae/segtracker.h"
+
+#undef _WIN32
+
+static int g_packet_delay = 0;
+static int g_hsync_line = 0;
+
+#endif // FSUAE
+
 #define TRACING_ENABLED 1
 int log_filesys = 0;
 
@@ -2846,6 +2858,12 @@ static int fill_file_attrs (Unit *u, a_inode *base, a_inode *c)
 		c->amigaos_mode = 0;
 		if (flags >= 0)
 			c->amigaos_mode = flags;
+#ifdef FSUAE
+		//else {
+		//	//c->amigaos_mode = A_FIBF_READ| A_FIBF_EXECUTE;
+		//	//c->amigaos_mode = filesys_parse_mask(c->amigaos_mode);
+		//}
+#endif
 		c->comment = comment;
 		return 1;
 	} else {
@@ -3195,6 +3213,15 @@ static void startup_update_unit (Unit *unit, UnitInfo *uinfo)
 	xfree (unit->ui.volname);
 	memcpy (&unit->ui, uinfo, sizeof (UnitInfo));
 	unit->ui.devname = uinfo->devname;
+#ifdef FSUAE
+	//printf("%p %s\n", uinfo->volname, uinfo->volname);
+	if (!uinfo->volname) {
+		// prevents a crash on linux/mac, when e.g. a cd-rom
+		// image was not found
+		uinfo->volname = my_strdup("");
+	}
+	//printf("%p %s\n", uinfo->volname, uinfo->volname);
+#endif
 	unit->ui.volname = my_strdup (uinfo->volname); /* might free later for rename */
 }
 
@@ -3314,7 +3341,13 @@ static void filesys_start_thread (UnitInfo *ui, int nr)
 		ui->back_pipe = xmalloc (smp_comm_pipe, 1);
 		init_comm_pipe (ui->unit_pipe, 400, 3);
 		init_comm_pipe (ui->back_pipe, 100, 1);
+#ifdef FSUAE
+		if (!uae_deterministic_mode()) {
+#endif
 		uae_start_thread (_T("filesys"), filesys_thread, (void *)ui, &ui->tid);
+#ifdef FSUAE
+		}
+#endif
 	}
 #endif
 	if (isrestore ()) {
@@ -3548,12 +3581,18 @@ static void	do_info(TrapContext *ctx, Unit *unit, dpacket *packet, uaecptr info,
 
 static void action_disk_info(TrapContext *ctx, Unit *unit, dpacket *packet)
 {
+#ifdef FSUAE
+    g_packet_delay = 10;
+#endif
 	TRACE((_T("ACTION_DISK_INFO\n")));
 	do_info(ctx, unit, packet, GET_PCK_ARG1 (packet) << 2, true);
 }
 
 static void action_info(TrapContext *ctx, Unit *unit, dpacket *packet)
 {
+#ifdef FSUAE
+    g_packet_delay = 10;
+#endif
 	TRACE((_T("ACTION_INFO\n")));
 	do_info(ctx, unit, packet, GET_PCK_ARG2 (packet) << 2, false);
 }
@@ -3895,6 +3934,9 @@ static void action_lock(TrapContext *ctx, Unit *unit, dpacket *packet)
 		mode = SHARED_LOCK;
 	}
 
+#ifdef FSUAE
+	g_packet_delay = 2;
+#endif
 	TRACE((_T("ACTION_LOCK(0x%08x, \"%s\", %d)\n"), lock, bstr(ctx, unit, name), mode));
 	DUMPLOCK(ctx, unit, lock);
 
@@ -4089,6 +4131,9 @@ static void action_free_lock(TrapContext *ctx, Unit *unit, dpacket *packet)
 {
 	uaecptr lock = GET_PCK_ARG1 (packet) << 2;
 	a_inode *a;
+#ifdef FSUAE
+	g_packet_delay = 2;
+#endif
 	TRACE((_T("ACTION_FREE_LOCK(0x%x)\n"), lock));
 	DUMPLOCK(ctx, unit, lock);
 
@@ -4137,6 +4182,9 @@ static uaecptr action_dup_lock_2(TrapContext *ctx, Unit *unit, dpacket *packet, 
 static void action_dup_lock(TrapContext *ctx, Unit *unit, dpacket *packet)
 {
 	uaecptr lock = GET_PCK_ARG1 (packet) << 2;
+#ifdef FSUAE
+	g_packet_delay = 2;
+#endif
 	TRACE((_T("ACTION_DUP_LOCK(0x%x)\n"), lock));
 	if (!lock) {
 		PUT_PCK_RES1 (packet, 0);
@@ -4271,7 +4319,11 @@ static void get_fileinfo(TrapContext *ctx, Unit *unit, dpacket *packet, uaecptr 
 		put_long_host(buf + 124, statbuf.size > MAXFILESIZE32 ? MAXFILESIZE32 : (uae_u32)statbuf.size);
 	}
 
+#ifdef FSUAE
+	fsdb_get_file_time(aino, &days, &mins, &ticks);
+#else
 	timeval_to_amiga (&statbuf.mtime, &days, &mins, &ticks, 50);
+#endif
 	put_long_host(buf + 132, days);
 	put_long_host(buf + 136, mins);
 	put_long_host(buf + 140, ticks);
@@ -4431,6 +4483,9 @@ static int action_lock_record(TrapContext *ctx, Unit *unit, dpacket *packet, uae
 
 	bool exclusive = mode == REC_EXCLUSIVE || mode == REC_EXCLUSIVE_IMMED;
 
+#ifdef FSUAE
+	g_packet_delay = 2;
+#endif
 	write_log (_T("action_lock_record('%s',%d,%d,%d,%d)\n"), k ? k->aino->nname : _T("null"), pos, len, mode, timeout);
 
 	if (!k || mode > REC_SHARED_IMMED) {
@@ -4580,7 +4635,11 @@ static int exalldo(TrapContext *ctx, uaecptr exalldata, uae_u32 exalldatasize, u
 		size2 += 4;
 	}
 	if (type >= 5) {
+#ifdef FSUAE
+		fsdb_get_file_time(aino, &days, &mins, &ticks);
+#else
 		timeval_to_amiga (&statbuf.mtime, &days, &mins, &ticks, 50);
+#endif
 		size2 += 12;
 	}
 	if (type >= 6) {
@@ -5248,8 +5307,21 @@ static void do_find(TrapContext *ctx, Unit *unit, dpacket *packet, int mode, int
 			: O_RDWR)
 			| (create ? O_CREAT : 0)
 			| (create == 2 ? O_TRUNC : 0));
+	#ifdef FSUAE
+		if (openmode & O_CREAT) {
+			// this can be an expensive operation
+			g_packet_delay = 320;
+		}
+		//int t1 = SDL_GetTicks();
+	#endif
 
 		fd = fs_openfile (unit, aino, openmode | O_BINARY);
+	#ifdef FSUAE
+		//int t2 = SDL_GetTicks();
+		//if (t2 - t1 > 9) {
+		//    printf("***> %d\n", t2 - t1);
+		//}
+	#endif
 		if (fd == NULL) {
 			if (aino_created)
 				delete_aino (unit, aino);
@@ -5380,6 +5452,11 @@ static void updatedirtime (a_inode *a1, int now)
 
 	if (!a1->parent)
 		return;
+#ifdef FSUAE
+	if (!a1->parent->parent) {
+	    return;
+	}
+#endif
 	if (!now) {
 		if (!my_stat (a1->nname, &statbuf))
 			return;
@@ -5423,6 +5500,9 @@ static void	action_read(TrapContext *ctx, Unit *unit, dpacket *packet)
 		/* PUT_PCK_RES2 (packet, EINVAL); */
 		return;
 	}
+#ifdef FSUAE
+    g_packet_delay = 100;
+#endif
 	TRACE((_T("ACTION_READ(%s,0x%x,%d)\n"), k->aino->nname, addr, size));
 	gui_flicker_led (UNIT_LED(unit), unit->unit, 1);
 
@@ -5551,6 +5631,9 @@ static void action_write(TrapContext *ctx, Unit *unit, dpacket *packet)
 	}
 
 	gui_flicker_led (UNIT_LED(unit), unit->unit, 2);
+#ifdef FSUAE
+    g_packet_delay = 320;
+#endif
 	TRACE((_T("ACTION_WRITE(%s,0x%x,%d)\n"), k->aino->nname, addr, size));
 
 	if (is_writeprotected(unit) || k->aino->vfso) {
@@ -5919,6 +6002,9 @@ static void	action_create_dir(TrapContext *ctx, Unit *unit, dpacket *packet)
 	a_inode *aino;
 	int err;
 
+#ifdef FSUAE
+	g_packet_delay = 320;
+#endif
 	TRACE((_T("ACTION_CREATE_DIR(0x%x,\"%s\")\n"), lock, bstr(ctx, unit, name)));
 
 	if (is_writeprotected(unit)) {
@@ -5995,7 +6081,14 @@ static void	action_set_file_size(TrapContext *ctx, Unit *unit, dpacket *packet)
 	if (mode < 0)
 		whence = SEEK_SET;
 
+#ifdef FSUAE
+	g_packet_delay = 100;
+#endif
+#ifdef FSUAE
+	TRACE((_T("ACTION_SET_FILE_SIZE(0x%x, %jd, 0x%x)\n"), GET_PCK_ARG1 (packet), (intmax_t) offset, mode));
+#else
 	TRACE((_T("ACTION_SET_FILE_SIZE(0x%lx, %d, 0x%x)\n"), GET_PCK_ARG1 (packet), offset, mode));
+#endif
 
 	k = lookup_key (unit, GET_PCK_ARG1 (packet));
 	if (k == 0) {
@@ -6105,6 +6198,9 @@ static void	action_delete_object(TrapContext *ctx, Unit *unit, dpacket *packet)
 	a_inode *a;
 	int err;
 
+#ifdef FSUAE
+	g_packet_delay = 320;
+#endif
 	TRACE((_T("ACTION_DELETE_OBJECT(0x%x,\"%s\")\n"), lock, bstr(ctx, unit, name)));
 
 	if (is_writeprotected(unit)) {
@@ -6606,6 +6702,9 @@ static void action_get_file_size64(TrapContext *ctx, Unit *unit, dpacket *packet
 		PUT_PCK64_RES2 (packet, ERROR_INVALID_LOCK);
 		return;
 	}
+#ifdef FSUAE
+	g_packet_delay = 50;
+#endif
 	TRACE((_T("ACTION_GET_FILE_SIZE64(%s)\n"), k->aino->nname));
 	filesize = key_filesize(k);
 	TRACE((_T("ACTION_GET_FILE_SIZE64(%s)=%lld\n"), k->aino->nname, filesize));
@@ -7032,7 +7131,11 @@ static int handle_packet(TrapContext *ctx, Unit *unit, dpacket *pck, uae_u32 msg
 	uae_s32 type = GET_PCK_TYPE (pck);
 	PUT_PCK_RES2 (pck, 0);
 
+#ifdef FSUAE
+	TRACE((_T("handle_packet packet=%d\n"), type));
+#else
 	TRACE((_T("unit=%p packet=%d\n"), unit, type));
+#endif
 	if (unit->inhibited && isvolume
 		&& type != ACTION_INHIBIT && type != ACTION_MORE_CACHE
 		&& type != ACTION_DISK_INFO) {
@@ -7048,6 +7151,9 @@ static int handle_packet(TrapContext *ctx, Unit *unit, dpacket *pck, uae_u32 msg
 			PUT_PCK_RES2 (pck, unit->ui.unknown_media ? ERROR_NOT_A_DOS_DISK : ERROR_NO_DISK);
 			return 1;
 	}
+#ifdef FSUAE
+	//int t1 = SDL_GetTicks();
+#endif
 
 	switch (type) {
 	case ACTION_LOCATE_OBJECT: action_lock (ctx, unit, pck); break;
@@ -7120,6 +7226,12 @@ static int handle_packet(TrapContext *ctx, Unit *unit, dpacket *pck, uae_u32 msg
 		write_log (_T("FILESYS: UNKNOWN PACKET %x\n"), type);
 		return 0;
 	}
+#ifdef FSUAE
+	//int t2 = SDL_GetTicks();
+	//if (t2 - t1 >= 9 ) {
+	//    write_log("fs action %d took %d ms\n", type, t2 - t1);
+	//}
+#endif
 	if (noidle) {
 		m68k_cancel_idle();
 	}
@@ -7415,8 +7527,20 @@ static void filesys_prepare_reset2 (void)
 			write_comm_pipe_int(uip[i].unit_pipe, 0, 0);
 			write_comm_pipe_int(uip[i].unit_pipe, 0, 0);
 			write_comm_pipe_int(uip[i].unit_pipe, 0, 1);
+#ifdef FSUAE
+			if (uae_deterministic_mode()) {
+				while (comm_pipe_has_data(uip[i].unit_pipe)) {
+	            	// process remaining packets until all are done
+	            	filesys_hsync();
+	            }
+			}
+			else {
+#endif
 			uae_sem_wait (&uip[i].reset_sync_sem);
 			uae_end_thread (&uip[i].tid);
+#ifdef FSUAE
+			}
+#endif
 		}
 	}
 #endif
@@ -7728,6 +7852,9 @@ static uae_u32 REGPARAM2 filesys_diagentry (TrapContext *ctx)
 		resaddr += 0x1A;
 	}
 
+#ifdef WITH_SEGTRACKER
+	resaddr = segtracker_startup(resaddr);
+#endif
 	resaddr = uaeres_startup(ctx, resaddr);
 #ifdef BSDSOCKET
 	resaddr = bsdlib_startup(ctx, resaddr);
@@ -9387,7 +9514,69 @@ void filesys_vsync (void)
 		setsystime_vblank ();
 		heartbeat_task &= ~1;
 	}
+
+#ifdef FSUAE // NL
+	g_hsync_line = 0;
+#endif
 }
+
+#ifdef FSUAE // NL
+#ifdef UAE_FILESYS_THREADS
+
+static void run_filesys_iterations(int max_count) {
+    UnitInfo *ui;
+    int count = 0;
+    while (count < max_count) {
+        int last_count = count;
+        for (int i = 0; i < MAX_FILESYSTEM_UNITS; i++) {
+            ui = mountinfo.ui + i;
+            if (!ui->unit_pipe) {
+                continue;
+            }
+            if (!comm_pipe_has_data(ui->unit_pipe)) {
+                continue;
+            }
+            count++;
+            filesys_iteration(ui);
+        }
+        if (count == last_count) {
+            // no more packets were processed
+            break;
+        }
+    }
+}
+
+void filesys_hsync() {
+    if (!uae_deterministic_mode()) {
+        return;
+    }
+    //printf("%d\n", g_hsync_line++);
+    static uint64_t counter = 0;
+    static uint64_t next = 0;
+    while (counter == next) {
+        // set packet delay to default value of 10, which means to process
+        // one packet every other hsync.
+        g_packet_delay = 10;
+        run_filesys_iterations(1);
+        // g_packet_delay was possibly modified by packet handlers
+
+        if (g_packet_delay >= 100) {
+            // ok, for testing, if g_packet_delay is large we try to wait
+            // approximately one frame until processing next package
+            g_packet_delay = 320;
+        }
+
+        if (g_packet_delay < 0) {
+            // should not happen..
+            g_packet_delay = 1;
+        }
+        next = counter + g_packet_delay;
+    }
+    counter++;
+}
+
+#endif // UAE_FILESYS_THREADS
+#endif // FSUAE
 
 void filesys_cleanup(void)
 {
@@ -9688,6 +9877,9 @@ static a_inode *restore_filesys_get_base (Unit *u, TCHAR *npath)
 
 static TCHAR *makenativepath (UnitInfo *ui, TCHAR *apath)
 {
+#ifdef FSUAE
+    return fsdb_native_path(ui->rootdir, apath);
+#else
 	TCHAR *pn;
 	/* create native path. FIXME: handle 'illegal' characters */
 	pn = xcalloc (TCHAR, uaetcslen (apath) + 1 + uaetcslen (ui->rootdir) + 1);
@@ -9699,6 +9891,7 @@ static TCHAR *makenativepath (UnitInfo *ui, TCHAR *apath)
 		}
 	}
 	return pn;
+#endif
 }
 
 static uae_u8 *restore_aino (UnitInfo *ui, Unit *u, uae_u8 *src)

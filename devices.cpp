@@ -83,6 +83,11 @@
 #endif
 #include "keyboard_mcu.h"
 
+#ifdef WITH_SEGTRACKER
+#include "uae/debuginfo.h"
+#include "uae/segtracker.h"
+#endif
+
 #define MAX_DEVICE_ITEMS 64
 
 static void add_device_item(DEVICE_VOID *pp, int *cnt, DEVICE_VOID p)
@@ -213,6 +218,9 @@ void devices_reset(int hardreset)
 #ifdef AUTOCONFIG
 	rtarea_reset();
 #endif
+#ifdef WITH_SEGTRACKER
+	segtracker_install ();
+#endif
 	DISK_reset();
 	CIA_reset(hardreset);
 	a1000_reset();
@@ -289,7 +297,12 @@ void devices_hsync(void)
 {
 	DISK_hsync();
 	audio_hsync();
-
+#ifdef FSUAE
+	// FIXME: used by vpar; see if CIA_hsync_prehandler can be replaced, since
+	// CIA_hsync_prehandler was removed from WinUAE.
+	void CIA_hsync_prehandler();
+	CIA_hsync_prehandler ();
+#endif
 	decide_blitter(-1);
 #ifdef SERIAL_PORT
 	serial_hsynchandler();

@@ -57,6 +57,12 @@
 #include "cputbl.h"
 #include "keybuf.h"
 
+#ifdef FSUAE
+
+#undef _WIN32
+
+#endif
+
 static int trace_mode;
 static uae_u32 trace_param[3];
 

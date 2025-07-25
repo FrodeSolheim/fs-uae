@@ -9515,12 +9515,13 @@ void filesys_vsync (void)
 		heartbeat_task &= ~1;
 	}
 
-#ifdef FSUAE // NL
+#ifdef FSUAE
 	g_hsync_line = 0;
 #endif
 }
 
-#ifdef FSUAE // NL
+#ifdef FSUAE
+
 #ifdef UAE_FILESYS_THREADS
 
 static void run_filesys_iterations(int max_count) {
@@ -9576,6 +9577,7 @@ void filesys_hsync() {
 }
 
 #endif // UAE_FILESYS_THREADS
+
 #endif // FSUAE
 
 void filesys_cleanup(void)

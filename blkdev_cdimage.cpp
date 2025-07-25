@@ -34,7 +34,10 @@
 #include "rp.h"
 #endif
 
+#ifdef FSUAE
+#else
 #define FLAC__NO_DLL
+#endif
 
 #include "FLAC/stream_decoder.h"
 

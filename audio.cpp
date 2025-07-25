@@ -1638,6 +1638,12 @@ static void loaddat (int nr, bool modper)
 			return;
 		if (modper && audap) {
 			if (cdp->dat == 0)
+#ifdef FSUAE
+				// FIXME: changed PERIOD_MAX from ULONG_MAX to UINT_MAX
+				// since cdp[1].per is int, not long. But should per
+				// be an unsigned int??
+				// - COMMENT MIGHT BE OUTDATED!
+#endif
                 cdp[1].per = 65536 * CYCLE_UNIT;
 			else if (cdp->dat > PERIOD_MIN)
 				cdp[1].per = cdp->dat * CYCLE_UNIT;

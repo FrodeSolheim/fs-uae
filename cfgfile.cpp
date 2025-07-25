@@ -12,10 +12,12 @@
 
 #include <ctype.h>
 
+#ifdef FSUAE
 #ifdef _WIN32
 #include <winsock2.h>
 #else
 #include <arpa/inet.h>
+#endif
 #endif
 
 #include "options.h"
@@ -52,8 +54,15 @@
 #endif
 #include "ide.h"
 
+#ifdef FSUAE
+#include <uae/fs.h>
+// FIXME: Maybe not error_log ?
+#define cfgfile_warning error_log
+#define cfgfile_warning_obsolete error_log
+#else
 #define cfgfile_warning write_log
 #define cfgfile_warning_obsolete write_log
+#endif
 
 #if SIZEOF_TCHAR != 1
 /* FIXME: replace strcasecmp with _tcsicmp in source code instead */
@@ -4399,6 +4408,12 @@ static int cfgfile_parse_host (struct uae_prefs *p, TCHAR *option, TCHAR *value)
 			savestate_state = STATE_DORESTORE;
 		} else {
 			int ok = 0;
+#ifdef FSUAE
+            // code above seems broken, checks dir but removes file
+            // simple fix: force ok (but leave WIN32 version as it
+            // is, in case it is supposed to work like this
+            ok = 1;
+#else
 			if (savestate_fname[0]) {
 				for (;;) {
 					TCHAR *p;
@@ -4414,6 +4429,7 @@ static int cfgfile_parse_host (struct uae_prefs *p, TCHAR *option, TCHAR *value)
 					*p = 0;
 				}
 			}
+#endif
 			if (!ok) {
 				TCHAR tmp[MAX_DPATH];
 				fetch_statefilepath (tmp, sizeof tmp / sizeof (TCHAR));
@@ -6013,6 +6029,21 @@ static int cfgfile_parse_hardware (struct uae_prefs *p, const TCHAR *option, TCH
 		|| cfgfile_yesno(option, value, _T("uaeserial"), &p->uaeserial))
 		return 1;
 
+#ifdef FSUAE
+	if (!g_fs_uae_jit_compiler) {
+		if (cfgfile_intval(option, value, _T("cachesize"), &p->cachesize, 1)) {
+			/* If FS-UAE wasn't started with JIT support initially, we cannot
+			 * enable it at a later time, since 32-bit memory may not be
+			 * configured. */
+			if (p->cachesize) {
+				error_log(_T("uae_cachesize set without jit_compiler"));
+				p->cachesize = 0;
+				return 1;
+			}
+		}
+	}
+#endif
+
 	if (cfgfile_intval(option, value, _T("cachesize"), &p->cachesize, 1)
 		|| cfgfile_intval(option, value, _T("cd32nvram_size"), &p->cs_cd32nvram_size, 1024)
 		|| cfgfile_intval(option, value, _T("chipset_hacks"), &p->cs_hacks, 1)
@@ -7344,7 +7375,11 @@ int cfgfile_save (struct uae_prefs *p, const TCHAR *filename, int type)
 {
 	struct zfile *fh;
 
+#ifdef FSUAE
+	// don't back up config file
+#else
 	cfgfile_backup (filename);
+#endif
 	fh = zfile_fopen (filename, unicode_config ? _T("w, ccs=UTF-8") : _T("w"), ZFD_NORMAL);
 	if (! fh)
 		return 0;
@@ -8885,7 +8920,12 @@ static void buildin_default_prefs (struct uae_prefs *p)
 		memset(&p->expansionboard[i], 0, sizeof(struct boardromconfig));
 	}
 
+#ifdef FSUAE_XXX
+	// FIXME: Disable this!!!
+	/* Allow RTC to be set without disabling cs_compatible */
+#else
 	p->cs_rtc = 0;
+#endif
 	p->cs_a1000ram = false;
 	p->cs_fatgaryrev = -1;
 	p->cs_ramseyrev = -1;
@@ -9148,7 +9188,11 @@ static int bip_a1000 (struct uae_prefs *p, int config, int compa, int romcheck)
 {
 	int roms[2];
 
+#ifdef FSUAE_XXX
+	roms[0] = 5;
+#else
 	roms[0] = 24;
+#endif
 	roms[1] = -1;
 	p->chipset_mask = CSMASK_A1000;
 	p->bogomem.size = 0;
@@ -9294,6 +9338,9 @@ static int bip_a1200 (struct uae_prefs *p, int config, int compa, int romcheck)
 	roms[1] = 15;
 	roms[2] = 31;
 	roms[3] = -1;
+#ifdef FSUAE
+	roms[1] = -1;
+#endif
 	roms_bliz[0] = -1;
 	roms_bliz[1] = -1;
 	roms_bliz[2] = -1;
@@ -9356,6 +9403,13 @@ static int bip_a1200 (struct uae_prefs *p, int config, int compa, int romcheck)
             p->fastmem[0].size = 0x800000;
             p->cs_rtc = 1;
             break;
+#endif
+#ifdef FSUAE_XXX
+		// FIXME: Forgot what case 6 was?
+		case 6:
+			roms[0] = 15;
+			roms[3] = -1;
+		break;
 #endif
 	default: break;
     }
@@ -9748,8 +9802,18 @@ static bool has_expansion_with_rtc(struct uae_prefs* p, int chiplimit)
 	return false;
 }
 
+#ifdef FSUAE
+/**
+ * This function will be called (twice) by fixup_prefs after custom uae_
+ * options have been applied, and may reset some (chipset) options overriden
+ * by the user unless also uae_chipset_compatible has been set to -.
+ */
+#endif
 int built_in_chipset_prefs (struct uae_prefs *p)
 {
+#ifdef FSUAE
+	write_log("built_in_chipset_prefs %d, ignore = %d\n", p->cs_compatible, !p->cs_compatible);
+#endif
 	if (!p->cs_compatible)
 		return 1;
 
@@ -9853,6 +9917,11 @@ int built_in_chipset_prefs (struct uae_prefs *p)
 		p->cs_ciatodbug = true;
 		break;
 	case CP_A600: // A600
+#ifdef FSUAE_XXX
+		// FIXME: Consider removing this
+		if (p->chipmem_size > 0x100000 || p->fastmem[0].size)
+			p->cs_rtc = 1;
+#endif
 		p->cs_ide = IDE_A600A1200;
 		p->cs_pcmcia = 1;
 		p->cs_ksmirror_a8 = 1;

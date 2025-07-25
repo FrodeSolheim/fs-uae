@@ -25,11 +25,31 @@
 #include "native2amiga.h"
 #include "debug.h"
 
+#ifdef FSUAE
+#if defined(WINDOWS) && !defined(_WIN32)
+#define _WIN32
+#endif
+
+/*
+FIXME: there is something strange here:
+For example, there is:
+                        if (ulTmp < number_sys_error) {
+                            tagcopy (currtag, currval, tagptr, &iotextptrs[ulTmp]);
+Bit iotextptrs are never initialized. Instead, there this this initalization using the same number_sys_error variable:
+    for (i = 0; i < (int) (number_sys_error); i++)
+        errnotextptrs[i] = addstr (&tmp1, errortexts[i]);
+*/
+#endif
+
 #ifdef BSDSOCKET
 
 #define NEWTRAP 1
 
+#ifdef FSUAE
+int log_bsd = BSD_TRACING_ENABLED;
+#else
 int log_bsd = 0;
+#endif
 struct socketbase *socketbases;
 static uae_u32 SockLibBase;
 
@@ -1759,6 +1779,9 @@ static uae_u32 REGPARAM2 bsdsocklib_null(TrapContext *ctx)
 
 static uae_u32 REGPARAM2 bsdsocklib_init(TrapContext *ctx)
 {
+#ifdef FSUAE
+    write_log("bsdsock - bsdsocklib_init ctx = %p\n", ctx);
+#endif
 	TCHAR verStr[32];
 	uae_u32 tmp1;
 	int i;

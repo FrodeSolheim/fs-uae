@@ -7,10 +7,15 @@
 #include "uae/fs.h"
 #include "uae.h"
 
+// FIXME: Maybe call this fs.cpp (corresponding to win32.cpp)
+
 char *g_libamiga_save_image_path = NULL;
 
 static const char **g_native_library_dirs;
 static char *g_module_ripper_dir = NULL;
+
+// FIXME:
+extern int relativepaths;
 
 const TCHAR **uaenative_get_library_dirs(void)
 {
@@ -74,8 +79,6 @@ void getfilepart(TCHAR *out, int size, const TCHAR *path)
 		strcpy(out, path);
 	}
 }
-
-int relativepaths = 0;
 
 // convert path to absolute or relative
 void fullpath(TCHAR *path, int size, bool userelative)
@@ -161,8 +164,6 @@ bool samepath(const TCHAR *p1, const TCHAR *p2)
 	return false;
 }
 
-TCHAR start_path_data[MAX_DPATH];
-
 static void fetch_path (const TCHAR *name, TCHAR *out, int size)
 {
 	//int size2 = size;
@@ -211,6 +212,11 @@ void fetch_luapath (TCHAR *out, int size)
 	fetch_path (_T("LuaPath"), out, size);
 }
 
+void fetch_nvrampath(TCHAR *out, int size)
+{
+	fetch_path(_T("NVRAMPath"), out, size);
+}
+
 void fetch_screenshotpath (TCHAR *out, int size)
 {
 	fetch_path("ScreenshotPath", out, size);
@@ -248,6 +254,11 @@ void fetch_rompath(TCHAR *out, int size)
 		k += 1;
 	}
 	uae_tcslcpy(out, currprefs.path_rom.path[k], size);
+}
+
+void fetch_videopath(TCHAR* out, int size)
+{
+	fetch_path(_T("VideoPath"), out, size);
 }
 
 extern "C" {

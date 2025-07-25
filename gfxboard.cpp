@@ -234,6 +234,8 @@ static const struct gfxboard boards[] =
 		0x00100000, 0x00100000, 0x00200000, 0x00200000, CIRRUS_ID_CLGD5428, 2, 2, false, true,
 		0, 0, NULL, &gd5428_device
 	},
+#ifdef FSUAE
+#else
 	{
 		GFXBOARD_ID_PICASSO4_Z2,
 		_T("Picasso IV [Zorro II]"), _T("Village Tronic"), _T("PicassoIV_Z2"),
@@ -422,6 +424,7 @@ static const struct gfxboard boards[] =
 		0x00000000, 0x00200000, 0x00800000, 0x10000000, 0, BOARD_PCI, -1, false, false,
 		0, 0, NULL, &mystique_220_device, 0, GFXBOARD_BUSTYPE_PCI
 	},
+#endif // !FSUAE
 #if 0
 	{
 		GFXBOARD_ID_GD5446_PCI,
@@ -1018,10 +1021,14 @@ static void reinit_vram(struct rtggfxboard *gb, uaecptr vram, bool direct)
 	if (gb->pcemdev) {
 		void svga_setvram(void *p, uint8_t *vram);
 		svga_setvram(gb->pcemobject2, gb->vram);
+#ifdef FSUAE
+		uae_log_warning("voodoo_update_vram disabled atm");
+#else
 		if (gb->rbc->rtgmem_type == GFXBOARD_ID_VOODOO3_PCI || gb->rbc->rtgmem_type == GFXBOARD_ID_VOODOO5_PCI) {
 			void voodoo_update_vram(void *p);
 			voodoo_update_vram(gb->pcemobject);
 		}
+#endif
 	}
 }
 

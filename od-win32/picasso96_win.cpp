@@ -838,6 +838,9 @@ static void do_fillrect_frame_buffer(struct RenderInfo *ri, int X, int Y, int Wi
 
 static void setupcursor(void)
 {
+#ifdef FSUAE
+	UAE_LOG_STUB("");
+#else
 	uae_u8 *dptr;
 	int bpp = 4;
 	int pitch;
@@ -873,6 +876,7 @@ static void setupcursor(void)
 		P96TRACE_SPR((_T("cursorsurfaced3d LockRect() failed %08x\n"), hr));
 	}
 	gfx_unlock ();
+#endif
 }
 
 static void disablemouse (void)
@@ -881,7 +885,10 @@ static void disablemouse (void)
 	cursordeactivate = 0;
 	if (!hwsprite)
 		return;
+#ifdef FSUAE
+#else
 	D3D_setcursor(0, 0, 0, 0, 0, 0, 0, false, true);
+#endif
 }
 
 static void mouseupdate(struct AmigaMonitor *mon)
@@ -903,6 +910,8 @@ static void mouseupdate(struct AmigaMonitor *mon)
 		}
 	}
 
+#ifdef FSUAE
+#else
 	if (D3D_setcursor) {
 		if (!D3D_setcursorsurface(mon->monitor_id, true, NULL)) {
 			setupcursor_needed = 1;
@@ -913,6 +922,7 @@ static void mouseupdate(struct AmigaMonitor *mon)
 			D3D_setcursor(mon->monitor_id, x, y, state->Width, state->Height, mx, my, cursorvisible, false);
 		}
 	}
+#endif
 }
 
 static int p96_framecnt;
@@ -956,8 +966,11 @@ static void rtg_render(void)
 	struct amigadisplay *ad = &adisplays[monid];
 	bool full = false;
 
+#ifdef FSUAE
+#else
 	if (D3D_restore)
 		D3D_restore(monid, true);
+#endif
 	if (doskip () && p96skipmode == 0) {
 		;
 	} else {
@@ -1007,7 +1020,6 @@ enum {
 	RGBFB_Y4U1V1_32,
 };
 
-static
 int getconvert(int rgbformat)
 {
 	int v = 0;
@@ -2744,7 +2756,12 @@ static void inituaegfx(TrapContext *ctx, uaecptr ABI)
 	flags |= BIF_NOMEMORYMODEMIX;
 	flags |= BIF_GRANTDIRECTACCESS;
 	flags &= ~BIF_HARDWARESPRITE;
+#ifdef FSUAE
+	if (0) {
+		// FIXME: fix hardware sprite via OpenGL?
+#else
 	if (D3D_setcursor && D3D_setcursor(0, -1, -1, -1, -1, 0, 0, false, false) && USE_HARDWARESPRITE && currprefs.rtg_hardwaresprite) {
+#endif
 		hwsprite = 1;
 		flags |= BIF_HARDWARESPRITE;
 		write_log (_T("P96: Hardware sprite support enabled\n"));
@@ -3136,8 +3153,11 @@ static void init_picasso_screen(int monid)
 		picasso_refresh(monid);
 	}
 	init_picasso_screen_called = 1;
+#ifdef FSUAE
+	// printf("FIXME: not calling mman_ResetWatch (p96ram_start + natmem_offset, gfxmem_bank.allocated);\n");
+#else
 	mman_ResetWatch (gfxmem_bank.start + natmem_offset, gfxmem_bank.allocated_size);
-
+#endif
 }
 
 /*
@@ -5283,7 +5303,10 @@ static void picasso_flushpixels(int index, uae_u8 *src, int off, bool render)
 			gwwcnt = gwwbufsize[index];
 			uae_u8 *ovr_start = src + (overlay_vram_offset & ~gwwpagemask[index]);
 			uae_u8 *ovr_end = src + ((overlay_vram_offset + overlay_src_width * overlay_src_height * overlay_pix + gwwpagesize[index] - 1) & ~gwwpagemask[index]);
+#ifdef FSUAE
+#else
 			mman_GetWriteWatch(ovr_start, ovr_end - ovr_start, gwwbuf[index], &gwwcnt, &ps);
+#endif
 			overlay_updated = gwwcnt > 0;
 		}
 
@@ -5302,8 +5325,11 @@ static void picasso_flushpixels(int index, uae_u8 *src, int off, bool render)
 			} else {
 				ULONG ps;
 				gwwcnt = gwwbufsize[index];
+#ifdef FSUAE
+#else
 				if (mman_GetWriteWatch(src_start[split], regionsize, gwwbuf[index], &gwwcnt, &ps))
 					continue;
+#endif
 			}
 
 			matchcount += (int)gwwcnt;

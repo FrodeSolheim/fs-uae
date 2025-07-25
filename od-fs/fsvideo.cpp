@@ -1,6 +1,14 @@
 #include "sysconfig.h"
 #include "sysdeps.h"
 
+static bool xD3D_alloctexture (int monid, int w, int h)
+{
+    UAE_LOG_STUB("");
+    return false;
+}
+
+bool (*D3D_alloctexture)(int, int, int) = xD3D_alloctexture;
+
 static uae_u8 *xD3D11_locktexture(int monid, int *pitch, int *width, int *height, int fullupdate)
 {
     return NULL;
@@ -10,7 +18,7 @@ uae_u8 * (*D3D_locktexture)(int, int *, int *, int *, int) = xD3D11_locktexture;
 
 static void xD3D11_unlocktexture(int monid, int y_start, int y_end)
 {
-
+    UAE_LOG_STUB("");
 }
 
 void (*D3D_unlocktexture)(int, int, int) = xD3D11_unlocktexture;
@@ -24,17 +32,24 @@ bool (*D3D_renderframe)(int, int, bool) = xD3D11_renderframe;
 
 static void xD3D11_showframe_special(int monid, int mode)
 {
-
+    UAE_LOG_STUB("");
 }
 
 void (*D3D_showframe_special)(int, int) = xD3D11_showframe_special;
 
 static void xD3D11_showframe(int monid)
 {
-
+    UAE_LOG_STUB("");
 }
 
 void (*D3D_showframe)(int) = xD3D11_showframe;
+
+static void xD3D11_flushtexture(int monid, int miny, int maxy)
+{
+	// WinUAE code does not do anything here...
+}
+
+void (*D3D_flushtexture)(int, int, int) = xD3D11_flushtexture;
 
 void D3D_getpixelformat (int *rb, int *gb, int *bb, int *rs, int *gs, int *bs, int *ab, int *as, int *a)
 {
@@ -51,12 +66,17 @@ void D3D_getpixelformat (int *rb, int *gb, int *bb, int *rs, int *gs, int *bs, i
 
 void d3d_select(struct uae_prefs *p)
 {
-
+    UAE_LOG_STUB("");
 }
 
 void Screenshot_RGBinfo (int rb, int gb, int bb, int ab, int rs, int gs, int bs, int as)
 {
+    UAE_LOG_STUB("");
+}
 
+void InitializeDarkMode(void)
+{
+    UAE_LOG_STUB("");
 }
 
 #include "uae/compat/windows.h"
@@ -199,6 +219,10 @@ float vsync_vblank = 0, vsync_hblank = 0;
 int minimized = 0;
 int monitor_off = 0;
 
+#endif
+
+int g_uae_vsync_counter = 0;
+
 int g_amiga_rtg_modes[] = {
     // 640, 360, // 16:9
     // 800, 450, // 16:9
@@ -245,6 +269,8 @@ int g_amiga_rtg_modes[] = {
 };
 
 bool uae_fsvideo_renderframe(int monid, int mode, bool immediate);
+
+#if 0
 
 #if 0
 // FIXME
@@ -694,15 +720,9 @@ uint8_t *uae_get_render_buffer()
 #define R5G5B5A1_MASK_B 0x003e
 #define R5G5B5A1_MASK_A 0x0001
 
-void gui_fps(int fps, int idle, int color)
-{
-    UAE_LOG_STUB_MAX(1, "");
-}
+#endif
 
-int gui_update(void)
-{
-    return 0;
-}
+#if 0
 
 #if 0
 void flush_line(struct vidbuffer *buffer, int line_no)

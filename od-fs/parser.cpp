@@ -555,6 +555,18 @@ int checkserwrite(int spaceneeded)
 	return 1;
 }
 
+void flushser(void)
+{
+	if (false) {
+	} else {
+		while (readseravail(NULL)) {
+			int data;
+			if (readser(&data) <= 0)
+				break;
+		}
+	}
+}
+
 #warning Not handling breakcound...
 int readseravail(bool *breakcond)
 {
@@ -789,8 +801,9 @@ void setserstat (int mask, int onoff)
 #endif
 }
 
-int setbaud (long baud)
+int setbaud(int baud, int origbaud)
 {
+	// Note: Ignoring origbaud parameter for now
 	if (!currprefs.use_serial) {
 		return 1;
 	}

@@ -109,7 +109,8 @@ void target_save_options (struct zfile *f, struct uae_prefs *p) {
     // LOG_STUB("zfile=%p p=%p", f, p);
 }
 
-int target_parse_option (struct uae_prefs *p, const TCHAR *option, const TCHAR *value) {
+int target_parse_option(struct uae_prefs *p, const TCHAR *option, const TCHAR *value, int type)
+{
     STUB("p=%p\n, option=\"%s\"", p, option);
     return 0;
 }
@@ -138,11 +139,6 @@ int enforcer_disable(void)
 
 void refreshtitle (void) {
     STUB("");
-}
-
-void updatedisplayarea(int monid)
-{
-    LOG_STUB("");
 }
 
 void filesys_addexternals(void) {
@@ -240,10 +236,11 @@ bool gui_ask_disk(int drv, TCHAR *name)
     return false;
 }
 
-void target_inputdevice_unacquire(void)
+void target_inputdevice_unacquire(bool full)
 {
     STUB("");
 }
+
 void target_inputdevice_acquire(void)
 {
     STUB("");
@@ -276,4 +273,12 @@ bool frame_drawn (int monid)
 void systray (HWND hwnd, int remove)
 {
 
+}
+
+#include "uae/compat/windows2.h"
+#include "../od-win32/registry.h"
+
+int regsetint(UAEREG *root, const TCHAR *name, int val)
+{
+    return 0;
 }

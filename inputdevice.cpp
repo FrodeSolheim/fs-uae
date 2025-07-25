@@ -10569,3 +10569,166 @@ void inputdevice_draco_key(int kc)
 	}
 #endif
 }
+
+#ifdef FSUAE
+
+#include "uae/fs.h"
+
+void uae_mousehack_helper(int x, int y)
+{
+	/* Register last absolute mouse position */
+	lastmx = x;
+	lastmy = y;
+	/* FIXME: not really sure what the buttonmask parameter does */
+	mousehack_helper(0xffffffff);
+}
+
+#include <fs/i18n.h>
+
+static bool g_amiga_allow_auto_mouse_mode = false;
+static int g_requested_port_modes[4];
+
+static void amiga_set_joystick_port_mode_2 (int port, int mode)
+{
+    const int *ip = NULL;
+#if 0
+    parport_joystick_enabled = 0;
+#endif
+    if (port == 0 || port == 1) {
+        mouse_port[port] = 0;
+        cd32_pad_enabled[port] = 0;
+        for (int j = 0; j < 2; j++) {
+            digital_port[port][j] = 0;
+            analog_port[port][j] = 0;
+            joydirpot[port][j] = 128 / (312 * 100
+                    / currprefs.input_analog_joystick_mult)
+                    + (128 * currprefs.input_analog_joystick_mult / 100)
+                    + currprefs.input_analog_joystick_offset;
+        }
+    }
+
+    if (port == 0) {
+        if (mode == AMIGA_JOYPORT_MOUSE) {
+            ip = ip_mouse1;
+        }
+        else if (mode == AMIGA_JOYPORT_CD32JOY) {
+            ip = ip_joycd321;
+        }
+        else {
+            ip = ip_joy1;
+        }
+    }
+    else if (port == 1) {
+        if (mode == AMIGA_JOYPORT_MOUSE) {
+            ip = ip_mouse2;
+        }
+        else if (mode == AMIGA_JOYPORT_CD32JOY) {
+            ip = ip_joycd322;
+        }
+        else {
+            ip = ip_joy2;
+        }
+    }
+    else if (port == 2) {
+        if (mode == AMIGA_JOYPORT_DJOY) {
+            ip = ip_parjoy1;
+        }
+    }
+    else if (port == 3) {
+        if (mode == AMIGA_JOYPORT_DJOY) {
+            ip = ip_parjoy2;
+        }
+    }
+
+    if (ip) {
+        while (*ip != -1) {
+            iscd32 (*ip);
+            isparport (*ip);
+            ismouse (*ip);
+            isanalog (*ip);
+            isdigitalbutton (*ip);
+            ip++;
+        }
+    }
+
+	// FIXME: We might to plug in this event even lower level, to account for
+	// changes outside of FS-UAE's control.
+	uae_main_post_event(UAE_EVENT_PORT0MODE + port, NULL, mode);
+
+#if 0
+    changed_prefs.jports[port].mode = mode;
+    config_changed = 1;
+    inputdevice_updateconfig(&currprefs);
+#endif
+}
+
+extern "C" {
+
+void amiga_enable_auto_mouse_mode(bool enable)
+{
+    g_amiga_allow_auto_mouse_mode = enable;
+}
+
+void amiga_set_joystick_port_mode(int port, int mode)
+{
+    write_log ("amiga_set_joystick_port_mode port=%d mode=%d\n", port, mode);
+    g_requested_port_modes[port] = mode;
+    return amiga_set_joystick_port_mode_2 (port, mode);
+}
+
+/*
+int amiga_find_input_event_for_key(int key)
+{
+    for (int i = 1; events[i].confname; i++) {
+		if (events[i].allow_mask == AM_K && events[i].data == key) {
+			return i;
+		}
+	}
+	return 0;
+}
+*/
+}
+
+int amiga_handle_input_event (int nr, int state, int max,
+        int autofire, bool canstopplayback, bool playbackevent)
+{
+    switch (nr) {
+    case INPUTEVENT_MOUSE1_HORIZ:
+    case INPUTEVENT_MOUSE1_VERT:
+        if (mouse_port[0] == 0 && g_amiga_allow_auto_mouse_mode) {
+            if (g_requested_port_modes[0] == AMIGA_JOYPORT_DJOY) {
+                /* Require a bit more than the minimum registered motion
+                 * activity to switch mode. */
+                if (state < -3 || state > 3) {
+                    gui_message ("%s", _("[ Port 0 ] Switched to mouse mode"));
+                    amiga_set_joystick_port_mode_2 (0, AMIGA_JOYPORT_MOUSE);
+                }
+            }
+        }
+        break;
+    case INPUTEVENT_JOY1_UP:
+    case INPUTEVENT_JOY1_DOWN:
+    case INPUTEVENT_JOY1_LEFT:
+    case INPUTEVENT_JOY1_RIGHT:
+        if (mouse_port[0] == 1 && g_amiga_allow_auto_mouse_mode) {
+            if (g_requested_port_modes[0] == AMIGA_JOYPORT_DJOY) {
+                gui_message ("%s", _("[ Port 0 ] Switched to joystick mode"));
+                amiga_set_joystick_port_mode_2 (0, AMIGA_JOYPORT_DJOY);
+            }
+        }
+        break;
+    }
+	int flags = 0;
+	if (autofire) {
+		flags = flags | HANDLE_IE_FLAG_AUTOFIRE;
+	}
+	if (canstopplayback) {
+		flags = flags | HANDLE_IE_FLAG_CANSTOPPLAYBACK;
+	}
+	if (playbackevent) {
+		flags = flags | HANDLE_IE_FLAG_PLAYBACKEVENT;
+	}
+    return handle_input_event (nr, state, max, flags);
+}
+
+#endif // FS-UAE

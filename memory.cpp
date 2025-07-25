@@ -4299,3 +4299,57 @@ uae_u8 dma_get_byte(uaecptr addr)
 		return 0xff;
 	return get_byte(addr);
 }
+
+#ifdef FSUAE
+
+int uae_get_memory_checksum(void *data, int size)
+{
+	uint32_t checksum = 0;
+	int bank_size;
+	uint32_t *mem;
+	int pos = 0;
+
+	mem = (uint32_t *) chipmem_bank.baseaddr;
+	bank_size = chipmem_bank.allocated_size / 4;
+	if (data) {
+		if (pos + bank_size * 4 <= size) {
+			memcpy((char *) data + pos, mem, bank_size * 4);
+		}
+		pos += bank_size * 4;
+	}
+	for (int i = 0; i < bank_size; i++) {
+		//checksum = (checksum + *mem) & 0x00ffffff;
+		checksum += *mem;
+		mem++;
+	}
+
+	mem = (uint32_t *) bogomem_bank.baseaddr;
+	bank_size = bogomem_bank.allocated_size / 4;
+	if (data) {
+		if (pos + bank_size * 4 <= size) {
+			memcpy((char *) data + pos, mem, bank_size * 4);
+		}
+		pos += bank_size * 4;
+	}
+	for (int i = 0; i < bank_size; i++) {
+		checksum += *mem;
+		mem++;
+	}
+
+	mem = (uint32_t *) fastmem_bank[0].baseaddr;
+	bank_size = fastmem_bank[0].allocated_size / 4;
+	if (data) {
+		if (pos + bank_size * 4 <= size) {
+			memcpy((char *) data + pos, mem, bank_size * 4);
+		}
+		pos += bank_size * 4;
+	}
+	for (int i = 0; i < bank_size; i++) {
+		checksum += *mem;
+		mem++;
+	}
+
+	return checksum;
+}
+
+#endif

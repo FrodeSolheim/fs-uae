@@ -292,6 +292,13 @@ void debugger_change (int mode)
 	openconsole ();
 }
 
+void open_console(void)
+{
+	if (!consoleopen) {
+		openconsole();
+	}
+}
+
 void reopen_console (void)
 {
 #ifdef _WIN32

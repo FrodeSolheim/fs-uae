@@ -1449,6 +1449,9 @@ void show_screen(int monid, int mode)
 		return;
 	}
 	if (mon->currentmode.flags & DM_D3D) {
+#ifdef FSUAE
+		// Not doing strobo atm
+#else
 		if (ap->gfx_strobo && currprefs.gfx_variable_sync) {
 			float vblank = vblank_hz;
 			int ratio = currprefs.lightboost_strobo_ratio;
@@ -1458,6 +1461,7 @@ void show_screen(int monid, int mode)
 			strobo_time = read_processor_time() + vsynctimebase * ratio / 100;
 			timeSetEvent(waitms, 0, blackinsertion_cb, NULL, TIME_ONESHOT | TIME_CALLBACK_FUNCTION);
 		}
+#endif
 #if 0
 		if (ap->gfx_vsync < 0 && ap->gfx_strobo && currprefs.gfx_api < 2) {
 			float vblank = vblank_hz;
@@ -3438,6 +3442,10 @@ end:
 
 float target_getcurrentvblankrate(int monid)
 {
+#ifdef FSUAE
+	#warning Using fixed 50 Hz
+	return 50;
+#else
 	struct AmigaMonitor *mon = &AMonitors[monid];
 	float vb;
 	if (currprefs.gfx_variable_sync)
@@ -3447,6 +3455,7 @@ float target_getcurrentvblankrate(int monid)
 	} else {
 		return D3D_getrefreshrate(0);
 	}
+#endif
 }
 
 static void movecursor (int x, int y)
@@ -4217,7 +4226,11 @@ static void updatedisplayarea2(int monid)
 	struct amigadisplay *ad = &adisplays[monid];
 	if (!mon->screen_is_initialized)
 		return;
+#ifdef FSUAE
+	UAE_LOG_STUB("");
+#else
 	D3D_refresh(monid);
+#endif
 }
 
 void updatedisplayarea(int monid)
@@ -4259,6 +4272,9 @@ void updatewinfsmode(int monid, struct uae_prefs *p)
 
 bool toggle_3d_debug(void)
 {
+#ifdef FSUAE
+	UAE_LOG_STUB("");
+#else
 	if (isvsync_chipset() < 0) {
 		beamracer_debug = !beamracer_debug;
 		if (D3D_debug) {
@@ -4268,6 +4284,7 @@ bool toggle_3d_debug(void)
 		return true;
 	}
 	return false;
+#endif
 }
 
 int rtg_index = -1;
@@ -4427,6 +4444,9 @@ void toggle_fullscreen(int monid, int mode)
 	updatewinfsmode(monid, &changed_prefs);
 }
 
+#ifdef FSUAE
+#else
+
 HDC gethdc(int monid)
 {
 	HDC hdc = 0;
@@ -4443,6 +4463,8 @@ void releasehdc(int monid, HDC hdc)
 		return;
 	}
 }
+
+#endif
 
 const TCHAR *outGUID(const GUID *guid)
 {

@@ -29,6 +29,16 @@ void od_fs_update_leds(void) {
     uae_callback(uae_on_update_leds, &g_uae_led_data);
 }
 
+bool isguiactive(void)
+{
+	return true;
+}
+
+int gui_update (void)
+{
+	return 1;
+}
+
 static void gui_flicker_led2 (int led, int unitnum, int status)
 {
     static int resetcounter[LED_MAX];
@@ -76,6 +86,11 @@ void gui_flicker_led (int led, int unitnum, int status) {
     else {
         gui_flicker_led2 (led, unitnum, status);
     }
+}
+
+void gui_fps (int fps, int lines, bool lace, int idle, int color)
+{
+    UAE_LOG_STUB_MAX(1, "");
 }
 
 void gui_led (int led, int state, int brightness)
@@ -133,6 +148,11 @@ void gui_led (int led, int state, int brightness)
         }
         g_amiga_led_function(led, out_state, brightness);
     }
+}
+
+int gui_message_multibutton (int flags, const TCHAR *format,...)
+{
+    UAE_LOG_STUB("");
 }
 
 extern "C" {

@@ -4,6 +4,9 @@
 
 #ifdef GFXFILTER
 
+#ifdef FSUAE
+#else
+
 #include "options.h"
 #include "custom.h"
 #include "xwin.h"
@@ -19,6 +22,8 @@
 
 #define AUTORESIZE_FRAME_DELAY 10
 
+#endif
+
 static float filteroffsetx, filteroffsety, filterxmult = 1.0, filterymult = 1.0;
 
 void getfilteroffset(int monid, float *dx, float *dy, float *mx, float *my)
@@ -28,6 +33,9 @@ void getfilteroffset(int monid, float *dx, float *dy, float *mx, float *my)
 	*mx = filterxmult;
 	*my = filterymult;
 }
+
+#ifdef FSUAE
+#else
 
 static void sizeoffset(struct displayscale *ds, int w, int h)
 {
@@ -827,3 +835,5 @@ uae_u8 *getfilterbuffer(int monid, int *widthp, int *heightp, int *pitch, int *d
 }
 
 #endif
+
+#endif // !FSUAE

@@ -11,6 +11,8 @@
 
 int tablet_log = 0;
 
+int key_swap_hack = 0;
+
 static int g_joystick_port_autofire[4];
 
 void amiga_set_joystick_port_autofire(int port, int autofire)
@@ -213,12 +215,7 @@ bool handle_events(void)
     return false;
 }
 
-int input_get_default_lightpen(struct uae_input_device *uid,
-                               int i,
-                               int port,
-                               int af,
-                               bool gp,
-                               bool joymouseswap)
+int input_get_default_lightpen (struct uae_input_device *uid, int i, int port, int af, bool gp, bool joymouseswap, int submode)
 {
     return 0;
 }
@@ -241,7 +238,7 @@ void gui_gameport_button_change(int port, int button, int onoff)
  *   - maybe_read_input
  * - inputdevice_hsync (vpos = 0)
  */
-int handle_msgpump(void)
+int handle_msgpump(bool vblank)
 {
     // FIXME: call g_libamiga_callbacks.event from hsync handler instead?
     static int last_vpos;
@@ -280,4 +277,9 @@ int is_tablet(void)
 bool target_can_autoswitchdevice(void)
 {
     return false;
+}
+
+void release_keys(void)
+{
+    UAE_LOG_STUB("");
 }

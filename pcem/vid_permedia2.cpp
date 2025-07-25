@@ -32,6 +32,10 @@ Not emulated and Someone Else's Problem:
 #include "vid_svga_render.h"
 #include "vid_sdac_ramdac.h"
 
+#ifdef FSUAE
+#include "uae/compat/windows.h"
+#endif
+
 #define BLIT_LOG 0
 
 #define FRACT_ONE (1 << 16)

@@ -24,6 +24,7 @@ CM_CFLAGS += @QT_CFLAGS@
 CM_CFLAGS += @SDL3_CFLAGS@
 CM_CFLAGS += @SDL3_IMAGE_CFLAGS@
 CM_CFLAGS += @SDL3_TTF_CFLAGS@
+CM_CFLAGS += @TINYXML2_CFLAGS@
 CM_CFLAGS += @X11_CFLAGS@
 CM_CFLAGS += @ZLIB_CFLAGS@
 CM_CFLAGS += $(WARNINGS)
@@ -92,6 +93,7 @@ LIBS += @PYTHON3_LIBS@
 LIBS += @SDL3_LIBS@
 LIBS += @SDL3_IMAGE_LIBS@
 LIBS += @SDL3_TTF_LIBS@
+LIBS += @TINYXML2_LIBS@
 LIBS += @X11_LIBS@
 LIBS += @ZLIB_LIBS@
 
@@ -134,7 +136,7 @@ bin_PROGRAMS = fs-uae
 
 libexec_PROGRAMS =
 
-dist_doc_DATA = README.md COPYING
+dist_doc_DATA =
 
 #noinst_PROGRAMS = \
 #	gen/build68k \
@@ -291,6 +293,7 @@ libuae_a_SOURCES = \
 	../../debugmem.cpp \
 	../../def_icons.cpp \
 	../../devices.cpp \
+	../../disasm.cpp \
 	../../disk.cpp \
 	../../diskutil.cpp \
 	../../dlopen.cpp \
@@ -597,6 +600,7 @@ libuae_a_SOURCES = \
 	../../od-win32/picasso96_win.cpp \
 	../../od-win32/picasso96_win.h \
 	../../od-win32/serial_win32.cpp \
+	../../od-win32/win32_scaler.cpp \
 	../../od-win32/win32_uaenet.cpp \
 	../../od-win32/win32.cpp \
 	../../od-win32/win32.h \
@@ -1150,6 +1154,10 @@ libpcem_a_SOURCES = \
 	../../pcem/vid_svga_render.h \
 	../../pcem/vid_svga.cpp \
 	../../pcem/vid_svga.h \
+	../../pcem/vid_s3_virge.cpp \
+	../../pcem/vid_s3_virge.h \
+	../../pcem/vid_permedia2.cpp \
+	../../pcem/vid_permedia2.h \
 	../../pcem/video.h \
 	../../pcem/x86_flags.h \
 	../../pcem/x86_ops_arith.h \
@@ -1343,7 +1351,6 @@ libprowizard_a_SOURCES = \
 	../../prowizard/rippers/NoisePacker1.c \
 	../../prowizard/rippers/NoisePacker2.c \
 	../../prowizard/rippers/NoiseRunner.c \
-	../../prowizard/rippers/NovoTrade.c \
 	../../prowizard/rippers/NP3.c \
 	../../prowizard/rippers/PhaPacker.c \
 	../../prowizard/rippers/PolkaPacker.c \

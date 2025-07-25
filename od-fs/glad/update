@@ -1,0 +1,4 @@
+#!/bin/sh
+set -e
+python3 -m glad --generator=c --out-path=glad \
+--extensions=GL_NV_fence,GL_APPLE_fence

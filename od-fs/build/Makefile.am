@@ -233,7 +233,6 @@ libuae_a_SOURCES = \
 	../../amax.cpp \
 	../../ar.cpp \
 	../../arcadia.cpp \
-	../../aros.rom.cpp \
 	../../archivers/dms/cdata.h \
 	../../archivers/dms/crc_csum.cpp \
 	../../archivers/dms/crc_csum.h \
@@ -262,6 +261,7 @@ libuae_a_SOURCES = \
 	../../archivers/wrp/warp.h \
 	../../archivers/zip/unzip.cpp \
 	../../archivers/zip/unzip.h \
+	../../aros.rom.cpp \
 	../../audio.cpp \
 	../../autoconf.cpp \
 	../../blit.h \
@@ -642,16 +642,6 @@ libuae_a_SOURCES = \
 	../../scsiemul.cpp \
 	../../scsitape.cpp \
 	../../slirp_uae.cpp \
-	../../softfloat/softfloat_decimal.cpp \
-	../../softfloat/softfloat_decimal.cpp \
-	../../softfloat/softfloat_fpsp_tables.h \
-	../../softfloat/softfloat_fpsp.cpp \
-	../../softfloat/softfloat_fpsp.cpp \
-	../../softfloat/softfloat-macros.h \
-	../../softfloat/softfloat-specialize.h \
-	../../softfloat/softfloat.cpp \
-	../../softfloat/softfloat.cpp \
-	../../softfloat/softfloat.h \
 	../../specialmonitors.cpp \
 	../../statusline.cpp \
 	../../support/socket.cpp \
@@ -684,38 +674,38 @@ BUILT_SOURCES += $(nodist__libs_libuae_a_SOURCES)
 noinst_LIBRARIES += libcpuemu.a
 fs_uae_LDADD += libcpuemu.a
 libcpuemu_a_SOURCES = \
-        ../../cpuemu_0.cpp \
-        ../../cpuemu_11.cpp \
-        ../../cpuemu_13.cpp \
-        ../../cpuemu_20.cpp \
-        ../../cpuemu_21.cpp \
-        ../../cpuemu_22.cpp \
-        ../../cpuemu_23.cpp \
-        ../../cpuemu_24.cpp \
-        ../../cpuemu_31.cpp \
-        ../../cpuemu_32.cpp \
-        ../../cpuemu_33.cpp \
-        ../../cpuemu_34.cpp \
-        ../../cpuemu_35.cpp \
-        ../../cpuemu_40.cpp \
-        ../../cpuemu_50.cpp
+	../../cpuemu_0.cpp \
+	../../cpuemu_11.cpp \
+	../../cpuemu_13.cpp \
+	../../cpuemu_20.cpp \
+	../../cpuemu_21.cpp \
+	../../cpuemu_22.cpp \
+	../../cpuemu_23.cpp \
+	../../cpuemu_24.cpp \
+	../../cpuemu_31.cpp \
+	../../cpuemu_32.cpp \
+	../../cpuemu_33.cpp \
+	../../cpuemu_34.cpp \
+	../../cpuemu_35.cpp \
+	../../cpuemu_40.cpp \
+	../../cpuemu_50.cpp
 
 #nodist_src_libcpuemu_a_SOURCES = \
-#        gen/cpuemu_0.cpp \
-#        gen/cpuemu_11.cpp \
-#        gen/cpuemu_13.cpp \
-#        gen/cpuemu_20.cpp \
-#        gen/cpuemu_21.cpp \
-#        gen/cpuemu_22.cpp \
-#        gen/cpuemu_23.cpp \
-#        gen/cpuemu_24.cpp \
-#        gen/cpuemu_31.cpp \
-#        gen/cpuemu_32.cpp \
-#        gen/cpuemu_33.cpp \
-#        gen/cpuemu_34.cpp \
-#        gen/cpuemu_35.cpp \
-#        gen/cpuemu_40.cpp \
-#        gen/cpuemu_50.cpp
+#	gen/cpuemu_0.cpp \
+#	gen/cpuemu_11.cpp \
+#	gen/cpuemu_13.cpp \
+#	gen/cpuemu_20.cpp \
+#	gen/cpuemu_21.cpp \
+#	gen/cpuemu_22.cpp \
+#	gen/cpuemu_23.cpp \
+#	gen/cpuemu_24.cpp \
+#	gen/cpuemu_31.cpp \
+#	gen/cpuemu_32.cpp \
+#	gen/cpuemu_33.cpp \
+#	gen/cpuemu_34.cpp \
+#	gen/cpuemu_35.cpp \
+#	gen/cpuemu_40.cpp \
+#	gen/cpuemu_50.cpp
 #BUILT_SOURCES += $(nodist_src_libcpuemu_a_SOURCES)
 
 noinst_LIBRARIES += libfsemu0.a
@@ -1395,29 +1385,21 @@ libprowizard_a_SOURCES = \
 	../../prowizard/rippers/ZenPacker.c
 endif
 
-#if WITH_SOFTFLOAT
-#noinst_LIBRARIES += libsoftfloat.a
-#AM_CPPFLAGS += -I$(s)/softfloat
-#fs_uae_LDADD += libsoftfloat.a
-#libsoftfloat_a_SOURCES = \
-#	softfloat/softfloat-uae.h \
-#	softfloat/fprem.cc \
-#	softfloat/fpu_constant.h \
-#	softfloat/fsincos.cc \
-#	softfloat/poly.cc \
-#	softfloat/softfloat16.cc \
-#	softfloat/softfloat.cc \
-#	softfloat/softfloat-compare.h \
-#	softfloat/softfloat.h \
-#	softfloat/softfloat-macros.h \
-#	softfloat/softfloat-muladd.cc \
-#	softfloat/softfloat-round-pack.cc \
-#	softfloat/softfloat-round-pack.h \
-#	softfloat/softfloat-specialize.cc \
-#	softfloat/softfloat-specialize.h \
-#	softfloat/softfloatx80.cc \
-#	softfloat/softfloatx80.h
-#endif
+if WITH_SOFTFLOAT
+noinst_LIBRARIES += libsoftfloat.a
+fs_uae_LDADD += libsoftfloat.a
+libsoftfloat_a_SOURCES = \
+	../../softfloat/softfloat_decimal.cpp \
+	../../softfloat/softfloat_decimal.cpp \
+	../../softfloat/softfloat_fpsp_tables.h \
+	../../softfloat/softfloat_fpsp.cpp \
+	../../softfloat/softfloat_fpsp.cpp \
+	../../softfloat/softfloat-macros.h \
+	../../softfloat/softfloat-specialize.h \
+	../../softfloat/softfloat.cpp \
+	../../softfloat/softfloat.cpp \
+	../../softfloat/softfloat.h
+endif
 
 if WITH_LIBMPEG2
 CM_CFLAGS += @LIBMPEG2_CFLAGS@

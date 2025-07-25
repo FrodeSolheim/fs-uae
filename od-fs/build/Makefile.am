@@ -32,9 +32,11 @@ CM_CFLAGS += $(WARNINGS)
 if F_NO_STRICT_OVERFLOW
 CM_CFLAGS += -fno-strict-overflow
 endif
+
 if F_NO_STRICT_ALIASING
 CM_CFLAGS += -fno-strict-aliasing
 endif
+
 if W_NO_FORMAT_TRUNCATION
 if MACOS
 # For some reason clang on mac at least passes the configure test for
@@ -44,9 +46,11 @@ else
 CM_CFLAGS += -Wno-format-truncation
 endif
 endif
+
 if W_ADDRESS
 CM_CFLAGS += -Waddress
 endif
+
 #if W_MISSING_FORMAT_ATTRIBUTE
 #CM_CFLAGS += -Wmissing-format-attribute
 #endif
@@ -54,14 +58,15 @@ endif
 # if W_MISSING_DECLARATIONS
 # CM_CFLAGS += -Wmissing-declarations
 # endif
+
 if W_ERROR_MISSING_DECLARATIONS
-# FIXME: Readd for C code!
+# FIXME: Re-add for C code!
 # CM_CFLAGS += -Werror=missing-declarations
 endif
+
 if W_POINTER_ARITH
 CM_CFLAGS += -Wpointer-arith
 endif
-
 
 CM_CFLAGS += -fvisibility=hidden
 
@@ -157,7 +162,7 @@ AM_CPPFLAGS += -I$(s)/../fsapp
 AM_CPPFLAGS += -I$(s)/../fsgui
 AM_CPPFLAGS += -I$(s)/../fslib
 AM_CPPFLAGS += -I$(s)/../fsuae
-fs_uae_SOURCES = \
+
 fs_uae_SOURCES = \
 	../fsapp/fsapp-channel.c \
 	../fsapp/fsapp-channel.h \
@@ -290,6 +295,7 @@ libuae_a_SOURCES = \
 	../../crc32.cpp \
 	../../custom.cpp \
 	../../debug.cpp \
+	../../debuginfo.cpp \
 	../../debugmem.cpp \
 	../../def_icons.cpp \
 	../../devices.cpp \
@@ -607,6 +613,7 @@ libuae_a_SOURCES = \
 	../../od-win32/win32gfx.h \
 	../../od-win32/win32gui.cpp \
 	../../od-win32/win32gui.h \
+	../../patch.cpp \
 	../../pci.cpp \
 	../../ppc/ppc.cpp \
 	../../qemuvga/cirrus_vga_rop.h \
@@ -641,6 +648,7 @@ libuae_a_SOURCES = \
 	../../scsi.cpp \
 	../../scsiemul.cpp \
 	../../scsitape.cpp \
+	../../segtracker.cpp \
 	../../slirp_uae.cpp \
 	../../specialmonitors.cpp \
 	../../statusline.cpp \

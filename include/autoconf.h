@@ -300,4 +300,10 @@ extern const struct memoryboardtype memoryboards[];
 #define BOARD_PCI 7
 #define BOARD_IGNORE 8
 
+#ifdef FSUAE
+
+void filesys_hsync(void);
+
+#endif // FSUAE
+
 #endif /* UAE_AUTOCONF_H */

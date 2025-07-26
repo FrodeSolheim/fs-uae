@@ -2,7 +2,16 @@
 
 .deps/
 .dirstamp
+*.a
 *~
+/fs-uae
+/fs-uae.exe
+aclocal.m4
+autom4te.cache/
+config.status
+configure
+Makefile
+Makefile.in
 
 # WinUAE
 

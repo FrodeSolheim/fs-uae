@@ -10,10 +10,10 @@ m4_define([fsbuild_version_revision], [0])
 m4_define([fsbuild_commit], [])
 
 AC_INIT([FS-UAE],[fsbuild_version],[frode@fs-uae.net],[fs-uae],[https://fs-uae.net])
-AC_CONFIG_AUX_DIR([.])
+AC_CONFIG_AUX_DIR([build/aux])
 AC_CANONICAL_HOST
-AC_CONFIG_SRCDIR([../../main.cpp])
-AC_CONFIG_HEADERS([config.h])
+AC_CONFIG_SRCDIR([./main.cpp])
+AC_CONFIG_HEADERS([od-fs/config.h])
 
 AC_DEFINE([FSBUILD_VERSION], ["fsbuild_version"], [Version])
 AC_DEFINE_UNQUOTED([FSBUILD_VERSION_MAJOR], [fsbuild_version_major], [Major])
@@ -28,7 +28,7 @@ AC_SUBST(FSBUILD_VERSION_MINOR)
 AC_SUBST(FSBUILD_VERSION_REVISION)
 AC_SUBST(FSBUILD_COMMIT)
 
-AC_CONFIG_MACRO_DIRS([m4])
+AC_CONFIG_MACRO_DIRS([build/m4])
 
 AM_INIT_AUTOMAKE([tar-ustar subdir-objects])
 
@@ -900,7 +900,7 @@ AC_DEFINE([FPU_UAE], [1], [Define to 1])
 # Write Makefile
 
 AC_CONFIG_FILES([
-    fs-uae.rc
+    od-fs/fs-uae.rc
     Makefile
 ])
 AC_OUTPUT

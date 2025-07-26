@@ -398,9 +398,12 @@ static void compute_passed_time_cia(int num, uae_u32 ciaclocks)
 static void compute_passed_time(void)
 {
 	evt_t ccount = get_cycles() - eventtab[ev_cia].oldcycles;
+#if 0
+	// FIXME: No longer valid when evt_t is 64-bit
 	if (ccount > MAXINT) {
 		ccount = MAXINT;
 	}
+#endif
 	uae_u32 ciaclocks = (uae_u32)ccount / DIV10;
 
 	compute_passed_time_cia(0, ciaclocks);
@@ -498,9 +501,12 @@ in the same cycle.  */
 static void CIA_update_check(void)
 {
 	evt_t ccount = get_cycles() - eventtab[ev_cia].oldcycles;
+#if 0
+	// FIXME: No longer valid when evt_t is 64-bit
 	if (ccount > MAXINT) {
 		ccount = MAXINT;
 	}
+#endif
 	int ciaclocks = (uae_u32)(ccount / DIV10);
 	if (!ciaclocks) {
 		return;

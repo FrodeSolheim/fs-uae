@@ -40,7 +40,7 @@ using namespace std;
 #define UAE
 #endif
 
-#if defined(_M_ARM64) || defined(_M_ARM64EC) 
+#if defined(_M_ARM64) || defined(_M_ARM64EC) || defined(__aarch64__)
 #define CPU_arm 1
 #define ARM_ASSEMBLY 1
 #define CPU_64_BIT 1
@@ -176,6 +176,15 @@ struct utimbuf
 };
 #endif
 
+#ifdef FSUAE
+
+#include "uae/types.h"
+
+#define VAL64(a) (a ## ll)
+#define UVAL64(a) (a ## ull)
+
+#else
+
 /* If char has more then 8 bits, good night. */
 typedef unsigned char uae_u8;
 typedef signed char uae_s8;
@@ -223,6 +232,8 @@ typedef uae_u32 uaecptr;
 #define uae_u64 unsigned __int64
 #define VAL64(a) (a)
 #define UVAL64(a) (a)
+#endif
+
 #endif
 
 #ifdef FSUAE

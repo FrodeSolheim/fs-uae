@@ -24,7 +24,6 @@ CM_CFLAGS += @QT_CFLAGS@
 CM_CFLAGS += @SDL3_CFLAGS@
 CM_CFLAGS += @SDL3_IMAGE_CFLAGS@
 CM_CFLAGS += @SDL3_TTF_CFLAGS@
-CM_CFLAGS += @TINYXML2_CFLAGS@
 CM_CFLAGS += @X11_CFLAGS@
 CM_CFLAGS += @ZLIB_CFLAGS@
 CM_CFLAGS += $(WARNINGS)
@@ -71,10 +70,11 @@ endif
 CM_CFLAGS += -fvisibility=hidden
 
 AM_CFLAGS =
-AM_CFLAGS += $(CM_CFLAGS) -std=gnu99
+AM_CFLAGS += $(CM_CFLAGS) -std=c11
 
 AM_CXXFLAGS =
 AM_CXXFLAGS += $(CM_CFLAGS)
+AM_CXXFLAGS += -Wno-c++11-narrowing
 
 AM_CPPFLAGS =
 AM_CPPFLAGS += @OS_CPPFLAGS@
@@ -98,7 +98,6 @@ LIBS += @PYTHON3_LIBS@
 LIBS += @SDL3_LIBS@
 LIBS += @SDL3_IMAGE_LIBS@
 LIBS += @SDL3_TTF_LIBS@
-LIBS += @TINYXML2_LIBS@
 LIBS += @X11_LIBS@
 LIBS += @ZLIB_LIBS@
 
@@ -158,10 +157,10 @@ BUILT_SOURCES =
 
 nodist_fs_uae_SOURCES =
 
-AM_CPPFLAGS += -I$(s)/../fsapp
-AM_CPPFLAGS += -I$(s)/../fsgui
-AM_CPPFLAGS += -I$(s)/../fslib
-AM_CPPFLAGS += -I$(s)/../fsuae
+AM_CPPFLAGS += -I$(s)/src/fsapp
+AM_CPPFLAGS += -I$(s)/src/fsgui
+AM_CPPFLAGS += -I$(s)/src/fslib
+AM_CPPFLAGS += -I$(s)/src/fsuae
 
 fs_uae_SOURCES = \
 	src/fsapp/fsapp-channel.c \
@@ -221,14 +220,11 @@ endif
 fs_uae_LDADD =
 
 noinst_LIBRARIES += libuae.a
-AM_CPPFLAGS += -I$(b)/../gen
-AM_CPPFLAGS += -I$(s)/../include
-AM_CPPFLAGS += -I$(s)/../../od-fs
-AM_CPPFLAGS += -I$(s)/../../od-fs/include
-AM_CPPFLAGS += -I$(s)/../src/flac/include
-AM_CPPFLAGS += -I$(s)/../..
-AM_CPPFLAGS += -I$(s)/../../include
-AM_CPPFLAGS += -I$(s)/../../jit
+AM_CPPFLAGS += -I$(s)/include
+AM_CPPFLAGS += -I$(s)/jit
+AM_CPPFLAGS += -I$(s)/od-fs
+AM_CPPFLAGS += -I$(s)/od-fs/include
+AM_CPPFLAGS += -I$(s)/od-fs/flac/include
 fs_uae_LDADD += libuae.a
 # libuae_a_CXXFLAGS = $(CM_CFLAGS) -fpermissive
 libuae_a_SOURCES = \
@@ -427,6 +423,7 @@ libuae_a_SOURCES = \
 	include/statusline.h \
 	include/sysdeps.h \
 	include/tabletlibrary.h \
+	include/tinyxml2.h \
 	include/traps.h \
 	include/uae.h \
 	include/uae/ahi.h \
@@ -655,6 +652,7 @@ libuae_a_SOURCES = \
 	support/socket.cpp \
 	support/time.cpp \
 	test_card.cpp \
+	tinyxml2.cpp \
 	traps.cpp \
 	uaeexe.cpp \
 	uaelib.cpp \
@@ -717,7 +715,7 @@ libcpuemu_a_SOURCES = \
 #BUILT_SOURCES += $(nodist_src_libcpuemu_a_SOURCES)
 
 noinst_LIBRARIES += libfsemu0.a
-AM_CPPFLAGS += -I$(s)/../libfsemu/include
+AM_CPPFLAGS += -I$(s)/src/libfsemu/include
 fs_uae_LDADD += libfsemu0.a
 libfsemu0_a_SOURCES = \
 	src/libfsemu/include/fs/base.h \
@@ -760,7 +758,7 @@ libfsemu0_a_SOURCES = \
 if FSEMU
 
 noinst_LIBRARIES += libfsemu.a
-AM_CPPFLAGS += -I$(s)/../fsemu
+AM_CPPFLAGS += -I$(s)/src/fsemu
 fs_uae_LDADD += libfsemu.a
 libfsemu_a_SOURCES = \
 	src/fsemu/fsemu-action.c \

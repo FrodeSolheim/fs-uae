@@ -340,8 +340,6 @@ PKG_CHECK_MODULES([SDL3_IMAGE], [sdl3-image])
 
 PKG_CHECK_MODULES([PYTHON3], [python3-embed])
 
-PKG_CHECK_MODULES([TINYXML2], [tinyxml2])
-
 AS_CASE([$host_os],
 [mingw*], [],
 [darwin*], [],

@@ -70,7 +70,7 @@ endif
 CM_CFLAGS += -fvisibility=hidden
 
 AM_CFLAGS =
-AM_CFLAGS += $(CM_CFLAGS) -std=c11
+AM_CFLAGS += $(CM_CFLAGS) -std=gnu11
 
 AM_CXXFLAGS =
 AM_CXXFLAGS += $(CM_CFLAGS)
@@ -983,7 +983,7 @@ endif
 
 if WITH_GLAD
 noinst_LIBRARIES += libglad.a
-AM_CPPFLAGS += -I$(s)/../glad/include
+AM_CPPFLAGS += -I$(s)/od-fs/glad/include
 fs_uae_LDADD += libglad.a
 libglad_a_SOURCES = \
 	od-fs/glad/src/glad.c
@@ -1304,7 +1304,7 @@ endif
 
 if PROWIZARD
 noinst_LIBRARIES += libprowizard.a
-AM_CPPFLAGS += -I$(s)/../../prowizard/include
+AM_CPPFLAGS += -I$(s)/prowizard/include
 fs_uae_LDADD += libprowizard.a
 fs_uae_SOURCES += moduleripper.cpp
 libprowizard_a_SOURCES = \

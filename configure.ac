@@ -34,7 +34,7 @@ AM_INIT_AUTOMAKE([tar-ustar subdir-objects])
 
 AC_SUBST([PACKAGE_SERIES], [devel])
 
-AC_DEFINE_UNQUOTED([UAE_BASE_VERSION], ["WinUAE 4.2.1"],
+AC_DEFINE_UNQUOTED([UAE_BASE_VERSION], ["WinUAE 6.0"],
 [Which UAE core this version is based on.])
 
 PACKAGE_MAJOR=`echo ${PACKAGE_VERSION} | sed -e 's,\(\.*\)\..*\..*,\1,g'`
@@ -898,7 +898,7 @@ AC_DEFINE([FPU_UAE], [1], [Define to 1])
 # Write Makefile
 
 AC_CONFIG_FILES([
-    od-fs/fs-uae.rc
+    src/fs-uae.rc
     Makefile
 ])
 AC_OUTPUT

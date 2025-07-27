@@ -115,7 +115,7 @@ typedef unsigned short USHORT;
 // #undef _WIN32
 // #undef WIN32
 
-#include "../include/sysdeps.h"
+#include "sysdeps.h"
 
 #undef ENUMNAME
 #undef ENUMDECL

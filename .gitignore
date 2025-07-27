@@ -16,7 +16,10 @@ Makefile.in
 # Temporary ignores
 
 /.vscode/launch.json
+/Configurations
 /Data
+/Floppies
+/Games
 /python
 /src/fsapp
 /src/fsemu

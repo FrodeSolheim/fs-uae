@@ -6,13 +6,6 @@
 * Copyright 1997 Bernd Schmidt
 */
 
-#include "uae/types.h"
-#ifdef FSUAE
-//#include "uae/compat/windows.h"
-#include <stdint.h>
-typedef uint32_t DWORD;
-#endif
-
 #define SOUNDSTUFF 1
 
 extern uae_u16 paula_sndbuffer[];

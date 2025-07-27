@@ -57,6 +57,10 @@
 #include "specialmonitors.h"
 #endif
 
+#ifdef FSUAE
+#include "uae/fs.h"
+#endif
+
 #define VPOSW_DISABLED 0
 #define VPOSW_DEBUG 0
 
@@ -6545,6 +6549,17 @@ static void hsync_handler(bool vs)
 
 	hsync_handler_pre(vs);
 	if (vs) {
+#ifdef FSUAE
+		// amiga_flush_audio();
+		uae_fs_end_frame();
+
+	// Note: devices_vsync_pre below indirectly calls gui_display in WinUAE which in
+	// turn calls gui_to_prefs (which updates changed_prefs when the dialog is closed).
+	// So this seems to be the correct place to modify changed_prefs.
+	// FIXME: Check that this is still true
+	uae_fs_apply_pending_config_changes();
+
+#endif
 		devices_vsync_pre();
 		if (savestate_check()) {
 			uae_reset(0, 0);

@@ -30,7 +30,7 @@ static void unacquire_kb (int num)
 
 static void read_kb (void)
 {
-	UAE_LOG_STUB ("");
+	UAE_LOG_STUB_MAX(1, "");
 }
 
 static int get_kb_num (void)

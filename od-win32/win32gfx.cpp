@@ -2146,7 +2146,7 @@ void WIN32GFX_DisplayChangeRequested(int mode)
 int check_prefs_changed_gfx(void)
 {
 #ifdef FSUAE
-	UAE_LOG_STUB("");
+	// UAE_LOG_STUB("");
 	return 0;
 #else
 	int c = 0;

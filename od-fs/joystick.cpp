@@ -27,7 +27,7 @@ static void unacquire_joystick (int num)
 
 static void read_joystick (void)
 {
-	UAE_LOG_STUB ("");
+	UAE_LOG_STUB_MAX(1, "");
 }
 
 static int get_joystick_num (void)

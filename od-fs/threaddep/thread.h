@@ -1,10 +1,11 @@
 #ifndef THREADDEP_THREAD_H
 #define THREADDEP_THREAD_H
 
-#include <stddef.h>
-
 #include "uae/log.h"
+
 #include "fsemu-semaphore.h"
+
+#include <stddef.h>
 
 typedef fsemu_semaphore_t *uae_sem_t;
 
@@ -92,4 +93,4 @@ uae_thread_id uae_thread_get_id(void);
 
 #include "commpipe.h"
 
-#endif /* THREADDEP_THREAD_H */
+#endif // THREADDEP_THREAD_H

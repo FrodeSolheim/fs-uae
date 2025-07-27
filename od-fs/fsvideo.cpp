@@ -33,7 +33,7 @@ uae_u8 * (*D3D_locktexture)(int, int *, int *, int *, int) = xD3D11_locktexture;
 
 static void xD3D11_unlocktexture(int monid, int y_start, int y_end)
 {
-    UAE_LOG_STUB("");
+    // UAE_LOG_STUB("");
 }
 
 void (*D3D_unlocktexture)(int, int, int) = xD3D11_unlocktexture;
@@ -43,7 +43,7 @@ static bool uae_fsvideo_renderframe(int monid, int mode, bool immediate);
 static bool xD3D11_renderframe(int monid, int mode, bool immediate)
 {
     static int counter = 0;
-    printf("RENDER FRAME %d\n", counter);
+    // printf("RENDER FRAME %d\n", counter);
     counter += 1;
 
     uae_fsvideo_renderframe(monid, mode, immediate);
@@ -62,7 +62,7 @@ void (*D3D_showframe_special)(int, int) = xD3D11_showframe_special;
 
 static void xD3D11_showframe(int monid)
 {
-    UAE_LOG_STUB("");
+    UAE_LOG_STUB_MAX(1, "");
 }
 
 void (*D3D_showframe)(int) = xD3D11_showframe;

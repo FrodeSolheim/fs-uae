@@ -11,16 +11,22 @@ static bool xD3D_alloctexture (int monid, int w, int h)
 
 bool (*D3D_alloctexture)(int, int, int) = xD3D_alloctexture;
 
+static uae_u8 *video_memory = NULL;
+
 static uae_u8 *xD3D11_locktexture(int monid, int *pitch, int *width, int *height, int fullupdate)
 {
-    static uae_u8 *memory = NULL;
-
     // FIXME: Temporary hack
-    if (memory == NULL) {
-        memory = (uae_u8 *) malloc(2048 * 2048 * 4);
+    if (video_memory == NULL) {
+        video_memory = (uae_u8 *) malloc(2048 * 2048 * 4);
     }
 
-    return memory;
+	*pitch = 2048 * 4;
+	if (height)
+		*height = 2048;
+	if (width)
+		*width = 2048;
+
+    return video_memory;
 }
 
 uae_u8 * (*D3D_locktexture)(int, int *, int *, int *, int) = xD3D11_locktexture;
@@ -32,11 +38,16 @@ static void xD3D11_unlocktexture(int monid, int y_start, int y_end)
 
 void (*D3D_unlocktexture)(int, int, int) = xD3D11_unlocktexture;
 
+static bool uae_fsvideo_renderframe(int monid, int mode, bool immediate);
+
 static bool xD3D11_renderframe(int monid, int mode, bool immediate)
 {
     static int counter = 0;
     printf("RENDER FRAME %d\n", counter);
     counter += 1;
+
+    uae_fsvideo_renderframe(monid, mode, immediate);
+
     return true;
 }
 
@@ -149,7 +160,11 @@ typedef bool BOOL;
 
 // #include "win32.h"
 
+#endif
+
 #define uae_fsvideo_log(format, ...) uae_log("[VIDEO] " format, ##__VA_ARGS__)
+
+#if 0
 
 // #define DEBUG_PICASSO96
 // #define DEBUG_SHOW_SCREEN
@@ -2441,6 +2456,8 @@ void toggle_fullscreen(int monid, int mode)
     STUB("");
 }
 
+#endif
+
 #include "fsemu-video.h"
 
 bool uae_fsvideo_renderframe(int monid, int mode, bool immediate)
@@ -2448,6 +2465,13 @@ bool uae_fsvideo_renderframe(int monid, int mode, bool immediate)
     struct AmigaMonitor *mon = &AMonitors[monid];
     struct amigadisplay *ad = &adisplays[monid];
     struct vidbuf_description *avidinfo = &adisplays[0].gfxvidinfo;
+
+    // printf("%d\n", avidinfo->drawbuffer.last_drawn_line);
+    // printf("%d\n", avidinfo->outbuffer->last_drawn_line);
+
+    // printf("%p\n", avidinfo->outbuffer->bufmem);
+    // printf("%d\n", avidinfo->outbuffer->rowbytes);
+
     // FIXME: immediate is a new parameter
     // FIXME: mode is a new parameter
 
@@ -2458,6 +2482,7 @@ bool uae_fsvideo_renderframe(int monid, int mode, bool immediate)
 			g_has_flushed_screen;
 #endif
 
+#if 0
     g_renderdata.bpp = g_amiga_video_bpp;
     // uae_log("%d %d %d\n", g_amiga_video_bpp, AMIGA_WIDTH, AMIGA_HEIGHT);
 
@@ -2548,6 +2573,16 @@ bool uae_fsvideo_renderframe(int monid, int mode, bool immediate)
 #if 0
 	uae_log("%0.2f\n", g_renderdata.refresh_rate);
 #endif
+#endif
+
+    // int cx = 0;
+    // int cy = 0;
+    // int cw;
+    // int ch;
+    // int crealh;
+    int AMIGA_WIDTH = 752;
+    int AMIGA_HEIGHT = 574;
+    int g_amiga_video_bpp = 4;
 
     if (fsemu) {
 #ifdef FSUAE_FRAME_DEBUG
@@ -2562,6 +2597,7 @@ bool uae_fsvideo_renderframe(int monid, int mode, bool immediate)
             frame->flags |= FSEMU_FRAME_FLAG_TURBO;
         }
         if (mon->screen_is_picasso) {
+#if 0
             frame->buffer = uae_fsvideo.picasso_framebuffer;
             frame->stride =
                 uae_fsvideo.picasso_width * g_amiga_video_bpp;  // FIXME
@@ -2573,27 +2609,29 @@ bool uae_fsvideo_renderframe(int monid, int mode, bool immediate)
             frame->limits.y = 0;
             frame->limits.w = frame->width;
             frame->limits.h = frame->height;
-
+#endif
         } else {
 #ifdef FSUAE_FRAME_DEBUG
             uae_fsvideo_log("\n\nsend frame to fsemu last_drawn_line %d\n",
                             avidinfo->drawbuffer.last_drawn_line);
 #endif
-            frame->buffer = uae_fsvideo.chipset_framebuffer;
+            frame->buffer = video_memory;
+            // frame->buffer = uae_fsvideo.chipset_framebuffer;
             frame->stride = AMIGA_WIDTH * g_amiga_video_bpp;
+            frame->stride = 2048 * 4;
             // frame->stride = AMIGA_WIDTH * 4;
             frame->width = AMIGA_WIDTH;
             frame->height = AMIGA_HEIGHT;
 
             // printf("%d %d %d %p\n", frame->width, frame->height, g_amiga_video_bpp, frame->buffer);
-            // //memset(frame->buffer, 0xff, frame->width * frame->height * g_amiga_video_bpp);
-            //for (int i = 0; i < frame->width * frame->height * g_amiga_video_bpp; i+=4) {
+            //memset(frame->buffer, 0xff, frame->width * frame->height * g_amiga_video_bpp);
+            for (int i = 0; i < frame->width * frame->height * g_amiga_video_bpp; i+=4) {
             //     //printf("%\n", frame->buffer[i]);
-                 // ((unsigned char*) frame->buffer)[i + 0] = 0xff;
+                 //((unsigned char*) frame->buffer)[i + 0] = 0xff;
                  //((unsigned char*) frame->buffer)[i + 1] = 0x00;
                  //((unsigned char*) frame->buffer)[i + 2] = 0x00;
                  //((unsigned char*) frame->buffer)[i + 3] = 0xff;
-            //}
+            }
 
             if (mode == 1) {
                 frame->partial = AMIGA_HEIGHT;
@@ -2609,10 +2647,10 @@ bool uae_fsvideo_renderframe(int monid, int mode, bool immediate)
             // frame->stride + 48 * g_amiga_video_bpp; frame->width = 692;
             // frame->height = 540;
 
-            frame->limits.x = cx;
-            frame->limits.y = cy;
-            frame->limits.w = cw;
-            frame->limits.h = ch;
+            // frame->limits.x = cx;
+            // frame->limits.y = cy;
+            // frame->limits.w = cw;
+            // frame->limits.h = ch;
 
             frame->limits.x = 48;
             frame->limits.y = 22;
@@ -2646,9 +2684,10 @@ bool uae_fsvideo_renderframe(int monid, int mode, bool immediate)
         // notice_screen_contents_lost(monid);
 
     } else {  // !fsemu
+#if 0
         // FIXME: Need to do this right now to fix rendering, this
         // causes some slowdown, most likely
-        memset(g_renderdata.line, 0, AMIGA_MAX_LINES);
+        // memset(g_renderdata.line, 0, AMIGA_MAX_LINES);
 
         if (g_libamiga_callbacks.render) {
 #if 0
@@ -2674,8 +2713,10 @@ bool uae_fsvideo_renderframe(int monid, int mode, bool immediate)
 #else
         notice_screen_contents_lost(monid);
 #endif
+#endif
     }
     return 1;
 }
 
+#if 0
 #endif

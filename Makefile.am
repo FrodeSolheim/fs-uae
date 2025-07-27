@@ -225,6 +225,7 @@ AM_CPPFLAGS += -I$(s)/jit
 AM_CPPFLAGS += -I$(s)/od-fs
 AM_CPPFLAGS += -I$(s)/od-fs/include
 AM_CPPFLAGS += -I$(s)/od-fs/flac/include
+AM_CPPFLAGS += -I$(s)/od-win32
 fs_uae_LDADD += libuae.a
 # libuae_a_CXXFLAGS = $(CM_CFLAGS) -fpermissive
 libuae_a_SOURCES = \

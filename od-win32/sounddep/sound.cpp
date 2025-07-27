@@ -29,6 +29,8 @@
 #include "gensound.h"
 #include "xwin.h"
 
+#ifdef FSUAE
+#else
 #include <windows.h>
 #include <mmsystem.h>
 #include <mmreg.h>
@@ -44,6 +46,7 @@
 #include <ntverp.h>
 
 #include <portaudio.h>
+#endif
 
 #include "sounddep/sound.h"
 
@@ -52,6 +55,8 @@
 
 struct sound_dp
 {
+#ifdef FSUAE
+#else
 	// directsound
 
 	LPDIRECTSOUND8 lpDS;
@@ -131,6 +136,7 @@ struct sound_dp
 	int xsamplesplayed;
 	int xextrasamples;
 #endif
+#endif
 
 	float avg_correct;
 	float cnt_correct;
@@ -180,6 +186,9 @@ int setup_sound (void)
 	return 1;
 }
 
+#ifdef FSUAE
+// FIXME: Maybe we can use this
+#endif
 float sound_sync_multiplier = 1.0;
 float scaled_sample_evtime_orig;
 extern float sampler_evtime;
@@ -191,16 +200,25 @@ void update_sound (float clk)
 	scaled_sample_evtime_orig = clk * (float)CYCLE_UNIT * sound_sync_multiplier / sdp->obtainedfreq;
 	scaled_sample_evtime = scaled_sample_evtime_orig;
 	sampler_evtime = clk * CYCLE_UNIT * sound_sync_multiplier;
+#ifdef FSUAE
+	// so we can call update_sound from amiga_set_audio_frequency_adjust
+	g_clk = clk;
+#endif
 }
 
 extern frame_time_t vsynctimebase_orig;
 
 #ifndef AVIOUTPUT
-static int avioutput_audio;
+int avioutput_audio = 0;
+int avioutput_enabled = 0;
+int avioutput_nosoundsync = 1;
 #endif
 
 #define ADJUST_LIMIT 6
 #define ADJUST_LIMIT2 1
+
+#ifdef FSUAE
+#else
 
 void sound_setadjust (float v)
 {
@@ -306,8 +324,13 @@ static void clearbuffer_ds (struct sound_data *sd)
 	IDirectSoundBuffer_Unlock (s->lpDSBsecondary, buffer, size, NULL, 0);
 }
 
+#endif
+
 static void clearbuffer (struct sound_data *sd)
 {
+#ifdef FSUAE
+	memset(paula_sndbuffer, 0, sizeof(paula_sndbuffer));
+#else
 	struct sound_dp *s = sd->data;
 	if (sd->devicetype == SOUND_DEVICE_DS) {
 		clearbuffer_ds(sd);
@@ -315,7 +338,11 @@ static void clearbuffer (struct sound_data *sd)
 	if (s->pullbuffer) {
 		memset(s->pullbuffer, 0, s->pullbuffermaxlen);
 	}
+#endif
 }
+
+#ifdef FSUAE
+#else
 
 #if USE_XAUDIO
 static void pause_audio_xaudio2 (struct sound_data *sd)
@@ -517,8 +544,12 @@ static void close_audio_ds (struct sound_data *sd)
 
 extern void setvolume_ahi (LONG);
 
+#endif
+
 void set_volume_sound_device (struct sound_data *sd, int volume, int mute)
 {
+#ifdef FSUAE
+#else
 	struct sound_dp *s = sd->data;
 	HRESULT hr;
 	if (!s) {
@@ -571,14 +602,20 @@ void set_volume_sound_device (struct sound_data *sd, int volume, int mute)
 			sd->softvolume = 0;
 	}
 
+#endif
 }
 
 void set_volume(int volume, int mute)
 {
 	set_volume_sound_device(sdp, volume, mute);
+#ifdef AHI
 	setvolume_ahi(volume);
+#endif
 	config_changed = 1;
 }
+
+#ifdef FSUAE
+#else
 
 static void recalc_offsets (struct sound_data *sd)
 {
@@ -1868,6 +1905,8 @@ error:
 	return 0;
 }
 
+#endif
+
 int open_sound_device (struct sound_data *sd, int index, int bufsize, int freq, int channels)
 {
 	int ret = 0;
@@ -1880,6 +1919,8 @@ int open_sound_device (struct sound_data *sd, int index, int bufsize, int freq, 
 	sd->channels = channels;
 	sd->paused = 1;
 	sd->index = index;
+#ifdef FSUAE
+#else
 	if (type == SOUND_DEVICE_AL)
 		ret = open_audio_al (sd, index);
 	else if (type == SOUND_DEVICE_DS)
@@ -1892,6 +1933,7 @@ int open_sound_device (struct sound_data *sd, int index, int bufsize, int freq, 
 	else if (type == SOUND_DEVICE_XAUDIO2)
 		ret = open_audio_xaudio2 (sd, index);
 #endif
+#endif
 	sd->samplesize = sd->channels * 2;
 	sd->sndbufframes = sd->sndbufsize / sd->samplesize;
 	return ret;
@@ -1899,6 +1941,8 @@ int open_sound_device (struct sound_data *sd, int index, int bufsize, int freq, 
 void close_sound_device (struct sound_data *sd)
 {
 	pause_sound_device (sd);
+#ifdef FSUAE
+#else
 	if (sd->devicetype == SOUND_DEVICE_AL)
 		close_audio_al (sd);
 	else if (sd->devicetype == SOUND_DEVICE_DS)
@@ -1911,6 +1955,7 @@ void close_sound_device (struct sound_data *sd)
 	else if (sd->devicetype == SOUND_DEVICE_XAUDIO2)
 		close_audio_xaudio2 (sd);
 #endif
+#endif
 	xfree (sd->data);
 	sd->data = NULL;
 	sd->index = -1;
@@ -1921,6 +1966,8 @@ void pause_sound_device (struct sound_data *sd)
 	sd->paused = 1;
 	gui_data.sndbuf_status = 0;
 	gui_data.sndbuf = 0;
+#ifdef FSUAE
+#else
 	if (sd->devicetype == SOUND_DEVICE_AL)
 		pause_audio_al (sd);
 	else if (sd->devicetype == SOUND_DEVICE_DS)
@@ -1937,10 +1984,13 @@ void pause_sound_device (struct sound_data *sd)
 		ResetEvent(s->pullevent);
 	if (s->pullevent2)
 		ResetEvent(s->pullevent2);
+#endif
 }
 void resume_sound_device (struct sound_data *sd)
 {
 	struct sound_dp *s = sd->data;
+#ifdef FSUAE
+#else
 	if (sd->devicetype == SOUND_DEVICE_AL)
 		resume_audio_al (sd);
 	else if (sd->devicetype == SOUND_DEVICE_DS)
@@ -1957,6 +2007,7 @@ void resume_sound_device (struct sound_data *sd)
 		ResetEvent(s->pullevent);
 	if (s->pullevent2)
 		ResetEvent(s->pullevent2);
+#endif
 	sd->paused = 0;
 }
 
@@ -1977,6 +2028,9 @@ static int open_sound (void)
 	size >>= 2;
 	size &= ~63;
 
+#ifdef FSUAE
+	// clearbuffer();
+#else
 	sdp->softvolume = -1;
 	num = enumerate_sound_devices();
 	if (currprefs.win32_soundcard >= num)
@@ -1991,6 +2045,7 @@ static int open_sound (void)
 	if (ch != sdp->channels) {
 		active_sound_stereo = get_audio_stereomode (sdp->channels);
 	}
+#endif
 
 	set_volume (currprefs.sound_volume_master, sdp->mute);
 	if (get_audio_amigachannels(active_sound_stereo) == 4)
@@ -2004,7 +2059,11 @@ static int open_sound (void)
 	sound_available = 1;
 	gui_data.sndbuf_avail = audio_is_pull() == 0;
 
+#ifdef FSUAE
+	paula_sndbufsize = g_audio_buffer_size;
+#else
 	paula_sndbufsize = sdp->sndbufsize;
+#endif
 	paula_sndbufpt = paula_sndbuffer;
 	driveclick_init ();
 
@@ -2075,10 +2134,13 @@ int init_sound (void)
 	driveclick_reset ();
 	reset_sound ();
 	resume_sound ();
+#ifdef FSUAE
+#else
 	if (!started &&
 		(currprefs.win32_start_minimized && currprefs.win32_iconified_nosound ||
 		currprefs.win32_start_uncaptured && currprefs.win32_inactive_nosound))
 		pause_sound ();
+#endif
 	started = true;
 	return 1;
 }
@@ -2103,6 +2165,8 @@ static int reopen_sound (void)
 
 static void restart_sound_buffer2 (struct sound_data *sd)
 {
+#ifdef FSUAE
+#else
 	struct sound_dp *s = sd->data;
 	DWORD playpos, safed;
 	HRESULT hr;
@@ -2120,19 +2184,34 @@ static void restart_sound_buffer2 (struct sound_data *sd)
 	if (s->writepos < 0)
 		s->writepos += s->dsoundbuf;
 	cf (s->writepos);
+#endif
 }
+
+// FIXME: REVIEW: Difference pause_sound_buffer vs pause_sound ??
+// FIXME: REVIEW: Difference restart_sound_buffer vs resume_sound ??
 
 void pause_sound_buffer (void)
 {
+#ifdef FSUAE
+	fsemu_audio_pause();
+#else
 	sdp->deactive = true;
 	reset_sound ();
+#endif
 }
 
 void restart_sound_buffer (void)
 {
+#ifdef FSUAE
+	fsemu_audio_resume();
+#else
 	sdp->deactive = false;
 	restart_sound_buffer2 (sdp);
+#endif
 }
+
+#ifdef FSUAE
+#else
 
 static int alcheck (struct sound_data *sd, int v)
 {
@@ -2609,6 +2688,8 @@ static void finish_sound_buffer_ds (struct sound_data *sd, uae_u16 *sndbuffer)
 	cf (s->writepos);
 }
 
+#endif
+
 static void channelswap (uae_s16 *sndbuffer, int len)
 {
 	int i;
@@ -2636,6 +2717,8 @@ static void channelswap6 (uae_s16 *sndbuffer, int len)
 static bool send_sound_do(struct sound_data *sd)
 {
 	int type = sd->devicetype;
+#ifdef FSUAE
+#else
 	if (type == SOUND_DEVICE_WASAPI || type == SOUND_DEVICE_WASAPI_EXCLUSIVE) {
 		return finish_sound_buffer_wasapi_pull_do(sd);
 	} else if (type == SOUND_DEVICE_PA) {
@@ -2643,11 +2726,15 @@ static bool send_sound_do(struct sound_data *sd)
 		ResetEvent(s->pullevent);
 		SetEvent(s->pullevent2);
 	}
+#endif
 	return false;
 }
 
 static void send_sound (struct sound_data *sd, uae_u16 *sndbuffer)
 {
+#ifdef FSUAE
+	// fsemu_audiobuffer_update(paula_sndbuffer, paula_sndbufsize);
+#else
 	int type = sd->devicetype;
 	if (savestate_state)
 		return;
@@ -2671,6 +2758,7 @@ static void send_sound (struct sound_data *sd, uae_u16 *sndbuffer)
 	else if (type == SOUND_DEVICE_XAUDIO2)
 		finish_sound_buffer_xaudio2 (sd, sndbuffer);
 #endif
+#endif
 }
 
 HANDLE get_sound_event(void)
@@ -2678,12 +2766,15 @@ HANDLE get_sound_event(void)
 	int type = sdp->devicetype;
 	if (sdp->paused || sdp->deactive)
 		return 0;
+#ifdef FSUAE
+#else
 	if (type == SOUND_DEVICE_WASAPI || type == SOUND_DEVICE_WASAPI_EXCLUSIVE  || type == SOUND_DEVICE_PA) {
 		struct sound_dp *s = sdp->data;
 		if (s && s->pullmode) {
 			return s->pullevent;
 		}
 	}
+#endif
 	return 0;
 }
 
@@ -2692,6 +2783,8 @@ bool audio_is_event_frame_possible(int ms)
 	int type = sdp->devicetype;
 	if (sdp->paused || sdp->deactive || sdp->reset)
 		return false;
+#ifdef FSUAE
+#else
 	if (type == SOUND_DEVICE_WASAPI || type == SOUND_DEVICE_WASAPI_EXCLUSIVE || type == SOUND_DEVICE_PA) {
 		struct sound_dp *s = sdp->data;
 		int bufsize = (int)((uae_u8*)paula_sndbufpt - (uae_u8*)paula_sndbuffer);
@@ -2700,6 +2793,7 @@ bool audio_is_event_frame_possible(int ms)
 		int samplesperframe = (int)(sdp->obtainedfreq / vblank_hz);
 		return samplesperframe >= todo - samplesperframe;
 	}
+#endif
 	return false;
 }
 
@@ -2708,12 +2802,15 @@ int audio_is_pull(void)
 	int type = sdp->devicetype;
 	if (sdp->reset)
 		return 0;
+#ifdef FSUAE
+#else
 	if (type == SOUND_DEVICE_WASAPI || type == SOUND_DEVICE_WASAPI_EXCLUSIVE || type == SOUND_DEVICE_PA) {
 		struct sound_dp *s = sdp->data;
 		if (s && s->pullmode) {
 			return sdp->paused || sdp->deactive ? -1 : 1;
 		}
 	}
+#endif
 	return 0;
 }
 
@@ -2724,6 +2821,8 @@ int audio_pull_buffer(void)
 	
 	if (sdp->paused || sdp->deactive || sdp->reset)
 		return 0;
+#ifdef FSUAE
+#else
 	if (type == SOUND_DEVICE_WASAPI || type == SOUND_DEVICE_WASAPI_EXCLUSIVE || type == SOUND_DEVICE_PA) {
 		struct sound_dp *s = sdp->data;
 		if (s->pullbufferlen > 0) {
@@ -2733,6 +2832,7 @@ int audio_pull_buffer(void)
 				cnt++;
 		}
 	}
+#endif
 	return cnt;
 }
 
@@ -2741,12 +2841,15 @@ bool audio_is_pull_event(void)
 	int type = sdp->devicetype;
 	if (sdp->paused || sdp->deactive || sdp->reset)
 		return false;
+#ifdef FSUAE
+#else
 	if (type == SOUND_DEVICE_WASAPI || type == SOUND_DEVICE_WASAPI_EXCLUSIVE || type == SOUND_DEVICE_PA) {
 		struct sound_dp *s = sdp->data;
 		if (s->pullmode) {
 			return WaitForSingleObject(s->pullevent, 0) == WAIT_OBJECT_0;
 		}
 	}
+#endif
 	return false;
 }
 
@@ -2755,11 +2858,14 @@ bool audio_finish_pull(void)
 	int type = sdp->devicetype;
 	if (sdp->paused || sdp->deactive || sdp->reset)
 		return false;
+#ifdef FSUAE
+#else
 	if (type != SOUND_DEVICE_WASAPI && type != SOUND_DEVICE_WASAPI_EXCLUSIVE && type != SOUND_DEVICE_PA)
 		return false;
 	if (audio_pull_buffer() && audio_is_pull_event()) {
 		return send_sound_do(sdp);
 	}
+#endif
 	return false;
 }
 
@@ -2774,6 +2880,8 @@ static void handle_reset(void)
 	sdp->resetframecnt = 20;
 
 	sdp->reset = false;
+#ifdef FSUAE
+#else
 	if (!reopen_sound() || sdp->reset) {
 		if (sdp->resetcnt <= 0) {
 			write_log(_T("Reopen sound failed. Retrying with default device.\n"));
@@ -2797,6 +2905,7 @@ static void handle_reset(void)
 	} else {
 		resume_sound_device(sdp);
 	}
+#endif
 }
 
 
@@ -2841,9 +2950,16 @@ void finish_sound_buffer (void)
 
 	// we got buffer that was not full (recording active). Need special handling.
 	if (bufsize < sdp->sndbufsize && !extrasndbuf) {
+#ifdef FSUAE
+		// FIXME: Log?
+		// FIXME: Was extrasndbuf ignored in order to send audio
+		// buffers without delay - for lower latency? Can't remember
+#else
+
 		extrasndbufsize = sdp->sndbufsize;
 		extrasndbuf = xcalloc(uae_u8, sdp->sndbufsize);
 		extrasndbuffered = 0;
+#endif
 	}
 
 	if (statuscnt > 0 && tframe != timeframes) {
@@ -2855,6 +2971,11 @@ void finish_sound_buffer (void)
 	if (gui_data.sndbuf_status == 3)
 		gui_data.sndbuf_status = 0;
 
+#ifdef FSUAE
+	// FIXME: REVIEW!
+	// FIXME: Move to send_sound?
+	fsemu_audiobuffer_update(paula_sndbuffer, bufsize);
+#else
 	if (extrasndbuf) {
 		int size = extrasndbuffered + bufsize;
 		int copied = 0;
@@ -2869,7 +2990,11 @@ void finish_sound_buffer (void)
 	} else {
 		send_sound(sdp, paula_sndbuffer);
 	}
+#endif
 }
+
+#ifdef FSUAE
+#else
 
 static BOOL CALLBACK DSEnumProc (LPGUID lpGUID, LPCTSTR lpszDesc, LPCTSTR lpszDrvName, LPVOID lpContext)
 {
@@ -3358,25 +3483,42 @@ static int setget_master_volume_xp (int setvolume, int *volume, int *mute)
 	return ok;
 }
 
+#endif
+
 static int set_master_volume (int volume, int mute)
 {
+#ifdef FSUAE
+	UAE_LOG_STUB("");
+	return 0;
+#else
 	return setget_master_volume_vista (1, &volume, &mute);
+#endif
 }
+
 static int get_master_volume (int *volume, int *mute)
 {
 	*volume = 0;
 	*mute = 0;
+#ifdef FSUAE
+	UAE_LOG_STUB("");
+	return 0;
+#else
 	return setget_master_volume_vista (0, volume, mute);
+#endif
 }
 
 void sound_mute (int newmute)
 {
+#ifdef FSUAE
+	UAE_LOG_STUB("");
+#else
 	if (newmute < 0)
 		sdp->mute = sdp->mute ? 0 : 1;
 	else
 		sdp->mute = newmute;
 	set_volume (currprefs.sound_volume_master, sdp->mute);
 	config_changed = 1;
+#endif
 }
 
 void sound_volume (int dir)
@@ -3396,8 +3538,12 @@ void sound_volume (int dir)
 	set_volume (currprefs.sound_volume_master, sdp->mute);
 	config_changed = 1;
 }
+
 void master_sound_volume (int dir)
 {
+#ifdef FSUAE
+    UAE_LOG_STUB("");
+#else
 	int vol, mute, r;
 
 	r = get_master_volume (&vol, &mute);
@@ -3412,4 +3558,5 @@ void master_sound_volume (int dir)
 		vol = 65535;
 	set_master_volume (vol, mute);
 	config_changed = 1;
+#endif
 }

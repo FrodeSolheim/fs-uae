@@ -15,8 +15,12 @@
 // both int and long are 32 bits on Windows, so using ULONG_MAX is probably
 // not good. Although ULONG_MAX is also used with a signed int variable in
 // audio.cpp...
-#warning Testing with #define PERIOD_MAX UINT_MAX
-#define PERIOD_MAX UINT_MAX
+// FIXME: changed PERIOD_MAX from ULONG_MAX to UINT_MAX
+// since cdp[1].per is int, not long. But should per
+// be an unsigned int??
+// - COMMENT MIGHT BE OUTDATED!
+//#define PERIOD_MAX UINT_MAX
+#define PERIOD_MAX INT_MAX
 #else
 #define PERIOD_MAX ULONG_MAX
 #endif

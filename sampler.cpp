@@ -14,7 +14,10 @@
 
 #include "render.h"
 
+#ifdef FSUAE
+#else
 #include <dsound.h>
+#endif
 
 #include <math.h>
 
@@ -22,9 +25,12 @@
 
 #define SAMPLESIZE 4
 
+#ifdef FSUAE
+#else
 static LPDIRECTSOUNDCAPTURE lpDS2r = NULL;
 static LPDIRECTSOUNDCAPTUREBUFFER lpDSBprimary2r = NULL;
 static LPDIRECTSOUNDCAPTUREBUFFER lpDSB2r = NULL;
+#endif
 static int inited;
 static uae_u8 *samplebuffer;
 static int sampleframes;
@@ -36,6 +42,9 @@ float sampler_evtime;
 
 static int capture_init (void)
 {
+#ifdef FSUAE
+	return 0;
+#else
 	HRESULT hr;
 	DSCBUFFERDESC sound_buffer_rec;
 	WAVEFORMATEX wavfmt;
@@ -86,10 +95,14 @@ static int capture_init (void)
 	samplebuffer = xcalloc (uae_u8, sampleframes * SAMPLESIZE);
 	write_log (_T("SAMPLER: Parallel port sampler initialized, CPS=%f, '%s'\n"), clockspersample, name);
 	return 1;
+#endif
 }
 
 static void capture_free (void)
 {
+#ifdef FSUAE
+	return;
+#else
 	if (lpDSB2r) {
 		lpDSB2r->Stop ();
 		lpDSB2r->Release ();
@@ -101,6 +114,7 @@ static void capture_free (void)
 	lpDS2r = NULL;
 	xfree (samplebuffer);
 	samplebuffer = NULL;
+#endif
 }
 
 static evt_t oldcycles;
@@ -108,6 +122,9 @@ static int oldoffset;
 
 uae_u8 sampler_getsample (int channel)
 {
+#ifdef FSUAE
+	return 0;
+#else
 #if 0
 	int cur_pos;
 	static int cap_pos;
@@ -267,6 +284,7 @@ uae_u8 sampler_getsample (int channel)
 	return (uae_u8)(sample - 128);
 #else
 	return (Uae_u8)((sample / 256) - 128);
+#endif
 #endif
 }
 

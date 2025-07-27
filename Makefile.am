@@ -640,6 +640,7 @@ libuae_a_SOURCES = \
 	readcpu.cpp \
 	rommgr.cpp \
 	rtc.cpp \
+	sampler.cpp \
 	sana2.cpp \
 	savestate.cpp \
 	scp.cpp \

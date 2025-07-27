@@ -86,20 +86,6 @@ void target_addtorecent (const TCHAR *name, int t) {
     STUB("name=\"%s\" t=%d", name, t);
 }
 
-uae_u8 sampler_getsample (int) {
-    return 0;
-}
-
-int sampler_init (void) {
-    return 0;
-}
-
-void sampler_free (void) {
-}
-
-void sampler_vsync (void) {
-}
-
 #include "include/zfile.h"
 
 // --- win32gui.cpp ---

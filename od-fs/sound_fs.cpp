@@ -202,9 +202,6 @@ float sound_sync_multiplier = 1.0;
 float scaled_sample_evtime_orig;
 extern float sampler_evtime;
 
-/* Originally from sampler.cpp (not used in FS-UAE) */
-float sampler_evtime;
-
 void update_sound (float clk)
 {
 	if (!have_sound)

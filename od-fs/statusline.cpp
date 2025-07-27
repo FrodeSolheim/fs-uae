@@ -9,6 +9,11 @@ bool softstatusline(void)
 	return false;
 }
 
+bool createstatusline(HWND parentHwnd, int monid)
+{
+	return true;
+}
+
 void statusline_updated(int monid)
 {
 

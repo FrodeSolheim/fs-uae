@@ -218,6 +218,7 @@ int old_dsp_rec_pos=0;
 int buf_written=0;
 int last_crecord=0;
 #endif
+#ifndef UAE
 static void sb_get_buffer_emu8k(int32_t *buffer, int len, void *p)
 {
         sb_t *sb = (sb_t *)p;
@@ -320,7 +321,7 @@ static void sb_get_buffer_emu8k(int32_t *buffer, int len, void *p)
         sb->dsp.pos = 0;
         sb->emu8k.pos = 0;
 }
-
+#endif
 
 void sb_ct1335_mixer_write(uint16_t addr, uint8_t val, void *p)
 {

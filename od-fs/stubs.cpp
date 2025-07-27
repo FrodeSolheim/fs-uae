@@ -280,5 +280,33 @@ void systray (HWND hwnd, int remove)
 
 int regsetint(UAEREG *root, const TCHAR *name, int val)
 {
+	return 0;
+}
+
+void updatewinrect(struct AmigaMonitor *mon, bool allowfullscreen)
+{
+	UAE_LOG_STUB("");
+}
+
+void wait_keyrelease(void)
+{
+	UAE_LOG_STUB("");
+}
+
+bool setpaused(int priority)
+{
+	UAE_LOG_STUB("priority=%d", priority);
+	return true;
+}
+
+int regqueryint (UAEREG *root, const TCHAR *name, int *val)
+{
+	UAE_LOG_STUB("name=%s", name);
     return 0;
+}
+
+int isfocus(void)
+{
+    UAE_LOG_STUB("");
+	return 1;
 }

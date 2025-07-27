@@ -133,7 +133,11 @@ int WIN32GFX_IsPicassoScreen(struct AmigaMonitor *mon)
 
 static int isscreen(struct AmigaMonitor *mon)
 {
+#ifdef FSUAE
+	return 1;
+#else
 	return mon->hMainWnd ? 1 : 0;
+#endif
 }
 
 static int isfullscreen_2(struct uae_prefs *p)
@@ -1029,11 +1033,24 @@ static void getd3dmonitornames (void)
 
 static bool enumeratedisplays2 (bool selectall)
 {
+	struct MultiDisplay *md = Displays;
 #ifdef FSUAE
 	UAE_LOG_STUB("");
-	return false;
+
+	md->adaptername = my_strdup("Adapter 0");
+	md->adapterid = my_strdup("Adapter 0");
+	md->adapterkey = my_strdup("adapter-0");
+	md->monitorname = my_strdup("Monitor 0");
+	md->monitorid = my_strdup("monitor-0");
+	md->primary = true;
+
+	// md->AdapterLuid = OpenAdapterData.AdapterLuid;
+	// md->VidPnSourceId = OpenAdapterData.VidPnSourceId;
+	// md->AdapterHandle = OpenAdapterData.hAdapter;
+	// md->HasAdapterData = true;
+
+	return true;
 #else
-	struct MultiDisplay *md = Displays;
 	int adapterindex = 0;
 	DISPLAY_DEVICE add;
 	add.cb = sizeof add;
@@ -1124,9 +1141,9 @@ void enumeratedisplays (void)
 		pD3DKMTGetScanLine = (D3DKMTGETSCANLINE)GetProcAddress(GetModuleHandle(_T("Gdi32.dll")), "D3DKMTGetScanLine");
 		pD3DKMTWaitForVerticalBlankEvent = (D3DKMTWAITFORVERTICALBLANKEVENT)GetProcAddress(GetModuleHandle(_T("Gdi32.dll")), "D3DKMTWaitForVerticalBlankEvent");
 	}
+#endif
 	if (!enumeratedisplays2 (false))
 		enumeratedisplays2(true);
-#endif
 }
 
 void sortdisplays (void)
@@ -1526,7 +1543,7 @@ int lockscr(struct vidbuffer *vb, bool fullupdate, bool skip)
 	}
 	gfx_unlock();
 	return ret;
-}
+ }
 
 void unlockscr(struct vidbuffer *vb, int y_start, int y_end)
 {
@@ -1990,9 +2007,6 @@ static void update_gfxparams(struct AmigaMonitor *mon)
 
 static int open_windows(struct AmigaMonitor *mon, bool mousecapture, bool started)
 {
-#ifdef FSUAE
-	return 0;
-#else
 	bool recapture = false;
 	int ret;
 
@@ -2037,6 +2051,8 @@ static int open_windows(struct AmigaMonitor *mon, bool mousecapture, bool starte
 		setmouseactive(mon->monitor_id, -1);
 
 	int upd = 0;
+#ifdef FSUAE
+#else
 	if (startactive) {
 		setpriority(&priorities[currprefs.win32_active_capture_priority]);
 		upd = 2;
@@ -2062,6 +2078,7 @@ static int open_windows(struct AmigaMonitor *mon, bool mousecapture, bool starte
 				gui_led(LED_DF0 + i, 0, -1);
 		}
 	}
+#endif
 	if (upd > 0) {
 		inputdevice_acquire(TRUE);
 		if (!isfocus())
@@ -2075,7 +2092,6 @@ static int open_windows(struct AmigaMonitor *mon, bool mousecapture, bool starte
 	refreshtitle();
 
 	return ret;
-#endif
 }
 
 static void reopen_gfx(struct AmigaMonitor *mon)

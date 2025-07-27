@@ -23,6 +23,9 @@
 #include "uae/log.h"
 #include "uae/memory.h"
 #include "uae/time.h"
+#include "xwin.h"
+
+#include "../od-win32/win32gfx.h"
 
 static struct {
     // GMutex *mutex;
@@ -359,6 +362,16 @@ void amiga_main(void)
         strdup("fs-uae"),
         NULL,
     };
+
+    // See WinMain2
+
+    max_uae_width = 8192;
+    max_uae_height = 8192;
+
+
+    write_log (_T("Enumerating display devices.. \n"));
+    enumeratedisplays();
+
     real_main(argc, argv);
     free(argv[0]);
 #ifdef FILESYS

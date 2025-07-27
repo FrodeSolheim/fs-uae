@@ -20,6 +20,10 @@
 #include "win32.h"
 #endif
 
+#ifdef FSUAE
+#include "uae/fs.h"
+#endif
+
 #if defined(NATMEM_OFFSET)
 
 #define WIN32_NATMEM_TEST 0
@@ -138,6 +142,10 @@ bool preinit_shm (void)
 #ifdef _WIN32
 		VirtualFree (natmem_reserved, 0, MEM_RELEASE);
 #else
+#ifdef FSUAE
+		// free (natmem_reserved);
+		uae_vm_free(natmem_reserved, natmem_reserved_size);
+#endif
 #endif
 	natmem_reserved = NULL;
 	natmem_offset = NULL;
@@ -146,16 +154,26 @@ bool preinit_shm (void)
 #ifdef _WIN32
 		VirtualFree (p96mem_offset, 0, MEM_RELEASE);
 #else
+#ifdef FSUAE
+		/* Don't free p96mem_offset - it is freed as part of natmem_offset */
+		// free (p96mem_offset);
+#endif
 #endif
 	}
 	p96mem_offset = NULL;
 #endif
 	GetSystemInfo (&si);
+#ifdef FSUAE
+	max_allowed_mman = 2048;
+#else
 	max_allowed_mman = 512 + 256;
+#endif
+#if 1
 	if (os_64bit) {
 		// Higher than 2G to support G-REX PCI VRAM
 		max_allowed_mman = 2560;
 	}
+#endif
 	if (maxmem > max_allowed_mman)
 		max_allowed_mman = maxmem;
 
@@ -164,7 +182,11 @@ bool preinit_shm (void)
 	GlobalMemoryStatus(&memstats);
 	totalphys64 = memstats.dwTotalPhys;
 	total64 = (uae_u64)memstats.dwAvailPageFile + (uae_u64)memstats.dwTotalPhys;
+#ifdef FSUAE
+	pGlobalMemoryStatusEx = GlobalMemoryStatusEx;
+#else
 	pGlobalMemoryStatusEx = (GLOBALMEMORYSTATUSEX)GetProcAddress (GetModuleHandle (_T("kernel32.dll")), "GlobalMemoryStatusEx");
+#endif
 	if (pGlobalMemoryStatusEx) {
 		memstatsex.dwLength = sizeof (MEMORYSTATUSEX);
 		if (pGlobalMemoryStatusEx(&memstatsex)) {
@@ -173,6 +195,22 @@ bool preinit_shm (void)
 		}
 	}
 #else
+#ifdef FSUAE
+#ifdef __APPLE__
+	int mib[2];
+	size_t len;
+
+	mib[0] = CTL_HW;
+	// FIXME: check 64-bit compat
+	mib[1] = HW_MEMSIZE; /* gives a 64 bit int */
+	len = sizeof(totalphys64);
+	sysctl(mib, 2, &totalphys64, &len, NULL, 0);
+	total64 = (uae_u64) totalphys64;
+#else
+	totalphys64 = sysconf (_SC_PHYS_PAGES) * (uae_u64)getpagesize();
+	total64 = (uae_u64)sysconf (_SC_PHYS_PAGES) * (uae_u64)getpagesize();
+#endif
+#endif
 #endif
 	size64 = total64;
 	if (os_64bit) {
@@ -182,7 +220,12 @@ bool preinit_shm (void)
 		if (size64 > MAXZ3MEM32)
 			size64 = MAXZ3MEM32;
 	}
+#ifdef FSUAE
+	/* FIXME: check */
+	if (maxmem == 0) {
+#else
 	if (maxmem < 0) {
+#endif
 		size64 = MAXZ3MEM64;
 		if (!os_64bit) {
 			if (totalphys64 < 1536 * 1024 * 1024)
@@ -214,6 +257,15 @@ bool preinit_shm (void)
 				  totalphys64 >> 20, total64 >> 20);
 	write_log(_T("MMAN: Attempting to reserve: %u MB\n"), natmem_size >> 20);
 
+#ifdef FSUAE
+	int vm_flags = UAE_VM_32BIT | UAE_VM_WRITE_WATCH;
+	//write_log("NATMEM: jit compiler %d\n", g_fs_uae_jit_compiler);
+	if (!g_fs_uae_jit_compiler) {
+		/* Not using the JIT compiler, so we do not need "32-bit memory". */
+		vm_flags &= ~UAE_VM_32BIT;
+	}
+	natmem_reserved = (uae_u8 *) uae_vm_reserve(natmem_size, vm_flags);
+#else
 #if 1
 	natmem_reserved = (uae_u8 *) uae_vm_reserve(natmem_size, UAE_VM_32BIT | UAE_VM_WRITE_WATCH);
 #else
@@ -221,12 +273,17 @@ bool preinit_shm (void)
 	natmem_reserved = (uae_u8 *) uae_vm_reserve_fixed(
 		(void *) 0x90000000, natmem_size, UAE_VM_32BIT | UAE_VM_WRITE_WATCH);
 #endif
+#endif
 
 	if (!natmem_reserved) {
 		if (natmem_size <= 768 * 1024 * 1024) {
 			uae_u32 p = 0x78000000 - natmem_size;
 			for (;;) {
+#ifdef FSUAE
+				natmem_reserved = (uae_u8 *) uae_vm_reserve(natmem_size, vm_flags);
+#else
 				natmem_reserved = (uae_u8*) VirtualAlloc((void*)(intptr_t)p, natmem_size, MEM_RESERVE | MEM_WRITE_WATCH, PAGE_READWRITE);
+#endif
 				if (natmem_reserved)
 					break;
 				p -= 128 * 1024 * 1024;
@@ -237,15 +294,35 @@ bool preinit_shm (void)
 	}
 	if (!natmem_reserved) {
 		DWORD vaflags = MEM_RESERVE | MEM_WRITE_WATCH;
+#ifdef _WIN32
+#ifdef FSUAE
+		OSVERSIONINFO osVersion;
+		osVersion.dwOSVersionInfoSize = sizeof (OSVERSIONINFO);
+		bool os_vista = (osVersion.dwMajorVersion == 6 &&
+						 osVersion.dwMinorVersion == 0);
+#endif
+#ifndef _WIN64
+		if (!os_vista)
+			vaflags |= MEM_TOP_DOWN;
+#endif
+#endif
 		for (;;) {
+#ifdef FSUAE
+			natmem_reserved = (uae_u8 *) uae_vm_reserve(natmem_size, vm_flags);
+#else
 			natmem_reserved = (uae_u8*)VirtualAlloc (NULL, natmem_size, vaflags, PAGE_READWRITE);
+#endif
 			if (natmem_reserved)
 				break;
 			natmem_size -= 64 * 1024 * 1024;
 			if (!natmem_size) {
 				write_log (_T("MMAN: Can't allocate 257M of virtual address space!?\n"));
 				natmem_size = 17 * 1024 * 1024;
+#ifdef FSUAE
+				natmem_reserved = (uae_u8 *) uae_vm_reserve(natmem_size, vm_flags);
+#else
 				natmem_reserved = (uae_u8*)VirtualAlloc (NULL, natmem_size, vaflags, PAGE_READWRITE);
+#endif
 				if (!natmem_size) {
 					write_log (_T("MMAN: Can't allocate 17M of virtual address space!? Something is seriously wrong\n"));
 					notify_user(NUMSG_NOMEMORY);
@@ -429,6 +506,9 @@ static int doinit_shm (void)
 			return -1;
 		}
 #ifdef _WIN64
+#ifdef FSUAE
+		/* FIXME: Check for FS-UAE. */
+#endif
 		// 64-bit can't do natmem_offset..
 		notify_user(NUMSG_NOMEMORY);
 		return -1;

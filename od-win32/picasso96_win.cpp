@@ -1841,6 +1841,8 @@ static void updatesprcolors (int bpp)
 	}
 }
 
+#ifdef FSUAE
+#else
 static void putwinmousepixel(HDC andDC, HDC xorDC, int x, int y, int c, uae_u32 *ct)
 {
 	if (c == 0) {
@@ -1852,6 +1854,7 @@ static void putwinmousepixel(HDC andDC, HDC xorDC, int x, int y, int c, uae_u32 
 		SetPixel(xorDC, x, y, RGB ((val >> 16) & 0xff, (val >> 8) & 0xff, val & 0xff));
 	}
 }
+#endif
 
 static int wincursorcnt;
 static int tmp_sprite_w, tmp_sprite_h;

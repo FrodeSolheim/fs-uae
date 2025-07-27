@@ -11,7 +11,14 @@ bool (*D3D_alloctexture)(int, int, int) = xD3D_alloctexture;
 
 static uae_u8 *xD3D11_locktexture(int monid, int *pitch, int *width, int *height, int fullupdate)
 {
-    return NULL;
+    static uae_u8 *memory = NULL;
+
+    // FIXME: Temporary hack
+    if (memory == NULL) {
+        memory = (uae_u8 *) malloc(2048 * 2048 * 4);
+    }
+
+    return memory;
 }
 
 uae_u8 * (*D3D_locktexture)(int, int *, int *, int *, int) = xD3D11_locktexture;
@@ -25,7 +32,10 @@ void (*D3D_unlocktexture)(int, int, int) = xD3D11_unlocktexture;
 
 static bool xD3D11_renderframe(int monid, int mode, bool immediate)
 {
-    return false;
+    static int counter = 0;
+    printf("RENDER FRAME %d\n", counter);
+    counter += 1;
+    return true;
 }
 
 bool (*D3D_renderframe)(int, int, bool) = xD3D11_renderframe;
@@ -63,6 +73,20 @@ void D3D_getpixelformat (int *rb, int *gb, int *bb, int *rs, int *gs, int *bs, i
 	*as = 24;
 	*a = 0;
 }
+
+static int xD3D11_isenabled(int monid)
+{
+	return 2;
+}
+
+int (*D3D_isenabled)(int monid) = xD3D11_isenabled;
+
+static const TCHAR *xD3D11_init(HWND ahwnd, int monid, int w_w, int w_h, int *freq, int mmulth, int mmultv, int *errp)
+{
+    return NULL;
+}
+
+const TCHAR * (*D3D_init)(HWND, int, int, int, int *, int, int, int *) = xD3D11_init;
 
 void d3d_select(struct uae_prefs *p)
 {

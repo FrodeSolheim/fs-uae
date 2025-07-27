@@ -1917,7 +1917,8 @@ int open_sound_device (struct sound_data *sd, int index, int bufsize, int freq, 
 {
 	int ret = 0;
 	struct sound_dp *sdp = xcalloc (struct sound_dp, 1);
-
+	int type = sound_devices[index]->type;
+	
 	sd->data = sdp;
 	sd->sndbufsize = bufsize;
 	sd->freq = freq;
@@ -2058,7 +2059,6 @@ static int open_sound (void)
 	else
 		sample_handler = get_audio_ismono(active_sound_stereo) ? sample16_handler : sample16s_handler;
 
-
 	sdp->obtainedfreq = currprefs.sound_freq;
 
 	have_sound = 1;
@@ -2193,19 +2193,13 @@ static void restart_sound_buffer2 (struct sound_data *sd)
 #endif
 }
 
-// FIXME: Difference pause_sound_buffer vs pause_sound ??
-// FIXME: Difference restart_sound_buffer vs resume_sound ??
+// FIXME: REVIEW: Difference pause_sound_buffer vs pause_sound ??
+// FIXME: REVIEW: Difference restart_sound_buffer vs resume_sound ??
 
 void pause_sound_buffer (void)
 {
 #ifdef FSUAE
-	if (fsemu) {
-		fsemu_audio_pause();
-	} else {
-		if (g_audio_callback) {
-			g_audio_callback(1, NULL, 0);
-		}
-	}
+	fsemu_audio_pause();
 #else
 	sdp->deactive = true;
 	reset_sound ();
@@ -2215,13 +2209,7 @@ void pause_sound_buffer (void)
 void restart_sound_buffer (void)
 {
 #ifdef FSUAE
-	if (fsemu) {
-		fsemu_audio_resume();
-	} else {
-		if (g_audio_callback) {
-			g_audio_callback(2, NULL, 0);
-		}
-	}
+	fsemu_audio_resume();
 #else
 	sdp->deactive = false;
 	restart_sound_buffer2 (sdp);
@@ -2751,13 +2739,7 @@ static bool send_sound_do(struct sound_data *sd)
 static void send_sound (struct sound_data *sd, uae_u16 *sndbuffer)
 {
 #ifdef FSUAE
-    if (fsemu) {
-        // fsemu_audiobuffer_update(paula_sndbuffer, paula_sndbufsize);
-    } else {
-        if (g_audio_callback) {
-            g_audio_callback(0, (int16_t *) paula_sndbuffer, paula_sndbufsize);
-        }
-    }
+	// fsemu_audiobuffer_update(paula_sndbuffer, paula_sndbufsize);
 #else
 	int type = sd->devicetype;
 	if (savestate_state)
@@ -2972,18 +2954,20 @@ void finish_sound_buffer (void)
 	if (!have_sound)
 		return;
 
-#ifdef FSUAE
-#else
 	// we got buffer that was not full (recording active). Need special handling.
 	if (bufsize < sdp->sndbufsize && !extrasndbuf) {
+#ifdef FSUAE
+		// FIXME: Log?
+		// FIXME: Was extrasndbuf ignored in order to send audio
+		// buffers without delay - for lower latency? Can't remember
+#else
+
 		extrasndbufsize = sdp->sndbufsize;
 		extrasndbuf = xcalloc(uae_u8, sdp->sndbufsize);
 		extrasndbuffered = 0;
-	}
 #endif
+	}
 
-#ifdef FSUAEXX
-#else
 	if (statuscnt > 0 && tframe != timeframes) {
 		tframe = timeframes;
 		statuscnt--;
@@ -2992,10 +2976,12 @@ void finish_sound_buffer (void)
 	}
 	if (gui_data.sndbuf_status == 3)
 		gui_data.sndbuf_status = 0;
-#endif
 
-#if 0
-// FIXME: REVIEW!
+#ifdef FSUAE
+	// FIXME: REVIEW!
+	// FIXME: Move to send_sound?
+	fsemu_audiobuffer_update(paula_sndbuffer, bufsize);
+#else
 	if (extrasndbuf) {
 		int size = extrasndbuffered + bufsize;
 		int copied = 0;
@@ -3008,13 +2994,7 @@ void finish_sound_buffer (void)
 		memcpy(extrasndbuf + extrasndbuffered, (uae_u8*)paula_sndbuffer + copied, bufsize - copied);
 		extrasndbuffered += bufsize - copied;
 	} else {
-#endif
-	if (fsemu) {
-		fsemu_audiobuffer_update(paula_sndbuffer, bufsize);
-	} else {
 		send_sound(sdp, paula_sndbuffer);
-	}
-#if 0
 	}
 #endif
 }

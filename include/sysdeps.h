@@ -506,6 +506,9 @@ extern bool use_long_double;
 #define O_BINARY 0
 #endif
 
+#ifdef FSUAE
+#include "uae/inline.h"
+#else
 #ifndef STATIC_INLINE
 #if __GNUC__ - 1 > 2 || (__GNUC__ - 1 == 2 && __GNUC_MINOR__ - 1 >= 0)
 #define STATIC_INLINE static __inline__ __attribute__ ((always_inline))
@@ -521,6 +524,8 @@ extern bool use_long_double;
 #define NORETURN
 #endif
 #endif
+#endif
+
 /* Every Amiga hardware clock cycle takes this many "virtual" cycles.  This
    used to be hardcoded as 1, but using higher values allows us to time some
    stuff more precisely.

@@ -3,7 +3,7 @@
 
 #include "fsemu-audiobuffer.h"
 
-#include "../../od-win32/sounddep/sound.h"
+#include "od-win32/sounddep/sound.h"
 
 #if 0
 #define AUDIO_NAME "fsuae"

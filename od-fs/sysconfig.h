@@ -1,1 +1,1 @@
-#include "../../od-win32/sysconfig.h"
+#include "od-win32/sysconfig.h"

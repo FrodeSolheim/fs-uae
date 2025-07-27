@@ -164,4 +164,4 @@ static int my_getpagesize (void)
 /* Prevent od-win32/win32.h from being included */
 #define __WIN32_H__
 
-#include "../od-win32/mman.cpp"
+#include "od-win32/mman.cpp"

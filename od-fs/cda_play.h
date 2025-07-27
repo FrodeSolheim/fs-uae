@@ -3,7 +3,7 @@
 typedef void * HWAVEOUT;
 #endif
 
-#include "../../od-win32/cda_play.h"
+#include "od-win32/cda_play.h"
 
 #if 0
 extern volatile bool cd_audio_mode_changed;

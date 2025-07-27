@@ -214,7 +214,7 @@ nodist_fs_uae_SOURCES += src/fsuae/fs-uae.rc
 .rc.o:
 	windres $< -o $@ -I$(s)
 else
-AM_CPPFLAGS += -I$(s)/../od-fs/non-win32
+AM_CPPFLAGS += -I$(s)/od-fs/non-win32
 endif
 
 fs_uae_LDADD =
@@ -1284,7 +1284,7 @@ endif
 
 if WITH_UDIS86
 noinst_LIBRARIES += libudis86.a
-AM_CPPFLAGS += -I$(s)/../libudis86/include
+AM_CPPFLAGS += -I$(s)/od-fs/libudis86/include
 fs_uae_LDADD += libudis86.a
 libudis86_a_SOURCES = \
 	od-fs/libudis86/include/udis86.h \

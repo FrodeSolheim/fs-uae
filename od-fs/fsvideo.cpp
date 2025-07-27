@@ -1,6 +1,8 @@
 #include "sysconfig.h"
 #include "sysdeps.h"
 
+#include "uae/compat/windows2.h"
+
 static bool xD3D_alloctexture (int monid, int w, int h)
 {
     UAE_LOG_STUB("");
@@ -103,9 +105,6 @@ void InitializeDarkMode(void)
     UAE_LOG_STUB("");
 }
 
-#include "uae/compat/windows.h"
-#include "uae/compat/windows2.h"
-
 // Dummy types to allow some (unused) declarations
 
 typedef void DISPLAYCONFIG_PATH_INFO;
@@ -113,14 +112,14 @@ typedef void DISPLAYCONFIG_DEVICE_INFO_HEADER;
 typedef void DISPLAYCONFIG_MODE_INFO;
 typedef void DISPLAYCONFIG_TOPOLOGY_ID;
 
-#include "../od-win32/win32gfx.cpp"
+#include "od-win32/win32gfx.cpp"
 
 #if 0
 
 #include "custom.h"
 #include "devices.h"
 #include "drawing.h"
-#include "../od-win32/render.h"
+#include "od-win32/render.h"
 #include "gfxboard.h"
 #include "gfxfilter.h"
 #include "gui.h"
@@ -136,12 +135,12 @@ typedef void* HCURSOR;
 typedef bool BOOL;
 #endif
 
-#include "../od-win32/win32gfx.h"
+#include "od-win32/win32gfx.h"
 #include "xwin.h"
 
 #ifdef PICASSO96
 #include "picasso96.h"
-#include "../od-win32/picasso96_win.h"
+#include "od-win32/picasso96_win.h"
 #endif
 
 // #include <fs/emu/video.h>

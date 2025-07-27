@@ -43,7 +43,7 @@
 #include "picasso96.h"
 #include "threaddep/thread.h"
 #include "serial.h"
-#include "../od-win32/parser.h"
+#include "od-win32/parser.h"
 #include "ioport.h"
 #include "parallel.h"
 #include "cia.h"

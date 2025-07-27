@@ -13,6 +13,20 @@ configure
 Makefile
 Makefile.in
 
+# Temporary ignores
+
+/.vscode/launch.json
+/Data
+/python
+/src/fsapp
+/src/fsemu
+/src/fsgui
+/src/fslib
+/src/fsuae
+/src/libfsemu
+/src/libuae
+/System
+
 # WinUAE
 
 *.lib

@@ -86,7 +86,11 @@
 // 128 = potgo write
 // 256 = cia buttons write
 
+#ifdef FSUAE
+int inputdevice_logging = 1;
+#else
 int inputdevice_logging = 0;
+#endif
 extern int tablet_log;
 
 #define COMPA_RESERVED_FLAGS (ID_FLAG_INVERT)
@@ -5295,6 +5299,14 @@ static uae_u64 isqual (int evt)
 
 static int handle_input_event2(int nr, int state, int max, int flags, int extra)
 {
+#ifdef FSUAE
+    if (inputdevice_logging) {
+        write_log("        nr %d state %d max %d flags %d\n",
+                nr, state, max, flags);
+    }
+// printf("        nr %d state %d max %d flags %d\n",
+// 	nr, state, max, flags);
+#endif
 	struct vidbuf_description *vidinfo = &adisplays[0].gfxvidinfo;
 	const struct inputevent *ie;
 	int joy;

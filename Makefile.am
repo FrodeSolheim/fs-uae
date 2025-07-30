@@ -193,6 +193,8 @@ fs_uae_SOURCES = \
 	src/fsuae/fsuae-constants.h \
 	src/fsuae/fsuae-events.c \
 	src/fsuae/fsuae-events.h \
+	src/fsuae/fsuae-extras.cpp \
+	src/fsuae/fsuae-extras.h \
 	src/fsuae/fsuae-init.c \
 	src/fsuae/fsuae-init.h \
 	src/fsuae/fsuae-main.c \

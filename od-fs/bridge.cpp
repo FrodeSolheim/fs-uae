@@ -63,8 +63,11 @@ void uae_fs_begin_frame(float vblank_hz)
     // printf("vblank_hz = %0.2f\n", vblank_hz);
 
     fsemu_frame_start(vblank_hz);
+#if 0
+    // FIXME: TEMPORARILY DISABLED DUE TO AUDIO STUTTERING
     double adjust = fsemu_audiobuffer_calculate_adjustment();
     amiga_set_audio_frequency_adjust(adjust);
+#endif
 
 #if 0
     // Now we sleep until the start of the next frame. Using the less

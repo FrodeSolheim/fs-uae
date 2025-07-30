@@ -5333,6 +5333,14 @@ static void vsync_handler_post(void)
 
 	devices_vsync_post();
 
+#ifdef FSUAE
+#ifdef FSUAE_FRAME_DEBUG
+	uae_log("vblank_hz = %0.2f\n", vblank_hz);
+#endif
+	// FIXME: -Good place?
+	uae_fs_begin_frame(vblank_hz);
+#endif
+
 	if (bogusframe > 0) {
 		bogusframe--;
 	}

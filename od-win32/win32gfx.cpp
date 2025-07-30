@@ -608,9 +608,8 @@ static void display_param_init(struct AmigaMonitor *mon)
 
 const TCHAR *target_get_display_name (int num, bool friendlyname)
 {
-#ifdef FSUAE
-	UAE_LOG_STUB("");
-	return "";
+#ifdef FSUAE_XXX
+	return "Display";
 #else
 	if (num <= 0)
 		return NULL;

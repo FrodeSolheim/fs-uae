@@ -899,7 +899,7 @@ AC_DEFINE([FPU_UAE], [1], [Define to 1])
 # Write Makefile
 
 AC_CONFIG_FILES([
-    src/fs-uae.rc
+    od-fs/fs-uae.rc
     Makefile
 ])
 AC_OUTPUT

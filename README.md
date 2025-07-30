@@ -1,11 +1,12 @@
 # FS-UAE
 
-This is the new repository for FS-UAE 5+ which is now based on a fork of the
-WinUAE repository for practical reasons. The repository name is temporary!
+See [od-fs/README.md].
+
+# WinUAE
 
 The original README.md from the WinUAE repository follows:
 
-# WinUAE
+---
 
 1) Requirements: Windows 7 32-bit/64-bit or newer.
 

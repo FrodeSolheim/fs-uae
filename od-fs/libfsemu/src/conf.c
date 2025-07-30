@@ -10,12 +10,13 @@
 #include <fs/log.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 
 static int g_initialized = 0;
-GHashTable *g_hash_table = NULL;
+GHashTable* g_hash_table = NULL;
 
-#define LOG_LINE \
-"----------------------------------------------------------------------------\n"
+#define LOG_LINE                                                                       \
+    "----------------------------------------------------------------------------\n"
 
 static void initialize(void)
 {
@@ -23,23 +24,19 @@ static void initialize(void)
         return;
     }
     g_initialized = 1;
-    g_hash_table = g_hash_table_new_full(
-        g_str_hash, g_str_equal, g_free, g_free);
+    g_hash_table = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_free);
 }
 
-void fse_init_conf(void)
-{
-    initialize();
-}
+void fse_init_conf(void) { initialize(); }
 
-bool fs_config_exists(const char *key)
+bool fs_config_exists(const char* key)
 {
     return fs_config_get_const_string(key) != NULL;
 }
 
-bool fs_config_check_auto(const char *key, const char *value)
+bool fs_config_check_auto(const char* key, const char* value)
 {
-    const char *s = fs_config_get_const_string(key);
+    const char* s = fs_config_get_const_string(key);
     if (s == NULL) {
         return true;
     }
@@ -49,9 +46,9 @@ bool fs_config_check_auto(const char *key, const char *value)
     return false;
 }
 
-bool fs_config_check_enabled(const char *key, const char *value)
+bool fs_config_check_enabled(const char* key, const char* value)
 {
-    const char *s = fs_config_get_const_string(key);
+    const char* s = fs_config_get_const_string(key);
     if (s == NULL) {
         return false;
     }
@@ -64,9 +61,9 @@ bool fs_config_check_enabled(const char *key, const char *value)
     return false;
 }
 
-bool fs_config_check_disabled(const char *key, const char *value)
+bool fs_config_check_disabled(const char* key, const char* value)
 {
-    const char *s = fs_config_get_const_string(key);
+    const char* s = fs_config_get_const_string(key);
     if (s == NULL) {
         return false;
     }
@@ -79,12 +76,12 @@ bool fs_config_check_disabled(const char *key, const char *value)
     return false;
 }
 
-const char *fs_config_get_const_string(const char *key)
+const char* fs_config_get_const_string(const char* key)
 {
     if (!g_initialized) {
         initialize();
     }
-    const char *value = (const char *) g_hash_table_lookup(g_hash_table, key);
+    const char* value = (const char*)g_hash_table_lookup(g_hash_table, key);
     if (value && !value[0]) {
         // an empty string is treated as non-existing (unset value)
         return NULL;
@@ -92,7 +89,7 @@ const char *fs_config_get_const_string(const char *key)
     return value;
 }
 
-char *fs_config_get_string(const char *key)
+char* fs_config_get_string(const char* key)
 {
     const char* value = fs_config_get_const_string(key);
     if (value) {
@@ -101,10 +98,10 @@ char *fs_config_get_string(const char *key)
     return NULL;
 }
 
-static void process_key_value(const char *key, char *value, int force)
+static void process_key_value(const char* key, char* value, int force)
 {
-    char *key_lower = g_ascii_strdown(key, -1);
-    g_strdelimit (key_lower, "-", '_');
+    char* key_lower = g_ascii_strdown(key, -1);
+    g_strdelimit(key_lower, "-", '_');
     /* Using fs_config_get_const_string here instead of just
      * g_hash_table_lookup, since that also checks for empty strings, which
      * should be treated as non-existing keys. */
@@ -120,12 +117,12 @@ static void process_key_value(const char *key, char *value, int force)
     }
 }
 
-void fs_config_set_string(const char *key, const char *value)
+void fs_config_set_string(const char* key, const char* value)
 {
     process_key_value(key, g_strdup(value), 1);
 }
 
-void fs_config_set_string_if_unset(const char *key, const char *value)
+void fs_config_set_string_if_unset(const char* key, const char* value)
 {
     if (fs_config_get_const_string(key) == NULL) {
         fs_config_set_string(key, value);
@@ -138,19 +135,19 @@ void fs_config_set_string_if_unset(const char *key, const char *value)
 
 #ifdef USE_INIFILE
 
-void fs_config_parse_ini_file(fs_ini_file *ini_file, int force)
+void fs_config_parse_ini_file(fs_ini_file* ini_file, int force)
 {
-    char **groups = fs_ini_file_get_groups(ini_file, NULL);
-    for (char **group = groups; *group; group++) {
-        const char *prefix = "";
+    char** groups = fs_ini_file_get_groups(ini_file, NULL);
+    for (char** group = groups; *group; group++) {
+        const char* prefix = "";
         if (strcmp(*group, "theme") == 0) {
             prefix = "theme_";
         }
-        char **keys = fs_ini_file_get_keys(ini_file, *group, NULL);
-        for (char **key = keys; *key; key++) {
-            char *value = fs_ini_file_get_value(ini_file, *group, *key);
+        char** keys = fs_ini_file_get_keys(ini_file, *group, NULL);
+        for (char** key = keys; *key; key++) {
+            char* value = fs_ini_file_get_value(ini_file, *group, *key);
             if (value) {
-                char *key2 = g_strconcat(prefix, *key, NULL);
+                char* key2 = g_strconcat(prefix, *key, NULL);
                 process_key_value(key2, value, force);
                 g_free(key2);
             }
@@ -162,7 +159,7 @@ void fs_config_parse_ini_file(fs_ini_file *ini_file, int force)
 
 #endif
 
-int fs_config_read_file(const char *path, int force)
+int fs_config_read_file(const char* path, int force)
 {
     if (!g_initialized) {
         initialize();
@@ -183,7 +180,7 @@ int fs_config_read_file(const char *path, int force)
     }
 
 #ifdef USE_INIFILE
-    fs_ini_file *ini_file = fs_ini_file_open(path);
+    fs_ini_file* ini_file = fs_ini_file_open(path);
     if (ini_file == NULL) {
         fs_log("error loading config file\n");
         return 0;
@@ -196,21 +193,18 @@ int fs_config_read_file(const char *path, int force)
 #endif
 }
 
-int fs_config_get_boolean(const char *key)
-{
-    return fs_config_get_int(key);
-}
+int fs_config_get_boolean(const char* key) { return fs_config_get_int(key); }
 
-int fs_config_get_int(const char *key)
+int fs_config_get_int(const char* key)
 {
-    const char *value = fs_config_get_const_string(key);
+    const char* value = fs_config_get_const_string(key);
     if (value == NULL) {
         return FS_CONFIG_NONE;
     }
     return atoi(value);
 }
 
-int fs_config_get_int_clamped(const char *key, int min, int max)
+int fs_config_get_int_clamped(const char* key, int min, int max)
 {
     int value = fs_config_get_int(key);
     if (value == FS_CONFIG_NONE) {
@@ -227,16 +221,16 @@ int fs_config_get_int_clamped(const char *key, int min, int max)
     return value;
 }
 
-double fs_config_get_double(const char *key)
+double fs_config_get_double(const char* key)
 {
-    const char *value = fs_config_get_const_string(key);
+    const char* value = fs_config_get_const_string(key);
     if (value == NULL) {
         return FS_CONFIG_NONE;
     }
     return g_ascii_strtod(value, NULL);
 }
 
-double fs_config_get_double_clamped(const char *key, double min, double max)
+double fs_config_get_double_clamped(const char* key, double min, double max)
 {
     double value = fs_config_get_double(key);
     if (value == FS_CONFIG_NONE) {
@@ -253,19 +247,19 @@ double fs_config_get_double_clamped(const char *key, double min, double max)
     return value;
 }
 
-void fs_config_parse_options(int argc, char **argv)
+void fs_config_parse_options(int argc, char** argv)
 {
     if (!g_initialized) {
         initialize();
     }
     int first = 1;
     for (int i = 0; i < argc; i++) {
-        char *arg = argv[i];
+        char* arg = argv[i];
         if (!g_str_has_prefix(arg, "--")) {
             continue;
         }
-        char *key = arg + 2;
-        char *value = strchr(arg, '=');
+        char* key = arg + 2;
+        char* value = strchr(arg, '=');
         char *k, *v;
         if (value) {
             k = g_strndup(key, value - key);

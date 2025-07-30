@@ -101,6 +101,7 @@ void fs_log_string(const char *str)
         initialize_log();
     }
     fs_mutex_lock(log_data.mutex);
+
     if (log_data.use_stdout) {
         printf("%s", str);
         fflush(stdout);

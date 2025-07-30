@@ -2,9 +2,11 @@
 #include "config.h"
 #endif
 
-#include <fs/thread.h>
+#define USE_SDL 1
+
 #include <fs/base.h>
 #include <fs/log.h>
+#include <fs/thread.h>
 #include <stdlib.h>
 #ifdef USE_GLIB
 #include <glib.h>
@@ -13,8 +15,8 @@
 #define USE_SDL
 #endif
 #ifdef USE_SDL
-#include <SDL.h>
-#include <SDL_thread.h>
+#include <SDL3/SDL.h>
+// #include <SDL_thread.h>
 #endif
 #ifdef USE_PTHREADS
 #include <pthread.h>
@@ -29,7 +31,7 @@ struct fs_thread {
     pthread_t thread;
     pthread_attr_t attr;
 #elif defined(USE_GLIB)
-    GThread *thread;
+    GThread* thread;
 #endif
 };
 
@@ -57,7 +59,7 @@ struct fs_semaphore {
 #if defined(USE_PSEM)
     sem_t semaphore;
 #elif defined(USE_SDL)
-    SDL_sem* semaphore;
+    SDL_Semaphore* semaphore;
 #endif
 };
 
@@ -65,17 +67,16 @@ fs_thread_id_t fs_thread_id(void)
 {
     fs_thread_id_t thread_id = 0;
 #if defined(USE_GLIB)
-    thread_id = (uintptr_t) g_thread_self();
+    thread_id = (uintptr_t)g_thread_self();
 #else
 #error no thread support
 #endif
     return thread_id;
 }
 
-fs_thread *fs_thread_create(
-        const char *name, fs_thread_function fn, void *data)
+fs_thread* fs_thread_create(const char* name, fs_thread_function fn, void* data)
 {
-    fs_thread *thread = (fs_thread *) g_malloc(sizeof(fs_thread));
+    fs_thread* thread = (fs_thread*)g_malloc(sizeof(fs_thread));
 #if defined(USE_PTHREADS)
     pthread_attr_init(&thread->attr);
     pthread_attr_setdetachstate(&thread->attr, PTHREAD_CREATE_JOINABLE);
@@ -106,9 +107,9 @@ fs_thread *fs_thread_create_detached(
 }
 #endif
 
-void *fs_thread_wait(fs_thread *thread)
+void* fs_thread_wait(fs_thread* thread)
 {
-    void *result;
+    void* result;
 #if defined(USE_PTHREADS)
     pthread_join(thread->thread, &result);
     pthread_attr_destroy(&thread->attr);
@@ -122,14 +123,11 @@ void *fs_thread_wait(fs_thread *thread)
     return result;
 }
 
-void fs_thread_free(fs_thread *thread)
-{
-    g_free(thread);
-}
+void fs_thread_free(fs_thread* thread) { g_free(thread); }
 
-fs_mutex *fs_mutex_create()
+fs_mutex* fs_mutex_create()
 {
-    fs_mutex *mutex = (fs_mutex *) g_malloc(sizeof(fs_mutex));
+    fs_mutex* mutex = (fs_mutex*)g_malloc(sizeof(fs_mutex));
 #if defined(USE_PTHREADS)
     pthread_mutex_init(&mutex->mutex, NULL);
 #elif defined(USE_GLIB)
@@ -142,7 +140,7 @@ fs_mutex *fs_mutex_create()
     return mutex;
 }
 
-void fs_mutex_destroy(fs_mutex *mutex)
+void fs_mutex_destroy(fs_mutex* mutex)
 {
 #if defined(USE_PTHREADS)
     pthread_mutex_destroy(&mutex->mutex);
@@ -156,7 +154,7 @@ void fs_mutex_destroy(fs_mutex *mutex)
     g_free(mutex);
 }
 
-int fs_mutex_lock(fs_mutex *mutex)
+int fs_mutex_lock(fs_mutex* mutex)
 {
 #if defined(USE_PTHREADS)
     return pthread_mutex_lock(&mutex->mutex);
@@ -170,7 +168,7 @@ int fs_mutex_lock(fs_mutex *mutex)
 #endif
 }
 
-int fs_mutex_unlock(fs_mutex *mutex)
+int fs_mutex_unlock(fs_mutex* mutex)
 {
 #if defined(USE_PTHREADS)
     return pthread_mutex_unlock(&mutex->mutex);
@@ -184,9 +182,9 @@ int fs_mutex_unlock(fs_mutex *mutex)
 #endif
 }
 
-fs_condition *fs_condition_create(void)
+fs_condition* fs_condition_create(void)
 {
-    fs_condition *condition = (fs_condition *) g_malloc(sizeof(fs_condition));
+    fs_condition* condition = (fs_condition*)g_malloc(sizeof(fs_condition));
 #if defined(USE_PTHREADS)
     pthread_cond_init(&condition->condition, NULL);
 #elif defined(USE_GLIB)
@@ -199,7 +197,7 @@ fs_condition *fs_condition_create(void)
     return condition;
 }
 
-void fs_condition_destroy(fs_condition *condition)
+void fs_condition_destroy(fs_condition* condition)
 {
 #if defined(USE_PTHREADS)
     pthread_cond_destroy(&condition->condition);
@@ -213,7 +211,7 @@ void fs_condition_destroy(fs_condition *condition)
     g_free(condition);
 }
 
-int fs_condition_wait (fs_condition *condition, fs_mutex *mutex)
+int fs_condition_wait(fs_condition* condition, fs_mutex* mutex)
 {
 #if defined(USE_PTHREADS)
     return pthread_cond_wait(&condition->condition, &mutex->mutex);
@@ -238,8 +236,7 @@ int64_t fs_condition_get_wait_end_time(int period)
 #endif
 }
 
-int fs_condition_wait_until(
-        fs_condition *condition, fs_mutex *mutex, int64_t end_time)
+int fs_condition_wait_until(fs_condition* condition, fs_mutex* mutex, int64_t end_time)
 {
 #if defined(USE_PTHREADS)
     struct timespec tv;
@@ -247,8 +244,7 @@ int fs_condition_wait_until(
     tv.tv_nsec = (end_time % 1000000) * 1000;
     return pthread_cond_timedwait(&condition->condition, &mutex->mutex, &tv);
 #elif defined(USE_GLIB)
-    gboolean result = g_cond_wait_until(
-             &condition->condition, &mutex->mutex, end_time);
+    gboolean result = g_cond_wait_until(&condition->condition, &mutex->mutex, end_time);
     return !result;
 #elif defined(USE_SDL2)
 #error FIXME: implement with SDL_CondWaitTimeout
@@ -259,7 +255,7 @@ int fs_condition_wait_until(
 #endif
 }
 
-int fs_condition_signal(fs_condition *condition)
+int fs_condition_signal(fs_condition* condition)
 {
 #if defined(USE_PTHREADS)
     return pthread_cond_signal(&condition->condition);
@@ -273,9 +269,9 @@ int fs_condition_signal(fs_condition *condition)
 #endif
 }
 
-fs_semaphore *fs_semaphore_create(int value)
+fs_semaphore* fs_semaphore_create(int value)
 {
-    fs_semaphore *semaphore = (fs_semaphore *) g_malloc(sizeof(fs_semaphore));
+    fs_semaphore* semaphore = (fs_semaphore*)g_malloc(sizeof(fs_semaphore));
 #if defined(USE_PSEM)
     sem_init(&semaphore->semaphore, 1, value);
 #elif defined(USE_SDL)
@@ -286,7 +282,7 @@ fs_semaphore *fs_semaphore_create(int value)
     return semaphore;
 }
 
-void fs_semaphore_destroy(fs_semaphore *semaphore)
+void fs_semaphore_destroy(fs_semaphore* semaphore)
 {
 #if defined(USE_PSEM)
     sem_destroy(&semaphore->semaphore);
@@ -298,53 +294,54 @@ void fs_semaphore_destroy(fs_semaphore *semaphore)
     g_free(semaphore);
 }
 
-int fs_semaphore_post(fs_semaphore *semaphore)
+int fs_semaphore_post(fs_semaphore* semaphore)
 {
 #if defined(USE_PSEM)
     return sem_post(&semaphore->semaphore);
 #elif defined(USE_SDL)
-    return SDL_SemPost(semaphore->semaphore);
+    SDL_SignalSemaphore(semaphore->semaphore);
+    return 0;
 #else
 #error no thread support
 #endif
 }
 
-int fs_semaphore_wait(fs_semaphore *semaphore)
+int fs_semaphore_wait(fs_semaphore* semaphore)
 {
 #if defined(USE_PSEM)
     return sem_wait(&semaphore->semaphore);
 #elif defined(USE_SDL)
-    return SDL_SemWait(semaphore->semaphore);
+    SDL_WaitSemaphore(semaphore->semaphore);
+    return 0;
 #else
 #error no thread support
 #endif
 }
 
-int fs_semaphore_try_wait(fs_semaphore *semaphore)
+int fs_semaphore_try_wait(fs_semaphore* semaphore)
 {
 #if defined(USE_PSEM)
     return sem_trywait(&semaphore->semaphore);
 #elif defined(USE_SDL)
-    return SDL_SemTryWait(semaphore->semaphore);
+    return SDL_TryWaitSemaphore(semaphore->semaphore);
 #else
 #error no thread support
 #endif
 }
 
-int fs_semaphore_wait_timeout_ms(fs_semaphore *semaphore, int timeout)
+int fs_semaphore_wait_timeout_ms(fs_semaphore* semaphore, int timeout)
 {
 #if defined(USE_PSEM)
 #error not implemented
 #elif defined(USE_SDL)
-	int result = SDL_SemWaitTimeout(semaphore->semaphore, timeout);
-	if (result == 0) {
-		return 0;
-	}
-	if (result == SDL_MUTEX_TIMEDOUT) {
-		return FS_SEMAPHORE_TIMEOUT;
-	}
-	fs_log("WARNING: uae_sem_trywait_delay failed\n");
-	return -3;
+    int result = SDL_WaitSemaphoreTimeout(semaphore->semaphore, timeout);
+    if (result) {
+        return 0;
+    } else {
+        return FS_SEMAPHORE_TIMEOUT;
+    }
+    fs_log("WARNING: uae_sem_trywait_delay failed\n");
+    return -3;
 #else
 #error no thread support
 #endif

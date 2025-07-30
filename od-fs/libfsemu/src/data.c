@@ -9,6 +9,7 @@
 #include <limits.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <glib.h>
 
@@ -139,9 +140,20 @@ static int read_zip_entries (FILE *f)
     return 0;
 }
 
+static int fs_data_read_file(const char *name, char **data, int *size)
+{
+    gsize size2;
+    bool success = g_file_get_contents(name, data, &size2, NULL);
+    *size = size2;
+    return success ? 0 : 1;
+}
+
 int fs_data_file_content(const char *name, char **data, int *size)
 {
     if (g_dat_file == NULL) {
+        if (fs_data_read_file(name, data, size) == 0) {
+            return 0;
+        }
         return 1;
     }
     if (g_dat_table == NULL) {

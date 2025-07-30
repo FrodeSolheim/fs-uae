@@ -17,7 +17,7 @@
 
 #define UAEMAJOR 6
 #define UAEMINOR 0
-#define UAESUBREV 0
+#define UAESUBREV 1
 
 #define MAX_AMIGADISPLAYS 4
 
@@ -626,6 +626,7 @@ struct uae_prefs {
 	int gfx_overscanmode;
 	int gfx_monitorblankdelay;
 	int gfx_rotation;
+	int gfx_ntscpixels;
 	uae_u32 gfx_bordercolor;
 
 	struct gfx_filterdata gf[3];

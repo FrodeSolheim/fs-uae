@@ -1,0 +1,2582 @@
+Version 5.0.0dev:
+
+*
+
+Version 4.0.x:
+
+* Allow overriding device names for hard drive directories.
+* New options midi_in_device, midi_out_device, midi_mt32_device.
+* Read Data/Devs/Controllers/gamecontrollerdb.txt.
+* Updated libslirp to version 4.6.1.
+* Device helper is updated to work with new hotplug functionality in
+  FS-UAE Launcher.
+* Fix device helper for xinput devices with recent SDL2 versions.
+* Support for looking for ARM64 plugins.
+* Prefer $HOME/FS-UAE over Documents/FS-UAE.
+* Temporarily disable manymouse in device helper (fixes misleading security
+  warning in macOS about listening to keyboard).
+* Fixed screenshot function (Mod+S).
+* Disabled some non-working shortcuts.
+
+Version 4.0.0dev:
+
+* New fsemu backend (work in progress).
+* Use RTLD_DEEPBIND with dlopen on Linux when loading plugins.
+* SCP floppy image doesn't wrap to revolution #0 cleanly [keirf].
+* Fixed crash in nname_to_aname [PowderedToastMan].
+* New option video_driver (can be sdl or null).
+* Configure flags --disable-jit and --disable-x86 must no longer be specified
+  for ARM builds, they will be automatically disabled.
+* macOS: Only use -pagezero_size for x86_64 (Fixes builds for M1 hardware).
+* Several features from FS-UAE 3.x are still missing (TODO: List them).
+* FIXME: The changelog for this version is incomplete.
+* New built-in slirp implementation from QEMU 5.2.0 and reworked the slirp
+  support in FS-UAE. Fixes random crashes and corrupt network data.
+* fs-uae-device-helper now goes into libexec, not bin.
+* Add Midi Support to FS-UAE using the PortMidi library [cnvogelg].
+* Support for F13-F19 keys on Apple Extended keyboard [immutable].
+* Better clipboard sharing integration.
+* Experimental floppy file picker dialogs (--enable-libnfd).
+* New shortcut Mod+F9 to toggle between chipset and RTG display.
+* Bridgeboard & VGA available and works with custom uae_* options.
+* Fixed mouse integration.
+* Only do LF <-> CRLF clipboard conversion on Windows [BastyCDGS].
+* Console debugger can be used also in Windows.
+* Lots of fixes to restore functionality after the merge.
+* Updated emulation core from WinUAE 4210 (big merge).
+
+Version 3.0.0dev:
+
+* Show error during configure if OpenAL is not found.
+* More controller configs.
+* Imported updated translations from crowdin.com.
+
+Version 2.9.12dev:
+
+* Added controller config for DualShock 4 v2.
+* Change default for bezel option to 0 (off).
+
+Version 2.9.11dev:
+
+* Linux: Automatically uses (Feral Interactive) GameMode daemon if available.
+* New option game_mode = 0 to disable above mentioned feature.
+* Linux: Warn if running with a CPU governor other than performance.
+* New option governor_warning = 0 to to disable above mentioned warning.
+* Fixed support for multiple mice also on Windows.
+
+Version 2.9.9dev:
+
+* Added 8BitDo controller configurations, updated dualshock 3 for Linux.
+* Fixed mouse integration.
+* Fixed support for multiple mice (was accidentally disabled).
+* More deterministic creation of fs-uae.dat [bmwiedemann].
+* HAM6 on AGA fix [sonnenscheinchen].
+* Imported updated translations from crowdin.com.
+
+Version 2.9.8dev:
+
+* New option whdload_quit_key to gracefully quit slaves.
+* Do not alias mouse clicks when joystick_port_0_autoswitch is off.
+* Added Build-Conflicts: libroar-dev to fix building on OBS.
+* Added sharp-bilinear-simple.shader [rsn8887].
+* New options window_hidden, window_minimized [cnvogelg].
+* Removed GLee from source.
+* Fixed JIT direct access on modern Linux distributions.
+* Changed default sync method on Windows to swap-finish.
+* Updated bezel.
+* New option: frame_time (can be used to limit emulation time before vsync).
+* Compatibility updates for a couple of shaders [guest.r].
+* Imported updated translations from crowdin.com.
+
+Version 2.9.7dev:
+
+* Support building with latest version of MSYS2.
+* Renamed option frame to bezel.
+* New option: force_aspect.
+* Added shaders compiled/ported/written by guest.r.
+
+Version 2.9.6dev:
+
+* Changed default fade in/out duration, only fade in fullscreen.
+* FS-UAE default is now to show a 692x540 image, not stretched to fill screen.
+* Use scale = legacy to revert to old default behavior (Can put in Host.fs-uae
+  or use FS-UAE Launcher set set globally).
+* New option scale (choose between full, integer, legacy and no scaling).
+* New option stretch (replaces keep_aspect, though it still works).
+* F11 is now a dedicated toggle auto zoom function, Alt/Cmd+Z cycles through
+  zoom modes as before.
+* Render a frame around the view when not stretched (frame = 0 to disable).
+* Cartridge freeze shortcut is now Alt/Cmd+C.
+* Alt/Cmd+A now toggles stretch mode (aspect correction).
+* Imported updated translations from crowdin.com.
+
+Version 2.9.5dev:
+
+* Added some game controller configs.
+* Restructuring to allow for (future) multiple video/audio/input drivers.
+
+Version 2.9.3dev:
+
+* Updated FS-UAE icon.
+* Allow specifying sub_title = 0 to disable the sub title.
+
+Version 2.9.2dev:
+
+* New boolean option warp_mode (warp_mode = 1 to start in warp mode).
+* Try ralphschmidt-cyberstorm-ppc-4471.rom if cyberstormppc.rom is not found.
+* Imported updated translations from crowdin.com.
+
+Version 2.9.1dev:
+
+* Configure now fails if zip or msgfmt is not found on path.
+* Added xinput_controller_11_6_1_0_windows.
+* GUI warning when running with llvmpipe software renderer.
+* Fixed caps lock.
+* Fix loading of bundled gamepad configs for macOS.
+* Fix decoding on non-ascii %-escaped file names on directory HDs.
+* Fixed loading compressed resources from fs-uae.dat on big-endian CPU.
+* Fix compilation with --disable-jit.
+* Updated emulation core from WinUAE 3400.
+
+Version 2.9.0dev:
+
+* Fix mouse input on Windows with raw keyboard input enabled.
+* Alt+F4 and Cmd+Q will no longer quit FS-UAE (in full keyboard emulation mode).
+* Use raw input on Windows again (allows grabbing of Windows keys, etc).
+* New option raw_input = 0 will disable use of raw input for keyboard.
+* Fixed loading shaders from fs-uae.dat.
+* Updated Xbox 360 configs for Linux.
+* Updated emulation core from WinUAE 3300b2.
+
+Version 2.7.16dev:
+
+* Add -no-pie (unless JIT is explicitly disabled) if supported by linker.
+* Removed dependency on GLEW, use GLAD OpenGL loader instead.
+* Check if SDL2 uses the X11 subsystem before using X11 directly.
+* Fixed crash when using the Wayland SDL2 driver.
+
+Version 2.7.15dev:
+
+* New option clipboard_sharing.
+* Translation fix for Fedora.
+* Do do install unused files to $prefix/share/fs-uae.
+* Packaging fix for Linux standalone version (fixes crash on Ubuntu 16.04).
+* Use embedded RUNPATHs instead of LD_LIBRARY_PATH for generic Linux versions.
+* Imported updated translations from crowdin.com.
+
+Version 2.7.14dev:
+
+* Fixed reserved word problem ("filter") in crt.shader.
+* Fixes for earlier vpar merge (fs-uae/issues/93).
+* Added segtracker to UAE debugger [cnvogelg].
+* Imported updated translations from crowdin.com.
+
+Version 2.7.13dev:
+
+* JIT on x86-64: Handle it gracefully when 2 GB virtual memory could not
+  be allocated (reduce size of allocation region).
+* A bit more flexible VM allocation function.
+* New option expect_version (used by FS-UAE Launcher).
+* Fixed middle mouse button ungrabbing with more than 1 keyboard joystick.
+* Remove greek translations due to missing bitmap font characters.
+* Imported updated translations from crowdin.com.
+
+Version 2.7.12dev:
+
+* Support additional/custom keybard-emulated joysticks, built-in configs
+  for X-Arcade controllers.
+* Enabled ECS Agnus for *all* A500 models by mistake (2.7.10dev).
+
+Version 2.7.10dev:
+
+* Choosing an accelerator now auto-selects a suitable CPU.
+* Added new option: network_card.
+* Added new option: freezer_cartridge.
+* Automatically set chipset to ECS Agnus if A500 and chip RAM >= 1MB.
+* A4000 model defaults to 680EC30 now, not 68030.
+* Fixed on-screen warning when using hardware dongle.
+* You can now more easily override keybindings in keyboard.conf.
+* New option cdrom_drive_0_delay (boolean) - delayed insert for CD32.
+* Enable the CD-ROM drive if there are CD images in the CD swap list.
+* Load floppy drive sounds from fs-uae.dat (fixes missing drive sounds).
+* Also look for named shaders in FS-UAE/Data/Shaders.
+* Map Mod+cursors to Amiga cursor keys (useful with joystick emulation).
+
+Version 2.7.9dev:
+
+* Plugin layout changed - new plugins must be downloaded.
+* Detect screen refresh rate for correct display with multiple displays.
+* Simplified video_sync option (is a boolean now).
+* Low latency vsync is enabled by default.
+
+Version 2.7.8dev:
+
+* Disable use of fullscreen spaces on OS X by default. Use
+  SDL_VIDEO_MAC_FULLSCREEN_SPACES = 1 (advanced settings or environment) if
+  you want to re-enable it.
+* Fixed a crash when using (experimental and) unsupported re-recording.
+
+Version 2.7.7dev:
+
+* Compile with hardening disabled for Fedora 23+.
+* Automatically scan $BASE/AmigaForever/Amiga Files/Shared/rom for Kickstarts.
+
+Version 2.7.6dev:
+
+* Fix AGA flickering bug introduced in 2.5.40dev.
+* Do not use R12 register in x86-64 JIT due to addressing issue.
+* Lowered default floppy drive sound volume.
+* Warn when uae_cachesize is used without jit_compiler enabled.
+* Theme options override options from config.
+* Updated emulation core from WinUAE 3220.
+
+Version 2.7.5dev:
+
+* Fix abort in OpenAL on OS X on shutdown.
+* On x86-64, do not try to use "32-bit memory" unless JIT is enabled.
+* If x87_fldcw dynamic function cannot be created, fall back to inline asm.
+* Fix loading controller configs from non-ASCII paths on Windows.
+* Better (build-time) OpenAL detection on OS X.
+* New configure option --with-libmpeg2=yes/builtin (no won't work yet),
+  defaults to yes (using system library).
+* Fix additional custom joystick ports.
+* New boolean option full_keyboard to set the initial state.
+* Auto-choose joystick device for port 0 when not started in mouse mode.
+* Support deflate compression in fs-uae.dat.
+* Updated emulation core from WinUAE 3210.
+
+Version 2.7.4dev:
+
+* New action_mute_floppy_sounds, mapped to MOD+N by default.
+* Added support for audioprev, audionext, audiostop, audioplay keys.
+* Map audioprev, audionext and audioplay to disk swapper actions by default.
+* Show on-screen messages when using disk swapper prev/next/insert actions.
+* New option relative_paths (see docs).
+* Support for three additional custom "joystick ports" (maps to Amiga keys).
+* Also recognize .ipf and .dms floppy paths as standalone parameters.
+* Fixed building with ./configure --disable-drivesound --disable-slirp
+  --disable-prowizard --disable-cdtv --disable-savestate
+  --disable-parallel-port and others.
+* Can build with many CPU emu cores disabled.
+* Some cleanup in the configure script.
+* Remove dependency on GLU.
+* Do not use built-in libmpeg2.
+* Imported updated translations from crowdin.com.
+* Updated emulation core from WinUAE 3200b18.
+
+Version 2.7.3dev:
+
+* Support for multimedia keys: volume up, volume down and mute.
+* New shortcut Mod+K to toggle full keyboard emulation.
+* Using (Left) Alt (Cmd on OS X) as default keyboard shortcut modifier.
+* Workaround to allow Alt+Tab to work on non-Windows/non-OS-X platforms.
+* Most built-in shortcuts are now configurable.
+* Actions for built-in shortcuts are now available for mapping.
+* Actions for F11 and F12 (release) can be customized.
+* Ungrab mouse and keyboard when entering the menu.
+* Added support for reading controller configs from fs-uae.dat.
+* Support for creating static / fully self-contained .exe on Windows.
+* JIT: Better fldcw_m_indexed fix (can use all x86-64 registers).
+* Fixed RSP inc/dec for x86-64, shadow stack space on Windows / x86-64.
+* Fix callee-saved registers for Windows x64 ABI.
+* Fixed crash when using Blizzard accelerators and x86-64 JIT.
+* Respect cpu option when checking for Zorro III config problems.
+* Compile with -fno-strict-aliasing to avoid potential aliasing bugs.
+* Removed some SDL 1.2 code.
+
+Version 2.7.2dev:
+
+* Enable FPU JIT compilation by default on x86-64.
+* Use high-res timer on Windows for fastest-possible mode (perf fix).
+* Parallel port ("printer") over TCP/IP, added parallel_port option.
+* Fixed crash (abort) with A1200 Blizzard CPU board models.
+* Added Lallafa's vpar virtual parallel port (not tested).
+* Serial port over TCP/IP.
+* More efficient uae_vm_commit for Linux and OS X.
+* Updated emulation core from WinUAE 3200b15.
+
+Version 2.7.1dev:
+
+* Several FPU JIT fixes for x86-64 (fixes crashes and misbehavior).
+* Access fault handler supports x86-64 extended registers (REX prefix).
+* Fixed crash when 1 GB Zorro III RAM was used without other Z3 expansions.
+* Fixed non-blocking socket I/O support in bsdsocket_posix [Jens Maus].
+* Added more gamepad controller configurations.
+* New option rtg_viewport for optional cropping of the RTG display.
+* Updated emulation core from WinUAE 3200b13.
+
+Version 2.7.0dev:
+
+* Merged JIT compiler updates from the ARAnyM project.
+* Support for JIT compilation on x86-64 (Linux/Windows/OS X). It may contain
+  bugs yet. FPU JIT is currently disabled by default for x86-64.
+* JIT 64-bit direct memory exception handlers for Linux/Windows/OS X.
+* Compile FS-UAE / Windows as large address aware for more virtual memory.
+* Updated emulation core from WinUAE 3200b12.
+
+Version 2.5.42dev:
+
+* Map gamepad start button to menu when in Amiga joystick mode (not CD32).
+* Map gamepad select button to pause action.
+* Added/updated some XInput controller configs for DirectInput mode.
+
+Version 2.5.41dev:
+
+* Implement action_pause to make action key configurable.
+* Separate auto-fire button (based on patch from S. Jordan).
+* Dedicated auto-fire button mapped to "right trigger" by default.
+* New boolean option jit_compiler (to enable/disable JIT compilation).
+* New option jit_memory (=direct/indirect).
+* JIT compiler defaults to direct memory access on all platforms now.
+* JIT direct memory exception handler for OS X (32-bit).
+* Imported updated translations from crowdin.com.
+
+Version 2.5.40dev:
+
+* Use SetUnhandledExceptionFilter on Windows for JIT direct memory.
+* Unified (segfault) exception handler for Windows and Linux.
+* Fixed mman for compatibility with JIT direct memory access.
+* Re-enable uae_comp_trust* = indirectKS options.
+* Allow uae_rtc to be set without disabling uae_chipset_compatible.
+* Fixed flickering caused by undefined behavior in shift operations.
+* Added new option log_bsdsocket (boolean).
+
+Version 2.5.39dev:
+
+* Updated config for Logitech F310 and added Thrustmaster Dual Action 4.
+* Updated AROS kickstart replacement to ver. 2015-05-20 from WinUAE 3.1.0.
+* Config files must end with .fs-uae or .conf to be loaded by FS-UAE.
+* If you give fs-uae a command line argument with path to a .adf, it will
+  be used as value for floppy_drive_0.
+* Imported updated translations from crowdin.com.
+
+Version 2.5.38dev:
+
+* Several new and updated joystick and gamepad configs.
+* Built-in configs for Xbox 360 / One pads on OS X (requires driver).
+* Changed default stereo separation setting to 70%.
+* Windows builds are digitally signed again.
+* Imported updated translations from crowdin.com.
+
+Version 2.5.37dev:
+
+* Fixed a joystick issue where SDL_JoystickID was not used properly.
+* Added new option log_input (replaces environment variable FS_DEBUG_INPUT).
+* Also log joystick button and hat events when log_input is enabled.
+* Imported updated translations from crowdin.com.
+
+Version 2.5.36dev:
+
+* Fixed a crash (floating point exception) if audio device cannot be opened.
+
+Version 2.5.35dev:
+
+* Fixed bug (lockup) when quitting FS-UAE from Amiga side on some platforms.
+* Fixed a potential key repeat issue (could not reproduce original problem).
+* Load kickstart replacement from data files instead of embedding in
+  executable.
+* Re-enabled serial port (was disabled in 2.5.31dev), fixed AROS Kickstart
+  replacement.
+* Share serial port emulation code with WinUAE.
+
+Version 2.5.34dev:
+
+* New option floppy_drive_volume_empty.
+* Switched default key mapping for host backslash and insert keys.
+* Use GLEW instead of GLee for OpenGL extensions.
+* When not using FS-UAE Launcher, model A1200 defaulted to kickstart 3.0.
+
+Version 2.5.33dev:
+
+* Blizzard SCSI Kit ROM wasn't found by (full) path.
+* Several new amiga quickstart models for A1200.
+* Added several Blizzard boards to accelerator option.
+* Added new options motherboard_ram, blizzard_scsi_kit.
+* New boolean option window_border to disable window decorations.
+* If STEAM_RUNTIME is set, look for "steamos" plugins, not "linux" plugins.
+* Plugin search path updated (also changed plugin format slightly).
+
+Version 2.5.32dev:
+
+* Choose which monitor FS-UAE appears on in full-screen mode.
+* Added mime type application/x-adf for Linux desktops.
+* Updated emulation core from WinUAE 3100.
+
+Version 2.5.31dev:
+
+* Fixed a time offset bug in my_utime used by action_set_date.
+* Temporarily disabled serial port emulation (need code update).
+* Fixed handling of configurations_dir and cache_dir options.
+* Imported updated translations from crowdin.com.
+* Updated emulation core from WinUAE 3100b23.
+
+Version 2.5.30dev:
+
+* Fixed ROM initialization of Cyberstorm PPC.
+* Lowered default volume of floppy drive sounds.
+* Updated emulation core from WinUAE 3100b14.
+
+Version 2.5.29dev:
+
+* Updated emulation core from WinUAE 3100b11.
+
+Version 2.5.28dev:
+
+* Detect portable dir without help from FS-UAE Launcher.
+* Updated emulation core from WinUAE 3100b8.
+
+Version 2.5.27dev:
+
+* Implemented prefix expansion for screenshots_output_dir.
+* Implemented joystick_port_0_autoswitch = 0 for the relatively new
+  automatic mouse mode switching feature (in order to disable it).
+* Updated emulation core from WinUAE 3100b6.
+
+Version 2.5.26dev:
+
+* Option sound_card = toccata actually implemented now.
+* Updated emulation core from WinUAE 3100b2.
+
+Version 2.5.25dev:
+
+* New option sound_card = toccata.
+* Added several joystick configs [johanpalmqvist].
+* Updated emulation core from WinUAE 3100b1.
+
+Version 2.5.23dev:
+
+* Fixed loading of Picasso IV ROM when using graphics_card_rom_option.
+* Read plugins from [prefix]/lib/fs-uae/plugins too.
+* Updated emulation core from WinUAE 3000.
+
+Version 2.5.22dev:
+
+* Updated emulation core from WinUAE 3000b28.
+
+Version 2.5.21dev:
+
+* Added file version information to fs-uae.exe
+* Updated Windows build/dist system to work with MSYS2.
+* Also check for plugin .dll/.so in executable directory and
+  exedir/../name/name.dll-or-so (useful for development and testing)
+* Added microsoft_x_box_one_pad_11_6_1_0_linux.conf.
+* Added sony_computer_entertainment_wireless_controller_14_10_1_0_linux.conf.
+* Added wireless_controller_14_6_1_0_macosx.conf.
+* Updated emulation core from WinUAE 2900b25.
+
+Version 2.5.20dev:
+
+* Use qemu-uae for slirp support.
+* Added support for softfloat library (not tested).
+* Enabled support for prowizard module ripper.
+* New action "action_module_ripper" available for custom input mapping.
+* A few other bugfixes.
+
+Version 2.5.19dev:
+
+* Restore kickstart ROM when CSMK3/CSPPC/BPPC maprom is disabled.
+* New PPC lock implemented, fixes occasional PPC lockup.
+* Fix crash during PPC reset (missing lock when memory regions were updated).
+* Stop PPC CPU before resetting Amiga.
+* Floating point fixes for PowerPC hosts.
+* New options cpu, fpu, mmu, changes to how CPU is configured.
+* Defaults for fpu, mmu, cpu speed, cpu accuracy, blitter mode now
+  automatically depends on specified (or implied) cpu option. Example,
+  cpu = 68040 will automatically enable 68040 FPU (and MMU), set fastest
+  possible mode, less compatible CPU and enable waiting blits.
+* A3000/A4000 models now use waiting blits by default (was immediate).
+* Fix reset problem while PPC CPU is active.
+* Workaround for Hexagons Joystick Adapter (name is a single non-ASCII letter).
+* Workaround for SDL 2 XInput Controller names with #x in the name.
+* Recognize --version and --help arguments.
+* The bitmap fonts are also now loaded from fs-uae.dat.
+* Don't add RTC module on stock A600, A1200 (exp) defaults to MSM6242B.
+* Fixed loading CD into drive from CD image list (full path wasn't resolved).
+* Added new boolean option uaenative_library.
+* Updated emulation core from WinUAE 2900b19.
+
+Version 2.5.18dev:
+
+* Disabled / soft-removed PearPC PPC implementation.
+* Changed A4000 default floppy drive type to 3.5" HD.
+* New option cdfs (boolean). Can be used to disable builtin CDFS.
+* Reduced number of OpenAL buffers to pre-2.5.17dev level.
+* Updated emulation core from WinUAE 2900b18.
+
+Version 2.5.17dev:
+
+* Initial support for magic mouse / virtual mouse.
+* New option mouse_integration (boolean) (Setting it to 1 implies cursor=0,
+  automatic_input_grab=0).
+* New option cursor (boolean + auto).
+* Removed audio_buffer_target_bytes (use audio_buffer_target_size instead).
+* Changes to audio buffer fill logic.
+* Measure fps internally with floating point numbers.
+* Fixed cyberstormppc.rom lookup when using FS-UAE config file.
+* Fixed ISO-8859-1 <-> UTF-8 conversion (broke in 2.5.15dev).
+* Renamed testing option workbench -> workbenc_disk.
+* Updated emulation core from WinUAE 2900b17.
+
+Version 2.5.16dev:
+
+* Fixed legacy uaegfx_card option.
+* Make sure early configuration warning messages are displayed in GUI.
+* Fixed parsing of memory options.
+* Fixed infinite loop when more than one HDF/CD was used with UAE controller.
+* Fix for A1000 boot issue with full kickstart ROM.
+* Fixed patching of Cloanto A500/A4000 roms (broke in an earlier dev ver).
+* Specify rpath for OS X executable (so plugins can find libs from fs-uae).
+
+Version 2.5.15dev:
+
+* FS-UAE memory options are more clever, and can take arguments as both
+  KB or MB (with recommended explicit K/M suffix). For example, for memory
+  options which are always in MB, 8M == 8192K == 8192 == 8.
+* Flexible value matching for choice-based FS-UAE configuration options
+  (i.e. cyberstorm-ppc == CyberStormPPC)
+* New model A4000/PPC (auto-enables CyberStorm PPC).
+* New model A4000/OS4 (CyberStorm PPC, Picasso IV, default to onboard SCSI).
+* New options graphics_card and graphics_card_memory (supercedes uaegfx_card).
+* New options accelerator, accelerator_rom, graphics_card_rom.
+* New --workbench option useful for command line testing (automatically
+  inserts an appropriate wb disk in DF0).
+* Show GUI warning when floppy_drive_x files are not found.
+* Enabled A500/512K model (same as A500 but without slow RAM).
+* Enabled A4000 model (68030, 3.1 ROM, 2MB Chip + 8 MB Fast).
+* Added .bin extension to internal FS-UAE rom scanner.
+* More code cleanup / fixes, reduces compiler warnings.
+* Enabled floating point control.
+* Updated emulation core from WinUAE 2900b16.
+* Fixed bug when adding 2nd fast memory bank in non-autoconfig mode.
+* Allow 1 to be used as true/yes for boolean uae_* options.
+* Removed cpu_idle override, added new cpu_idle option (0 - 10).
+* Implemented support for growable VHD hard drive images.
+* Added proper error message when libcapsimage plugin is missing.
+* Use new dlopen plugin interface to load ppc and libcapsimage plugins.
+
+Version 2.5.14dev:
+
+* Updated emulation core from WinUAE 2900b15.
+* Updates to Qemu PPC CPU integration.
+* New option: cdrom_drive_0_controller (to specify for example ide1)
+* Fixed problem when inserting, ejecting and then inserting a CD again.
+* Changes to how fastest-possible-mode works and interacts with
+  frame rendering (solves some issues, might introduce new ones...)
+* Fixed and activated more recent Picasso96 (uaegfx) code.
+* Enabled emulation of GFX hardware boards (Picassso IV, etc).
+* A bit more code cleanup and fixes to make code compatible with MSVC.
+
+Version 2.5.13dev:
+
+* Updated emulation core from WinUAE 2900b14.
+* Harmonize CD IOCTL / image initialization with WinUAE.
+* Initial version of QEmu PPC CPU integration (not fully working yet).
+* Removed --disable-cpuboard option to configure (no longer needed).
+* Updated Picasso96 code, but old version is still used (needs more work).
+* Add internal HRTMon rom to the rom list on startup.
+* Show GUI warning when some config incompatibilities are detected.
+* GUI warning when custom uae_ options fails or are not recognized.
+* Added more compiler warnings by default.
+* More code cleanup, especially in src/od-fs.
+* Merged several modules which were similar between FS-UAE and WinUAE.
+
+Version 2.5.12dev:
+
+* Updated emulation core from WinUAE 2900b12.
+* FS-UAE on Windows now supports unicode command line arguments.
+* Fixed a bug on Windows preventing load of non-ASCII config file paths.
+* Another big-endian fix for loading fs-uae.dat.
+* Added xinput_controller_15_6_0_0_windows.conf [Kitty].
+
+Version 2.5.11dev:
+
+* Big-endian support for loading of fs-uae.dat.
+* Remove message "no configuration file loaded".
+* Re-enable DMS support (missing for a couple of versions).
+* Can configure with --disable-cpuboard --disable-ppc.
+* Configure script checks if -fno-strict-overflow is recognized.
+
+Version 2.5.10dev:
+
+* Updated emulation core from WinUAE 2900b10.
+* Fixed audio initialization (broke in 2.5.9dev).
+* New option cpuboard_flash_ext_file (not tested).
+
+Version 2.5.9dev:
+
+* New option cpuboard_flash_file (path to accelerator "ROM").
+* Bug fixes and source cleanup based on static analysis.
+* Code cleanup in some code modules.
+* Moved glee, manymouse, lua source to toplevel directories.
+* Updated emulation core from WinUAE 2900b9.
+* Enabled experimental PearPC PPC emulation from WinUAE.
+
+Version 2.5.8dev:
+
+* New option uaem_write_flags to control when .uaem files are created.
+* Support NewMouse-compatible mouse wheel events.
+* Bundle libmpeg2 with FS-UAE source (missing on many Linux distros).
+* Don't install uaenative.library unless requested.
+
+Version 2.5.7dev:
+
+* Fix 68000 cycle exact mode (tbl == op_smalltbl_14_ff check was missing).
+* Fixed specifying base_dir via config file (broke in 2.5.6dev).
+* Re-enable slirp/a2065/sana2 by default. A2065 works partially,
+  uaenet.device still crashes.
+* Modified Makefile.am for out-of-tree builds.
+* Fixed crash when playing videos with CD32 FMV (no display yet).
+* Added libudis86 (disassembler library for x86 / x86-64).
+* Explicitly flush lines logged to stdout.
+
+Version 2.5.6dev:
+
+* Updated emulation core from WinUAE 2820b8.
+* Load libcapsimage from plugin instead of having it bundled.
+* Updated built-in AROS rom [WinUAE 2.8.1].
+* Starting FS-UAE.app with config file works again on OS X.
+* Fixed a bug (potential crash) in fs_get_application_exe_path on windows.
+* Initial support reading resources from fs-uae.dat (or embedded in the exe).
+* Build scripts for SteamOS / Steam runtime version.
+* Re-enable compiler optimizations for cpuemu, use -fno-strict-overflow
+  to work around the issue that current cpu emulation code assumes signed
+  integer overflow behavior.
+* Added speedlink_strike_2_gamepad_12_5_1_0_windows.conf [TCD].
+* Changes to support compilation on OS X 10.9.
+* Added slirp support (not tested yet, not enabled by default).
+* Enabled A2065 (not tested yet, not enabled by default).
+* FS-UAE now uses automake in addition to autoconf.
+* New requirement: libmpeg2 / libmpeg2convert for CD32 FMV support.
+* Some bugfixes based on static code analysis + code cleanup.
+
+Version 2.5.5dev:
+
+* Dual joystick/mouse mode for joystick port 0, both a specific joystick
+  device and mouse is enabled at the same time (only when
+  joystick_port_0_mode = joystick and a joystick host device is selected).
+* Show on-screen gui_message notifications from UAE code.
+* Added missing @docdir@ substitution variable.
+* More build system updates / removed old cruft.
+* BSD make should now also work (in addition to GNU make).
+* Environment variable FSGS_RETURN_CURSOR_TO can be used to move the cursor
+  to a specific location when FS-UAE quits.
+* (Device Helper) Ignore full negative axis motion events on startup.
+
+Version 2.5.4dev:
+
+* Some more autoconf / build updates.
+
+Version 2.5.3dev:
+
+* Merged code from WinUAE 2800.
+* Update AROS ROM from WinUAE 2800.
+* Debian compat set to 9, allow harding flags.
+* Migrated build system to autoconf (not automake).
+* Some source code clean to detect features / functions from autoconf.
+* Remove use of deprecated Glib function, require Glib >= 2.32.
+* Properly fixed build dependencies on auto-generated source code.
+* Fixed a problem preventing mouse from working with SDL2 on Windows.
+
+Version 2.5.2dev:
+
+* Merged code from WinUAE 2800b18.
+* SDL2 is now default on all platforms (make sdl=1 to override for now).
+* Fixes to make the windows version compile with SDL2.
+* Fixes for FS-UAE compilation with mingw-w32 4.6.3.
+* fs-uae-device-helper has a new --events mode which continuously prints
+  joystick events to stdout.
+
+Version 2.5.1dev:
+
+* Merged code from WinUAE 2710b12.
+* Support for .scp floppy images [keirf].
+* Drive sound and CDDA fixes for big-endian platforms.
+* Fixed left trigger = toggle autofire.
+
+Version 2.5.0dev:
+
+* UAE core code updated from WinUAE 2.7.1b9.
+* FS-UAE can use 256 kB chip RAM (and also 128 if you *really* want to).
+* Inhibit screen saver / power saving when running FS-UAE on OS X.
+* Allow short-hand --video-sync(=1/0) option
+* Use floating point control register, output compiler warning when not.
+* Added flush_log boolean option to flush log output after each log line.
+* New UAE Native Interface (via built-in uaenative.library).
+* Enforcer / AHI interface is added (but with a dummy AHI backend).
+* Support for old WinUAE-style native calls.
+* Code cleanup in UAE code to reduce the number of compiler warnings.
+* Removed some unused source files from the source archive.
+* Auto-generated source files are now auto-generated when compiling on all
+  platforms, and not cached in the source archives any longer.
+* Fixes to allow FS-UAE to be compiled with the lastest MinGW version.
+* Updated translations: it [Speedvicio], es [albconde], da [tomse], nb.
+
+Version 2.3.17:
+
+* Remove old log file paths so they'll not be mistaken for current logs.
+* Fix initial mute when option volume is set to 0.
+* Updated translations: fi [Goingdown], pl [grimi], fr [Foul].
+* (Launcher) Option download_file from DB does not have to be an archive.
+* (Launcher) Fixed bug when doubleclicking on an URI in the floppy list.
+* (Launcher) Fixed bug with selecting multiple files [2.3.16].
+* (Launcher) Fixed trailing colon in translation of option description.
+* (Launcher) Updated translations: fi [Goingdown], pl [grimi], fr [Foul].
+
+Version 2.3.16:
+
+* (Launcher) Always include Configurations directory in file scan regardless
+  of scan dirs.
+* (Launcher) Make file picker code compatible with both PySide and PyQT4.
+* (Launcher) Added support for WHDLoad 17.2, set as default WHDLoad version.
+* (Arcade) Fixed bug preventing games from launching.
+
+Version 2.3.15:
+
+* Reverted to previous MinGW compiler (Windows).
+* (Launcher) Fixed a bug loading online database games with cpu specification.
+* (Arcade) Fixed Windows shortcut for FS-UAE Arcade.
+
+Version 2.3.14:
+
+* JIT should work on Windows too now.
+* New options: audio_frequency, audio_buffer_target_size.
+* Default frequency is now 48000 Hz (will try 44100 Hz if 48000 Hz fails).
+* Default audio buffer size is now 40ms (slightly lower than before).
+* Deprecated the old audio_buffer_target_bytes option (it is now instead
+  calculated from audio_buffer_target_size).
+* Speed up startup by caching information about kickstart ROMs.
+* Skip initializating stuff in inputdevice.cpp which are not used by FS-UAE,
+  speeds up startup - report if it seems to have bad side-effects...
+* Split Savestates into two main menu entries (Load State, Save State).
+* Removed superfluous More... entries.
+* Include #define GLXContextID XID in glee.h to work with recent Mesa.
+* (Launcher) Respect writable_floppy_images option in cases where the
+  floppy drive options directly refer to local paths (don't copy disk
+  images to temp directory).
+* (Launcher) Defragment databases function (Settings -> Maintenance).
+* (Launcher) Use QT to open all URLs, for consistent behavior.
+* (Launcher) Will now try to find and use either of PySide, PyQt5 or PyQt4.
+* (Launcher) Added GUI controls to tweak audio freqency and also audio target
+  buffer size (in ms). The latter can be used to reduce audio latency.
+
+Version 2.3.13:
+
+* Video sync is disabled by default.
+* Updated translations: pl [grimi].
+* (Launcher) New video synchronization settings page, reorg. video settings.
+* (Launcher) New dialog for manual game downloads with scan function to make
+  manual downloads more streamlined.
+* (Launcher) Re-enabled support for manually downloadable games.
+* (Launcher) Re-enabled support for automatically downloadable games.
+* (Launcher) Support downloading and displaying terms for auto-downloadable
+  game files.
+* (Launcher) Changed icons for downloadable games.
+* (Launcher) fullscreen_mode was erroneously specified as fullscreen, should
+  be empty string. Also, fullscreen_mode will now show in advanced settings
+  if overriden.
+* (Launcher) Updated translations: pl [grimi], fi [Goingdown].
+
+Version 2.3.12:
+
+* On OS X, simulate middle click (alt) and right click (ctrl).
+* Don't move mouse to right bottom on exit without requested with environment
+  variable FSGS_SEAMLESS=1.
+* New option load_state = 1..9.
+* New option stereo_separation (0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100).
+* (Launcher) Added GUI control for stereo_separation.
+* (Launcher) Database change, a refresh is needed for the game database.
+* (Launcher) Convert from UTF-8 str to unicode when loading and vice versa
+  when saving config.
+* (Arcade) Game filters: platform, letter and shuffle.
+* (Arcade) Further re-branding to FS-UAE Arcade.
+* (Arcade) Don't display wraparound items if items would be repeat on screen.
+* (Arcade) Can start with --platform argument (--amiga, --cd32 etc).
+
+Version 2.3.11:
+
+* When deleting a directory from a dir HD, remove Thumbs_DB and .DS_Store
+  files first if they exist.
+* (Launcher) Changed where fs-uae-device-helper is stored in FS-UAE.app so
+  it is picked up by the fix-libs script.
+* (Launcher) Removed refresh game database from left "main menu".
+* (Launcher) Fixed a problem with lhafile caused by Python 3-compat changes.
+
+Version 2.3.10:
+
+* Initial support for SDL2 (make sdl=2), does not yet take full adv. of it.
+* Enable SDL2 by default on OS X.
+* New options window_x, window_y and keyboard_input_grab (SDL2 only).
+* New options min_first_line_ntsc, min_first_line_pal.
+* Windows distributions/packaging updated.
+* fs-uae deb package marked as Multi-Arch: foreign, fs-uae:i386 can then be
+  installed on amd64 without breaking fs-uae-launcher dependency.
+* Updated translations: pl [grimi], fi [Goingdown], tr [Decypher],
+  fr [Foul], nb.
+* (Launcher) Fixed dialog centering on OS X.
+* (Launcher) Center main window on desktop when opening.
+* (Launcher) Marked some texts for translation.
+* (Launcher) Use native file/directory dialogs (in most places).
+* (Launcher) Fixed a bug where game info panel wasn't always refreshed.
+* (Launcher) Code update for compatibility with Python 3.
+* (Launcher) Support for PyQT5 in addition to Pyside.
+* (Launcher) Experimental net play UI is available again.
+* (Launcher) Ensure floppy file name is visible when floppy field changes.
+* (Launcher) Support for hd_requirements = workbench (with online database).
+* (Launcher) Game database now in Cache/Games.sqlite.
+* (Launcher) Database now in Data/Database.sqlite.
+* (Launcher) Updated translations: pl [grimi], fi [Goingdown],
+  it [Speedvicio], tr [Decypher], fr [Foul], nb.
+* (Game Center) Renaming to FS-UAE Arcade (not complete).
+* (Game Center) Merged with Launcher distr on some platforms (Windows).
+* (Game Center) Fix joystick selection on input selection screen.
+
+Version 2.3.9:
+
+* Add build support for kFreeBSD [glaubitz].
+* Add generic maccess.h defines for "other" architectures [glaubitz].
+* Better code to disable the JIT compiler on non-i386 architectures [glaubitz].
+* Added contrib/sinc-integral.py to source distribution (Debian compliance).
+* Removed catweasel code from source distribution (Debian compliance).
+* Also check for $executable_path/../../Config.fs-uae on OS X.
+* Gracefully handle it when xrandr executable is not found.
+* New translations: da [tomse].
+* Updated translations: de [TCD].
+* (Launcher) Fixed a rendering issue with the tab panel.
+* (Launcher) Fixed rendering of local config/variant name in config list.
+* (Launcher) CD32 FMV ROM is properly used again when CD32/FMV model is used.
+* (Launcher) Allow server to reset local game database when necessary.
+* (Launcher) Fixed bug when last letter in search term is n.
+* (Launcher) Set explicit min width for ADF/HDF creator size field.
+* (Launcher) Allow (Qt) list items to be activated with enter.
+* (Launcher) OAGD.net Locker Uploader implemented.
+* (Launcher) Fixed bug with indexing files in archives somewhere within
+  a directory called #.
+* (Launcher) SetPatch can be extracted on demand from disk in locker.
+* (Launcher) Minor GUI tweaks and improvements here and there.
+* (Launcher) More code restructuring for sharing between launcher and gc.
+* (Launcher) New translations: da [tomse].
+* (Launcher) Updated translations: de [TCD], it [Speedvicio], nb.
+* (Game Center) Search-as-you type (just start typing to activate search).
+* (Game Center) Only show db configs (local ones don't work now anyway).
+
+Version 2.3.8:
+
+* New option "volume" to specify initial audio volume.
+* (Launcher) New OAGD.net login and logout dialog.
+* (Launcher) New login system (store authentication tokens instead of
+  username and password).
+* (Launcher) Drop-down list for choosing game list (from OAGD.net).
+* (Launcher) Support for synchronizing game lists from OAGD.net.
+* (Launcher) Initial support for OAGD.net locker (only available to a few
+  select users right now).
+* (Launcher) If local files are missing, files will be downloaded on demand
+  from the user's OAGD.net locker, if present there.
+* (Launcher) More compact (OAGD) game database, faster synchronization.
+* (Launcher) Nicer database refresh dialog, stop button works now.
+* (Launcher) Fixed bugs in HDF Creator appearing after split from ADF Creator.
+* (Launcher) Language preferences page now actually works.
+* (Launcher) New language detection code for OS X, not dependent on wx.
+* (Launcher) Fixed bugs preventing info panel from showing some warnings.
+* (Launcher) Settings file moved into FS-UAE/Data, shared with Game Center.
+* (Launcher) Several other minor UI updates, bug fixes, and restructured code.
+* (Launcher) WHDLoad runner installs the file C:OSEmu.400.
+* (Launcher) Load QT stylesheet (if found) from
+  FS-UAE/Plugins/<name>/fs-uae-launcher-theme/stylesheet.qss
+* (Launcher) Added icons to settings dialog, removed close button.
+* (Launcher) QT port now displays application / window icon again.
+* (Launcher) Moved "Custom Settings" to Preferences -> Advanced Settings.
+* (Launcher) Remember last used preferences page.
+* (Launcher) Added preference control for new audio volume option.
+* (Game Center) Now reads and applies (most) FS-UAE Launcher settings.
+
+Version 2.3.7:
+
+* New utility program: fs-uae-device-helper (used by FS-UAE Launcher).
+* (Launcher) pygame is no longer an dependency, joystick event detection for
+  mapping purposes is done via fs-uae-device-helper.
+* (Launcher) Program startup and focus issue should be fixed on OS X.
+* (Launcher) Added language preference page.
+* (Launcher) ADF & HDF Creator split into two, and they are now non-modal.
+* (Launcher) Joystick config tool shows existing config when opening (only
+  when the user has already configured it, bundled config is not shown yet).
+* (Launcher) Joystick device for mapping is selected in joystick prefs.
+* (Launcher) Completed porting to QT (using pyside bindings for Python).
+* (Launcher) Old wxPython GUI layer still exists (--wx) but not 100% updated.
+* (Launcher) Input Settings prefs page split into mouse and keyboard.
+* (Launcher) Fixed bug when choosing a zip with select multiple floppies.
+* (Launcher) Search-as-you type could in some case return multiple entries
+  for the same game.
+* (Launcher) Updated don't checksum BSD device nodes code [vext01].
+
+Version 2.3.6:
+
+* Joystick indices (for use with custom input mapping) were skewed due to
+  the new mouse devices (fixed).
+* Swapped display order of mouse and joystick ports, call them
+  "Joystick Port" and "Mouse Port" instead of Joystick Port 0/1.
+* Fade in when starting FS-UAE, looks better when using themes since the 
+  graphics won't just suddently pop out.
+* (Launcher) Search-as-you type has returned.
+* (Launcher) Show homepage_url, thelegacy_url in links menu.
+* (Launcher) Swapped display order of mouse and joystick ports.
+* (Launcher) Spin controls did not work properly on OS X.
+* (Launcher) Handle importing kickstarts from the kickstarts dir gracefully.
+* (Game Center) Don't create ~/Documents (unless needed) and ~/Games.
+
+Version 2.3.5:
+
+* Can open block devices as HDF files on OpenBSD [Edd Barrett / vext01].
+* Full stereo separation by default (was 70%).
+* Use "enhanced" audio filter when Amiga model is A1200 or A4000.
+* Fixed bug where the new FPS led status would overwrite floppy drive leds.
+* (Launcher) Fixed a bug where new A500 configs could refuse to start
+  because "kickstart was not found" (2.3.4).
+* (Launcher) Better support for .7z (where available), but very inefficient,
+  works best for having a few ADFs in each .7z archive, not WHDLoad archives.
+* (Launcher) Can start WHDLoad slaves from archives where the slave is in
+  the root directory and not in a sub-directory.
+* (Game Center) Create a log file in a similar manner as FS-UAE Launcher.
+* (Game Center) Added python-opengl, python-numpy as Debian dependencies.
+* (Game Center) Was missing from suite installer for Windows (fixed).
+
+Version 2.3.4:
+
+* Support for multiple mice using ManyMouse library by Ryan C. Gordon.
+* New theme bundled: led-bars-edge.
+* Support for some theme digit overlays (cylinder numbers, fps).
+* Initial code for input recording.
+* Fixed a bug when looking up executable path on Unix-like systems.
+* When quitting from fullscreen mode, move cursor to bottom right (so
+  transitioning to a full-screen launcher looks nicer).
+* (Launcher) Support multiple mice.
+* (Launcher) Preference to show downloadable games or not.
+* (Launcher) Don't try to checksum OS X/*BSD device nodes
+  [Edd Barrett / vext01].
+* (Launcher) Fixed bug when closing the config dialog.
+* (Launcher) Support 7z archives when the 7z program is found on PATH.
+* (Launcher) Joystick config tool works with devices having axes with
+  negative or positive rest values.
+* (Launcher) Don't display "Amiga" in game list, only other platform names.
+* (Launcher) More restructuring and smaller changes (no changelog...)
+* (Game Center) Only show locally available games.
+* (Game Center) Only preselect the highest rated variant from local variants.
+* (Game Center) Nicer transition to FS-UAE (remove/reduce cursor flickering).
+* (Game Center) Use LSUIPresentationMode 4 for bundled FS-UAE for seamless
+  transition to FS-UAE on OS X.
+
+Version 2.3.3:
+
+* (Launcher) Don't reload images when changing variants (and same images
+  should be displayed for the new variant).
+* (Launcher) Show joy_emu_conflict from oagd.net in statusbar if applicable.
+* (Launcher) More QT port improvements, almost full-featured now.
+* (Game Center) Locate correct kickstart ROMs via file database.
+* (Game Center) Fixed possible bug in font rendering code.
+
+Version 2.3.2:
+
+* (Launcher) Fixed bug when loading files from archive in a folder named #.
+* (Launcher) Fixed bug when automatically looking up Amiga Forever roms [2.3.1]
+* (Launcher) QT port improvements.
+* (Launcher) Misc bugfixes and minor improvements.
+
+Version 2.3.1:
+
+* On windows, read file name (as program parameter) with MBCS encoding
+  (CP_ACP) so paths with non-ASCII characters are handled correctly.
+* Windows executables are digitally signed by "Frode Solheim".
+* New portable zip file distribution for Windows, "plus" zip file removed,
+  and emulator-only zip exists still with _emulator.zip name.
+* Logs dir is moved into Cache/Logs/, log file renamed to Emulator.log.txt.
+* Always write shader log, in case there's GLSL warnings, etc.
+* (Launcher) New status bar with info about num players, languages,
+  web links, copy protection and warnings.
+* (Launcher) Game variants (from oagd.net) you don't have are also
+  displayed, but greyed out.
+* (Launcher) Buttons to rate game variants on oagd.net directly from UI.
+* (Launcher) Implemented cancel in launch FS-UAE progress dialog.
+* (Launcher) Only add Cloanto "Amiga Files" to search path if directory
+  exists (Windows).
+* (Launcher) Fix slash direction in default search directory on Windows so
+  it does not look weird.
+* (Launcher) More space-efficient screenshot and cover sizes/formats.
+* (Launcher) Internal code rewrite (in progress) to support code sharing
+  with Game Center.
+* (Launcher) Only have start menu icon for FS-UAE Launcher by default.
+* (Launcher) Support new option x_hdinst_args.
+* (Launcher) Better support for portable directory, launcher settings can
+  be saved in portable dir.
+* (Launcher) Non-Cache launcher data files moved to FS-UAE/Data.
+* (Launcher) Download cache dir moved to FS-UAE/Cache/Downloads.
+* (Launcher) Initial support for auto-downloadable games from oagd.net.
+* (Launcher) Initial support for auto-downloadable games from 3rd-party sites.
+* (Launcher) Initial support for manually downloadable games.
+* (Launcher) Moved local file index into its own database file.
+* (Launcher) Extract empty directories as well when extracting archives.
+* (Launcher) Fixed bug when specifying window_width / window_height in
+  custom settings.
+* (Launcher) Partial support for Python 3.x.
+* (Launcher) Partial support for using the Launcher with QT toolkit.
+* (Launcher) Moved file database into its own separate database, also made
+  the file rows more space efficient, and the checksum index smaller.
+* (Launcher) Removed support for old XML game database.
+* (Launcher) Ignore file extension case when checking floppy list from
+  online database.
+* (Launcher) Handle some potentially invalid configs from online database
+  more gracefully.
+* (Launcher) Updated translations: it [speedvicio].
+
+Version 2.3.0
+
+* Show on-screen warning if OpenAL device cannot be opened, log OpenAL
+  error code.
+* New option save_state_compression can be used to disable save state
+  compression.
+* New option "log" which can be used to enable misc types of debug logging.
+* Queued input events are processed in hsync handler.
+* Use CD32 + FMV quickstart for CD32 model, update cd.device in cartridge
+  ROM fixes problem with Pirates Gold intro.
+* Removed a couple of left-over / unnecesary log statements.
+* Support language option to override GUI language.
+* New translations: tr [Decypher].
+* With video_sync = auto, allow some slack when deciding to enable full
+  sync or not (accept host refresh rate 49 instead of just 50, ..).
+* New option: assume_refresh_rate (int) to manually specify host refresh
+  rate when refresh rate detection fails. This option in combination with
+  video_sync = auto effectively replaces video_sync = full.
+* video_sync = full is now an alias for video_sync = auto.
+* Fixed bug causing FS-UAE to hang when pausing with video_sync = off.
+* New model CD32/FMV (includes FMV ROM), CD32 model reverted to original.
+* Fixed compatibility issues in scanline GLSL shaders.
+* (Launcher) Warn when using A1200 model with < 2 MB chip RAM.
+* (Launcher) Fixed a bug where 0-byte screenshot / covers files could be
+  stored if a network error occurs while downloading.
+* (Launcher) Better support for A3000 and A4000 with the game database.
+* (Launcher) Support hiding variants from the database based on _status.
+* (Launcher) Cycle-exact can be disabled from database if abs. necessary.
+* (Launcher) Support language option to override GUI language.
+* (Launcher) New translations: tr [Decypher].
+
+Version 2.1.35 / 2.2.0:
+
+* Updated translations: nb.
+* (Launcher) Support db_version from online game database, show warning if
+  the launcher is too old to support the chosen variant.
+* (Launcher) Updated translations: nb.
+
+Version 2.1.34:
+
+* Updated translations: it [speedvicio], fr [Foul], sr [Milanchez].
+* (Launcher) Accept gzip-encoded database changes.
+* (Launcher) Support x_whdload_version = 13.0 and 10.0.
+* (Launcher) Updated translations: it [speedvicio], fr [Foul], sr [Milanchez].
+
+Version 2.1.33:
+
+* New boolean option joystick_port_0_autoswitch to enable the feature
+  where a device is automatically inserted into port 0 when you press
+  the primary button.
+* Added new option: dongle_type.
+* Fixed notification_duration when used in config file (only worked from
+  the command line due to initialization order).
+* Use GCC optimization level O0 instead of O2 for cpuemu*, since a bug
+  was found caused by the optimizer (where basically (1 ^ 0) & (1 ^ 0) was
+  evaluated to 0). This fixes Tower of Babel (IPF).
+* Updated translations: fi [GoingDown], es [albconde], pt [xpect].
+* (Launcher) Restrict A1000 and A600 models to use only one specific
+  kickstart by default (similar to the other models) for game db compat.
+* (Launcher) Amiga <-> Host file name conversion for FS-UAE when using
+  WHDLoad variants with the online database [TheCyberDruid].
+* (Launcher) Updated translations: fi [GoingDown], pl [grimi], cs [spajdr],
+  es[albconde], de [nexusle], pt [xpect].
+
+Version 2.1.32:
+
+* New option notification_duration (ms). Does not apply to warnings.
+* Fixed bug in IPF handling causing Buggy Boy to not load.
+* (Launcher) Scan entire directory tree for dirs with .slave files.
+* (Launcher) Make sure usernames are converted to unicode.
+* (Launcher) Base screenshots prefix on configuration name.
+* (Launcher) Updated translations: cs [spajdr].
+
+Version 2.1.31:
+
+* Shortcuts F12 + P or Pause/Break key to pause the emulation.
+* Left and right mouse buttons are aliased to joystick port 0 fire and
+  2nd button (unless joystick_port0_mode is nothing, or mouse is already
+  used in a port).
+* Disabled automatic port 0 joystick switching for mouse, alias
+  mouse buttons instead.
+* Disabled automatic port 0 joystick switching for emulated joystick.
+* Warn, if necessary, when joystick/gamepad has no config for CD32 game pad.
+* Fixed scanline code for PPC.
+* Support for a more advanced viewport syntax.
+* Updated bitmap font with new character.
+* Updated translations: pl [grimi].
+* (Launcher) Retry database download operations several times on failure.
+* (Launcher) Support floppy_list field from online database, as well as 
+  new database fields.
+* (Launcher) WHDLoad versions can be selected via the new x_whdload_version
+  option.
+* (Launcher) Added WHDLoad versions 16.0 - 16.9 [TheCyberDruid].
+* (Launcher) ADFFileExtractor module [TheCyberDruid].
+* (Launcher) SetPatch is extracted using the new ADFFileExtractor module
+  instead of the old hack.
+
+Version 2.1.30:
+
+* Make the volume function more sane.
+* Check/respect GL_MAX_TEXTURE_SIZE for text cache texture.
+* Make the scanline shaders more standards-compatible, fixes compilation
+  errors which occured with some GL drivers.
+* Write shader compiler log to log file on shader compilation failure.
+* Updated translations: cs [spajdr], de [nexusle].
+* (Launcher) Updated translations: cs [spajdr].
+
+Version 2.1.29:
+
+* Fixed a bug with notification replacing earlier notifications of the
+  same type.
+* F12 + w to toggle warp mode (no frame limit, no audio).
+* F12 + comma to decrease the volume.
+* F12 + period to increase the volume.
+* Updated translations: fi [GoingDown], sr [Milanchez].
+* (Launcher) Updated translations: sr [Milanchez].
+
+Version 2.1.28:
+
+* For directory hard drives, save file attributes in .uaem files
+  (permissions, timestamp, file note).
+* Fix for directory hard drives so correct case is reported back to the
+  Amiga when the Amiga opens a file with another case than what's stored.
+* Report local time for files in directory hard drive.
+* Use re-entrant / thread-safe variants of time functions.
+* Reverted the scanline function to its older / simpler behavior, use
+  the shader "scanlines-nonlinear" instead.
+* New shaders included: scanlines-classic (same as scanline CPU filter),
+  and scanlines-nonlinear (a scanline filter which varies with pixel
+  intensity and also introduces some pixel blending).
+* Text cache texture size is now 2048x2048 (was 1024x1024).
+* For automatic directory hard drive volume label, only use the part before
+  an opening parenthesis (if it exists).
+* New options to configure what screenshots to save and where to save them.
+* A bit more compact naming of screenshots, and reset sub-minute counter
+  for each minute (makes sorted names always cronological even with large
+  number of screenshots).
+* Can now bind keys to action_screenshot, notification replaces previous
+  notification (of same type).
+* Lua scripts can be used to read/write Amiga memory, position the
+  output video rectangle, change shader (experimental feature).
+* Support /dev/tty as the serial output [Jason S. McMullan].
+* Patch for Linux CD ioctl support [Jason S. McMullan].
+* Removed a some useless stubs printed to stdout, removed several printf
+  statements logging stuff to stdout.
+* F12 + m to mute the sound.
+* Updated translations: fi [GoingDown], cs [spajdr].
+* (Launcher) Make sure the nickname is a valid IRC nickname (net play).
+* (Launcher) Fixed problem where .fs-uae configurations could in some cases
+  disappear from the configuration list when refreshing the online database.
+* (Launcher) Fixed a bug where config name was saved in config file if
+  based on a config from online database.
+* (Launcher) Automatically set screenshots_output_prefix based on floppy name.
+* (Launcher) If A500 kickstart is not found on startup, look for Amiga Forever
+  in default location and add kickstarts to database if found (Windows).
+* (Launcher) Add Amiga Forever shared documents directory to search path.
+* (Launcher) Index files in .rp9 archives, contained disk images can be used
+  with the online database (when match is found).
+* (Launcher) Support file comments for WHDLoad slave files when using the
+  online database, comments are stored in .uaem files. Fixes Embryo.
+* (Launcher) Allowing selecting .lha files as hard drives.
+* (Launcher) Fixed an issue with selecting Amiga 1000 (2.1.26).
+* (Launcher) Updated translations: cs [spajdr].
+
+Version 2.1.27:
+
+* Added lua (sandboxed), (possibly) to be used as a scripting engine.
+* Added freetype as a build dependency, will be used for truetype fonts.
+* Some changes to the build system, fs-uae binary now linked in root dir.
+* Updated translations: fi [GoingDown].
+* (Launcher) Index content in .lha files if lhafile python module is found
+  (implemented earlier, but not announced).
+* (Launcher) Added lhafile module to Windows / OS X binary distributions.
+* (Launcher) Updated translations: it [Speedvicio], pl [grimi], de [nexusle],
+  fi [GoingDown].
+
+Version 2.1.26:
+
+* Implemented options hard_drive_x_priority.
+* Renamed FS-UAE.log to FS-UAE.log.txt for easier upload to EAB.
+* Better method to override directories (e.g. base_dir), old ones deprecated.
+* Added translations: cs [spajdr], fi [GoingDown].
+* Updated translations: it [Speedvicio].
+* (Launcher) Added refresh button to update list of connected joysticks.
+* (Launcher) Added support for the recently added A3000 FS-UAE Amiga model.
+* (Launcher) Improved memory widgets, you now see the current default value.
+* (Launcher) A new simple ADF & HDF Creator dialog is included.
+* (Launcher) Display name first, then directory in media selectors.
+* (Launcher) Fixed a bug where you could get an error message about missing
+  kickstart after just having imported kickstarts and tried to start the
+  emulation.
+* (Launcher) Do not expose database username/password in FS-UAE logs.
+* (Launcher) Added main menu button, moved scan and settings to this menu.
+* (Launcher) Also add menu entries to application menu on OS X.
+* (Launcher) Moved custom options and custom settings to new dialog
+  accessible from the new menu.
+* (Launcher) Moved kickstart import to new kickstart import dialog, removed
+  the "setup" / wizard tab.
+* (Launcher) New "kickstarts are missing" notification in the top tab area.
+* (Launcher) Marked some additional text for translation.
+* (Launcher) Added new about dialog.
+* (Launcher) Database: Game variants can specify that an empty HD or a HD with
+   Workbench must be added to the system.
+* (Launcher) Preselect variant with personal rating = 5, or else highest
+  rated game variant when selecting a game from the database.
+* (Launcher) Respect new base_dir override.
+* (Launcher) Updated GUI layout in several places, minor improvements here
+  and there.
+* (Launcher) Added translations: cs [spajdr], fi [GoingDown].
+
+Version 2.1.25:
+
+* Fixed startup when running under OS X (2.1.24).
+
+Version 2.1.24:
+
+* Screenshot function also saves a screenshot of the OpenGL frame buffer.
+* Support some RetroArch extensions to the XML shader spec, as a result,
+  the CRT-interlaced-halation shader works now.
+* Fixed zoom modes and viewport correction when disabling line doubling or
+  using low_resolution option.
+* Warn if OpenGL renderer is "GDI Generic" (no real driver installed).
+* Fixed problem loading state when using directory hard drives on case
+  sensitive file systems.
+* Don't warn (with LEDs) about missed frames / repeated frames when this is
+  normal (host frame rate != Amiga frame rate).
+* Blank sync leds a few seconds after startup until the statistics have
+  settled.
+* New option fade_out_duration (miliseconds).
+* Updated translations: fr [Foul], de [nexusle], pl [grimi].
+* (Launcher) Fixed problem initializing joystick device list on Windows.
+* (Launcher) Updated translations: fr [Foul], de [nexusle].
+
+Version 2.1.23:
+
+* New option save_states can be used to disable the save state feature.
+* Marked several warning messages for translation.
+* Updated translations: de [nexusle].
+* (Launcher) Disable the save state feature in cases were it is known to
+  not work (with temporarily created hard drives).
+* (Launcher) Updated translations: de [nexusle].
+
+Version 2.1.22:
+
+* Fixed a missing bit in the UTF-8 decoding (for text rendering).
+* Fixed a potential crash due to an uninitialized variable (2.1.21).
+* Generated source files were by mistake not updated.
+
+Version 2.1.21:
+
+* Added A3000 model (68030 + FPU, 2 MB chip + 8 MB fast, KS 3.1)
+* New aliases for theme overlays (power_led, df0_led, etc).
+* Theme coordinate system can be defined with theme_width, theme_height.
+* Old overlay option is deprecated, new overlay types available.
+* Audio led flashes red on buffer underruns, turns off when the Amiga is not
+  outputting audio data.
+* New theme_zoom option (preferred over viewport for theme purposes).
+* Updated translations: pl [grimi].
+* (Launcher) Updated translations: pl [grimi].
+
+Version 2.1.20:
+
+* Implemented bsdsocket_library support for Windows.
+* New LED/overlays: CDTV/32 memory access, vsync, fps, audio.
+* Flicker CD LED instead of HD LED when CDFS is used.
+* New modes for LED / overlays (overlays can have several states).
+* Improved scanline renderer (but also more resource hungry..), may become
+  optional or rewritten as a GPU shader.
+* Fixed bug selecting joystick port mode for port > 0 (2.1.19).
+* Fixed stuttering in RTG modes (2.1.19).
+* Fixed scanline rendering on bigendian computers (PPC).
+* Clear video buffer on target_graphics_buffer_update, e.g. when display
+  mode switches from PAL to NTSC. Fixes garbled graphics on bottom of
+  display.
+* Allow theme config to overwrite (default) values set by Launcher.
+* (Launcher) Removed unnused dependency on Python Imaging (PIL).
+
+Version 2.1.19:
+
+* Fix proper stereo audio output when using OpenAL soft implementation.
+* Automatically adjust to 50Hz / 60Hz Amiga mode change.
+* video_sync = full is deprecated (now handled as auto), will enable full
+  video sync only when host frame rate ~= Amiga frame rate.
+* Fixed a bug with the number of enabled floppy drives, introduced with
+  the support for custom floppy sounds.
+* Some minor source code and build improvements.
+* Experimental support for a "fifth joystick port", which can be mapped
+  to Amiga keyboard keys.
+
+Version 2.1.18:
+
+* Fixed overflow preventing alt/cmd modifier key from working.
+* Updated translations: es [albconde].
+* (Launcher) No floppy drive sounds when loading a WHDLoad variant from
+  the online database.
+* (Launcher) Updated translations: es [albconde].
+
+Version 2.1.17:
+
+* Autoselect device for port 0 when "fire" button of unmapped device is
+  pressed.
+* New options to specify alternative floppy drive sound sets
+  (floppy_drive_x_sounds).
+* Built-in floppy drive sounds are now loaded from disk.
+* Partially merged GLES support code [lunixbochs, lallafa].
+* Some code in libfsemu is restructured / cleaned up.
+* FS-UAE can be compiled without Glib (with a few caveats).
+* Compile-time option to use posix threads/mutex/semaphores.
+* Updated translations: it [Speedvicio].
+* (Launcher) Fixed display of variant user rating.
+* (Launcher) Updated translations: fr [Foul], sr [Milanchez],
+  de [nexusle], pl [grimi], it [Speedvicio].
+
+Version 2.1.16:
+
+* (Launcher) Only show variant name (without game name) in variant list.
+* (Launcher) New horizontal layout for game/variants lists.
+* (Launcher) Variant list now disappears when choosing a non-database entry.
+* (Launcher) Render square covers inside a portrait cover.
+* (Launcher) Better differentiation of game and variant info.
+* (Launcher) Adjusted screenshot sizes for 1920x1080 maximized.
+* (Launcher) You can click on the screenshot area to show the other
+  screenshots, if not all are shown.
+* (Launcher) Automatically extract SetPatch from WB disks for WHDLoad.
+* (Launcher) Copy WHDLoad.key from base dir (Documents/FS-UAE) if found.
+* (Launcher) Documents/FS-UAE/WHDLoad dir not needed/supported anymore, but
+  you can put files to merge in Documents/FS-UAE/Hard Drives/WHDLoad instead
+  if needed.
+* (Launcher) Updated translations: pl [grimi], de [nexusle].
+
+Version 2.1.15:
+
+* Determine the size of block devices on OS X, making it possible to
+  mount block devices as hard drives on OS X [lallafa].
+* Fixed source to remove some compiler warnings in hardfile_host.cpp.
+* (Launcher) Create "Devs/system-configuration" when running WHDLoad games.
+* (Launcher) Fixed initialization of (last used) game info on startup.
+* (Launcher) Added mobygames link button.
+* (Launcher) Use icon button to toggle fullscreen / windowed mode.
+* (Launcher) Updated translations: de [nexusle].
+
+Version 2.1.14:
+
+* Fixed return value in two stub functions.
+
+Version 2.1.13:
+
+* Merged updated emulation core from WinUAE 2.5.1.
+* Fixed performance when using full video sync.
+* Fix right alt key on Linux.
+* Use joystick name "Unnamed" when joystick device has no name.
+* Support action_none, so keys can be mapped against "no action".
+* Fixed crash when entering fullscreen mode on OS X 10.5 [Tobias Netzel].
+* Tuned autoscaling for CD32 boot and menu screens.
+* (Launcher) Fixed WHDLoad games in directories with + in name.
+* (Launcher) Some improvements for the game database support.
+* (Launcher) Show year/publisher/developer information if available.
+* (Launcher) URL buttons for links to game entries on several game web sites.
+
+Version 2.1.12:
+
+* Tweaked CD32 startup animation viewport.
+* (Launcher) Fixed Startup-Sequence for WHDLoad.
+
+Version 2.1.11:
+
+* Config for gamtec_ltd/smartjoy_plus_adapter.ini [JOPS].
+* Small compilation fix for OS X 10.5
+* (Launcher) Handle square-ish covers.
+* (Launcher) Indicate ADF, IPF CD, or WHDLoad also with icon.
+* (Launcher) Reload game variant list after refreshing database.
+* (Launcher) Support sort_key from online database.
+* (Launcher) Run SetPatch (if found) before starting WHDLoad games.
+* (Launcher) Kickstart import task can overwrite old read-only files.
+
+Version 2.1.10:
+
+* Merged updated emulation core from WinUAE 2.5.0.
+* (Launcher) Support (empty) HD directories in database configurations.
+* (Launcher) Use standard WHDLoad settings by default.
+* (Launcher) WHDLoad games were unpacked one directory level too deep.
+* (Launcher) Support chip_memory override from online database.
+* (Launcher) Skip / ignore file names with invalid encoding.
+* (Launcher) Fix search function for games from database (needs refresh).
+* (Launcher) Updated translations: pt [Treco].
+
+Version 2.1.9:
+
+* Updated bitmap font with additional characters for Turkish.
+* (Launcher) Show only game entries in the main list, show game variants
+  for selected game in separate list.
+* (Launcher) Handle empty file_list values from database.
+* (Launcher) Support new key/value in database: video_standard (=NTSC).
+* (Launcher) Updated translations: pt [Treco], sr [Milanchez].
+
+Version 2.1.8:
+
+* (Launcher) Fixed Amiga model selection when database key kickstart
+  is used in combination with fast_memory > 8192 (Zorro III).
+* (Launcher) Updated translations: es [albconde].
+
+Version 2.1.7:
+
+* Merged updated emulation core from WinUAE 2.5.0beta27.
+* (Launcher) WHDLoad support in combination with online database.
+* (Launcher) Updated translations: it [Speedvicio], pl [grimi].
+
+Version 2.1.6:
+
+* Updated bitmap font with additional characters for Portuguese.
+* (Launcher) Fix a bug where missing files stopped the scan process (when
+  using the database feature).
+* (Launcher) Fix path expansion when using ADFs from archives.
+* (Launcher) Updated translations: fr [Foul], de [nexusle].
+
+Version 2.1.5:
+
+* Use Windows API function to prevent display from going to sleep.
+* Added translations: pt [Treco].
+* (Launcher) Initial online database support.
+* (Launcher) Can download screenshots / covers on demand from server.
+* (Launcher) Added translations: pt [Treco].
+* (Launcher) Updated translations: pl [grimi].
+
+Version 2.1.4:
+
+* Merged updated emulation core from WinUAE 2.5.0beta26.
+* Add support for displaying HD/CD/Power leds in themes.
+* Added new option: swap_ctrl_keys.
+* Automatically configure unrecognized joysticks/gamepads as simple
+  Amiga joysticks.
+* Fixes to allow compilation on OpenBSD [vext01].
+* Added translations: es [albconde].
+* Updated translations: fr [Foul], sr [Milanchez].
+* Using directory prefix $BASE/ caused one character to be cut off.
+* Fixed Launcher-created joystick config when using 2+ of the same type.
+* Support environment variable fsuae_path_base_dir.
+* (Launcher) Fixed problem starting joystick configurator on Mac.
+* (Launcher) GUI setting for swap left/right ctrl keys.
+* (Launcher) Support environment variable fsuae_path_base_dir.
+* (Launcher) Fix for non-ASCII characters in joystick device names.
+* (Launcher) Can set option __netplay_state_dir_name with /set to force a
+  specific state dir for net play, for persistent states.
+* (Launcher) URLs for floppies/HDs can be synchronized, so
+  net play-compatible configs can be created for downloadable public
+  domain / shareware games.
+* (Launcher) Can override screenshots_dir, covers_dir, titles_dir in config.
+* (Launcher) Can use title_image, cover_image, screen1_image (...) to
+  override path for individual images.
+* (Launcher) Can prefix paths with $CONFIG/ (referring to the directory
+  containing the current configuration file).
+* (Launcher) Added translations: es [albconde].
+* (Launcher) Updated translations: pl [grimi], it [Speedvicio],
+  fr [Foul], sr [Milanchez].
+
+Version 2.1.3:
+
+* New option "mouse_speed" - set mouse speed in percentage(1-500).
+* Escape key can be used to navigate back and exit FS-UAE menu.
+* Use new state subdirs based on configuration name by default. New options
+  state_dir and state_dir_name to tweak the new behavior.
+* Remove use of "Floppy Overlays" and "Flash Memory" dirs, save files
+  in state directory instead (same as launcher already does).
+* Will autoload saved state if "Saved State.uss" exists in state dir.
+* Merged updated emulation core from WinUAE 2.5.0beta24.
+* New option middle_click_ungrab (can be set to 0).
+* Updated translations: pl [grimi], de [nexusle].
+* Patch amiga-os-310.rom to default A4000 rom on demand.
+* Removed the default slight gamma correction which was applied before.
+* (Launcher) Automatically fill in WHDLoad Arguments when zip file is loaded.
+* (Launcher) Screenshots/titles/covers don't need to be put in letter subdirs.
+* (Launcher) Use direct subdirs in save states dir, don't add letter unless
+  an old state dir already exists.
+* (Launcher) Added many more options to the settings dialog, including the
+  new mouse speed option.
+* (Launcher) Updated translations: pl [grimi], de [nexusle].
+
+Version 2.1.2:
+
+* Fix for running from directory with non-ASCII characters on Windows.
+* Use mmap to allocate executable memory on non-Windows platforms, fixes
+  segmentation faults with i386 versions.
+* Patch amiga-os-130.rom to default A500 rom on demand (3 byte diff).
+* Don't use warning-related compiler options by default, (useful for older
+  compiler versions), enable again with make devel=1.
+* Updated translations: it [Speedvicio].
+* (Launcher) New setting dialog pages for video, input, scan and experimental
+  settings, common options added to these pages.
+* (Launcher) New option to disable use of built-in configurations.
+* (Launcher) Can use amiga-os-130.rom as kick34005.A500 for WHDLoad, will
+  patch on demand.
+* (Launcher) amiga-os-130.rom, default A500 rom and overdumped 
+  default A500 rom can be used together in net play mode (they are all
+  normalized to default A500 rom).
+* (Launcher) Use wxversion.select to specifically choose wxPython 2.8.
+* (Launcher) Fix for running from directory with non-ASCII characters,
+  and when user's home directory contains non-ASCII characters.
+
+Version 2.1.1:
+
+* Merged updated emulation core from WinUAE 2.5.0beta23.
+* Gamepad button "left trigger" toggles auto-fire, GUI message is displayed
+  when auto-fire mode is toggled.
+* New option hard_drive_x_file_system to specify file system handler,
+  for instance path to SmartFilesystem.
+* New option hard_drive_x_controller to specify HD controller.
+* New option hard_drive_x_type to force RDB mode if RDB cannot be
+  autodetected (unpartitioned/blank disk image).
+* (Launcher) hard_drive_x can be http(s) URL and the HD will be downloaded on
+  demand and used like a local file. URL must end with a "normal file name".
+* (Launcher) Use wxversion.select to ensure 2.8 is used if also older
+  versions of wxPython are installed.
+
+Version 2.1.0:
+
+* Merged updated emulation core from WinUAE 2.5.0beta21.
+* FS-UAE mman updated to work more like the WinUAE implementation.
+* Ejecting CD images works now, enabled menu option.
+* Added auto-fire toggle mechanism to F12 menu.
+* Auto-fire support, new boolean options joystick_port_x_autofire.
+* Added support for Amiga mouse wheel and middle mouse button.
+* (Launcher) Added button to configure auto-fire per joystick port.
+
+Version 2.0.1:
+
+* Removed redundant lag display from net play hud.
+* Updated translations: pl [grimi].
+
+Version 2.0.0beta36:
+* (Launcher) Re-enabled the GUI control for WHDLoad arguments.
+* (Launcher) Added a help button for WHDLoad arguments control.
+* (Launcher) Scan kickstarts/configs on start only if dir mtime has changed.
+* (Launcher) fast_memory was always set to 8192 when running WHDLoad games.
+* (Launcher) Updated translations: it [Speedvicio].
+
+Version 2.0.0beta35:
+* Make sure memory pointed to by p96mem_offset is contiguous with
+  memory pointed to by natmem_offset, fixes crash on Linux with RTG enabled.
+* (Launcher) Custom setting "kickstart_setup" can be set to 0 if you don't
+  have and/or don't want to install recognized kickstart ROMs.
+* (Launcher) Updated translations: pl [grimi], sr [Milanchez],
+  de [nexusle].
+
+Version 2.0.0beta34:
+* Updated translations: pl [grimi], nb.
+* (Launcher) Correctly update version number / series in all distributions.
+* (Launcher) Added translations: pl [grimi], nb.
+* (Launcher) Updated translations: fr [Foul], de [nexusle], sr [Milanchez].
+
+Version 2.0.0beta33:
+
+* (Launcher) When using the "select multiple files" function to select
+  a zip file with floppies, automatically selected the floppies within.
+* (Launcher) Increased the width of the configuration dialogs.
+* (Launcher) Include version number in titlebar.
+* (Launcher) Fixed some missing translations.
+* (Launcher) Updated translations: fr [Foul], de [nexusle].
+
+Version 2.0.0beta1:
+
+* Don't quit on parse error when parsing viewport option.
+* (Launcher) Show notification about new versions in the same series
+  (stable or devel) as the installed version.
+* (Launcher) Added information panel to toolbar, currently used to show
+  update notifications.
+* (Launcher) Fix path issue on Windows causing kickstarts to be scanned
+  on every startup.
+* (Launcher) Updated downloadable WHDLoad version to 17.1.
+* (Launcher) Added tooltips to main window tabs.
+* (Launcher) Simplified default scan search path to just FS-UAE dir.
+* (Launcher) Implicitly add CD-ROM drive if CD image list is non-empty.
+* (Launcher) Automatically add CDs in drives to image list if list is empty.
+* (Launcher) Fixed bug when saving configurations.
+* (Launcher) Fixed type-ahead search bug in configuration list.
+
+Version 1.3.31:
+
+* (Launcher) Use native toolbar control on Mac.
+* (Launcher) More consistent use of browse for file/folder icons.
+* (Launcher) Automatically select CD32 Gamepad mode when selecting CD32
+  model.
+* (Launcher) Recalculate default devices after editing joystick settings.
+* (Launcher) Contract paths also when using multi-select.
+* (Launcher) Media swap lists are now editable.
+* (Launcher) Use proper list views for media swap lists.
+* (Launcher) Replace other list controls with new implementation.
+* (Launcher) Hide "WHDLoad Arguments" control.
+* (Launcher) Updated translations: it [Speedvicio].
+
+Version 1.3.30:
+
+* (Launcher) New list control implementation for configurations list.
+* (Launcher) You can now type in the config list to jump to items.
+* (Launcher) Configuration list items are prefixed with an icon.
+* (Launcher) New setup page for importing kickstarts when starting the
+  launcher for the first time.
+* (Launcher) Automatically scan for rom changes in main Kickstarts
+  folder on startup.
+* (Launcher) Fixed backspace behaviour in config name text box.
+* (Launcher) Windows installer: explicitly put registry keys in
+  HKEY_CURRENT_USER\Software\Classes instead of HKEY_CLASSES_ROOT.
+
+Version 1.3.29:
+
+* Implemented fs_application_exe_path for Unix-like systems.
+* Data files ("share") are now also searched relative to fs-uae executable
+  (executabledir/share and executabledir/../share) before checking the
+  default system locations, and no longer searched for under cwd.
+* Fixed problem where A key press could mysteriously appear on OS X.
+* Fixed bug with shader passes being multiplied on mode switch.
+* Link with -headerpad_max_install_names on OS X [Tobias Netzel].
+* (Launcher) Saving configurations is now possible.
+* (Launcher) Added new "default" input device options.
+* (Launcher) Contract paths with $BASE or $HOME if possible.
+* (Launcher) Automatically scan local config files (.fs-uae) on startup.
+* (Launcher) Net play panel must be enabled with custom setting
+  netplay_feature = 1 (temporary for 2.0 series).
+* (Launcher) New icon to distinguish the launcher from FS-UAE.
+
+Version 1.3.28:
+
+* New official boolean option uaegfx_card to enable the "Picasso 96 card".
+* Re-initialize shaders after fullscreen<->window switching.
+* (Launcher) Double-click (or enter) in configuration list starts FS-UAE.
+* (Launcher) Remember last directories used when browsing for floppies,
+  CDs, hard drives and kickstarts.
+* (Launcher) Automatically add floppies in drives to swap list if swap
+  list is empty.
+* (Launcher) Find hard drive zip file relative to hard drives dir.
+* (Launcher) GUI widgets to override memory settings.
+* (Launcher) Added checkboxes for uaegfx.card and bsdsocket.library.
+* (Launcher) Added checkbox to enable NTSC mode.
+* (Launcher) Updated GUI main window background drawing to make the GUI
+  look better on Linux (looks much nicer on Kubuntu now).
+* (Launcher) Center FS-UAE window on launcher window.
+* (Launcher) Center launch dialog on main window also on OS X.
+* (Launcher) Updated look for OS X.
+
+Version 1.3.27:
+
+* Config for Retro Joystick interface v1.2 (joystick adapter) [Magnar].
+* Fixed serial port emulation when not serial port is not "used".
+* Native serial port for POSIX systems [lallafa].
+* Added A1000 model support (defaulting to Kickstart 1.2).
+* Fixed a bug preventing the launcher from starting on some systems.
+* (Launcher) Added A1000 model support.
+* (Launcher) Work around bug in openSUSE 12.2's gettext.py.
+
+Version 1.3.26:
+
+* Fixed window manager icon lookup on Linux [grimi].
+* (Launcher) Associate .fs-uae files with FS-UAE (windows installer).
+* (Launcher) Expand ~/ and $HOME/ in paths from config files.
+* (Launcher) Fixed joystick matching when joystick name contains multiple
+  adjacent spaces.
+* (Launcher) Set window icon for Linux also, in case the desktop
+  environment does not pick up the .desktop file icon.
+
+Version 1.3.25:
+* Properly close OpenAL device on shutdown (avoids error on shutdown on
+  Windows with OpenAL Soft implementation).
+* Bundle oal_soft.dll as OpenAL32.dll on Windows (no OpenAL installation
+  needed, but will not use HW-specific drivers unless OpenAL32.dll is
+  deleted from app dir).
+* New shortcuts (soft/hard reset, freeze, debugger) [lallafa].
+* Initial FreeBSD support (tested to compile and run on FreeBSD 8.2).
+* Automatically choose best texture format for new video_format rgb565.
+* Added config for Speed-Link Competition Pro Gold [Régis Patroix].
+* Added support for RTG modes with native 16-bit buffers.
+* Copy RTG video row data without pixel conversion when possible.
+* Added support for PPC / Mac OS 10.5 [Tobias Netzel].
+* Added support for 16-bit video and texture formats (new value
+  video_format = rgb565).
+* Fixes to allow for compilation with clang.
+* Replaced deprecated valloc, getpagesize with posix equivalents.
+* (Launcher) Bundle local Microsoft.VC90.CRT on Windows.
+* (Launcher) Workaround to make translations work on Mac OS X.
+* (Launcher) Fixed bug when setting hard_drive_x folders options from config
+  files.
+* (Launcher) Remove information panels when running on small resolutions.
+* (Launcher) Updated translations: fr [Foul], de [nexusle], it [Speedvicio].
+
+Version 1.3.24:
+
+* New option cdrom_drive_count -can be used to specify an empty drive.
+* Empty options are now treated as unspecified options. This can break a couple
+  of configurations since you cannot use e.g. cdrom_drive_0= to specify that
+  you want a CD drive without any CD inserted. Use cdrom_drive_count=1 instead
+  (or floppy_drive_count for floppy drives). 
+* Reverted F11 key to zoom setting when used alone (on key depress).
+* Both full-frame and cropped images are saved when taking a screenshot.
+* (Launcher) Redesigned user interface.
+* (Launcher) Net play support with integrated lobby, chat rooms and game
+  channels. Options are automatically synchronized between players.
+* (Launcher) Support --base-dir command line argument.
+* (Launcher) Check recursively upwards from directory containing executable
+  and look for "Portable.ini" -if found, use directory containing Portable.ini
+  as base_dir.
+* (Launcher) Paths in database are converted to/from paths relative to
+  base_dir (if possible) so the database can be portable. 
+* (Launcher) You now cannot put options recognized as config options in
+  custom settings.
+* (Launcher) Added built-in configuration for "Transplant" game.
+* (Launcher) Log to Documents/FS-UAE/Logs/Launcher.log.txt (while also
+  logging to console, if available)
+* (Launcher) Updated translations: fr [Foul].
+
+Version 1.3.23:
+
+* New shortcut for quit: F12+q or F11+q.
+* New shortcut for zoom: F12+z or F11+z.
+* New shortcut for zoom border: F12+b or F11+b.
+* New shortcut for grab input (toggle): F12+g or F11+g.
+* New shortcut for fullscreen/window toggle: F12+f or F11+f.
+* New shortcut for screenshot: F12+s or F11+s.
+* Menu mode is now triggered on F12 (or F11) _release_ if key is used alone.
+* F11 does no longer control the zoom function directly.
+* Floppy drives are no longer write-protected when loading compressed ADFs.
+* New option writable_floppy_images, set to "1" to write data back to
+  original disk files (when possible) instead of overlay files.
+* Option "input_grab" renamed to "initial_input_grab".
+* New option "automatic_input_grab" to control whether input is automatically
+  grabbed on mouse click or not.
+* (Launcher) Fixed saving custom settings when closing dialog on Windows.
+* (Launcher) Fixed case in names of scanned .fs-uae configurations on Windows.
+* (Launcher) Updated translations: it [Speedvicio].
+
+Version 1.3.22:
+
+* Some changes to po file management to get smaller diffs between releases.
+* (Launcher) Changed how images for database entries are looked up.
+* (Launcher) Continue scanning when encountering corrupt zip files.
+* (Launcher) Updated translations: it [Speedvicio].
+
+Version 1.3.21:
+
+* (Launcher) Add support for a third A600 kickstart (r37.300).
+* (Launcher) Properly look up save_disk with pkg_resources. 
+* (Launcher) Find kickstarts relative to kickstarts directory when using
+  custom kickstart.
+* (Launcher) Properly look up save_disk with pkg_resources. 
+* (Launcher) Fixed a couple of mis-spellings.
+* (Launcher) Updated translations: fr [Foul].
+
+Version 1.3.20:
+
+* Preliminary fix for a crash in bsdsocket library.
+* (Launcher) The launcher supports builtin configurations downloading game
+  media on demand, builtin configuration for "Cybernetix" added. 
+* (Launcher) URLs supported in floppy_drive/image options, floppies will
+  be downloaded and cached on demand -used for freeware/shareware section.
+* (Launcher) Launcher creates a base WHDLoad system automatically, downloading
+  necessary (re-distributable) files on demand.
+* (Launcher) Kickstarts can be located in zip files and are temporarily
+  extracted (and decrypted if necessary) on use.
+* (Launcher) Disk images in zip archives are also scanned and indexed,
+  will be automatically (and temporarily) extracted on use.
+* (Launcher) Added GUI for extended kickstart ROM.
+* (Launcher) Explicit abort button in scan dialog, disable close button when
+  scan is running.
+* (Launcher) Respect XDG user dirs when saving joystick configuration.
+* (Launcher) Show error message if trying to configure joystick buttons when
+  no joysticks are connected.
+* (Launcher) Updated translations: sr [Milanchez], it [Speedvicio].
+
+Version 1.3.19:
+
+* Line endings / white space cleanup for public git repo.
+* Improved .spec file for openSUSE builds [RedDwarf].
+* Added docdir option to Makefile [RedDwarf].
+* Compilation fixes and buffer underflow fix [RedDwarf].
+* (Launcher) Support modified database layout format.
+* (Launcher) Added missing save disk image from distributions.
+* (Launcher) Updated translations: it [Speedvicio].
+
+Version 1.3.18:
+
+* Added option audio_buffer_target_bytes (defaults to 8192).
+* Reduced internal uae audio buffer from 1024 to 512 bytes.
+* Added logitech_r_precision_tm_gamepad_10_2_0_0_windows.conf [Paul].
+* (Launcher) Search field allows to search for multiple (AND-ed) terms.
+* (Launcher) Also index .adz files in the database.
+* (Launcher) Fixed bug where paths relative to Floppies dir were not
+  found by the launcher.
+
+Version 1.3.17:
+
+* (Launcher) Automatically add blank save floppy to floppy image list.
+* (Launcher) Create separate state dir for each configuration and store
+  save states, floppy overlays and flash memory in this directory.
+* (Launcher) Save WHDLoad-zip file changes to state dir (and copy back next
+  time the game is run).
+* (Launcher) Copy floppy images to temporary directory before starting FS-UAE.
+* (Launcher) Delete temporary files when FS-UAE is done running.
+* (Launcher) Automatically copy kick34005.A500, kick40068.A1200 and
+  kick40068.A4000 to HD dir (if found in scan database, and decrypting if
+  necessary) when starting WHDLoad game.
+* (Launcher) Added action_activate_cartridge (key mapping).
+* (Launcher) Load per-config theme automatically if found.
+
+Version 1.3.16:
+
+* Correctly respect end_config option (missing return statement).
+* Updated Makefile so libfsemu/Makefile is run also when libfsemu.a
+  is already built (in case libfsemu source has changed).
+* Use AROS builtin rom if kickstart_file is set to "internal"
+* (Launcher) Remember window maximized state.
+* (Launcher) On Linux, default to ~ if XDG user dir DOCUMENTS is not set.
+* (Launcher) Moved joystick settings button to new settings dialog.
+* (Launcher) Moved input options "More" button to config group.
+* (Launcher) Fixed startup problem if default locale is None.
+* (Launcher) Preferred joystick setting did not work after launcher restart
+  on Windows because of a trailing carriage return character.
+* (Launcher) Purge old (non-existing) file entries when scanning for files.
+* (Launcher) Changed default kickstarts so kickstarts corresponding to those
+  available from Cloanto is preferred (either encrypted or decrypted).
+* (Launcher) Calculate decrypted sha1 from Cloanto ROMs when scanning.
+* (Launcher) New paged settings dialog.
+* (Launcher) Moved preferred joysticks setting to new settings dialog.
+* (Launcher) Allow selecting internal kickstart in addition to default/custom.
+* (Launcher) Open a larger window by default if the screen is big enough.
+* (Launcher) Allow local custom options via new config dialog.
+* (Launcher) Merge hardware dialog into new config dialog.
+* (Launcher) Added GUI widget for WHDLoad arguments.
+* (Launcher) Add controls for (simple) hard drive configuration.
+* (Launcher) Also look for WHDLoad base hd directory in FS-UAE dir.
+* (Launcher) Write "uae-configuration SPC_QUIT 1" to end of User-Startup
+  when running WHDLoad game.
+* (Launcher) Show game cover if available (along with game and variant name).
+* (Launcher) Also save key, value pairs prefix with # in custom settings.
+* (Launcher) Added checksum for decrypted CD32 ROM.
+* (Launcher) Updated translations: it [Speedvicio].
+
+Version 1.3.15:
+
+* Render subtitle (displayed after title) with translucent font.
+* (Launcher) Allow custom options via settings dialog.
+* (Launcher) Launcher now instructs FS-UAE to ignore Host.fs-uae - set
+  custom options in settings dialog instead.
+* (Launcher) Support running zipped WHDLoad games.
+* (Launcher) Show up to five screenshots + title shot.
+* (Launcher) Support creating automatic configurations for games based
+  on local files and game definition database.
+* (Launcher) Add support for CDTV and CD32 models.
+* (Launcher) Added tooltips for icon buttons and some other elements.
+* (Launcher) Add CD-ROMs dialog.
+* (Launcher) Change main floppy selectors into removable media selectors.
+* (Launcher) Selectors for preferred joysticks.
+* (Launcher) Implement new XML format for game and config definitions.
+* (Launcher) Scan and store checksum for floppy images in database.
+* (Launcher) Support XDG user dirs (requires xdg-user-dir executable).
+* (Launcher) Some more use of icons and icon buttons.
+* (Launcher) Changed .desktop categories to Game;Emulator;
+* (Launcher) Updated translations: fr [Foul].
+* (Launcher) Added translations: de [nexusle], it [Speedvicio].
+
+Version 1.3.14:
+
+* (Launcher) Add window icon for Windows.
+* (Launcher) Added translation infrastructure.
+* (Launcher) Added translations: fr [Foul], nb.
+* (Launcher) Fix an erroneous error message when starting with a custom
+  kickstart ROM.
+* (Launcher) Install README, license and icons when building debs.
+* (Launcher) Install .desktop file for Linux (entry in programs menu).
+
+Version 1.3.13:
+
+* Show on-screen message when saving screenshot.
+* Smooth fade on quit also in vsync mode.
+* Conditionally add OF macro to fix compilation of unzip on Gentoo [jopadan].
+* Alter keycode mapping on Linux to make it work with both evdev and kdb
+  Xorg drivers, and not just evdev mappings [AndrewKanaber].
+* (Launcher) Remember last used options and settings.
+* (Launcher) Configuration browser with search-as-you type.
+* (Launcher) Display screenshots for selected configuration (if found
+  in specific dirs).
+* (Launcher) Save scanned configurations in a database.
+* (Launcher) Scan dialog shows identified kickstarts.
+* (Launcher) Some GUI reorganization / updates related to the introduction
+  of the new configurations panel.
+* (Launcher) New hardware dialog where kickstart can be overridden.
+* (Launcher) New input dialog where parallel joystick ports can be configured.
+* (Launcher) Correctly blank out the rest of the drives when multi-selecting
+  less than 4 floppies.
+* (Launcher) Spec file for building RPMs of the launcher is added.
+
+Version 1.3.12:
+
+* Fix framewait and make RTG work again (problem introduced in 1.3.11).
+
+Version 1.3.11:
+
+* Log to log file when configuration is changed with uae-configuration.
+* Change framewait, so change from fastest possible -> cycle exact works
+  again.
+* Also compile libfsemu with _FILE_OFFSET_BITS=64.
+* 32-bit versions of fs-uae should now be able to open hdf files > 4GB.
+* (Launcher) Re-enable joystick config (now running in separate process).
+
+Version 1.3.10:
+
+* Properly close hdf file stream in hdf_close_target function.
+* Compile with _FILE_OFFSET_BITS=64 for large file support.
+* Use 64-bit ftell/fseek functions for hdf support where available. 
+* Call fflush(NULL) to flush other remaining file streams on exit, if any.
+* Less video latency in full sync mode, but also requires a more powerful
+  computer for smooth scrolling. Use new option low_latency_vsync to enable.
+* Can alternatively specify path to theme folder with theme option.
+* Warn when using deprecated SUPER model. Use A4000/040 instead.
+* Use simplified framewait function in custom.cpp.
+* Merged WinUAE 2.4.2beta2 + compatibility patch.
+* Fixed a RTG screen mode change crash (pointer to resized buffer not
+  set correctly).
+* Disabled OpenGL debug checking, which was accidentally enabled in the
+  latest development releases.
+* fs-uae can be started with --list-joysticks to just print names of
+  connected joysticks to stdout and then exit.
+* (Launcher) Automatically set amiga joystick port mode when selecting
+  host device.
+* (Launcher) Clear (rest of) floppy image list when multi-selecting floppies.
+* (Launcher) Automatically select first joystick for input port 1 if a
+  joystick is connected.
+* (Launcher) Add window/fullscreen mode selector.
+* (Launcher) Replaced some text buttons with bitmap buttons.
+* (Launcher) Detect connected joysticks by running fs-uae --list-joysticks.
+* (Launcher) Removed joystick configuration from launcher (for now) due to
+  a pygame / wxpython conflict.
+
+Version 1.3.9:
+
+* Fixed a crash due to row map not being updated when reallocating larger
+  buffer after RTG screen mode change.
+* Added keyboard emulation for CD32 gamepad -Cursors, Rctrl/Ralt (red),
+  C (red), X (blue), D (Green), S (Yellow), Z (Rewind), A (Forward),
+  Return (Play))
+* Do not automatically unpause when exiting menu mode.
+* Show overlay icon when emulator is paused.
+* Do not automatically grab/ungrab input when pausing/resuming.
+* Automatically focus on the last used save state slot (in this session) when
+  entering the save state menu.
+* Automatically focus on the current floppy image when entering floppy image
+  list.
+* (Launcher) Function to scan for kickstarts, and automatically select
+  kickstart based on Amiga model.
+* (Launcher) More Amiga models added.
+* (Launcher) Changed GUI in preparation for more features.
+* (Launcher) Added clear button to remove floppy from drive.
+* (Launcher) Integrated joystick configuration tool.
+* (Launcher) Can select multiple floppies at a time and auto-fill drives
+  and floppy list.
+
+Version 1.3.8:
+
+* New option "theme" to specify the name of the theme to load.
+* New option "texture_filter" to force nearest filter (for pixel-perfect
+  mapping in combination with scaling options).
+* Themes can override sidebar background images.
+* Themes can override menu icons (close, volume, etc).
+* Themes can override bitmap fonts.
+* Themes can include overlay images (with position) to display when floppy
+  drives have activity (when floppy drive led is enabled).
+* Themes can include overlay images (with position) to display when floppy
+  drives have disks inserted.
+* Option to override background colors.
+* Option to to menu text color (headings and normal items). 
+* Ability to specify an overlay image (such as the one created by Ambermoon).
+* Themes can also set FS-UAE options such as shaders and scaling option,
+  for instance useful to set scaling options to make the screen fit an overlay. 
+* Theme config options can also be specified in regular config files.
+* Specify custom images and positions for on-screen leds (for floppy leds etc).
+* Also read themes from Documents/FS-UAE/Themes, so it is easier to install /
+  unpack custom themes not bundled with FS-UAE.
+* New bundled example theme: ubuntu_12_04 (colors to match Ubuntu theme).
+* New bundled example theme: 2x_1920_1080 (for pixel-perfect mapping at 1080p).
+* New bundled example theme: and 2x_1920_1080_bezel (same with simple bezel).
+
+Version 1.3.7
+
+* Fixed an input event offset problem causing soft reset to be interpreted
+  as quit and disk swapping to be off by one (1.3.4). 
+* Merged WinUAE 2.4.2beta1 + FS-UAE compatibility patch.
+* Patches to respect CFLAGS/CXXFLAGS/LDFLAGS and compilation tools from
+  environment, courtesy of Philantrop.
+
+Version 1.3.6
+
+* Recreate OpenGL state when resizing window on Mac OS X.
+
+Version 1.3.5
+
+* Compile with JIT on x86 (32-bit) platforms.
+* Compiling with -fpermissive (for now).
+* Always set comp_trust* to indirect by default.
+* Compile with NATMEM_OFFSET defined.
+* Ported JIT code from WinUAE, E-UAE and PUAE.
+
+Version 1.3.4
+
+* Updated translations: it, sr.
+* Merged code from WinUAE 2.4.1.
+* Added new bitmap font characters needed for Italian.
+* Removed libcapsimage from fs-uae deb file (can be installed separately
+  as package libfs-capsimage4).
+* Removed libcapsimage from the source distribution (due to potential
+  license issues, makes fs-uae package more suitable for inclusion in
+  Linux distributions, etc).
+* Tweaked the appearance of some bitmap font characters, especially Z.
+* Make sure rom.key is loaded before scanning for roms.
+
+Version 1.3.3
+
+* Use local host file time for file time with mounted virtual hard drives,
+  should fix icon visibility problem with WB 1.3 and mounted directories.
+* Included genblitter patch from Mustafa 'GgnoStiC' TUFAN.
+* Build x86_64 version on x86_64 Mac unless arch=i386 arg is given to Makefile.
+* Added Serbian translation (courtesy of EAB user Milanchez).
+* Updated translations: fr, de.
+* Fixed missing translation of KEYBOARD and MOUSE in one context.
+* Replace RIGHT SINGLE QUOTATION MARK (U+2019) with apostrophe when rendering
+  text with bitmap font.
+* Updated viewport hack for standard Workbench 2.04 screen
+* Cleaned up source code to make diffs against WinUAE shorter and cleaner,
+* FS-UAE-specific code is now properly guarded by ifdefs.  
+* Show a notice when using F11 key in RTG mode.
+
+Version 1.3.2
+
+* Fixed crash on Mac when saving state with mounted folder.
+* New option "zoom" to set the initial zoom mode ("F11 mode").
+* New eject menu option for floppies (CD coming later).
+* Fixed bug where a wrong disk was disabled (when inserted) in the floppy
+  image list.
+* New boolean option "localization" can be set to 0 if you want to disable
+  translations.
+* Updated translations: it.
+* Added Polish characters to the bitmap font.
+* Added Polish translation (courtesy of EAB user olesio).
+* Extend the simple bitmap font format to include the first 512 unicode
+  characters. 
+* Bundled additional shaders: hq2x, scale2x (best with line_doubling=0
+  and/or low_resolution=1, depending on actual game resolution).
+* New options boolean options "low_resolution", and "line_doubling"
+  to force low-res pixels and disable line doubling) (F11 zoom modes
+  and aspect correction does not work properly in combination with these yet).
+
+Version 1.3.1
+
+* Added several common western european characters to bitmap font.
+* Added German translation (courtesy of EAB user nexusle).
+* Added Italian translation (courtesy of EAB user Speedvicio).
+* Added French translation (courtesy of EAB user Foul).
+* Added some bundled (open-source) shaders: crt, curvature, scanline-3x,
+  heavybloom, simplebloom, edge-detection, lanczos-6tap.
+* The new "shader" option can now be used to both specify paths to
+  external shader file, or it can name a bundled shader.
+* Marked text in GUI menu entries for translation.
+* Added internationalization infrastructure.
+
+Version 1.3.0
+
+* Support XML shader spec 1.1.
+* New scaling options (scale_x, scale_y, align_x, align_y), makes it
+  possible to get 1:1 pixel mapping (or 2:1 etc) for your LCD display.
+* Write OpenAL debug information to log file on startup.
+
+Version 1.2.0rc3
+
+* Fixed bug causing blank screenshots to be saved.
+
+Version 1.2.0rc2
+
+* Fix resources in Mac bundle.
+
+Version 1.2.0rc1
+
+* Explicitly link against libX11 on Linux because some X functions are now
+  used directly. 
+* Shift+F11 now toggles padding the viewport with 10 pixels.
+* Shift+F12 now releases input focus (in addition to alt+tab and middle-click).
+* F12 cannot be combined with (ctrl, shift, alt) now to open the menu,
+  modifier keys are reserved for future shortcuts (Cmd+F12 can still be
+  used on Mac since Mac OS "swallows" F12 if used alone).
+* New option "end_config" can be used to prevent loading of additional
+  configuration files (Host.fs-uae...).
+* Do not warn about "no configuration file loaded" if end_config was
+  specified via program arguments.
+* A couple of glColor statements were left commented out by mistake after
+  debugging a problem.
+
+Version 1.1.10
+
+* Request dark window manager theme (GNOME 3) -looks cooler.
+* Added .desktop application launcher file for Linux.
+* Added FS-UAE icon (in different sizes) to the icons/hicolor folders.
+* Set window icon via _NET_WM_ICON on Linux.
+* Fixed bug when scanline (dark/light) intensity was set to 0.
+* Removed a couple leftover glEnd causing GL errors (not noticeable).
+* Changed the way shared data files are looked up -compatible with the
+  XDG standard now.
+* Don't trust refresh rate from xrandr with only one mode in mode list.
+
+Version 1.1.9
+
+* Merged updated code from filesys.cpp isofs.cpp and isofs_api.h, fixes
+  crash when inserting CD image.
+* Fix screenshot saving when buffers are BGRA.
+* new option to choose between video sync methods (video_sync_method).
+* Use older video sync method as default
+* New default port for net play: 25100 (the port range from 25100
+  to 25500 is by default used for the new net play service).
+* New options fullscreen_width, fullscreen_height (especially useful
+  to force output to one display only on a Linux/nVIDIA/twinview setup).
+
+Version 1.1.8
+
+* Always load default host-specific configuration values from Host.fs-uae,
+  if it exists (useful for fullscreen settings, etc).
+* Support replacement prefix $config in paths - will be replaced by
+  the directory containing the current configuration file.
+* Boolean options ("1" or "0") can now be simplified when specifying as
+  program arguments as --arg (same as --arg=1) or --no-arg (same as --arg=0).
+  For instance you can just use --fullscreen or --no-fullscreen.
+
+Version 1.1.7
+
+* Try creating a OpenAL context at 48000 Hz first.
+* Use GL_ARB_sync extension for display synchronization where available.
+
+Version 1.1.6
+
+* Use GL_NV_fence extension for display synchronization where available.
+* Use GL_APPLE_fence extension for display synchronization where available.
+* Some code refactoring for better future portability. 
+* Fix rendering of scanlines with aspect correction on (overscan). 
+* Use requested video_format for text rendering and utility textures as well.
+* Use smaller texture for text rendering and caching (for now).
+
+Version 1.1.5
+
+* F11 key toggles between autoscale mode and a few fixed viewports.
+* Some minor rendering updates.
+* Ignore viewport setting in RTG mode.
+* Swap red/blue color channel when saving screenshots in BGRA mode.
+* Center amiga display, not crop, when keep_aspect is 1.
+* Stretch overscan border to fill screen if keep_aspect is 1.
+* Always set cpu_idle option.
+
+Version 1.1.4
+
+* Add fullscreen size and window size as RTG screen modes.
+* Dynamically increase video buffer sizes if necessary.
+* Options added to change video buffer format and internal texture format.
+* Use GL_BGRA as the default video buffer format.
+* Use GL_RGB as the default internal texture format for Amiga video frames.
+* Write information about OpenGL renderer to log file.
+* Hack to correct the output of the autoscale algorithm in some specific
+  situations (some Workbench screens, etc), hack will be updated/removed
+  as necessary.
+
+Version 1.1.3
+
+* Fixed crash when accessing the input options menu.
+* Fix rendering of fonts in dialogs.
+
+Version 1.1.2
+
+* You can also configure parallel port joysticks from the menu now. 
+* Show CD-CDROM drive selector in GUI (for all Amiga models) if CD-ROM drive
+  is enabled.
+* Cloanto ROMs are now properly scanned on startup. No need to specify
+  kickstart_file unless you want to use a non-standard kickstart.
+* Choice between soft and hard reset when choosing "Amiga Reset"; also gives
+  a bit more protection against accidental reset.
+* Fix crash on Linux/Mac when non-existing CD is specified for cdrom_drive_0. 
+* No scanlines are rendered in RTG mode unless the new option
+  rtg_scanlines is also set to 1.
+* Quit FS-UAE if Alt+F4 (Cmd+F4) is pressed. 
+* Fixed a bug where all subsequent hard drives were mounted read-only if one
+  was mounted read-only.
+* Re-enabled bsdsocket.library for Linux and Mac.
+* Use path resolving function for *_dir path options too.
+* Match more disk names with built-in regexp (for name shortening).
+* Write read configuration key/values to log file (for debugging, no need to
+  send config + log file any longer; just the log file will do).
+* Re-organized the FS-UAE on-screen main menu.
+* Menu font re-drawn a bit smaller and thinner.
+* Use only older OpenGL features, should work fine on OpenGL 1.4/1.5
+  implementations now (possibly also OpenGL 1.1).
+* Use a texture atlas for GUI elements to reduce the amount of state changes.
+* BEAMCON0 hack for P96 restricted to only setting PAL bit.
+* Support new naming scheme for controller configuration files (used for
+  config files created by new new external controller configuration tool).
+* Added controller configurations: usb_2_axis_8_button_gamepad.ini,
+  (thrustmaster) t_mini_wireless.ini
+* Showing FS-UAE application icon in window menu and application switcher
+  on Windows.
+* Disable most Windows hot keys (the "Windows" key, etc) when running FS-UAE.
+* Disable sticky keys shortcut (and toggle keys etc) on Windows so these
+  don't interfere with game play.
+
+Version 1.1.1
+
+* CDFS fix for lowercase file names.
+* OpenGL performance improvements (avoid unnecessary state changes).
+* Support fullscreen/window mode switcing with alt+return.
+* On Mac/Linux you can press alt+tab to release input focus / mouse grab.
+* On Windows, alt+tabbing also releases mouse grab
+* On Mac/Linux, alt+tab also temporarily switches to window mode if
+  in fullscreen, hold down alt and press alt once more to start cycling
+  through windows as normal (alt+tab already worked on MS Windows).
+* Use "real" fullscreen mode on Linux/Mac now since fullscreen/window
+  switching is implemented.
+* On Mac you can use cmd+tab and cmd+return instead of alt+tab/alt+return.
+* Restricted ugly BEAMCON0 hack to only when rtgmem_size > 0.
+* Restructured file layout in source archive.
+
+Version 1.1.0
+
+* Picasso 96 / UAEGFX support.
+* Support mounting CD images with the new built-in CDFS system from WinUAE.
+* Rendering system updated, more efficient *and* more compatible rendering.
+* Added A4000/040 model, running in fastest possible mode.
+* Support file system file names with non-ASCII (Latin-1) characters.
+* A1200 with accuracy < 1 runs with approximately A1200 speed and can now
+  also be used in net play mode.
+* New system for accuracy option.
+* BSD socket emulation is now currently disabled also on Linux/Mac (needs
+  updated code to work).
+* Use filesys threads (faster file system) when not in netplay mode.
+* Process filesys packets after variably delay depending on operation.
+* Updated UAE code to WinUAE 2.4.0
+
+Version 1.0.0
+
+* Process single filesys packets in a hsync handler instead of several
+  packets in a vsync handler.
+
+Version 1.0.0rc4
+
+* When looking up nname from aname, check existing files in the directory
+  for a matching file (when not considering case).
+* Only enter chat mode of tab key is pressed without modifiers.
+
+Version 1.0.0rc3
+
+* Fixed file system problem causing file system packets to not be processed
+  in some circumstances.
+* If flush_block has not been called between calls to flush_screen, assume
+  that a new frame has not been rendered and reuse the last frame. Fixes
+  flickering in CD32 intro animation.
+* When reusing the last frame, also reuse custom limits from the last
+  frame. Incidentally fixes autoscale shaking issue in CD32 intro animation. 
+
+Version 1.0.0rc2
+
+* Fix for OpenGL issue on some Intel GPUs (dark screen).
+
+Version 1.0.0rc1
+
+* Do not use tab key to enter chat function unless in net play mode. 
+* Fixed bug where key releases where sent to the Amiga while in chat mode.
+* Compiling UAE code with GFXFILTER define.
+* More options (classified as host options) can be specified with
+  uae_* options.
+* Added a bit of default gamma correction. This can be overridden with the
+  option uae_gfx_gamma.
+* Support none/nothing for options joystick_port_x_mode.
+* Rendering fix for screen side in perspective mode.
+
+Version 0.9.13beta11
+
+* Can specify joystick port mode (useful for forcing CD32 gamepad emulation
+  on non-CD32 model).
+* Overlay GUI "console" displaying chat and emulation warning messages.
+* Emulation will now also close when using the quit function, even if the
+  emulation thread is non-responsive.
+* FS-UAE continues in offline mode if net play connection is broken.
+* FS-UAE continues in offline mode if a desync or other net play error
+  occurs.
+* On-screen connection dialog showing when connecting to net play server.
+* FS-UAE will keep try connecting until successful or manually aborted by
+  user (net play server can be started after clients are started..) 
+* On-screen dialog while waiting for net play game to start (waiting for
+  other players...).
+* Integrated text chat for net play.
+* Net play HUD / status bar can be toggled on/off with the TAB key.
+* Support passwords for net play games (option netplay_password).
+* Fadeout effect when closing the emulator.
+* Some name changes in custom / advanced input mapping.
+* Added aliases for Xbox 360 controllers with slightly different names on
+  some Windows systems.
+
+Version 0.9.13beta10
+
+* Fix for net play protocol for 6 players.
+
+Version 0.9.13beta9
+
+* Increased max players in net play to 6 (up from 4).
+* Initialize real-time clock properly when not in net play mode.
+* Enable real-time clock on A500 only when using memory expansions.
+* Allow using uae_* options to specify custom uae option overrides (use with
+  caution).
+
+Version 0.9.13beta8
+
+* Reduced CPU usage due to Improvements in rendering system.
+* Large performance improvements in OpenGL renderer.
+
+Version 0.9.13beta7
+
+* Strip configuration values for whitespace at start and end
+* Check for floppies in Floppies, not CD-ROMSs dir.
+* Process one addition filesys package per hsync (fixes a WHDLoad problem).
+
+Version 0.9.13beta6
+
+* Change how input ports is configured, fixes mouse input in port 1, also
+  fixes parallel port joysticks (which probably was broken).
+* Add CD32 gamepad option to input menu. 
+
+Version 0.9.13beta5
+
+* Fix to not try to resolve empty paths.
+* Fix mouse configuration for new input menu system.
+
+Version 0.9.13beta4
+
+* New options: window_width, window_height, window_resizable.
+* File system mounting is compatible with net play.
+* Show title / subtitle strings in window title.
+* Clear keyboard modifier state when window is activated / receives focus.
+
+Version 0.9.13beta3
+
+* Change in OpenGL renderer for Linux, making it work better with vsync
+  on recent Linux systems with recent nVIDIA drivers.
+* File system mounting made more compatible with net play (some issues
+  with normal folders remaining, zip file mounting seems stable in net play).
+* Fixed issue where (mounted) file system access slowed emulation.
+* Fixed crash when referring to a non-existing disk file.
+* Fixed crash when saving state wile using hardfiles (hdf).
+* Reordered input menu items.
+* Added Mad Catz Wired Xbox 360 Controller config.
+
+Version 0.9.13alpha2
+ 
+* Fix input menu label when input is changed during net play.
+* When mapping a device to an input port, remove it from other existing port.
+
+Version 0.9.13alpha1
+
+* Menu function to swap input device and type.
+* Support floppy images in ADZ format (zipped ADF).
+* Support floppy images in DMS format.
+* Resolve relative paths by looking in a set of directories.
+* Also look for floppies in new FS-UAE/Floppies directory.
+* Also Look for CD-ROMs in new FS-UAE/CD-ROMs directory.
+* Also Look for hard drive images in new FS-UAE/hard Drives directory.
+* Also look for named kickstarts in FS-UAE/Kickstarts directory. 
+* Do not change permissions on ADF files when inserted into floppy drives.
+
+Version 0.9.12
+
+* Fixed config for X-Box 360 Pad (Linux) [u1]
+* Configuration option to mount hard drive image/folder read only.
+* Fixed bug where emulation after pause ran too fast in non-full-sync-modes. 
+* Added wisegroup_ltd/mp_8866_dual_usb_joypad.ini (courtesy of Foul).
+* Fixed a bug where large positive mouse movement became negative.
+* Event information is written to Synchronization.log during net play (this
+  file can be quite large) -cannot be disabled yet.
+* Include slow memory in memory checksumming (chip + slow, now).
+* Replaced a busy-loop in net play with proper condition signal/wait,
+  using significantly less CPU now.
+* Fixed a race condition in the net play server where input events could be
+  sent to some clients out of order (with regard to frames). This would
+  have caused desync when it occurred.
+* Fixed a bug in the net play server where input events could be sent to
+  some clients before all clients were connected.
+* Detect refresh rate properly on Mac OS X (was not included in 0.9.11beta2). 
+* Floppy swapping is performed synchronized in net play mode.
+* GUI Reset action can be used with net play.
+* Save state saving and restoring is now synchronized in net play mode.
+* Parallel port joystick emulation (joystick_port_2, joystick_port_3).
+* Reduced input lag in net play games.
+* Custom gamepad/joystick -> action mapping.
+* Custom keyboard -> action mapping.
+* Support mounting zip files as (read-only) volumes.
+* Read command line arguments earlier (fixes a Configurations dir issue). 
+* Renamed "amiga_joystick" config value to "dummy joystick" (more descriptive).
+* Renamed "amiga_mouse" config value to "dummy mouse" (more descriptive).
+* Floppy speed setting was already implemented, but not documented.
+* Finally implemented the volume mute function for OpenAL.
+* Detect refresh rate properly on Mac OS X.
+* Fix execute permissions for directories created on virtual file system. 
+* Added support for Xbox 360 cabled controller.
+* Support new path prefixes: $app/ (directory containing executable (Windows)
+  or .app bundle (Mac OS X), $exe/ (directory containing actual executable),
+  and $fsuae/ (the base directory for files - defaults to My Documents/FS-UAE).
+
+Version 0.9.10
+
+* Scanline effect support (see example.conf).
+* New frame limiting logic in libfsemu.
+* Auto-grab input on mouse click.
+* Click middle-mouse button to release input grab.
+* Xbox 360 Wireless Controller configuration for Mac OS X (from Aequitas).
+* Updated configuration for Logitech Extreme 3D PRO.
+* Fix crash in Linux version caused by g_set_prgname not being called.
+* Log file is now saved to (My) Documents/FS-UAE/Logs/FS-UAE.log
+* Log file directory is configurable.
+* Multiple mice can be used (in net play) -useful for Lemmings.
+* New joystick port values: amiga_mouse, amiga_joystick and nothing.
+* Send protocol version and emulation core version to netplay server.
+* Fixed a bug where data were written to both floppy overlay files and
+  original ADF files.
+* Fix A1200 model with accuracy < 1 (now runs in "fastest possible" mode,
+  but cannot be used with full video sync).
+* Option bsdsocket_library to enable bsdsocket.library emulation
+  (Mac/Linux only for now).
+* A1200/020 model with 0 MB Z3 RAM as default, but allows the option
+  zorro_iii_memory to be used.
+* Serial port (dummy) emulation enabled, allows AROS kickstart to boot.
+* Fix bug related to path expansion and directories.  
+* Unified configuration (config file and --key=value parameters).
+  --key=value parameters overrides values from config file.
+* Section names are ignored in config file now (but key/values must still
+  be in a section, for instance [config]). Old config files should still
+  work as before.
+* Old --fullscreen parameter is no longer valid, use --fullscreen=1 instead
+* Support hard disk files in RDB format (same config option as regular HDF
+  files - RDB format is automatically recognized).
+* Grabbing input on startup is optional (see example.conf).
+* Keys are now "positionally" mapped (as much as possible) from host keyboard
+  to amiga keys (some exceptions because of physically different layout:
+  home = lparen, page up = rparen, delete = del, end = help,
+  insert is mapped to the amiga key to the left of backspace, and page down
+  to right amiga key in case the host keyboard has no right windows/apple/menu
+  key).
+* Use only scancodes on Linux, (and almost entirely on Mac too).
+* Use rawinput in Windows for keyboard support.
+* Make caps lock a proper toggle button.
+* Added an application icon.
+* fs-uae.app renamed to FS-UAE.app, fs-uae.exe is now FS-UAE.exe.
+* New config icon for Mac OS X.
+* Associate .fs-uae files with FS-UAE on Mac OS X.
+* Can override controller configurations by placing configs files in new
+  FS-UAE/Controllers directory (+ option to configure this directory).
+* New configuration option: audio/floppy_drive_volume
+* New configuration option: paths/base_dir
+* Ported updated caps code from WinUAE.
+* NTSC mode added (see example.conf) -was really added in 0.9.8, but
+  omitted from changelog.
+
+Version 0.9.8:
+
+* Support for SmartJoyPlus/TigerGame PS/PS2 adapter (courtesy of smuj)
+* Can specify less accurate emulation modes (for slower machines).
+* Detect when xrandr lies about refresh rates (nVIDIA twinview). 
+* Fixed bug when using left crtl/alt/shift simultaneously with emulated
+  keyboard.
+* New suggested extension for configuration files (*.fs-uae)
+* New default config file location:
+  (My) Documents/FS-UAE/Configurations/Default.fs-uae
+* New default dir for kickstarts:
+  (My) Documents/FS-UAE/Kickstarts
+* New default dir for save states:
+  (My) Documents/FS-UAE/Save States
+* Path expansion for paths beginning with $HOME/ or ~/
+* Fixed crash when custom limits (autoscaling) rect was outside video size.
+* New model configuration: "A1200/020" (can use Zorro III memory).
+* New configuration value: zorro_iii_memory.
+* Audio buffering tweaks.
+* Clamp FSAA value to [0, 4] range.
+* Virtual file system update (ported code from WinUAE).
+* Mac OS X build is universal x86_64 + i386.
+
+Version 0.9.7:
+
+* FS-UAE can open configuration files without (-c) parameter, makes FS-UAE.
+  easier to start with config from graphical shells (Windows Explorer,
+  Mac OS X Finder).
+* Added chip_memory, fast_memory and slow_memory options (see example.conf).
+* Fixed bug where save states would not be saved if floppies where specified
+  with absolute path.
+* Fixed problem with opening CUE files on systems other than Windows.
+* Fixed audio buffering issues.
+* Buffer additional audio data on buffer underrun before resuming playback.
+* Fixed problem with renaming files in virtual (mounted) disks on Windows.
+* Code cleanup in libamiga, new wrapper functions for some platform-specific
+  code.
+* Support for large HDF files (> 2GB) (untested, and not supported on Windows
+  yet).
+* Better implementation of write_log in libamiga.
+* Updated README to clarify that you can use ALT+F11 on Mac to toggle mouse
+  pointer (since the OS intercepts F11 alone).
+* Write information about base WinUAE version to log file.
+* Use same random number generator on all platforms.
+
+Version 0.9.6:
+
+ * Support for hard drive images (hdf)
+ * Support for mounting virtual folders as hard drives (experimental)
+ * Bugfix in calculation of save location of overlay adf files
+ * UTF-8 is now used internally in libamiga also on Windows, and
+   text is converted to other character sets / encodings as needed.
+   This enables support for non-ASCII characters in paths on Windows.
+ * Added a copyright notice at startup crediting the original WinUAE,
+   E-UAE and PUAE authors, and added a more prominent notice in the start
+   of the README.
+
+Version 0.9.5:
+
+ * Added support for A500+ and A600 models
+ * Video sync behaviour can now be overriden from config or command line
+   (see example.conf)
+ * New --video-sync command line parameter (auto/off/vblank/full)
+ * Old --vsync parameter is gone
+ * Fixed threading related bug which cased OpenAL output to stop
+ * Added a PID controller implementation for automatic audio buffer management
+   (small pitch adjustments are carefully made to keep the buffer from
+   getting to small or too large).
+
+Version 0.9.4:
+
+ * CD audio support for CDTV/CD32
+ * Audio output is now using OpenAL
+ * CDTV/CD32 now works properly when specifying kickstart files manually
+ * Link with libdl on Linux systems
+
+Version 0.9.3:
+
+ * Configuration option to keep the aspect when scaling the screen (see
+   example.conf)
+ * README: added information about supporting new controllers
+ * example.conf: documented the kickstart_ext_file option
+ * FS-UAE compiles on Linux 64-bit now
+
+Version 0.9.2:
+
+ * Fixed a crash occuring when swapping floppy disks
+ * Fixed problem with parent dirs not being created, preventing logging
+ * Created and added scripts/makefiles to create binary distributions for
+   Windows and Mac OS X (debian files were already added)
+ * Add example.conf, README, COPYING and licence files to all distributions
+ * Source distribution is now patched for 64-bit support
+
+Version 0.9.1:
+
+ * Add Mac OS X-specific Makefile to build an app bundle
+ * Also map right alt key to emulated joystick (for Mac OS X)
+ * Fix compilation of libcapsimage on Mac OS X
+ * Support for several more gamepad devices

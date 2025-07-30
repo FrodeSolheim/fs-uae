@@ -872,7 +872,7 @@ AS_IF([test "x$enable_x86" != xno], [
     AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
     ]], [[
         // FIXME: REMOVE THIS TEST NOW...
-        #if 0   
+        #if 0
         #error Bridgeboard is only supported on x86/x86-64
         #endif
     ]])],[

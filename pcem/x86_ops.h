@@ -25,6 +25,7 @@ extern OpFn *x86_dynarec_opcodes_df_a16;
 extern OpFn *x86_dynarec_opcodes_df_a32;
 extern OpFn *x86_dynarec_opcodes_REPE;
 extern OpFn *x86_dynarec_opcodes_REPNE;
+extern OpFn *x86_dynarec_opcodes_3DNOW;
 
 extern OpFn dynarec_ops_286[1024];
 extern OpFn dynarec_ops_286_0f[1024];
@@ -33,9 +34,14 @@ extern OpFn dynarec_ops_386[1024];
 extern OpFn dynarec_ops_386_0f[1024];
 
 extern OpFn dynarec_ops_winchip_0f[1024];
+extern OpFn dynarec_ops_winchip2_0f[1024];
 
 extern OpFn dynarec_ops_pentium_0f[1024];
 extern OpFn dynarec_ops_pentiummmx_0f[1024];
+extern OpFn dynarec_ops_pentiumpro_0f[1024];
+extern OpFn dynarec_ops_pentium2_0f[1024];
+
+extern OpFn dynarec_ops_c6x86_0f[1024];
 extern OpFn dynarec_ops_c6x86mx_0f[1024];
 
 extern OpFn dynarec_ops_fpu_d8_a16[32];
@@ -67,6 +73,8 @@ extern OpFn dynarec_ops_fpu_686_df_a32[256];
 extern OpFn dynarec_ops_REPE[1024];
 extern OpFn dynarec_ops_REPNE[1024];
 
+extern OpFn dynarec_ops_3DNOW[256];
+
 extern OpFn *x86_opcodes;
 extern OpFn *x86_opcodes_0f;
 extern OpFn *x86_opcodes_d8_a16;
@@ -87,6 +95,7 @@ extern OpFn *x86_opcodes_df_a16;
 extern OpFn *x86_opcodes_df_a32;
 extern OpFn *x86_opcodes_REPE;
 extern OpFn *x86_opcodes_REPNE;
+extern OpFn *x86_opcodes_3DNOW;
 
 extern OpFn ops_286[1024];
 extern OpFn ops_286_0f[1024];
@@ -95,10 +104,14 @@ extern OpFn ops_386[1024];
 extern OpFn ops_386_0f[1024];
 
 extern OpFn ops_winchip_0f[1024];
+extern OpFn ops_winchip2_0f[1024];
 
 extern OpFn ops_pentium_0f[1024];
 extern OpFn ops_pentiummmx_0f[1024];
+extern OpFn ops_pentiumpro_0f[1024];
+extern OpFn ops_pentium2_0f[1024];
 
+extern OpFn ops_c6x86_0f[1024];
 extern OpFn ops_c6x86mx_0f[1024];
 
 extern OpFn ops_fpu_d8_a16[32];
@@ -129,5 +142,7 @@ extern OpFn ops_fpu_686_df_a32[256];
 
 extern OpFn ops_REPE[1024];
 extern OpFn ops_REPNE[1024];
+
+extern OpFn ops_3DNOW[256];
 
 #endif /*_X86_OPS_H*/

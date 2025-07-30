@@ -3,9 +3,11 @@
 
 #include "arcadia.h"
 #include "crc32.h"
-#include "uae/fs.h"
 #include "rommgr.h"
 #include "zfile.h"
+
+#include "uae/fs.h"
+#include "uae-fs.h"
 
 #include <fs/filesys.h>
 #include <fs/glib.h>
@@ -84,6 +86,8 @@ void romlist_patch_rom (uae_u8 *buf, size_t size)
 	}
 #endif
 }
+
+// FIXME: Sync with win32gui.cpp
 
 static struct romdata *scan_single_rom_2 (struct zfile *f, uae_u32 *crc32)
 {
@@ -168,7 +172,7 @@ static struct romdata *scan_single_rom (const TCHAR *path, uae_u32 *crc32)
 }
 
 extern "C" {
-
+#if 0
 void amiga_add_key_dir (const char *path)
 {
 	char *p = g_build_filename (path, "rom.key", NULL);
@@ -259,5 +263,20 @@ int amiga_add_rom_file (const char *path, const char *cache_path)
 	write_log ("- done\n");
 	return 0;
 }
-
+#endif
 } // extern C
+
+bool uae_fs_add_rom_file (const char *path, uae_u32 crc32)
+{
+	write_log ("uae_fs_add_rom_file %s (CRC32: %x)\n", path, crc32);
+
+	struct romdata *rd = getromdatabycrc (crc32);
+	if (rd) {
+		romlist_add (path, rd);
+		write_log ("- ROM added\n");
+		return true;
+	} else {
+		write_log ("- Unknown ROM\n");
+		return false;
+	}
+}

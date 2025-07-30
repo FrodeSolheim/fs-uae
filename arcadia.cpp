@@ -4,8 +4,9 @@
 * Arcadia
 * American Laser games
 * Cubo
+* Picmatic
 *
-* Copyright 2005-2017 Toni Wilen
+* Copyright 2005-2024 Toni Wilen
 *
 *
 */
@@ -13,23 +14,26 @@
 #include "sysconfig.h"
 #include "sysdeps.h"
 
-#ifdef ARCADIA
-
 #include "options.h"
 #include "uae.h"
-#include "uae/memory.h"
+#include "memory.h"
 #include "rommgr.h"
 #include "custom.h"
 #include "newcpu.h"
 #include "debug.h"
 #include "arcadia.h"
 #include "zfile.h"
+#ifdef VIDEOGRAB
 #include "videograb.h"
+#endif
 #include "xwin.h"
 #include "drawing.h"
 #include "statusline.h"
 #include "rommgr.h"
 #include "flashrom.h"
+#include "savestate.h"
+#include "devices.h"
+#include "specialmonitors.h"
 
 #define CUBO_DEBUG 1
 
@@ -67,6 +71,7 @@ static void multigame (int);
 
 int arcadia_flag, arcadia_coin[2];
 struct arcadiarom *arcadia_bios, *arcadia_game;
+static int arcadia_hsync_cnt;
 
 static struct arcadiarom roms[]	= {
 
@@ -137,7 +142,7 @@ static int load_rom8 (const TCHAR *xpath, uae_u8 *mem, int extra, const TCHAR *e
 
 	extra &= 3;
 	memset (tmp, 0xff, 131072);
-	_sntprintf (path, MAX_DPATH, _T("%s%s%s"), xpath, extra == 3 ? _T("-hi") : (extra == 2 ? _T("hi") : (extra == 1 ? _T("h") : _T(""))), bin);
+	_stprintf (path, _T("%s%s%s"), xpath, extra == 3 ? _T("-hi") : (extra == 2 ? _T("hi") : (extra == 1 ? _T("h") : _T(""))), bin);
 	if (ext)
 		_tcscat(path, ext);
 	if (exts) {
@@ -152,7 +157,7 @@ static int load_rom8 (const TCHAR *xpath, uae_u8 *mem, int extra, const TCHAR *e
 	if (zfile_fread (tmp, 65536, 1, zf) == 0)
 		goto end;
 	zfile_fclose (zf);
-	_sntprintf (path, MAX_DPATH, _T("%s%s%s"), xpath, extra == 3 ? _T("-lo") : (extra == 2 ? _T("lo") : (extra == 1 ? _T("l") : _T(""))), bin);
+	_stprintf (path, _T("%s%s%s"), xpath, extra == 3 ? _T("-lo") : (extra == 2 ? _T("lo") : (extra == 1 ? _T("l") : _T(""))), bin);
 	if (ext)
 		_tcscat(path, ext);
 	if (exts)
@@ -183,7 +188,7 @@ static struct arcadiarom *is_arcadia (const TCHAR *xpath, int cnt)
 
 	_tcscpy (path, xpath);
 	p = path;
-	for (i = _tcslen (xpath) - 1; i > 0; i--) {
+	for (i = uaetcslen (xpath) - 1; i > 0; i--) {
 		if (path[i] == '\\' || path[i] == '/') {
 			path[i++] = 0;
 			p = path + i;
@@ -238,7 +243,7 @@ static int load_roms (struct arcadiarom *rom)
 	i = 0;
 	for (;;) {
 		if (rom->extra & 4)
-			_sntprintf (path, MAX_DPATH, _T("%s%d"), xpath, i + 1);
+			_stprintf (path, _T("%s%d"), xpath, i + 1);
 		else
 			_tcscpy (path, xpath);
 		if (!load_rom8 (path, arbmemory + 2 * 65536 * i + offset, rom->extra, rom->ext, rom->exts && rom->exts[0] ? &rom->exts[i * 2] : NULL)) {
@@ -477,6 +482,33 @@ static void nvram_read (void)
 	zfile_fclose (f);
 }
 
+static void alg_vsync(void);
+static void cubo_vsync(void);
+
+static void arcadia_hsync(void)
+{
+	arcadia_hsync_cnt++;
+}
+static void arcadia_vsync(void)
+{
+	if (alg_flag)
+		alg_vsync();
+	if (cubo_enabled)
+		cubo_vsync();
+
+	if (arcadia_bios) {
+		static int cnt;
+		cnt--;
+		if (cnt > 0)
+			return;
+		cnt = 50;
+		if (!nvwrite)
+			return;
+		nvram_write();
+		nvwrite = 0;
+	}
+}
+
 void arcadia_unmap (void)
 {
 	xfree (arbmemory);
@@ -504,29 +536,10 @@ int arcadia_map_banks (void)
 	nvram_read ();
 	multigame (0);
 	map_banks (&arcadia_boot_bank, 0xf0, 8, 0);
+	device_add_vsync_pre(arcadia_vsync);
+	device_add_hsync(arcadia_hsync);
+	arcadia_hsync_cnt = 0;
 	return 1;
-}
-
-void alg_vsync(void);
-void cubo_vsync(void);
-void arcadia_vsync (void)
-{
-	if (alg_flag)
-		alg_vsync();
-	if (cubo_enabled)
-		cubo_vsync();
-
-	if (arcadia_bios) {
-		static int cnt;
-		cnt--;
-		if (cnt > 0)
-			return;
-		cnt = 50;
-		if (!nvwrite)
-			return;
-		nvram_write ();
-		nvwrite = 0;
-	}
 }
 
 uae_u8 arcadia_parport (int port, uae_u8 pra, uae_u8 dra)
@@ -548,25 +561,25 @@ uae_u8 arcadia_parport (int port, uae_u8 pra, uae_u8 dra)
 	return v;
 }
 
-struct romdata *scan_arcadia_rom (TCHAR *path, int cnt)
+struct romdata *scan_arcadia_rom(TCHAR *path, int cnt)
 {
 	struct romdata *rd = 0;
 	struct romlist **arc_rl;
 	struct arcadiarom *arcadia_rom;
 	int i;
 
-	arcadia_rom = is_arcadia (path, cnt);
+	arcadia_rom = is_arcadia(path, cnt);
 	if (arcadia_rom) {
-		arc_rl = getarcadiaroms();
+		arc_rl = getarcadiaroms(0);
 		for (i = 0; arc_rl[i]; i++) {
 			if (arc_rl[i]->rd->id == arcadia_rom->romid) {
 				rd = arc_rl[i]->rd;
-				_tcscat (path, FSDB_DIR_SEPARATOR_S);
-				_tcscat (path, arcadia_rom->romid1);
+				_tcscat(path, FSDB_DIR_SEPARATOR_S);
+				_tcscat(path, arcadia_rom->romid1);
 				break;
 			}
 		}
-		xfree (arc_rl);
+		xfree(arc_rl);
 	}
 	return rd;
 }
@@ -591,13 +604,16 @@ Port 2:
 
 
 int alg_flag;
-int log_ld;
+int log_ld = 0;
 
 #define ALG_NVRAM_SIZE 4096
 #define ALG_NVRAM_MASK (ALG_NVRAM_SIZE - 1)
 static uae_u8 algmemory[ALG_NVRAM_SIZE];
 static int algmemory_modified;
 static int algmemory_initialized;
+static int alg_game_id;
+static int alg_picmatic_nova;
+static uae_u8 picmatic_io, picmatic_ply;
 
 static void alg_nvram_write (void)
 {
@@ -638,6 +654,39 @@ static uae_u32 REGPARAM2 alg_wget (uaecptr addr)
 
 static uae_u32 REGPARAM2 alg_bget (uaecptr addr)
 {
+	if ((addr & 0xffff0001) == 0xf60001) {
+		if (alg_picmatic_nova == 1) {
+			// Picmatic 100Hz games
+			int reg = (addr >> 12) & 15;
+			uae_u8 v = 0;
+			uae_s16 x = lightpen_x[1 - picmatic_ply];
+			x <<= 1;
+			x >>= currprefs.gfx_resolution;
+			uae_s16 y = lightpen_y[1 - picmatic_ply] >> currprefs.gfx_vresolution;
+			if (reg == 3) {
+				v = 0xff;
+				// left trigger
+				if (alg_flag & 64)
+					v &= ~0x20;
+				// right trigger
+				if (alg_flag & 128)
+					v &= ~0x10;
+				// left holster
+				if (alg_flag & 256)
+					v &= ~0x80;
+				// right holster
+				if (alg_flag & 512)
+					v &= ~0x40;
+			} else if (reg == 0) {
+				v = y & 0xff;
+			} else if (reg == 1) {
+				v = x & 0xff;
+			} else if (reg == 2) {
+				v = ((x >> 8) << 4) | (y >> 8); 
+			}
+			return v;
+		}
+	}
 	uaecptr addr2 = addr;
 	addr >>= 1;
 	addr &= ALG_NVRAM_MASK;
@@ -655,6 +704,20 @@ static void REGPARAM2 alg_wput (uaecptr addr, uae_u32 w)
 
 static void REGPARAM2 alg_bput (uaecptr addr, uae_u32 b)
 {
+	if (alg_picmatic_nova == 1 && (addr & 0xffff0000) == 0xf60000) {
+		int reg = (addr >> 12) & 15;
+		if (reg == 0) {
+			picmatic_io = b;
+		} if (reg == 5) {
+			// Picmatic 100Hz games
+			picmatic_ply = 0;
+		} else if (reg == 6) {
+			// Picmatic 100Hz games
+			picmatic_ply = 1;
+		}
+		//write_log(_T("ALG BPUT %08X %02X %08X\n"), addr, b & 255, M68K_GETPC);
+		return;
+	}
 	uaecptr addr2 = addr;
 	addr >>= 1;
 	addr &= ALG_NVRAM_MASK;
@@ -673,20 +736,83 @@ static addrbank alg_ram_bank = {
 	NULL, 65536
 };
 
-static int ld_mode;
+static int ld_mode, ld_mode_value;
 static uae_u32 ld_address, ld_value;
+static uae_u32 ld_startaddress, ld_endaddress;
+static uae_s32 ld_repcnt, ld_mark;
 static int ld_direction;
+static bool ld_save_restore;
+static uae_s8 ld_ui, ld_ui_cnt;
 #define LD_MODE_SEARCH 1
 #define LD_MODE_PLAY 2
 #define LD_MODE_STILL 3
 #define LD_MODE_STOP 4
+#define LD_MODE_REPEAT 5
+#define LD_MODE_REPEAT2 6
+#define LD_MODE_MARK 7
 
 #define ALG_SER_BUF_SIZE 16
 static uae_u8 alg_ser_buf[ALG_SER_BUF_SIZE];
 static int ser_buf_offset;
-static int ld_wait_ack;
-static int ld_audio;
+static int ld_wait_ack, ld_wait_seek, ld_wait_seek_status;
+static int ld_audio, ld_audio_mute;
+static bool ld_video;
 static int ld_vsync;
+static int alg_hsync_delay;
+static uae_u8 ld_uidx_config[3], ld_uidx_offset, ld_uidx_offsetd;
+static char ld_uidx_data[32];
+static uae_u8 ld_user_index;
+
+void genlock_infotext(uae_u8 *d, struct vidbuffer *dst)
+{
+	if (!ld_user_index) {
+#if 0
+		int x = 26;
+		int y = 12;
+		x -= 12;
+		y -= 10;
+		int dx = dst->inwidth * x / (86 - 12);
+		int dy = dst->inheight * y / (59 - 10);
+		int mx = 1, my = 1;
+		mx <<= currprefs.gfx_resolution;
+		my <<= currprefs.gfx_vresolution;
+		ldp_render("ABCDE12345ABCDE12345", 20, d, dst, dx, dy, mx ,my);
+		y += 4;
+		dy = dst->inheight * y / (59 - 10);
+		ldp_render("ABCDE12345ABCDE12345", 20, d, dst, dx, dy, mx, my);
+#endif
+		return;
+	}
+	int x = ld_uidx_config[0] & 63;
+	int y = ld_uidx_config[1] & 63;
+	int mx = (ld_uidx_config[2] & 3) + 1;
+	int my = ((ld_uidx_config[2] >> 2) & 3) + 1;
+	bool dm = (ld_uidx_config[2] & 0x10) != 0;
+	int offset = ld_uidx_offsetd & 31;
+	int len = 32 - offset;
+
+	x -= 12;
+	y -= 10;
+
+	int dx = dst->inwidth * x / (86 - 12);
+	int dy = dst->inheight * y / (59 - 10);
+
+	mx <<= currprefs.gfx_resolution;
+	my <<= currprefs.gfx_vresolution;
+
+	if (dm) {
+		ldp_render(ld_uidx_data, 10, d, dst, dx, dy, mx, my);
+		y += 4;
+		dy = dst->inheight * y / (59 - 10);
+		ldp_render(ld_uidx_data + 10, 10, d, dst, dx, dy, mx, my);
+		y += 4;
+		dy = dst->inheight * y / (59 - 10);
+		ldp_render(ld_uidx_data + 20, 10, d, dst, dx, dy, mx, my);
+	} else {
+		ldp_render(ld_uidx_data, 20, d, dst, dx, dy, mx, my);
+	}
+
+}
 
 static void sb(uae_u8 v)
 {
@@ -696,15 +822,97 @@ static void sb(uae_u8 v)
 }
 static void ack(void)
 {
-	ld_wait_ack = 1;
+	ld_wait_ack = alg_hsync_delay + 30;
 	sb(0x0a); // ACK
 }
 
 static void sony_serial_read(uae_u16 w)
 {
 	w &= 0xff;
+
+	if (ld_ui >= 0 && ld_ui_cnt >= 0) {
+		if (ld_ui == 0) {
+			ld_uidx_config[ld_ui_cnt] = (uae_u8)w;
+			ld_ui_cnt++;
+			if (ld_ui_cnt == 3) {
+				ld_ui = -1;
+			}
+		} else if (ld_ui == 1) {
+			if (ld_ui_cnt == 0) {
+				ld_uidx_offset = (uae_u8)w;
+			} else {
+				int idx = ld_uidx_offset & 31;
+				ld_uidx_data[idx] = (uae_u8)w;
+				ld_uidx_offset++;
+			}
+			ld_ui_cnt++;
+			if (ld_ui_cnt >= 34 || (ld_ui_cnt > 1 && w == 0x1a)) {
+				ld_ui = -1;
+			}
+		} else if (ld_ui == 2) {
+			ld_uidx_offsetd = (uae_u8)w;
+			ld_ui_cnt++;
+			ld_ui = -1;
+		}
+		ack();
+		return;
+	}
+
 	switch (w)
 	{
+	case 0: // User Index 00
+	case 1: // User Index 01
+	case 2: // User Index 02
+	if (ld_ui < 0) {
+		ld_ui = (uae_s8)w;
+		ld_ui_cnt = 0;
+		ack();
+	}
+	break;
+	case 0x24: // Audio mute
+	ld_audio_mute = true;
+	ack();
+	break;
+	case 0x25: // Audio mute off
+	ld_audio_mute = false;
+	ack();
+	break;
+	case 0x26: // Video off
+	ld_video = false;
+	ack();
+	if (log_ld)
+		write_log(_T("LD: Video off\n"));
+	break;
+	case 0x27: // Video on
+	ld_video = true;
+	ack();
+	if (log_ld)
+		write_log(_T("LD: Video on\n"));
+	break;
+	case 0x2b: // FWD Step
+	ld_address++;
+#ifdef VIDEOGRAB
+	getsetpositionvideograb(ld_address);
+#endif
+	ld_mode = LD_MODE_STILL;
+	ld_direction = 0;
+	ack();
+	if (log_ld)
+		write_log(_T("LD: FWD step\n"));
+	break;
+	case 0x2c: // REV Step
+	if (ld_address) {
+		ld_address--;
+	}
+#ifdef VIDEOGRAB
+	getsetpositionvideograb(ld_address);
+#endif
+	ld_mode = LD_MODE_STILL;
+	ld_direction = 0;
+	ack();
+	if (log_ld)
+		write_log(_T("LD: REV step\n"));
+	break;
 	case 0x30: // '0'
 	case 0x31:
 	case 0x32:
@@ -723,41 +931,100 @@ static void sony_serial_read(uae_u16 w)
 	}
 	break;
 	case 0x3a: // F-PLAY ':'
-	ld_mode = LD_MODE_PLAY;
-	ld_direction = 0;
-	pausevideograb(0);
+	if (ld_mode != LD_MODE_PLAY) {
+		ld_mode = LD_MODE_PLAY;
+		ld_direction = 0;
+		ld_repcnt = -1;
+#ifdef VIDEOGRAB
+		pausevideograb(0);
+#endif
+	}
 	ack();
 	if (log_ld)
 		write_log(_T("LD: PLAY\n"));
 	break;
-	case 0x3b: // Fast foward play ';'
+	case 0x3b: // FAST FORWARD PLAY ';'
 	ld_mode = LD_MODE_PLAY;
 	ld_direction = 1;
 	ack();
+	if (log_ld)
+		write_log(_T("LD: FAST FORWARD PLAY\n"));
 	break;
 	case 0x3f: // STOP '?'
+#ifdef VIDEOGRAB
 	pausevideograb(1);
+#endif
 	ld_direction = 0;
+	ld_repcnt = -1;
 	ld_mode = LD_MODE_STOP;
 	ack();
 	if (log_ld)
 		write_log(_T("LD: STOP\n"));
 	break;
-	case 0x40: // '@'
-	if (ld_mode == LD_MODE_SEARCH) {
-		ld_address = ld_value;
-		getsetpositionvideograb(ld_address);
-		ld_mode = LD_MODE_STILL;
-		ld_direction = 0;
+	case 0x40: // ENTER '@'
+	if (ld_mode_value == LD_MODE_MARK) {
+		ld_mode_value = 0;
+		ld_mark = ld_value;
 		ack();
-		sb(0x01); // COMPLETION
+		if (log_ld) {
+			write_log(_T("LD: SET MARK %d\n"), ld_mark);
+		}
+	} else if (ld_mode_value == LD_MODE_REPEAT) {
+		ld_direction = 0;
+		ld_endaddress = ld_value;
+		ld_startaddress = ld_address;
+		ld_value = 0;
+		ld_mode_value = LD_MODE_REPEAT2;
+		ack();
+	} else if (ld_mode_value == LD_MODE_REPEAT2) {
+		ld_repcnt = ld_value;
+		ld_address = ld_startaddress;
+		if (ld_startaddress > ld_endaddress) {
+			ld_direction = -1;
+		}
+		ld_mode_value = 0;
+		ld_mode = LD_MODE_PLAY;
+#ifdef VIDEOGRAB
+		pausevideograb(0);
+#endif
+		ack();
+		if (log_ld) {
+			write_log(_T("LD: REPEAT CNT=%d, %d TO %d\n"), ld_repcnt, ld_startaddress, ld_endaddress);
+		}
+	} else if (ld_mode_value == LD_MODE_SEARCH) {
+		ld_address = ld_value;
+		ack();
+		// delay seek status response by 2 frames (Platoon requires this)
+		ld_wait_seek = arcadia_hsync_cnt + 2 * maxvpos;
+#ifdef VIDEOGRAB
+		uae_s32 endpos = (uae_s32)getdurationvideograb();
+		if (ld_address > endpos) {
+			ld_address = endpos;
+			getsetpositionvideograb(ld_address);
+			ld_wait_seek_status = 0x06; // NO FRAME NUMBER
+		} else {
+			getsetpositionvideograb(ld_address);
+			ld_wait_seek_status = 0x01; // COMPLETION
+		}
+#endif
+		ld_mode = LD_MODE_STILL;
+		ld_mode_value = 0;
+		ld_direction = 0;
 		if (log_ld)
 			write_log(_T("LD: SEARCH %d\n"), ld_value);
 	}
 	break;
+	case 0x41: // Clear entry
+	ld_value = 0;
+	ack();
+	if (log_ld)
+		write_log(_T("LD: CLEAR ENTRY\n"));
+	break;
 	case 0x4a: // R-PLAY 'J'
 	ld_mode = LD_MODE_PLAY;
+#ifdef VIDEOGRAB
 	pausevideograb(1);
+#endif
 	ld_direction = -1;
 	ack();
 	if (log_ld)
@@ -765,7 +1032,9 @@ static void sony_serial_read(uae_u16 w)
 	break;
 	case 0x4b: // Fast reverse play 'K'
 	ld_mode = LD_MODE_PLAY;
+#ifdef VIDEOGRAB
 	pausevideograb(1);
+#endif
 	ld_direction = -2;
 	ack();
 	if (log_ld)
@@ -774,47 +1043,69 @@ static void sony_serial_read(uae_u16 w)
 	case 0x4f: // STILL 'O'
 	ld_mode = LD_MODE_STILL;
 	ld_direction = 0;
+#ifdef VIDEOGRAB
 	pausevideograb(1);
+#endif
 	ack();
 	if (log_ld)
 		write_log(_T("LD: PAUSE\n"));
 	break;
 	case 0x43: // SEARCH 'C'
 	ack();
-	ld_mode = LD_MODE_SEARCH;
+	ld_mode = LD_MODE_STILL;
+	ld_mode_value = LD_MODE_SEARCH;
 	ld_direction = 0;
+#ifdef VIDEOGRAB
 	pausevideograb(1);
+#endif
 	ld_value = 0;
 	if (log_ld)
 		write_log(_T("LD: SEARCH\n"));
 	break;
+	case 0x44: // Repeat 'D'
+	ack();
+	ld_mode_value = LD_MODE_REPEAT;
+	ld_direction = 0;
+#ifdef VIDEOGRAB
+	pausevideograb(1);
+#endif
+	ld_value = 0;
+	if (log_ld)
+		write_log(_T("LD: REPEAT\n"));
+	break;
 	case 0x46: // CH-1 ON 'F'
 	ack();
 	ld_audio |= 1;
-	setvolumevideograb(100 - currprefs.sound_volume_genlock);
+#ifdef VIDEOGRAB
+	setchflagsvideograb(ld_audio, false);
+#endif
 	if (log_ld)
 		write_log(_T("LD: CH-1 ON\n"));
 	break;
 	case 0x48: // CH-2 ON 'H'
 	ack();
 	ld_audio |= 2;
-	setvolumevideograb(100 - currprefs.sound_volume_genlock);
+#ifdef VIDEOGRAB
+	setchflagsvideograb(ld_audio, false);
+#endif
 	if (log_ld)
 		write_log(_T("LD: CH-2 ON\n"));
 	break;
 	case 0x47: // CH-1 OFF 'G'
 	ack();
 	ld_audio &= ~1;
-	if (!ld_audio)
-		setvolumevideograb(0);
+#ifdef VIDEOGRAB
+	setchflagsvideograb(ld_audio, false);
+#endif
 	if (log_ld)
 		write_log(_T("LD: CH-1 OFF\n"));
 	break;
 	case 0x49: // CH-2 OFF 'I'
 	ack();
 	ld_audio &= ~2;
-	if (!ld_audio)
-		setvolumevideograb(0);
+#ifdef VIDEOGRAB
+	setchflagsvideograb(ld_audio, false);
+#endif
 	if (log_ld)
 		write_log(_T("LD: CH-2 OFF\n"));
 	break;
@@ -828,11 +1119,33 @@ static void sony_serial_read(uae_u16 w)
 	if (log_ld)
 		write_log(_T("LD: INDEX OFF\n"));
 	break;
+	case 0x55: // Frame mode 'U'
+	ack();
+	if (log_ld)
+		write_log(_T("LD: Frame Mode\n"));
+	break;
+	case 0x56: // Clear 'V'
+	ld_mode = LD_MODE_STILL;
+	ld_repcnt = -1;
+	ld_mark = -1;
+	ld_mode_value = 0;
+	ld_direction = 0;
+	ld_video = true;
+	ld_value = 0;
+#ifdef VIDEOGRAB
+	pausevideograb(1);
+#endif
+	ack();
+	if (log_ld)
+		write_log(_T("LD: CL\n"));
+	break;
 	case 0x60: // ADDR INQ '`'
 	{
-		if (isvideograb() && ld_direction == 0) {
+#ifdef VIDEOGRAB
+		if (!ld_save_restore && isvideograb() && ld_direction == 0) {
 			ld_address = (uae_u32)getsetpositionvideograb(-1);
 		}
+#endif
 		uae_u32 v = ld_address;
 		uae_u32 m = 10000;
 		for (int i = 0; i < 5; i++) {
@@ -848,10 +1161,38 @@ static void sony_serial_read(uae_u16 w)
 	sb(0x80);
 	sb(0x00);
 	sb(0x40);
-	sb((ld_mode == LD_MODE_SEARCH ? 0x02 : 0x00));
+	sb((ld_mode_value == LD_MODE_SEARCH ? 0x02 : 0x00) | (ld_mode_value == LD_MODE_REPEAT ? 0x04 : 0x00) | (ld_mode_value ? 0x01 : 0x00) | (ld_mode_value == LD_MODE_REPEAT2 ? 0x20 : 0x00));
 	sb((ld_mode == LD_MODE_PLAY ? 0x01 : 0x00) | (ld_mode == LD_MODE_STILL ? 0x20 : 0x00) | (ld_mode == LD_MODE_STOP ? 0x40 : 0x00) | (ld_direction < 0 ? 0x80 : 0x00));
 	if (log_ld > 1)
 		write_log(_T("LD: STATUS INQ\n"));
+	break;
+	case 0x73: // MARK SET 's'
+	ld_value = 0;
+	ld_mode_value = LD_MODE_MARK;
+	ack();
+	if (log_ld)
+		write_log(_T("LD: MARK SET\n"));
+	break;
+	case 0x80: // USER INDEX
+	ld_ui = -1;
+	ack();
+	if (log_ld)
+		write_log("LD: USER INDEX\n");
+	break;
+	case 0x81: // USER INDEX ON
+	ld_user_index = 1;
+	ack();
+	if (log_ld)
+		write_log("LD: USER INDEX ON\n");
+	break;
+	case 0x82: // USER INDEX OFF
+	ld_user_index = 0;
+	ack();
+	if (log_ld)
+		write_log(_T("LD: USER INDEX OFF\n"));
+	break;
+	default:
+	write_log(_T("LD: Unemulated command %02x\n"), w);
 	break;
 	}
 }
@@ -861,30 +1202,95 @@ bool alg_ld_active(void)
 	return ld_mode == LD_MODE_PLAY || ld_mode == LD_MODE_STILL;
 }
 
-void alg_vsync(void)
+static void alg_vsync(void)
 {
-	ld_wait_ack = 0;
 	ld_vsync++;
+	if (ld_save_restore) {
+#ifdef VIDEOGRAB
+		if (ld_address == 0 || getsetpositionvideograb(ld_address) > 0) {
+			ld_save_restore = false;
+			setchflagsvideograb(ld_audio, false);
+		}
+		if (ld_save_restore) {
+			return;
+		}
+#endif
+	}
+
 	if (ld_mode == LD_MODE_PLAY) {
+#ifdef VIDEOGRAB
+		if (log_ld && (ld_vsync & 63) == 0) {
+			uae_s64 pos = getsetpositionvideograb(-1);
+			write_log(_T("LD: frame %lld\n"), pos);
+		}
+		pausevideograb(0);
+#endif
 		if (ld_direction < 0) {
 			if (ld_address > 0) {
 				ld_address -= (-ld_direction);
 				if ((ld_vsync & 15) == 0) {
+#ifdef VIDEOGRAB
 					if (isvideograb()) {
 						getsetpositionvideograb(ld_address);
 					}
+#endif
 				}
 			}
 		} else {
 			ld_address += 1 + ld_direction;
 			if (ld_direction > 0) {
 				if ((ld_vsync & 15) == 0) {
+#ifdef VIDEOGRAB
 					if (isvideograb()) {
 						getsetpositionvideograb(ld_address);
 					}
+#endif
 				}
 			}
 		}
+#ifdef VIDEOGRAB
+		if (ld_repcnt >= 0 || ld_mark >= 0) {
+			uae_s64 f = getsetpositionvideograb(-1);
+			if (ld_repcnt >= 0) {
+				if ((ld_direction >= 0 && f >= ld_endaddress) || (ld_direction < 0 && f <= ld_endaddress)) {
+					if (ld_repcnt > 0) {
+						ld_repcnt--;
+						if (ld_repcnt == 0) {
+							sb(0x01); // Repeat complete
+							if (log_ld) {
+								write_log(_T("LD: Repeat complete\n"));
+							}
+							ld_repcnt = -1;
+							ld_mode = LD_MODE_STILL;
+							ld_direction = 0;
+							pausevideograb(1);
+						} else {
+							ld_address = ld_startaddress;
+							getsetpositionvideograb(ld_address);
+							if (log_ld) {
+								write_log(_T("LD: Repeat %d from %d\n"), ld_repcnt, ld_startaddress);
+							}
+						}
+					} else {
+						ld_address = ld_startaddress;
+						getsetpositionvideograb(ld_address);
+						if (log_ld) {
+							write_log(_T("LD: Repeat %d from %d\n"), ld_repcnt, ld_startaddress);
+						}
+					}
+				}
+			}
+			if (ld_mark == f || ld_mark == f + 1 || ld_mark == f + 2) {
+				sb(0x07); // MARK RETURN
+				if (log_ld) {
+					write_log(_T("LD: Mark return %d\n"), ld_mark);
+				}
+				ld_mark = -1;
+			}
+		}
+	} else {
+		pausevideograb(1);
+#endif
 	}
 	if (algmemory_modified > 0) {
 		algmemory_modified--;
@@ -896,10 +1302,20 @@ void alg_vsync(void)
 
 static int sony_serial_write(void)
 {
+	if (ld_wait_seek_status && arcadia_hsync_cnt >= ld_wait_seek) {
+		sb(ld_wait_seek_status);
+		if (log_ld) {
+			write_log("LD: seek status %d\n", ld_wait_seek_status);
+		}
+		ld_wait_seek_status = 0;
+	}
 	if (ser_buf_offset > 0) {
 		uae_u16 v = alg_ser_buf[0];
-		if (v == 0x0a && ld_wait_ack)
-			return -1;
+		if (v == 0x0a) {
+			if (arcadia_hsync_cnt < ld_wait_ack) {
+				return -1;
+			}
+		}
 		ser_buf_offset--;
 		memmove(alg_ser_buf, alg_ser_buf + 1, ser_buf_offset);
 		return v;
@@ -927,12 +1343,19 @@ void ld_serial_read(uae_u16 w)
 
 int ld_serial_write(void)
 {
-	if (alg_flag || currprefs.genlock_image == 7) {
-		return sony_serial_write();
-	} else if (currprefs.genlock_image == 8) {
-		return pioneer_serial_write();
+	int v = -1;
+	if (arcadia_hsync_cnt < alg_hsync_delay) {
+		return -1;
 	}
-	return -1;
+	if (alg_flag || currprefs.genlock_image == 7) {
+		v = sony_serial_write();
+	} else if (currprefs.genlock_image == 8) {
+		v = pioneer_serial_write();
+	}
+	if (v >= 0) {
+		alg_hsync_delay = arcadia_hsync_cnt + 2;
+	}
+	return v;
 }
 
 /*
@@ -955,11 +1378,24 @@ Port 2:
 */
 
 static uae_u16 alg_potgo;
+static uae_u8 picmatic_parallel;
+
+uae_u8 alg_parallel_port(uae_u8 drb, uae_u8 v)
+{
+	picmatic_parallel = v;
+	//write_log("%02x\n", v);
+	return v;
+}
 
 int alg_get_player(uae_u16 potgo)
 {
-	// 2nd button output and high = player 2.
-	return (potgo & 0xc000) == 0xc000 ? 1 : 0;
+	if (alg_picmatic_nova == 1) {
+		// Picmatic: parallel port bit 0 set = player 2
+		return (picmatic_io & 1) ? 0 : 1;
+	} else {
+		// ALG: 2nd button output and high = player 2.
+		return (potgo & 0xc000) == 0xc000 ? 1 : 0;
+	}
 }
 
 uae_u16 alg_potgor(uae_u16 potgo)
@@ -968,13 +1404,21 @@ uae_u16 alg_potgor(uae_u16 potgo)
 
 	int ply = alg_get_player(alg_potgo);
 
-	potgo |= (0x1000 | 0x0100);
-	// trigger
-	if (((alg_flag & 128) && ply == 1) || ((alg_flag & 64) && ply == 0))
-		potgo &= ~0x1000;
-	// right start
-	if (alg_flag & 8)
-		potgo &= ~0x0100;
+	if (alg_picmatic_nova == 1) {
+		potgo |= (0x1000 | 0x0100 | 0x4000 | 0x0400);
+		// right trigger
+		if (alg_flag & 128)
+			potgo &= ~0x1000;
+
+	} else {
+		potgo |= (0x1000 | 0x0100);
+		// trigger
+		if (((alg_flag & 128) && ply == 1) || ((alg_flag & 64) && ply == 0))
+			potgo &= ~0x1000;
+		// right start
+		if (alg_flag & 8)
+			potgo &= ~0x0100;
+	}
 
 	return potgo;
 }
@@ -984,56 +1428,295 @@ uae_u16 alg_joydat(int joy, uae_u16 v)
 		return v;
 	int ply = alg_get_player(alg_potgo);
 	v = 0;
-	if (joy == 0) {
 
-		// left coin
-		if (alg_flag & 16)
-			v |= 0x0200;
-		// right coin
-		if (alg_flag & 32)
-			v |= 0x0002;
+	if (alg_picmatic_nova == 1) {
 
-		// service
-		if (alg_flag & 2)
-			v |= (v & 0x0200) ? 0x0000 : 0x0100;
-		else
-			v |= (v & 0x0200) ? 0x0100 : 0x0000;
-		// start
-		if (alg_flag & 4)
-			v |= (v & 0x0002) ? 0x0000: 0x0001;
-		else
-			v |= (v & 0x0002) ? 0x0001: 0x0000;
+		if (joy == 0) {
 
-	} else if (joy == 1) {
+			// coin
+			if (alg_flag & (16 | 32))
+				v |= 0x0002;
 
-		// holster
-		if (((alg_flag & 512) && ply == 0) || ((alg_flag & 256) && ply == 1))
-			v |= (v & 0x0200) ? 0x0000 : 0x0100;
-		else
-			v |= (v & 0x0200) ? 0x0100 : 0x0000;
+			// left start
+			if (alg_flag & 4)
+				v |= 0x0200;
 
+			// service
+			if (alg_flag & 2)
+				v |= (v & 0x0200) ? 0x0000 : 0x0100;
+			else
+				v |= (v & 0x0200) ? 0x0100 : 0x0000;
+
+			// right start
+			if (alg_flag & 8)
+				v |= (v & 0x0002) ? 0x0000 : 0x0001;
+			else
+				v |= (v & 0x0002) ? 0x0001 : 0x0000;
+
+		} else if (joy == 1) {
+
+			// right holster
+			if (alg_flag & 512)
+				v |= 0x0200;
+
+			// left trigger
+			if (alg_flag & 64)
+				v |= 0x0002;
+
+			// left holster
+			if (alg_flag & 256)
+				v |= (v & 0x0002) ? 0x0000 : 0x0001;
+			else
+				v |= (v & 0x0002) ? 0x0001 : 0x0000;
+		}
+
+	} else if (alg_picmatic_nova == 2) {
+
+		if (joy == 0) {
+
+			// left coin
+			if (alg_flag & 16)
+				v |= 0x0200;
+			// right coin
+			if (alg_flag & 32)
+				v |= 0x0002;
+
+			// service
+			if (alg_flag & 2)
+				v |= (v & 0x0200) ? 0x0000 : 0x0100;
+			else
+				v |= (v & 0x0200) ? 0x0100 : 0x0000;
+			// left start
+			if (alg_flag & 4)
+				v |= (v & 0x0002) ? 0x0000 : 0x0001;
+			else
+				v |= (v & 0x0002) ? 0x0001 : 0x0000;
+
+		}
+
+	} else {
+
+		if (joy == 0) {
+
+			// left coin
+			if (alg_flag & 16)
+				v |= 0x0200;
+			// right coin
+			if (alg_flag & 32)
+				v |= 0x0002;
+
+			// service
+			if (alg_flag & 2)
+				v |= (v & 0x0200) ? 0x0000 : 0x0100;
+			else
+				v |= (v & 0x0200) ? 0x0100 : 0x0000;
+			// left start
+			if (alg_flag & 4)
+				v |= (v & 0x0002) ? 0x0000: 0x0001;
+			else
+				v |= (v & 0x0002) ? 0x0001: 0x0000;
+
+		} else if (joy == 1) {
+
+			// holster
+			if (((alg_flag & 512) && ply == 0) || ((alg_flag & 256) && ply == 1))
+				v |= (v & 0x0200) ? 0x0000 : 0x0100;
+			else
+				v |= (v & 0x0200) ? 0x0100 : 0x0000;
+
+		}
 	}
 	return v;
 }
 uae_u8 alg_joystick_buttons(uae_u8 pra, uae_u8 dra, uae_u8 v)
 {
+	if (alg_flag) {
+		int ply = alg_get_player(alg_potgo);
+	
+		if (alg_game_id == 175) {
+			// Mad Dog McCree v1C Holster is fire button
+			if ((alg_flag & 256) && ply == 0) {
+				v &= ~0x40;
+			}
+			if ((alg_flag & 512) && ply == 1) {
+				v &= ~0x80;
+			}
+		}
+	}
 	return v;
+}
+
+struct romdata *get_alg_rom(const TCHAR *name)
+{
+	struct romdata *rd = getromdatabypath(name);
+	if (!rd) {
+		return NULL;
+	}
+	if (!(rd->type & ROMTYPE_ALG)) {
+		return NULL;
+	}
+	/* find parent node */
+	while (rd[-1].id == rd->id) {
+		rd--;
+	}
+	return rd;
 }
 
 void alg_map_banks(void)
 {
-	alg_flag = 1;
+	if (!savestate_state) {
+		alg_flag = 1;
+	}
 	if (!algmemory_initialized) {
 		alg_nvram_read();
 		algmemory_initialized = 1;
 	}
-	map_banks(&alg_ram_bank, 0xf4, 4, 0);
+	struct romdata *rd = get_alg_rom(currprefs.romextfile);
+	if (rd->id == 198 || rd->id == 301 || rd->id == 302 || rd->id == 315 || rd->id == 314) {
+		map_banks(&alg_ram_bank, 0xf4, 1, 0);
+	} else if (rd->id == 182 || rd->id == 273 || rd->size < 0x40000) {
+		map_banks(&alg_ram_bank, 0xf5, 1, 0);
+	} else {
+		map_banks(&alg_ram_bank, 0xf7, 1, 0);
+	}
+	alg_game_id = rd->id;
+	alg_picmatic_nova = rd->id == 198 || rd->id == 301 || rd->id == 302 || rd->id == 315 || rd->id == 314 ? 1 : (rd->id == 197 ? 2 : 0);
+	if (alg_picmatic_nova == 1) {
+		map_banks(&alg_ram_bank, 0xf6, 1, 0);
+	}
+#ifdef VIDEOGRAB
 	pausevideograb(1);
-	ld_audio = 0;
-	ld_mode = 0;
-	ld_wait_ack = 0;
-	ld_direction = 0;
-	ser_buf_offset = 0;
+#endif
+
+	currprefs.cs_floppydatapullup = changed_prefs.cs_floppydatapullup = true;
+	device_add_vsync_pre(arcadia_vsync);
+	device_add_hsync(arcadia_hsync);
+	if (!currprefs.genlock) {
+		currprefs.genlock = changed_prefs.genlock = 1;
+	}
+
+	ld_save_restore = false;
+	if (savestate_state == STATE_RESTORE) {
+		if (ld_mode == LD_MODE_PLAY || ld_mode == LD_MODE_STILL) {
+			ld_save_restore = true;
+		}
+	} else {
+		picmatic_io = 0;
+		picmatic_ply = 0;
+		ld_repcnt = -1;
+		ld_mark = -1;
+		ld_audio = 0;
+		ld_audio_mute = false;
+		ld_video = true;
+		ld_mode = 0;
+		ld_wait_ack = 0;
+		ld_wait_seek = 0;
+		ld_direction = 0;
+		ser_buf_offset = 0;
+		alg_hsync_delay = 0;
+		arcadia_hsync_cnt = 0;
+		ld_ui = -1;
+		ld_user_index = 0;
+		ld_uidx_config[0] = 0;
+		ld_uidx_config[1] = 0;
+		ld_uidx_config[2] = 0;
+		ld_uidx_offset = 0;
+		ld_uidx_offsetd = 0;
+		memset(ld_uidx_data, 0, sizeof(ld_uidx_data));
+	}
+}
+
+uae_u8 *restore_alg(uae_u8 *src)
+{
+	uae_u32 flags = restore_u32();
+	uae_u8 v;
+	alg_flag = restore_u32();
+	ld_value = restore_u32();
+	ld_address = restore_u32();
+	ld_startaddress = restore_u32();
+	ld_endaddress = restore_u32();
+	ld_repcnt = restore_u32();
+	ld_mark = restore_u32();
+	ld_wait_ack = restore_u32();
+	alg_hsync_delay = restore_u32();
+	arcadia_hsync_cnt = restore_u32();
+	v = restore_u8();
+	ld_audio = v & 3;
+	ld_audio_mute = (v & 0x80) != 0;
+	ld_video = restore_u8();
+	ld_mode = restore_u8();
+	ld_mode_value = restore_u8();
+	ld_direction = restore_u8();
+	picmatic_io = restore_u8();
+	picmatic_parallel = restore_u8();
+	ser_buf_offset  = restore_u8();
+	for (int i = 0; i < ser_buf_offset; i++) {
+		alg_ser_buf[i] = restore_u8();
+	}
+	ld_vsync = restore_u32();
+	ld_user_index = restore_u8();
+	ld_uidx_config[0] = restore_u8();
+	ld_uidx_config[1] = restore_u8();
+	ld_uidx_config[2] = restore_u8();
+	ld_uidx_offset = restore_u8();
+	ld_uidx_offsetd = restore_u8();
+	for (int i = 0; i < 32; i++) {
+		ld_uidx_data[i] = restore_u8();
+	}
+	picmatic_ply = restore_u8();
+
+	return src;
+}
+
+uae_u8 *save_alg(size_t *len)
+{
+	uae_u8 *dstbak, *dst;
+
+	if (!alg_flag)
+		return NULL;
+
+	dstbak = dst = xmalloc(uae_u8, 1000);
+	save_u32(1);
+#ifdef VIDEOGRAB
+	uae_u32 addr = (uae_u32)getsetpositionvideograb(-1);
+#else
+	uae_u32 addr = 0;
+#endif
+
+	save_u32(alg_flag);
+	save_u32(ld_value);
+	save_u32(addr);
+	save_u32(ld_startaddress);
+	save_u32(ld_endaddress);
+	save_u32(ld_repcnt);
+	save_u32(ld_mark);
+	save_u32(ld_wait_ack);
+	save_u32(alg_hsync_delay);
+	save_u32(arcadia_hsync_cnt);
+	save_u8(ld_audio | (ld_audio_mute ? 0x80 : 0x00));
+	save_u8(ld_video);
+	save_u8(ld_mode);
+	save_u8(ld_mode_value);
+	save_u8(ld_direction);
+	save_u8(picmatic_io);
+	save_u8(picmatic_parallel);
+	save_u8(ser_buf_offset);
+	for (int i = 0; i < ser_buf_offset; i++) {
+		save_u8(alg_ser_buf[i]);
+	}
+	save_u32(ld_vsync);
+	save_u8(ld_user_index);
+	save_u8(ld_uidx_config[0]);
+	save_u8(ld_uidx_config[1]);
+	save_u8(ld_uidx_config[2]);
+	save_u8(ld_uidx_offset);
+	save_u8(ld_uidx_offsetd);
+	for (int i = 0; i < 32; i++) {
+		save_u8(ld_uidx_data[i]);
+	}
+	save_u8(picmatic_ply);
+	*len = dst - dstbak;
+	return dstbak;
 }
 
 static TCHAR cubo_pic_settings[ROMCONFIG_CONFIGTEXT_LEN];
@@ -1089,7 +1772,7 @@ int touch_serial_write(void)
 			sprintf((char*)p, "%03d", y);
 			p += 3;
 			*p++ = 0x0d;
-			touch_write_buf_offset = p - touch_data_w;
+			touch_write_buf_offset = addrdiff(p, touch_data_w);
 
 			cubo_flag |= 0x40000000;
 		}
@@ -1151,6 +1834,7 @@ void touch_serial_read(uae_u16 w)
 		}
 	}
 }
+
 
 static const uae_u8 cubo_pic_secret_base[] = {
 	0x7c, 0xf9, 0x56, 0xf7, 0x58, 0x18, 0x22, 0x54, 0x38, 0xcd, 0x3d, 0x94, 0x09, 0xe6, 0x8e, 0x0d,
@@ -1293,7 +1977,7 @@ static void cubo_write_pic(uae_u8 v)
 			int offset = cubo_pic_bit_cnt / 8;
 			if (offset < sizeof(cubo_pic_key)) {
 				cubo_pic_key[offset] = cubo_pic_byte;
-				write_log(_T("Cubo PIC received %02x (%d/%d)\n"), cubo_pic_byte, offset, (int) sizeof(cubo_pic_key));
+				write_log(_T("Cubo PIC received %02x (%d/%zu)\n"), cubo_pic_byte, offset, sizeof(cubo_pic_key));
 			}
 			if (offset == sizeof(cubo_pic_key) - 1) {
 				write_log(_T("Cubo PIC key in: "));
@@ -1586,7 +2270,7 @@ void cubo_function(int v)
 	dip_delay[c] = 5;
 }
 
-void cubo_vsync(void)
+static void cubo_vsync(void)
 {
 	for (int i = 0; i < 16; i++) {
 		if (dip_delay[i] >= 3) {
@@ -1608,18 +2292,7 @@ static addrbank cubo_bank = {
 	NULL, 0x3fffff, 0x600000, 0x600000
 };
 
-bool cubo_init(struct autoconfig_info *aci)
-{
-	aci->start = 0x00600000;
-	aci->size  = 0x00400000;
-	if (!aci->doinit)
-		return true;
-	map_banks(&cubo_bank, aci->start >> 16, aci->size >> 16, 0);
-	aci->addrbank = &cubo_bank;
-	return true;
-}
-
-void arcadia_reset(void)
+static void arcadia_reset(int hardreset)
 {
 	cubo_enabled = is_board_enabled(&currprefs, ROMTYPE_CUBO, 0);
 	i2c_free(cubo_rtc);
@@ -1631,7 +2304,7 @@ void arcadia_reset(void)
 	cubo_pic_settings[0] = 0;
 }
 
-void check_arcadia_prefs_changed(void)
+static void check_arcadia_prefs_changed(void)
 {
 	if (!config_changed)
 		return;
@@ -1644,4 +2317,17 @@ void check_arcadia_prefs_changed(void)
 	_tcscpy(cubo_pic_settings, brc->roms[0].configtext);
 }
 
-#endif /* ARCADIA */
+bool cubo_init(struct autoconfig_info *aci)
+{
+	aci->start = 0x00600000;
+	aci->size  = 0x00400000;
+	device_add_reset(arcadia_reset);
+	if (!aci->doinit)
+		return true;
+	map_banks(&cubo_bank, aci->start >> 16, aci->size >> 16, 0);
+	aci->addrbank = &cubo_bank;
+	device_add_check_config(check_arcadia_prefs_changed);
+	device_add_vsync_pre(arcadia_vsync);
+	return true;
+}
+

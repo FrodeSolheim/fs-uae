@@ -14,6 +14,11 @@ FLAC_API FLAC__bool FLAC__stream_decoder_set_md5_checking(
     return 0;
 }
 
+FLAC_API FLAC__bool FLAC__stream_decoder_set_metadata_respond(FLAC__StreamDecoder *decoder, FLAC__MetadataType type)
+{
+    return 0;
+}
+
 FLAC_API FLAC__StreamDecoderInitStatus FLAC__stream_decoder_init_stream(
     FLAC__StreamDecoder *decoder,
     FLAC__StreamDecoderReadCallback read_callback,

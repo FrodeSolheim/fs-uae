@@ -1,3 +1,6 @@
+#include "sysconfig.h"
+#include "sysdeps.h"
+
 #include <string.h>
 
 #include "autoconf.h"
@@ -20,6 +23,9 @@
 #include "uae/log.h"
 #include "uae/memory.h"
 #include "uae/time.h"
+#include "xwin.h"
+
+#include "od-win32/win32gfx.h"
 
 static struct {
     // GMutex *mutex;
@@ -348,6 +354,7 @@ void amiga_main(void)
     write_log("amiga_main\n");
     uae_register_emulation_thread();
 
+    // FIXME: Is this needed now? Check how/when WinUAE calls this
     keyboard_settrans();
 
     int argc = 1;
@@ -355,6 +362,16 @@ void amiga_main(void)
         strdup("fs-uae"),
         NULL,
     };
+
+    // See WinMain2
+
+    max_uae_width = 8192;
+    max_uae_height = 8192;
+
+
+    write_log (_T("Enumerating display devices.. \n"));
+    enumeratedisplays();
+
     real_main(argc, argv);
     free(argv[0]);
 #ifdef FILESYS
@@ -687,6 +704,7 @@ void amiga_set_initialized_and_apply_options(void)
     uae_log("UAE initialized, apply pending options done\n");
     uae_log("-------------------------------------------\n");
     g_list_free_full(pending_options, free);
+    pending_options = NULL;
 }
 
 // ----------------------------------------------------------------------------

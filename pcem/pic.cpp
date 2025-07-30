@@ -1,25 +1,34 @@
+
 #include "ibm.h"
+#include "device.h"
 #include "io.h"
 #include "pic.h"
 #include "pit.h"
 #include "video.h"
-#include "x86.h"
 
-extern int output;
+#ifdef UAE
+void x86_ack_keyboard(void);
+#endif
+
 int intclear;
 int keywaiting=0;
 int pic_intpending;
 
-static
 void pic_updatepending()
 {
-        if ((pic2.pend&~pic2.mask)&~pic2.mask2)
-                pic.pend |= (1 << 2);
+        if (AT || romset == ROM_XI8088)
+        {
+                if ((pic2.pend&~pic2.mask)&~pic2.mask2)
+                        pic.pend |= (1 << 2);
+                else
+                        pic.pend &= ~(1 << 2);
+                pic_intpending = (pic.pend & ~pic.mask) & ~pic.mask2;
+                if (!((pic.mask | pic.mask2) & (1 << 2)))
+                        pic_intpending |= ((pic2.pend&~pic2.mask)&~pic2.mask2);
+        }
         else
-                pic.pend &= ~(1 << 2);
-        pic_intpending = (pic.pend & ~pic.mask) & ~pic.mask2;
-        if (!((pic.mask | pic.mask2) & (1 << 2)))
-                pic_intpending |= ((pic2.pend&~pic2.mask)&~pic2.mask2);
+                pic_intpending = (pic.pend & ~pic.mask) & ~pic.mask2;
+
 /*        pclog("pic_intpending = %i  %02X %02X %02X %02X\n", pic_intpending, pic.ins, pic.pend, pic.mask, pic.mask2);
         pclog("                    %02X %02X %02X %02X %i %i\n", pic2.ins, pic2.pend, pic2.mask, pic2.mask2, ((pic.mask | pic.mask2) & (1 << 2)), ((pic2.pend&~pic2.mask)&~pic2.mask2));*/
 }
@@ -35,14 +44,13 @@ void pic_reset()
         pic.read=1;
         pic2.icw=0;
         pic2.mask=0xFF;
-        pic.mask2=0;
+        pic2.mask2=0;
         pic2.pend=pic2.ins=0;
         pic_intpending = 0;
         pic.level_sensitive = 0;
         pic2.level_sensitive = 0;
 }
 
-static
 void pic_update_mask(uint8_t *mask, uint8_t ins)
 {
         int c;
@@ -68,7 +76,7 @@ static void pic_autoeoi()
                         pic.ins&=~(1<<c);
                         pic_update_mask(&pic.mask2, pic.ins);
 
-                        if (c == 2 && (pic2.pend&~pic2.mask)&~pic2.mask2)
+                        if ((AT || romset == ROM_XI8088) && c == 2 && (pic2.pend&~pic2.mask)&~pic2.mask2)
                                 pic.pend |= (1 << 2);
 
                         pic_updatepending();
@@ -77,7 +85,6 @@ static void pic_autoeoi()
         }
 }
 
-static
 void pic_write(uint16_t addr, uint8_t val, void *priv)
 {
         int c;
@@ -125,13 +132,13 @@ void pic_write(uint16_t addr, uint8_t val, void *priv)
 //                        printf("Clear ints - %02X %02X\n",pic.ins,val);
                         if ((val&0xE0)==0x60)
                         {
-//                                pclog("Specific EOI - %02X %i\n",pic.ins,1<<(val&7));
-
-								if ((pic.ins & (1 << 1)) && ((val & 7) == 1)) {
-									x86_ack_keyboard();
-								}
-							
-								pic.ins&=~(1<<(val&7));
+//                              pclog("Specific EOI - %02X %i\n",pic.ins,1<<(val&7));
+#ifdef UAE
+                                if ((pic.ins & (1 << 1)) && ((val & 7) == 1)) {
+                                    x86_ack_keyboard();
+                                }
+#endif
+                                pic.ins&=~(1<<(val&7));
                                 pic_update_mask(&pic.mask2, pic.ins);
                                 if (val == 2 && (pic2.pend&~pic2.mask)&~pic2.mask2)
                                         pic.pend |= (1 << 2);
@@ -151,9 +158,11 @@ void pic_write(uint16_t addr, uint8_t val, void *priv)
                                                 if (c == 2 && (pic2.pend&~pic2.mask)&~pic2.mask2)
                                                         pic.pend |= (1 << 2);
 
-												if (c == 1) {
-													x86_ack_keyboard();
-												}
+#ifdef UAE
+                                                if (c == 1) {
+                                                    x86_ack_keyboard();
+                                                }
+#endif
 
                                                 if (c==1 && keywaiting)
                                                 {
@@ -176,7 +185,6 @@ void pic_write(uint16_t addr, uint8_t val, void *priv)
         }
 }
 
-static
 uint8_t pic_read(uint16_t addr, void *priv)
 {
         if (addr&1) { /*pclog("Read PIC mask %02X\n",pic.mask);*/ return pic.mask; }
@@ -207,7 +215,6 @@ static void pic2_autoeoi()
         }
 }
 
-static
 void pic2_write(uint16_t addr, uint8_t val, void *priv)
 {
         int c;
@@ -279,7 +286,6 @@ void pic2_write(uint16_t addr, uint8_t val, void *priv)
         }
 }
 
-static
 uint8_t pic2_read(uint16_t addr, void *priv)
 {
         if (addr&1) { /*pclog("Read PIC2 mask %02X %04X:%08X\n",pic2.mask,CS,pc);*/ return pic2.mask; }
@@ -329,7 +335,6 @@ void pic_init_elcrx()
         io_sethandler(0x04d0, 0x0002, pic_elcrx_read, NULL, NULL, pic_elcrx_write, NULL, NULL, NULL);
 }
 
-static
 void clearpic()
 {
         pic.pend=pic.ins=0;
@@ -341,17 +346,16 @@ int pic_current[16];
 
 void picint(uint16_t num)
 {
-        if (AT && num == (1 << 2))
+        if ((AT || romset == ROM_XI8088) && num == (1 << 2))
                 num = 1 << 9;
 //        pclog("picint : %04X\n", num);
-//        if (num == 0x10) pclog("PICINT 10\n");
-        if (num>0xFF)
+        if ((AT || romset == ROM_XI8088) && num>0xFF)
         {
                 pic2.pend|=(num>>8);
                 if ((pic2.pend&~pic2.mask)&~pic2.mask2)
                         pic.pend |= (1 << 2);
         }
-        else
+        else if (num <= 0xff)
         {
                 pic.pend|=num;
         }
@@ -363,7 +367,7 @@ void picintlevel(uint16_t num)
 {
         int c = 0;
         while (!(num & (1 << c))) c++;
-        if (AT && c == 2)
+        if ((AT || romset == ROM_XI8088) && num == (1 << 2))
         {
                 c = 9;
                 num = 1 << 9;
@@ -389,7 +393,7 @@ void picintc(uint16_t num)
         if (!num)
                 return;
         while (!(num & (1 << c))) c++;
-        if (AT && c == 2)
+        if ((AT || romset == ROM_XI8088) && num == (1 << 2))
         {
                 c = 9;
                 num = 1 << 9;
@@ -397,13 +401,13 @@ void picintc(uint16_t num)
 //        pclog("INTC %04X %i\n", num, c);
         pic_current[c]=0;
 
-        if (num > 0xff)
+        if ((AT || romset == ROM_XI8088) && num > 0xff)
         {
                 pic2.pend &= ~(num >> 8);
                 if (!((pic2.pend&~pic2.mask)&~pic2.mask2))
                         pic.pend &= ~(1 << 2);
         }
-        else
+        else if(num <= 0xff)
         {
                 pic.pend&=~num;
         }
@@ -414,54 +418,35 @@ uint8_t picinterrupt()
 {
         uint8_t temp=pic.pend&~pic.mask;
         int c;
-        for (c = 0; c < 2; c++)
+        for (c = 0; c < 8; c++)
         {
-                if (temp & (1 << c))
+                if ((AT || romset == ROM_XI8088) && (temp & (1 << 2)))
                 {
-                        if (!(pic.level_sensitive & (1 << c)))
-                                pic.pend &= ~(1 << c);
-                        pic.ins |= (1 << c);
-                        pic_update_mask(&pic.mask2, pic.ins);                      
-                   
-                        pic_updatepending();
-                        if (!c)
-                                pit_set_gate(&pit2, 0, 0);
-                        
-                        if (pic.icw4 & 0x02)
-                                pic_autoeoi();
-                                
-                        return c+pic.vector;
-                }
-        }
-        if (temp & (1 << 2))
-        {
-                uint8_t temp2 = pic2.pend & ~pic2.mask;
-                for (c = 0; c < 8; c++)
-                {
-                        if (temp2 & (1 << c))
+                        uint8_t temp2 = pic2.pend & ~pic2.mask;
+                        for (c = 0; c < 8; c++)
                         {
-                                if (!(pic2.level_sensitive & (1 << c)))
-                                        pic2.pend &= ~(1 << c);
-                                pic2.ins |= (1 << c);
-                                pic_update_mask(&pic2.mask2, pic2.ins);
+                                if (temp2 & (1 << c))
+                                {
+                                        if (!(pic2.level_sensitive & (1 << c)))
+                                                pic2.pend &= ~(1 << c);
+                                        pic2.ins |= (1 << c);
+                                        pic_update_mask(&pic2.mask2, pic2.ins);
                         
-                                if (!(pic2.level_sensitive & (1 << c)))
-                                        pic.pend &= ~(1 << c);
-                                pic.ins |= (1 << 2); /*Cascade IRQ*/
-                                pic_update_mask(&pic.mask2, pic.ins);
+                                        if (!(pic2.level_sensitive & (1 << c)))
+                                                pic.pend &= ~(1 << c);
+                                        pic.ins |= (1 << 2); /*Cascade IRQ*/
+                                        pic_update_mask(&pic.mask2, pic.ins);
 
-                                pic_updatepending();
+                                        pic_updatepending();
 
-                                if (pic2.icw4 & 0x02)
-                                        pic2_autoeoi();
+                                        if (pic2.icw4 & 0x02)
+                                                pic2_autoeoi();
 
-                                return c+pic2.vector;
+                                        return c+pic2.vector;
+                                }
                         }
                 }
-        }
-        for (c = 3; c < 8; c++)
-        {
-                if (temp & (1 << c))
+                else if (temp & (1 << c))
                 {
                         if (!(pic.level_sensitive & (1 << c)))
                                 pic.pend &= ~(1 << c);
@@ -471,7 +456,6 @@ uint8_t picinterrupt()
 
                         if (pic.icw4 & 0x02)
                                 pic_autoeoi();
-
                         return c+pic.vector;
                 }
         }

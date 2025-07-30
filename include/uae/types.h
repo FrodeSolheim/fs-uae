@@ -31,12 +31,11 @@ typedef uint16_t uae_u16;
 typedef int32_t uae_s32;
 typedef uint32_t uae_u32;
 
-#ifndef uae_s64
-typedef long long int uae_s64;
-#endif
-#ifndef uae_u64
-typedef unsigned long long int uae_u64;
-#endif
+typedef int64_t uae_s64;
+typedef uint64_t uae_u64;
+
+//typedef long long int uae_s64;
+//typedef unsigned long long int uae_u64;
 
 #ifdef HAVE___UINT128_T
 #define HAVE_UAE_U128
@@ -51,7 +50,7 @@ typedef __uint128_t uae_u128;
 #endif
 
 /* Use uaecptr to represent 32-bit (or 24-bit) addresses into the Amiga
- * address space. This is a 32-bit unsigned int regarless of host arch. */
+ * address space. This is a 32-bit unsigned int regardless of host arch. */
 
 typedef uae_u32 uaecptr;
 
@@ -62,31 +61,28 @@ typedef uae_u32 uaecptr;
 
 typedef char uae_char;
 
-#ifdef _WIN32
-#include <tchar.h>
-#ifdef UNICODE
-#define SIZEOF_TCHAR 2
-#else
-#define SIZEOF_TCHAR 1
-#endif
-#else
-typedef char TCHAR;
-#define SIZEOF_TCHAR 1
-#endif
-
-#ifndef _T
-#if SIZEOF_TCHAR == 1
-#define _T(x) x
-#else
-#define _T(x) Lx
-#endif
-#endif
+#include "uae/tchar.h"
 
 #ifndef FALSE
 #define FALSE 0
 #endif
 #ifndef TRUE
 #define TRUE (!FALSE)
+#endif
+
+typedef signed long long evt_t;
+
+#ifdef _WIN32
+// Presumable these type names already exists on win32
+#else
+typedef int8_t INT8;
+typedef int16_t INT16;
+typedef int32_t INT32;
+typedef int64_t INT64;
+typedef uint8_t UINT8;
+typedef uint16_t UINT16;
+typedef uint32_t UINT32;
+typedef uint64_t UINT64;
 #endif
 
 #endif /* UAE_TYPES_H */

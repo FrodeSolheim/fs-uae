@@ -7,6 +7,7 @@
  */
 
 #include "sysconfig.h"
+#include "sysdeps.h"
 
 #undef SERIAL_ENET
 
@@ -29,7 +30,6 @@
 #endif
 
 #include "config.h"
-#include "sysdeps.h"
 #include "options.h"
 #include "gensound.h"
 #include "events.h"
@@ -43,7 +43,7 @@
 #include "picasso96.h"
 #include "threaddep/thread.h"
 #include "serial.h"
-#include "parser.h"
+#include "od-win32/parser.h"
 #include "ioport.h"
 #include "parallel.h"
 #include "cia.h"
@@ -555,7 +555,20 @@ int checkserwrite(int spaceneeded)
 	return 1;
 }
 
-int readseravail (void)
+void flushser(void)
+{
+	if (false) {
+	} else {
+		while (readseravail(NULL)) {
+			int data;
+			if (readser(&data) <= 0)
+				break;
+		}
+	}
+}
+
+#warning Not handling breakcound...
+int readseravail(bool *breakcond)
 {
 	if (tcpserial) {
 		if (tcp_is_connected ()) {
@@ -788,8 +801,9 @@ void setserstat (int mask, int onoff)
 #endif
 }
 
-int setbaud (long baud)
+int setbaud(int baud, int origbaud)
 {
+	// Note: Ignoring origbaud parameter for now
 	if (!currprefs.use_serial) {
 		return 1;
 	}

@@ -836,7 +836,7 @@ static void es1370_transfer_audio (ES1370State *s, struct chan *d, int loop_sel,
     int left = ((size - cnt + 1) << 2) + d->leftover;
     int transferred = 0;
     int temp = audio_MIN (max, audio_MIN (left, csc_bytes));
-    int index = d - &s->chan[0];
+    int index = (int)(d - &s->chan[0]);
 
     addr += (cnt << 2) + d->leftover;
 
@@ -968,9 +968,10 @@ static uint64_t es1370_read(void *opaque, hwaddr addr,
     }
 }
 
-static void es1370_write(void *opaque, hwaddr addr, uint64_t val,
+static void es1370_write(void *opaque, hwaddr addr, uint64_t val64,
                       unsigned size)
 {
+    uint32_t val = (uint32_t)val64;
     switch (size) {
     case 1:
         es1370_writeb(opaque, addr, val);
@@ -1200,14 +1201,15 @@ static const struct pci_config es1370_pci_config =
 const struct pci_board es1370_pci_board =
 {
 	_T("ES1370"),
-	&es1370_pci_config, es1370_init, es1370_free, es1370_reset, NULL,
+	&es1370_pci_config, es1370_init, es1370_free, es1370_reset, NULL, NULL,
 	{
 		{ es1370_lget, es1370_wget, es1370_bget, es1370_lput, es1370_wput, es1370_bput },
 		{ NULL },
 		{ NULL },
 		{ NULL },
 		{ NULL },
-		{ NULL },
-		{ NULL },
-	}
+        { NULL },
+        { NULL },
+        { NULL }
+    }
 };

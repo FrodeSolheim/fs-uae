@@ -13,7 +13,7 @@
 #include "options.h"
 #include "uae.h"
 #include "traps.h"
-#include "uae/memory.h"
+#include "memory.h"
 #include "custom.h"
 #include "newcpu.h"
 #include "filesys.h"
@@ -23,8 +23,8 @@
 #include "fsdb.h"
 #include "uae/io.h"
 
-#ifdef FSUAE // NL
-#include "uae/fs.h"
+#ifdef FSUAE
+// We want the generic fsdb_search_dir also for the Windows version of FS-UAE
 #undef _WIN32
 #endif
 
@@ -57,12 +57,14 @@ TCHAR *nname_begin (TCHAR *nname)
 * has the same name when compared case-insensitively, return a
 * malloced string that contains the name we found.  If no file
 * exists that compares equal to REL, return 0.  */
-TCHAR *fsdb_search_dir (const TCHAR *dirname, TCHAR *rel)
+TCHAR *fsdb_search_dir (const TCHAR *dirname, TCHAR *rel, TCHAR **relalt)
 {
 	TCHAR *p = 0;
 	int de;
 	my_opendir_s *dir;
 	TCHAR fn[MAX_DPATH];
+
+	*relalt = NULL;
 
 	dir = my_opendir (dirname);
 	/* This really shouldn't happen...  */
@@ -306,9 +308,6 @@ static void write_aino (FILE *f, a_inode *aino)
 
 void fsdb_dir_writeback (a_inode *dir)
 {
-#ifdef FSUAE
-	// .uaem files are used instead of fsdb
-#else
 	FILE *f;
 	int changes_needed = 0;
 	int entries_needed = 0;
@@ -401,5 +400,4 @@ void fsdb_dir_writeback (a_inode *dir)
 	TRACE ((_T("end\n")));
 	fclose (f);
 	xfree (tmpbuf);
-#endif
 }

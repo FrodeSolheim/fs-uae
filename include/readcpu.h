@@ -2,9 +2,6 @@
 #define UAE_READCPU_H
 
 #include "uae/types.h"
-#ifdef FSUAE
-#include "uae/enum.h"
-#endif
 
 ENUMDECL {
   Dreg, Areg, Aind, Aipi, Apdi, Ad16, Ad8r,
@@ -38,9 +35,11 @@ ENUMDECL {
     i_CINVL, i_CINVP, i_CINVA, i_CPUSHL, i_CPUSHP, i_CPUSHA, i_MOVE16,
     i_MMUOP030, i_PFLUSHN, i_PFLUSH, i_PFLUSHAN, i_PFLUSHA,
     i_PLPAR, i_PLPAW, i_PTESTR, i_PTESTW,
-    i_LPSTOP,
+    i_LPSTOP, i_HALT, i_PULSE,
 	MAX_OPCODE_FAMILY
 } ENUMNAME (instrmnem);
+
+#define MNEMOFLAG_LOOPMODE 2
 
 struct mnemolookup {
     instrmnem mnemo;
@@ -65,8 +64,23 @@ ENUMDECL {
 } ENUMNAME (flaguse);
 
 ENUMDECL {
+    fl_normal = 0,
+    fl_branch = 1,
+    fl_jump = 2,
+    fl_return = 3,
+    fl_trap = 4,
+    fl_const_jump = 8,
+#ifdef UAE
+    fl_end_block = 7
+#else
+    /* Instructions that can trap don't mark the end of a block */
+    fl_end_block = 3
+#endif
+} ENUMNAME (cflow_t);
+
+ENUMDECL {
     bit0, bit1, bitc, bitC, bitf, biti, bitI, bitj, bitJ, bitk, bitK,
-    bits, bitS, bitd, bitD, bitr, bitR, bitz, bitp, lastbit
+    bits, bitS, bitd, bitD, bitr, bitR, bitz, bitE, bitp, lastbit
 } ENUMNAME (bitvals);
 
 struct instr_def {
@@ -78,9 +92,10 @@ struct instr_def {
 	int unimpcpulevel;
     int plevel;
     struct {
-	unsigned int flaguse:3;
-	unsigned int flagset:3;
+	    unsigned int flaguse:3;
+	    unsigned int flagset:3;
     } flaginfo[5];
+    uae_u8 cflow;
     uae_u8 sduse;
     const TCHAR *opcstr;
 	// 68020/030 timing
@@ -101,23 +116,26 @@ extern struct instr {
     unsigned int mnemo:8;
     unsigned int cc:4;
     unsigned int plev:2;
-    unsigned int size:2;
+    wordsizes size;
 	unsigned int unsized:1;
-    unsigned int smode:5;
+    amodes smode;
     unsigned int stype:3;
-    unsigned int dmode:5;
+    amodes dmode;
     unsigned int suse:1;
     unsigned int duse:1;
-    unsigned int unused1:1;
+    unsigned int ccuse:1;
     unsigned int clev:3, unimpclev:3;
-    unsigned int isjmp:1;
+    unsigned int cflow:3;
     unsigned int unused2:1;
 	char head, tail, clocks, fetchmode;
 } *table68k;
 
-extern void read_table68k (void);
-extern void do_merges (void);
-extern int get_no_mismatches (void);
+extern void do_merges(void);
+extern void init_table68k(void);
+extern void exit_table68k(void);
+
+extern int get_no_mismatches(void);
 extern int nr_cpuop_funcs;
+extern bool opcode_loop_mode(uae_u16 opcode);
 
 #endif /* UAE_READCPU_H */

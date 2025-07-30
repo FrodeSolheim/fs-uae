@@ -304,7 +304,7 @@ void vpar_update(void)
     }
 }
 
-static void *vpar_thread(void *)
+static void vpar_thread(void *)
 {
     if (vpar_debug) {
         printf("th: enter\n");
@@ -333,7 +333,7 @@ static void *vpar_thread(void *)
         printf("th: leave\n");
     }
     vpar_init_done = 0;
-    return 0;
+    return;
 }
 
 void vpar_open(void)

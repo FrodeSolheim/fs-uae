@@ -1,13 +1,7 @@
 #ifndef UAE_ISOFS_API_H
 #define UAE_ISOFS_API_H
 
-#ifdef FSUAE
-#include "config.h"
-#endif
 #include "uae/types.h"
-#ifdef FSUAE
-#include <time.h>
-#endif
 
 struct cd_opendir_s;
 struct cd_openfile_s;

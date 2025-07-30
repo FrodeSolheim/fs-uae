@@ -2,7 +2,9 @@
 #include "sysdeps.h"
 
 #include "uae/dlopen.h"
+#ifdef WITH_PPC
 #include "uae/ppc.h"
+#endif
 #include "uae/qemu.h"
 
 UAE_DEFINE_IMPORT_FUNCTION(qemu_uae_version)
@@ -15,9 +17,9 @@ UAE_DEFINE_IMPORT_FUNCTION(qemu_uae_slirp_input)
 UAE_DEFINE_IMPORT_FUNCTION(qemu_uae_ppc_init)
 UAE_DEFINE_IMPORT_FUNCTION(qemu_uae_ppc_in_cpu_thread)
 
-#ifdef WITH_PPC
 static void init_ppc(UAE_DLHANDLE handle)
 {
+#ifdef WITH_PPC
 	UAE_IMPORT_FUNCTION(handle, qemu_uae_ppc_init);
 	UAE_IMPORT_FUNCTION(handle, qemu_uae_ppc_in_cpu_thread);
 
@@ -29,10 +31,10 @@ static void init_ppc(UAE_DLHANDLE handle)
 		qemu_uae_ppc_init(model_s, hid1);
 		free(model_s);
 	}
-}
 #endif
+}
 
-#if defined(WITH_SLIRP) && defined(WITH_QEMU_SLIRP)
+#ifdef WITH_QEMU_SLIRP
 static void init_slirp(UAE_DLHANDLE handle)
 {
 	UAE_IMPORT_FUNCTION(handle, qemu_uae_slirp_init);
@@ -99,10 +101,8 @@ UAE_DLHANDLE uae_qemu_uae_init(void)
 		return handle;
 	}
 
-#ifdef WITH_PPC
 	init_ppc(handle);
-#endif
-#if defined(WITH_SLIRP) && defined(WITH_QEMU_SLIRP)
+#ifdef WITH_QEMU_SLIRP
 	init_slirp(handle);
 #endif
 

@@ -569,13 +569,23 @@ static int hdf_read_2 (struct hardfiledata *hfd, void *buffer, uae_u64 offset, i
     return 0;
 }
 
-int hdf_read_target (struct hardfiledata *hfd, void *buffer, uae_u64 offset, int len)
+int hdf_read_target (struct hardfiledata *hfd, void *buffer, uae_u64 offset, int len, uae_u32 *error)
 {
     int got = 0;
     uae_u8 *p = (uae_u8*)buffer;
+	uae_u32 error2 = 0;
 
-    if (hfd->drive_empty)
-        return 0;
+	if (error) {
+		*error = 0;
+	} else {
+		error = &error2;
+	}
+
+	if (hfd->drive_empty) {
+		*error = 29;
+		return 0;
+	}
+
     while (len > 0) {
         int maxlen;
         int ret = 0;
@@ -651,10 +661,19 @@ static int hdf_write_2 (struct hardfiledata *hfd, void *buffer, uae_u64 offset, 
     }
     return outlen;
 }
-int hdf_write_target (struct hardfiledata *hfd, void *buffer, uae_u64 offset, int len)
+
+#warning Not really using error param
+int hdf_write_target(struct hardfiledata *hfd, void *buffer, uae_u64 offset, int len, uae_u32 *error)
 {
     int got = 0;
     uae_u8 *p = (uae_u8*)buffer;
+	uae_u32 error2 = 0;
+
+	if (error) {
+		*error = 0;
+	} else {
+		error = &error2;
+	}
 
     if (g_debug) {
         write_log("hdf_write_target off %llx len %d virtual size %lld\n",

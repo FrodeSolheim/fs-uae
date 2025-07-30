@@ -2,9 +2,6 @@
 #define UAE_PCI_HW_H
 
 #include "uae/types.h"
-#ifdef FSUAE
-#include "uae/memory.h"
-#endif
 
 #define MAX_PCI_BOARDS 6
 #define MAX_PCI_BARS 7
@@ -15,7 +12,11 @@ typedef void (*pci_dev_irq)(struct pci_board_state*,bool);
 typedef bool(*pci_dev_init)(struct pci_board_state*,struct autoconfig_info*);
 typedef void(*pci_dev_reset)(struct pci_board_state*);
 typedef void(*pci_dev_hsync)(struct pci_board_state*);
+typedef void(*pci_dev_chkcfg)(struct pci_board_state*, uae_u8*);
 typedef void(*pci_dev_free)(struct pci_board_state*);
+typedef uae_u8(*pci_get_config_func)(uaecptr);
+typedef void(*pci_put_config_func)(uaecptr, uae_u8);
+typedef void(*pci_change_config_func)(struct pci_board_state*);
 
 typedef struct
 {
@@ -23,7 +24,7 @@ typedef struct
 	pci_put_func lput, wput, bput;
 } pci_addrbank;
 
-typedef int(*pci_slot_index)(uaecptr);
+typedef int(*pci_slot_index)(uaecptr, bool, uae_u32*);
 
 struct pci_config
 {
@@ -50,7 +51,13 @@ struct pci_board
 	pci_dev_free free;
 	pci_dev_reset reset;
 	pci_dev_hsync hsync;
-	pci_addrbank bars[MAX_PCI_BARS];
+	pci_dev_chkcfg chkcfg;
+	pci_addrbank bars[MAX_PCI_BARS + 1];
+	bool dont_mask_io;
+	pci_get_config_func pci_get_config;
+	pci_put_config_func pci_put_config;
+	pci_change_config_func pci_change_config;
+
 };
 
 struct pci_board_state
@@ -70,6 +77,8 @@ struct pci_board_state
 	bool io_map_active;
 	struct pci_bridge *bridge;
 	pci_dev_irq irq_callback;
+	struct pci_config dynamic_config;
+	void *userdata;
 };
 
 struct pci_bridge
@@ -78,13 +87,15 @@ struct pci_bridge
 	int type;
 	int endian_swap_config;
 	uae_u32 io_offset;
+	uae_u32 memory_start_offset[2];
 	int endian_swap_io;
-	uae_u32 memory_offset;
+	uae_u32 memory_window_offset;
 	int endian_swap_memory;
 	bool pcipcidma;
 	bool amigapicdma;
 	uae_u8 intena;
 	uae_u8 irq;
+	uae_u8 reset;
 	uae_u16 intreq_mask;
 	pci_slot_index get_index;
 	struct pci_board_state boards[MAX_PCI_BOARDS];
@@ -107,15 +118,12 @@ struct pci_bridge
 	uae_u8 acmemory[128];
 	uae_u8 acmemory_2[128];
 	struct romconfig *rc;
-	uae_u16 window;
-	int slot_cnt;
+	uae_u16 window[2];
+	int log_slot_cnt;
+	int phys_slot_cnt;
+	bool multiwindow;
+	int windowindex;
 };
-
-extern void pci_free(void);
-extern void pci_reset(void);
-extern void pci_rethink(void);
-
-extern addrbank *dkb_wildfire_pci_init(struct romconfig *rc);
 
 extern void pci_irq_callback(struct pci_board_state *pcibs, bool irq);
 extern void pci_write_dma(struct pci_board_state *pcibs, uaecptr addr, uae_u8*, int size);

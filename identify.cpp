@@ -11,7 +11,7 @@
 #ifdef DEBUGGER
 
 #include "options.h"
-#include "uae/memory.h"
+#include "memory.h"
 #include "identify.h"
 
 const struct mem_labels int_labels[] =
@@ -28,6 +28,7 @@ const struct mem_labels int_labels[] =
 	{ _T("TRACE"),      0x0024 },
 	{ _T("LINEA EMU"),  0x0028 },
 	{ _T("LINEF EMU"),  0x002C },
+	{ _T("FORMAT ERR"), 0x0038 },
 	{ _T("INT Uninit"), 0x003C },
 	{ _T("INT Unjust"), 0x0060 },
 	{ _T("Lvl 1 Int"),  0x0064 },
@@ -59,6 +60,22 @@ const struct mem_labels trap_labels[] =
 	{ _T("TRAP 14"),    0x00B8 },
 	{ _T("TRAP 15"),    0x00BC },
 	{ 0, 0 }
+};
+
+const struct mem_labels extraexp_labels[] =
+{
+	{ _T("FP BSUN"),	0x00c0 },
+	{ _T("FP INEXACT"), 0x00c4 },
+	{ _T("FP DIV BY 0"),0x00c8 },
+	{ _T("FP UNDERF"),	0x00cc },
+	{ _T("FP OPERR"),	0x00d0 },
+	{ _T("FP OVERF"),	0x00d4 },
+	{ _T("FP SNAN"),	0x00d8 },
+	{ _T("FP UNIMP DT"),0x00dc },
+	{ _T("MMU CNFERR"),	0x00e0 },
+	{ _T("UNIMP EA"),   0x00f0 },
+	{ _T("UNIMP INT"),	0x00f4 },
+	{ NULL, 0 }
 };
 
 const struct mem_labels mem_labels[] =
@@ -123,7 +140,7 @@ const struct customData custd[] =
 	{ _T("VHPOSR"),   0xdff006, 0 }, /* Read vert and horiz position of beam */
 	{ _T("DSKDATR"),  0xdff008, CD_NONE }, /* Disk data early read (dummy address) */
 	{ _T("JOY0DAT"),  0xdff00A, 0 }, /* Joystick-mouse 0 data (vert,horiz) */
-	{ _T("JOT1DAT"),  0xdff00C, 0 }, /* Joystick-mouse 1 data (vert,horiz) */
+	{ _T("JOY1DAT"),  0xdff00C, 0 }, /* Joystick-mouse 1 data (vert,horiz) */
 	{ _T("CLXDAT"),   0xdff00E, 0 }, /* Collision data reg. (read and clear) */
 	{ _T("ADKCONR"),  0xdff010, 0 }, /* Audio,disk control register read */
 	{ _T("POT0DAT"),  0xdff012, 0 }, /* Pot counter pair 0 data (vert,horiz) */
@@ -159,7 +176,7 @@ const struct customData custd[] =
 	{ _T("BLTBPTL"),  0xdff04E, CD_WO | CD_DMA_PTR }, /* Blitter pointer to source B (low 15 bits) */
 	{ _T("BLTAPTH"),  0xdff050, CD_WO | CD_DMA_PTR }, /* Blitter pointer to source A (high 5 bits) */
 	{ _T("BLTAPTL"),  0xdff052, CD_WO | CD_DMA_PTR }, /* Blitter pointer to source A (low 15 bits) */
-	{ _T("BPTDPTH"),  0xdff054, CD_WO | CD_DMA_PTR }, /* Blitter pointer to destn  D (high 5 bits) */
+	{ _T("BLTDPTH"),  0xdff054, CD_WO | CD_DMA_PTR }, /* Blitter pointer to destn  D (high 5 bits) */
 	{ _T("BLTDPTL"),  0xdff056, CD_WO | CD_DMA_PTR }, /* Blitter pointer to destn  D (low 15 bits) */
 	{ _T("BLTSIZE"),  0xdff058, CD_WO }, /* Blitter start and size (win/width,height) */
 	{ _T("BLTCON0L"), 0xdff05A, CD_WO | CD_ECS_AGNUS }, /* Blitter control 0 lower 8 bits (minterms) */
@@ -176,7 +193,7 @@ const struct customData custd[] =
 	{ _T("BLTCDAT"),  0xdff070, CD_WO }, /* Blitter source C data reg */
 	{ _T("BLTBDAT"),  0xdff072, CD_WO }, /* Blitter source B data reg */
 	{ _T("BLTADAT"),  0xdff074, CD_WO }, /* Blitter source A data reg */
-	{ _T("BLTDDAT"),  0xdff076, CD_WO }, /* Blitter destination reg */
+	{ _T("-"),  0xdff076, CD_NONE }, /* Unknown or Unused */
 	{ _T("-"),  0xdff078, CD_NONE }, /* Ext logic UHRES sprite pointer and data identifier */
 	{ _T("-"),  0xdff07A, CD_NONE }, /* Ext logic UHRES bit plane identifier */
 	{ _T("LISAID"),   0xdff07C, CD_ECS_DENISE }, /* Chip revision level for Denise/Lisa */
@@ -245,10 +262,7 @@ const struct customData custd[] =
 	{ _T("BPL7PTL"),  0xdff0FA, CD_WO | CD_AGA | CD_DMA_PTR }, /* Bit plane pointer 7 (low 15 bits) */
 	{ _T("BPL8PTH"),  0xdff0FC, CD_WO | CD_AGA | CD_DMA_PTR }, /* Bit plane pointer 8 (high 5 bits) */
 	{ _T("BPL8PTL"),  0xdff0FE, CD_WO | CD_AGA | CD_DMA_PTR }, /* Bit plane pointer 8 (low 15 bits) */
-#ifdef FSUAE
-	// FIXME: Check cast (also, why needed?)
-#endif
-	{ _T("BPLCON0"),  0xdff100, CD_WO, { (uint16_t) ~0x00f1, (uint16_t) ~0x00b0, (uint16_t) ~0x0080 } }, /* Bit plane control reg (misc control bits) */
+	{ _T("BPLCON0"),  0xdff100, CD_WO, { (uae_u16)~0x00f1,  (uae_u16)~0x00b0,  (uae_u16)~0x0080}}, /* Bit plane control reg (misc control bits) */
 	{ _T("BPLCON1"),  0xdff102, CD_WO }, /* Bit plane control reg (scroll val PF1,PF2) */
 	{ _T("BPLCON2"),  0xdff104, CD_WO, { 0x007f, 0x01ff, 0x7fff } }, /* Bit plane control reg (priority control) */
 	{ _T("BPLCON3"),  0xdff106, CD_WO | CD_ECS_DENISE, { 0x003f, 0x003f, 0xffff } }, /* Bit plane control reg (enhanced features) */
@@ -352,12 +366,12 @@ const struct customData custd[] =
 	{ _T("VSSTOP"),   0xdff1CA, CD_WO | CD_ECS_AGNUS }, /* Vert line for VBLANK start */
 	{ _T("VBSTRT"),   0xdff1CC, CD_WO | CD_ECS_AGNUS }, /* Vert line for VBLANK start */
 	{ _T("VBSTOP"),   0xdff1CE, CD_WO | CD_ECS_AGNUS }, /* Vert line for VBLANK stop */
-	{ _T("-"), 0xdff1D0, CD_NONE }, /* UHRES sprite vertical start */
-	{ _T("-"), 0xdff1D2, CD_NONE }, /* UHRES sprite vertical stop */
-	{ _T("-"), 0xdff1D4, CD_NONE }, /* UHRES bit plane vertical stop */
-	{ _T("-"), 0xdff1D6, CD_NONE }, /* UHRES bit plane vertical stop */
-	{ _T("-"), 0xdff1D8, CD_NONE }, /* DUAL mode hires H beam counter write */
-	{ _T("-"), 0xdff1DA, CD_NONE }, /* DUAL mode hires H beam counter read */
+	{ _T("SPRHSTRT"), 0xdff1D0, CD_WO | CD_ECS_AGNUS }, /* UHRES sprite vertical start */
+	{ _T("SPRHSTOP"), 0xdff1D2, CD_WO | CD_ECS_AGNUS }, /* UHRES sprite vertical stop */
+	{ _T("BPLHSTRT"), 0xdff1D4, CD_WO | CD_ECS_AGNUS }, /* UHRES bit plane vertical stop */
+	{ _T("BPLHSTOP"), 0xdff1D6, CD_WO | CD_ECS_AGNUS }, /* UHRES bit plane vertical stop */
+	{ _T("HHPOSW"),	  0xdff1D8, CD_WO | CD_ECS_AGNUS }, /* DUAL mode hires H beam counter write */
+	{ _T("HHPOSR"),   0xdff1DA,     0 | CD_ECS_AGNUS }, /* DUAL mode hires H beam counter read */
 	{ _T("BEAMCON0"), 0xdff1DC, CD_WO | CD_ECS_AGNUS }, /* Beam counter control register (SHRES,UHRES,PAL) */
 	{ _T("HSSTRT"),   0xdff1DE, CD_WO | CD_ECS_DENISE }, /* Horizontal sync start (VARHSY) */
 	{ _T("VSSTRT"),   0xdff1E0, CD_WO | CD_ECS_DENISE }, /* Vertical sync start (VARVSY) */

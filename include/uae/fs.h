@@ -1,5 +1,5 @@
-#ifndef UAE_FS_H_
-#define UAE_FS_H_
+#ifndef UAE_FS_H
+#define UAE_FS_H
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -9,6 +9,15 @@
 #include "uae/uae.h"
 
 #include <fs/lazyness.h>
+
+// --------- bridge ---
+
+
+void uae_fs_apply_pending_config_changes(void);
+void uae_fs_begin_frame(float vblank_hz);
+void uae_fs_end_frame();
+
+// 
 
 void romlist_init (void);
 void romlist_patch_rom(uae_u8 *buf, size_t size);
@@ -57,4 +66,8 @@ extern int g_uae_min_first_line_ntsc;
 
 void od_fs_update_leds(void);
 
-#endif  // UAE_FS_H_
+extern int g_uae_vsync_counter;
+
+int uae_get_memory_checksum(void *data, int size);
+
+#endif  /* UAE_FS_H */

@@ -18,7 +18,7 @@
 
 #include <stdlib.h>
 #include "options.h"
-#include "uae/memory.h"
+#include "memory.h"
 #include "custom.h"
 #include "newcpu.h"
 #include "traps.h"
@@ -30,15 +30,12 @@
 #include "uaenative.h"
 #include "fsdb.h"
 
-#if defined(FSUAE) && defined(WINDOWS) && !defined(_WIN32)
-#define _WIN32
-#endif
 
 #ifndef _WIN32
 #include <dlfcn.h>
 #endif
 
-static double syncdivisor;
+static float syncdivisor;
 
 #define SIGBIT 8 // SIGB_DOS
 
@@ -75,6 +72,16 @@ static int g_max_handle = -1;
 #ifndef OS_NAME
 #define OS_NAME _T("windows")
 #endif
+#else
+#ifdef __MACH__
+#ifndef OS_NAME
+#define OS_NAME _T("macos")
+#endif
+#else
+#ifndef OS_NAME
+#define OS_NAME _T("linux")
+#endif
+#endif
 #endif
 
 #if defined(__x86_64__) || defined(_M_AMD64) || defined(_M_X64)
@@ -83,6 +90,8 @@ static int g_max_handle = -1;
     #define ARCH_NAME _T("x86")
 #elif defined(__ppc__)
     #define ARCH_NAME _T("ppc")
+#elif defined(__arm__)
+	#define ARCH_NAME _T("arm")
 #else
     #define ARCH_NAME _T("unknown")
 #endif
@@ -219,7 +228,7 @@ static void set_library_globals(void *dl)
 
 static uae_u32 open_library (const char *name, uae_u32 min_version)
 {
-    syncdivisor = (3580000.0 * CYCLE_UNIT) / (double) syncbase;
+    syncdivisor = (3580000.0f * CYCLE_UNIT) / (float) syncbase;
 
     for (const char *c = name; *c; c++) {
         if (*c == '/' || *c == '\\' || *c == ':') {
@@ -419,7 +428,7 @@ static void do_call_function (struct uni *uni)
 {
     printf("uni: calling native function %p\n", uni->native_function);
 
-    unsigned long start_time;
+    frame_time_t start_time;
     const int flags = uni->flags;
     if ((flags & UNI_FLAG_ASYNCHRONOUS) == 0) {
         start_time = read_processor_time ();
@@ -440,11 +449,11 @@ static void do_call_function (struct uni *uni)
     }
 
     if ((flags & UNI_FLAG_ASYNCHRONOUS) == 0) {
-        unsigned long time_diff = read_processor_time () - start_time;
-        double v = syncdivisor * time_diff;
+        frame_time_t time_diff = read_processor_time () - start_time;
+        float v = syncdivisor * time_diff;
         if (v > 0) {
-            if (v > 1000000 * CYCLE_UNIT) {
-                v = 1000000 * CYCLE_UNIT;
+            if (v > 1000000.0f * CYCLE_UNIT) {
+                v = 1000000.0f * CYCLE_UNIT;
             }
             // compensate for the time spent in the native function
             do_extra_cycles ((unsigned long) (syncdivisor * time_diff));
@@ -452,7 +461,7 @@ static void do_call_function (struct uni *uni)
     }
 }
 
-static void *uaenative_thread(void *arg)
+static void uaenative_thread(void *arg)
 {
     struct library_data *library_data = (struct library_data *) arg;
 
@@ -471,7 +480,6 @@ static void *uaenative_thread(void *arg)
 
     write_log (_T("uni: uaenative_thread exiting\n"));
     free_library_data(library_data);
-    return NULL;
 }
 
 uae_u32 uaenative_call_function (TrapContext *ctx, int flags)

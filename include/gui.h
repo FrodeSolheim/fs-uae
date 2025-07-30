@@ -15,10 +15,8 @@ extern int gui_init (void);
 extern int gui_update (void);
 extern void gui_exit (void);
 extern void gui_led (int, int, int);
-extern void gui_handle_events (void);
 extern void gui_filename (int, const TCHAR *);
-extern void gui_fps (int fps, int idle, int color);
-extern void gui_changesettings (void);
+extern void gui_fps (int fps, int lines, bool lace, int idle, int color);
 extern void gui_lock (void);
 extern void gui_unlock (void);
 extern void gui_flicker_led (int, int, int);
@@ -43,40 +41,46 @@ extern bool no_gui, quit_to_gui;
 #define LED_HD 5
 #define LED_CD 6
 #define LED_FPS 7
-#define LED_CPU 8
-#define LED_SND 9
-#define LED_MD 10
-#define LED_NET 11
-#define LED_MAX 12
+#define LED_LINES 8
+#define LED_CPU 9
+#define LED_SND 10
+#define LED_MD 11
+#define LED_NET 12
+#define LED_CAPS 13
+#define LED_MAX 14
+
+struct gui_info_drive {
+	bool drive_motor;		/* motor on off */
+	uae_u8 drive_track;		/* rw-head track */
+	bool drive_writing;		/* drive is writing */
+	bool drive_disabled;	/* drive is disabled */
+	TCHAR df[256];			/* inserted image */
+	uae_u32 crc32;			/* crc32 of image */
+	bool floppy_protected;	/* image is write protected */
+	bool floppy_inserted;   /* disk inserted */
+};
 
 struct gui_info
 {
-    bool drive_motor[4];		/* motor on off */
-    uae_u8 drive_track[4];		/* rw-head track */
-    bool drive_writing[4];		/* drive is writing */
-    bool drive_disabled[4];		/* drive is disabled */
-    bool powerled;				/* state of power led */
-    uae_u8 powerled_brightness;	/* 0 to 255 */
-    uae_s8 drive_side;			/* floppy side */
-    uae_s8 hd;					/* harddrive */
-    uae_s8 cd;					/* CD */
+	bool powerled;				/* state of power led */
+	uae_u8 powerled_brightness;	/* 0 to 255 */
+	bool capslock;				/* caps lock state if KB MCU mode */
+	uae_s8 drive_side;			/* floppy side */
+	uae_s8 hd;					/* harddrive */
+	uae_s8 cd;					/* CD */
 	uae_s8 md;					/* CD32 or CDTV internal storage */
 	uae_s8 net;					/* network */
-    int cpu_halted;
-	int fps, idle;
+	int cpu_halted;
+	int fps, lines, lace, idle;
 	int fps_color;
-    int sndbuf, sndbuf_status;
+	int sndbuf, sndbuf_status;
 	bool sndbuf_avail;
-    TCHAR df[4][256];			/* inserted image */
-    uae_u32 crc32[4];			/* crc32 of image */
+	struct gui_info_drive drives[4];
 };
 #define NUM_LEDS (LED_MAX)
 #define VISIBLE_LEDS (LED_MAX - 1)
 
 extern struct gui_info gui_data;
-
-/* Functions to be called when prefs are changed by non-gui code.  */
-extern void gui_update_gfx (void);
 
 void notify_user (int msg);
 void notify_user_parms (int msg, const TCHAR *parms, ...);
@@ -107,6 +111,7 @@ typedef enum {
 	NUMSG_NO_PPC,
 	NUMSG_UAEBOOTROM_PPC,
 	NUMSG_NOMEMORY,
+	NUMSG_INPUT_NONE,
 	NUMSG_LAST
 } notify_user_msg;
 

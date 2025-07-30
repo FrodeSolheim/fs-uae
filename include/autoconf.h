@@ -9,12 +9,10 @@
 #ifndef UAE_AUTOCONF_H
 #define UAE_AUTOCONF_H
 
-#include "uae/types.h"
-#ifdef FSUAE
-#include "uae/memory.h"
-#include "uae/limits.h"
-#endif
+#include "memory.h"
 #include "traps.h"
+#include "uae/limits.h"
+#include "uae/types.h"
 
 #define AFTERDOS_INIT_PRI ((-121) & 0xff)
 #define AFTERDOS_PRI ((-122) & 0xff)
@@ -24,9 +22,9 @@
 #define RTAREA_BACKUP_2 0xdb0000
 #define RTAREA_SIZE 0x10000
 
-#define RTAREA_TRAPS 0x3000
-#define RTAREA_RTG 0x3800
-#define RTAREA_TRAMPOLINE 0x3a00
+#define RTAREA_TRAPS 0x4000
+#define RTAREA_RTG 0x4800
+#define RTAREA_TRAMPOLINE 0x4a00
 #define RTAREA_DATAREGION 0xF000
 
 #define RTAREA_FSBOARD 0xFFEC
@@ -35,9 +33,9 @@
 #define RTAREA_EXTERTASK 0xFFF8
 #define RTAREA_INTREQ 0xFFFC
 
-#define RTAREA_TRAP_DATA 0x4000
-#define RTAREA_TRAP_DATA_SIZE 0x8000
-#define RTAREA_TRAP_DATA_SLOT_SIZE 0x2000 // 8192
+#define RTAREA_TRAP_DATA 0x8000
+#define RTAREA_TRAP_DATA_SIZE 0x4000
+#define RTAREA_TRAP_DATA_SLOT_SIZE 0x1000 // 4096
 #define RTAREA_TRAP_DATA_SECOND 80
 #define RTAREA_TRAP_DATA_TASKWAIT (RTAREA_TRAP_DATA_SECOND - 4)
 #define RTAREA_TRAP_DATA_EXTRA 144
@@ -47,12 +45,12 @@
 #define RTAREA_TRAP_STATUS_SIZE 8
 #define RTAREA_TRAP_STATUS_SECOND 4
 
-#define RTAREA_VARIABLES 0x3F00
-#define RTAREA_VARIABLES_SIZE 0x100
-#define RTAREA_SYSBASE 0x3FFC
-#define RTAREA_GFXBASE 0x3FF8
-#define RTAREA_INTBASE 0x3FF4
-#define RTAREA_INTXY 0x3FF0
+#define RTAREA_VARIABLES 0x7F00
+#define RTAREA_VARIABLES_SIZE 0x0100
+#define RTAREA_SYSBASE 0x7FFC
+#define RTAREA_GFXBASE 0x7FF8
+#define RTAREA_INTBASE 0x7FF4
+#define RTAREA_INTXY 0x7FF0
 
 #define RTAREA_TRAP_DATA_NUM (RTAREA_TRAP_DATA_SIZE / RTAREA_TRAP_DATA_SLOT_SIZE)
 #define RTAREA_TRAP_DATA_SEND_NUM 1
@@ -85,7 +83,6 @@ extern void align (int);
 
 extern volatile uae_atomic uae_int_requested;
 extern void rtarea_reset(void);
-extern bool rethink_traps(void);
 
 #define RTS 0x4e75
 #define RTE 0x4e73
@@ -121,9 +118,10 @@ extern int move_filesys_unitconfig (struct uae_prefs *p, int nr, int to);
 extern TCHAR *validatedevicename (TCHAR *s, const TCHAR *def);
 extern TCHAR *validatevolumename (TCHAR *s, const TCHAR *def);
 
-int filesys_insert (int nr, const TCHAR *volume, const TCHAR *rootdir, bool readonly, int flags);
-int filesys_eject (int nr);
-int filesys_media_change (const TCHAR *rootdir, int inserted, struct uaedev_config_data *uci);
+int filesys_insert(int nr, const TCHAR *volume, const TCHAR *rootdir, bool readonly, int flags);
+int filesys_eject(int nr);
+int filesys_media_change(const TCHAR *rootdir, int inserted, struct uaedev_config_data *uci);
+int filesys_media_change_queue(const TCHAR *rootdir, int total);
 
 extern TCHAR *filesys_createvolname (const TCHAR *volname, const TCHAR *rootdir, struct zvolume *zv, const TCHAR *def);
 extern int target_get_volume_name (struct uaedev_mount_info *mtinf, struct uaedev_config_info *ci, bool inserted, bool fullcheck, int cnt);
@@ -138,9 +136,6 @@ extern void filesys_flush_cache (void);
 extern void filesys_free_handles (void);
 extern void filesys_vsync (void);
 extern bool filesys_heartbeat(void);
-#ifdef FSUAE
-extern void filesys_hsync (void);
-#endif
 
 extern void filesys_install (void);
 extern void filesys_install_code (void);
@@ -163,7 +158,8 @@ extern void expansion_scan_autoconfig(struct uae_prefs*, bool);
 extern void expansion_generate_autoconfig_info(struct uae_prefs *p);
 extern struct autoconfig_info *expansion_get_autoconfig_info(struct uae_prefs*, int romtype, int devnum);
 extern struct autoconfig_info *expansion_get_autoconfig_data(struct uae_prefs *p, int index);
-extern struct autoconfig_info *expansion_get_autoconfig_by_address(struct uae_prefs *p, uaecptr addr);
+extern struct autoconfig_info *expansion_get_autoconfig_by_address(struct uae_prefs *p, uaecptr addr, int index);
+extern struct autoconfig_info *expansion_get_bank_data(struct uae_prefs *p, uaecptr *addr);
 extern void expansion_set_autoconfig_sort(struct uae_prefs *p);
 extern int expansion_autoconfig_move(struct uae_prefs *p, int index, int direction, bool test);
 extern bool expansion_can_move(struct uae_prefs *p, int index);
@@ -197,6 +193,10 @@ typedef void(*DEVICE_MEMORY_CALLBACK)(struct romconfig*, uae_u8*, int);
 #define EXPANSIONTYPE_FALLBACK_DISABLE 0x8000
 #define EXPANSIONTYPE_HAS_FALLBACK 0x10000
 #define EXPANSIONTYPE_X86_EXPANSION 0x20000
+#define EXPANSIONTYPE_PCMCIA 0x40000
+#define EXPANSIONTYPE_CUSTOMDISK 0x80000
+#define EXPANSIONTYPE_CLOCKPORT 0x100000
+#define EXPANSIONTYPE_DMA24 0x200000
 
 #define EXPANSIONBOARD_CHECKBOX 0
 #define EXPANSIONBOARD_MULTI 1
@@ -218,6 +218,7 @@ struct expansionsubromtype
 	int memory_mid, memory_pid;
 	uae_u32 memory_serial;
 	bool memory_after;
+	int deviceflags;
 	uae_u8 autoconfig[16];
 };
 struct expansionromtype
@@ -250,7 +251,9 @@ struct cpuboardsubtype
 {
 	const TCHAR *name;
 	const TCHAR *configname;
-	int romtype, romtype_extra;
+	uae_u32 romtype;
+	int romtype_extra;
+	int cputype;
 	DEVICE_ADD add;
 	int deviceflags;
 	int memorytype;
@@ -287,5 +290,20 @@ struct memoryboardtype
 };
 extern const struct memoryboardtype memoryboards[];
 
+// More information in first revision HRM Appendix_G
+#define BOARD_PROTOAUTOCONFIG 1
+#define BOARD_AUTOCONFIG_Z2 2
+#define BOARD_AUTOCONFIG_Z3 3
+#define BOARD_NONAUTOCONFIG_BEFORE 4
+#define BOARD_NONAUTOCONFIG_AFTER_Z2 5
+#define BOARD_NONAUTOCONFIG_AFTER_Z3 6
+#define BOARD_PCI 7
+#define BOARD_IGNORE 8
+
+#ifdef FSUAE
+
+void filesys_hsync(void);
+
+#endif // FSUAE
 
 #endif /* UAE_AUTOCONF_H */

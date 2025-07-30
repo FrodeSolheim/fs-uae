@@ -13,20 +13,28 @@
 #include <stdio.h>
 
 #include "fsemu-mutex.h"
+#include "libuae.h"
 
-int log_scsi = 0;
-int log_net = 0;
+#include "uae/compat/windows.h"
+
+//int log_scsi = 0;
+//int log_net = 0;
 
 void gui_message (const char *format,...)
 {
     va_list args;
     va_start(args, format);
     char *buffer = g_strdup_vprintf(format, args);
+	// Remove trailing newline, if any
+	int len = strlen(buffer);
+	if (len > 0 && buffer[len - 1] == '\n') {
+		buffer[len - 1] = '\0';
+	}
     va_end(args);
-    if (g_amiga_gui_message_function) {
-        g_amiga_gui_message_function(buffer);
+    if (libuae_cb_gui_message) {
+        libuae_cb_gui_message(buffer);
     } else {
-        printf("%s", buffer);
+        printf("gui_message: '%s'\n", buffer);
     }
     g_free(buffer);
 }
@@ -59,7 +67,7 @@ static const char *get_message(int msg)
 
 void notify_user (int msg)
 {
-    const char *message = get_message(msg);
+	const char *message = get_message(msg);
     if (message) {
         gui_message(message);
     } else {
@@ -80,7 +88,7 @@ int translate_message (int msg, TCHAR *out)
 
 void notify_user_parms (int msg, const TCHAR *parms, ...)
 {
-    gui_message (_T("notify_user msg #%d\n"), msg);
+	gui_message (_T("notify_user msg #%d\n"), msg);
 }
 
 #define SHOW_CONSOLE 0
@@ -95,7 +103,6 @@ static int cs_init;
 FILE *debugfile = NULL;
 int console_logging = 0;
 static int debugger_type = -1;
-extern int lof_store;
 extern int seriallog;
 static int console_input_linemode = -1;
 int always_flush_log = 1;
@@ -167,6 +174,16 @@ static void flushmsgpump(void)
 }
 
 #endif
+
+void deactivate_console(void)
+{
+#if 0
+	if (previousactivewindow) {
+		SetForegroundWindow(previousactivewindow);
+		previousactivewindow = NULL;
+	}
+#endif
+}
 
 void activate_console (void)
 {
@@ -273,6 +290,13 @@ void debugger_change (int mode)
 	regsetint (NULL, _T("DebuggerType"), debugger_type);
 #endif
 	openconsole ();
+}
+
+void open_console(void)
+{
+	if (!consoleopen) {
+		openconsole();
+	}
 }
 
 void reopen_console (void)
@@ -679,13 +703,16 @@ void write_log (const TCHAR *format, ...)
 		// strcpy(buffer, "[ UAE ] ");
 		// partial = 8;
 		// strcpy(buffer, "[ UAE ] [     ] ");
-		g_snprintf(buffer, 4096, "[UAE] [%03d] ", vpos);
-		partial = 12;
+		g_snprintf(buffer, 4096, "[%03d] ", vpos);
+		partial = 6;
+		// g_snprintf(buffer, 4096, "[UAE/%03d] ", vpos);
+		// partial = 10;
 	}
 
 	int result = g_vsnprintf(buffer + partial, MAX_LINE - partial, format, args);
     va_end(args);
 
+	// FIXME: Take a closer look at this code
 	int len = strlen(buffer + partial);
 	// printf("partial %d len %d: %s\n", partial, len, buffer);
 	if (len > 0 && buffer[partial + len - 1] != '\n') {
@@ -699,6 +726,9 @@ void write_log (const TCHAR *format, ...)
 		}
 	}
 
+	// Remove trailing newline
+	buffer[partial + len - 1] = '\0';
+
     char *buffer2 = NULL;
 #if 0
     TCHAR *ts = write_log_get_ts();
@@ -708,17 +738,17 @@ void write_log (const TCHAR *format, ...)
     }
 #endif
 
-    log_function function = g_libamiga_callbacks.log;
+    // log_function function = g_libamiga_callbacks.log;
 	// FIXME
 	// function = NULL;
-    if (function) {
+    if (libuae_cb_write_log) {
         if (buffer2) {
-            function(buffer2);
+            libuae_cb_write_log(buffer2);
         } else {
-            function(buffer);
+            libuae_cb_write_log(buffer);
         }
     } else {
-        printf("%s", buffer);
+        printf("write_log: '%s'\n", buffer);
     }
     // free(buffer);
     if (buffer2) {

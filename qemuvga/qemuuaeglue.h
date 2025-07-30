@@ -3,21 +3,16 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-#ifdef FSUAE
-#include <stdlib.h>
-#include <stddef.h>
-#endif
+#include "sysconfig.h"
 
+#ifdef DEBUGGER
 extern void activate_debugger(void);
+#endif
 
 //#define DEBUG_VGA_REG
 //#define DEBUG_VGA
 
-#ifdef FSUAE
-#include "uae/log.h"
-#else
 extern void write_log (const char *, ...);
-#endif
 
 #ifndef glue
 #define xglue(x, y) x ## y
@@ -27,6 +22,7 @@ extern void write_log (const char *, ...);
 #endif
 
 #ifdef FSUAE
+#warning Not defining ssize_t as int because it is incorrect (but does some code now assume ssize_t is 32-bit?)
 #else
 typedef int ssize_t;
 #endif
@@ -283,8 +279,8 @@ struct CirrusVGAState {
     uint32_t cirrus_bank_base[2];
     uint32_t cirrus_bank_limit[2];
     uint8_t cirrus_hidden_palette[48];
-    uint32_t hw_cursor_x;
-    uint32_t hw_cursor_y;
+    int32_t hw_cursor_x;
+    int32_t hw_cursor_y;
     int cirrus_blt_pixelwidth;
     int cirrus_blt_width;
     int cirrus_blt_height;

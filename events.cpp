@@ -12,29 +12,39 @@
 #include "sysdeps.h"
 
 #include "options.h"
-#include "custom.h"
 #include "events.h"
 #include "memory.h"
 #include "newcpu.h"
+#ifdef WITH_PPC
 #include "uae/ppc.h"
+#endif
 #include "xwin.h"
+#ifdef WITH_X86
 #include "x86.h"
+#endif
 #include "audio.h"
+#include "cia.h"
+#include "custom.h"
 
-static const int pissoff_nojit_value = 256 * CYCLE_UNIT;
+extern uae_u8 agnus_hpos;
+int custom_fastmode;
+extern int linear_hpos;
+void custom_trigger_start_fast(void);
 
-unsigned long int event_cycles, nextevent, currcycle;
-int is_syncline, is_syncline_end;
-long cycles_to_next_event;
-long max_cycles_to_next_event;
-long cycles_to_hsync_event;
-unsigned long start_cycles;
+evt_t event_cycles, nextevent, currcycle;
+uae_u32 currcycle_cck;
+int is_syncline;
+static int syncline_cnt;
+frame_time_t is_syncline_end;
+int cycles_to_next_event;
+int max_cycles_to_next_event;
+int cycles_to_hsync_event;
+evt_t start_cycles;
 bool event_wait;
 
 frame_time_t vsyncmintime, vsyncmintimepre;
 frame_time_t vsyncmaxtime, vsyncwaittime;
-int vsynctimebase;
-int event2_count;
+frame_time_t vsynctimebase, cputimebase;
 
 static void events_fast(void)
 {
@@ -47,36 +57,27 @@ void events_reset_syncline(void)
 	events_fast();
 }
 
-void events_schedule (void)
+void events_schedule(void)
 {
-	int i;
-
-	unsigned long int mintime = ~0L;
-	for (i = 0; i < ev_max; i++) {
+	evt_t mintime = EVT_MAX;
+	for (int i = 0; i < ev_max; i++) {
 		if (eventtab[i].active) {
-			unsigned long int eventtime = eventtab[i].evtime - currcycle;
+			evt_t eventtime = eventtab[i].evtime - currcycle;
 			if (eventtime < mintime)
 				mintime = eventtime;
 		}
 	}
-	nextevent = currcycle + mintime;
+	if (mintime < EVT_MAX) {
+		nextevent = currcycle + mintime;
+	} else {
+		nextevent = EVT_MAX;
+	}
 }
 
 extern int vsync_activeheight;
 
-#ifdef FSUAE
-#include "fsemu-frame.h"
-#include "fsemu-time.h"
-extern int64_t is_syncline_end64;
-extern int64_t line_started_at;
-extern int64_t line_ended_at;
-#endif
-
 static bool event_check_vsync(void)
 {
-#ifdef FSUAE
-	// uae_log("event_check_vsync is_syncline %d event_wait %d\n", is_syncline, event_wait);
-#endif
 	/* Keep only CPU emulation running while waiting for sync point. */
 	if (is_syncline == -1) {
 
@@ -213,8 +214,8 @@ static bool event_check_vsync(void)
 
 		// wait is_syncline_end
 		if (event_wait) {
-			int rpt = read_processor_time();
-			int v = rpt - is_syncline_end;
+			frame_time_t rpt = read_processor_time();
+			frame_time_t v = rpt - is_syncline_end;
 			if (v < 0) {
 #ifdef WITH_PPC
 				if (ppc_state) {
@@ -230,49 +231,13 @@ static bool event_check_vsync(void)
 		}
 		events_reset_syncline();
 
-#ifdef FSUAE // NL
-	} else if (is_syncline == -99) {
-		// int64_t now = fsemu_time_us();
-
-		if (event_wait) {
-			// int64_t v = now - is_syncline_end64;
-			int64_t v = fsemu_time_us() - is_syncline_end64;
-			// uae_log("%lld\n", (long long) v);			
-			if (v < 0) {
-#ifdef WITH_PPC
-				if (ppc_state) {
-					uae_ppc_execute_check();
-				}
-#endif
-				if (currprefs.cachesize)
-					pissoff = pissoff_value;
-				else
-					pissoff = pissoff_nojit_value;
-				
-				// fsemu_frame_extra_duration += now - line_ended_at;
-				// line_started_at = now;
-				return true;
-			}
-		}
-
-		// int64_t now = fsemu_time_us();
-		// fsemu_frame_extra_duration += now - line_ended_at;
-		// line_started_at = now;
-
-		// uae_log("reset_syncline\n");
-		// events_reset_syncline();
-
-		// vsync_event_done calls events_reset_syncline
-		vsync_event_done();
-#endif
-
 	} else if (is_syncline < -10) {
 
 		// wait is_syncline_end/vsyncmintime
 		if (event_wait) {
-			int rpt = read_processor_time();
-			int v = rpt - vsyncmintime;
-			int v2 = rpt - is_syncline_end;
+			frame_time_t rpt = read_processor_time();
+			frame_time_t v = rpt - vsyncmintime;
+			frame_time_t v2 = rpt - is_syncline_end;
 			if (v > vsynctimebase || v < -vsynctimebase) {
 				v = 0;
 			}
@@ -290,6 +255,7 @@ static bool event_check_vsync(void)
 					pissoff = pissoff_value;
 				else
 					pissoff = pissoff_nojit_value;
+
 				return true;
 			}
 		}
@@ -298,34 +264,11 @@ static bool event_check_vsync(void)
 	return false;
 }
 
-void do_cycles_slow (unsigned long cycles_to_add)
+void do_cycles_normal(int cycles_to_add)
 {
-#ifdef WITH_X86
-#if 0
-	if (x86_turbo_on) {
-		execute_other_cpu_single();
-	}
-#endif
-#endif
-
-	if (!currprefs.cpu_thread) {
-		if ((pissoff -= cycles_to_add) >= 0)
-			return;
-
-		cycles_to_add = -pissoff;
-		pissoff = 0;
-	} else {
-		pissoff = 0x40000000;
-	}
-
 	while ((nextevent - currcycle) <= cycles_to_add) {
 
-		if (is_syncline) {
-			if (event_check_vsync())
-				return;
-		}
-
-		cycles_to_add -= nextevent - currcycle;
+		cycles_to_add -= (int)(nextevent - currcycle);
 		currcycle = nextevent;
 
 		for (int i = 0; i < ev_max; i++) {
@@ -338,102 +281,249 @@ void do_cycles_slow (unsigned long cycles_to_add)
 				}
 			}
 		}
-		events_schedule ();
-
+		events_schedule();
 
 	}
 	currcycle += cycles_to_add;
 }
 
-void MISC_handler (void)
-{
-	static bool dorecheck;
-	bool recheck;
-	int i;
-	evt mintime;
-	evt ct = get_cycles ();
-	static int recursive;
+static int cycles_to_add_remain;
 
-	if (recursive) {
-		dorecheck = true;
-		return;
+void do_cycles_slow(int cycles_to_add)
+{
+#ifdef WITH_X86
+#if 0
+	if (x86_turbo_on) {
+		execute_other_cpu_single();
 	}
-	recursive++;
+#endif
+#endif
+
+	if (is_syncline) {
+		if (syncline_cnt > 0) {
+			syncline_cnt--;
+			return;
+		}
+		// runs CPU emulation with chipset stopped
+		// when there is free time to do so.
+		if (event_check_vsync()) {
+			syncline_cnt = currprefs.cachesize ? 2 : 32;
+			return;
+		}
+	}
+
+	cycles_to_add += cycles_to_add_remain;
+	cycles_to_add_remain = 0;
+
+	if (!currprefs.cpu_thread) {
+		if ((pissoff -= cycles_to_add) >= 0) {
+			return;
+		}
+		cycles_to_add = -pissoff;
+		pissoff = 0;
+	} else {
+		pissoff = 0x40000000;
+	}
+
+	while (cycles_to_add >= CYCLE_UNIT) {
+
+		if (!eventtab[ev_sync].active) {
+			int cyc = cycles_to_add;
+			cyc = do_cycles_cck(cyc);
+			cycles_to_add -= cyc;
+		} else {
+			do_cycles_normal(cycles_to_add);
+			cycles_to_add = 0;
+		}
+
+	}
+
+	int remain = cycles_to_add;
+	cycles_to_add_remain += remain;
+}
+
+static int event2idx;
+static int event2cnt;
+static int event2restart;
+
+void MISC_handler(void)
+{
+	evt_t mintime;
+	evt_t ct = get_cycles();
+
+	if (event2cnt) {
+		event2restart++;
+	}
 	eventtab[ev_misc].active = 0;
-	recheck = true;
-	while (recheck) {
-		recheck = false;
-		mintime = ~0L;
-		for (i = 0; i < ev2_max; i++) {
-			if (eventtab2[i].active) {
-				if (eventtab2[i].evtime == ct) {
-					eventtab2[i].active = false;
-					event2_count--;
-					eventtab2[i].handler (eventtab2[i].data);
-					if (dorecheck || eventtab2[i].active) {
-						recheck = true;
-						dorecheck = false;
-					}
-				} else {
-					evt eventtime = eventtab2[i].evtime - ct;
-					if (eventtime < mintime)
-						mintime = eventtime;
+	mintime = EVT_MAX;
+	int idx2 = event2idx;
+	for (int i = 0; i < ev2_max; i++) {
+		int idx = (idx2 + i) & (ev2_max - 1);
+		ev2 *e = &eventtab2[idx];
+		if (e->active) {
+			if (e->evtime == ct) {
+				e->active = false;
+				event2cnt++;
+				e->handler(e->data);
+				event2cnt--;
+				if (event2restart > 0) {
+					event2restart--;
+					mintime = EVT_MAX;
+					i = 0;
+				}
+			} else {
+				evt_t eventtime = e->evtime - ct;
+				if (eventtime < mintime) {
+					mintime = eventtime;
 				}
 			}
 		}
 	}
-	if (mintime != ~0UL) {
-		eventtab[ev_misc].active = true;
-		eventtab[ev_misc].oldcycles = ct;
-		eventtab[ev_misc].evtime = ct + mintime;
-		events_schedule ();
+	if (mintime < EVT_MAX) {
+		ev *e = &eventtab[ev_misc];
+		e->active = true;
+		e->oldcycles = ct;
+		e->evtime = ct + mintime;
+		events_schedule();
 	}
-	recursive--;
 }
 
-
-void event2_newevent_xx (int no, evt t, uae_u32 data, evfunc2 func)
+void event2_newevent_xx_ce(evt_t t, uae_u32 data, evfunc2 func)
 {
-	evt et;
+	if (!currprefs.cpu_memory_cycle_exact) {
+		func(data);
+		return;
+	}
+	event2_newevent_xx(-1, t, data, func);
+}
+
+void event2_newevent_xx(int no, evt_t t, uae_u32 data, evfunc2 func)
+{
+	evt_t et;
 	static int next = ev2_misc;
 
-	et = t + get_cycles ();
+	et = t + get_cycles();
 	if (no < 0) {
 		no = next;
 		for (;;) {
 			if (!eventtab2[no].active) {
-				event2_count++;
 				break;
 			}
 			if (eventtab2[no].evtime == et && eventtab2[no].handler == func && eventtab2[no].data == data)
 				break;
 			no++;
-			if (no == ev2_max)
+			if (no == ev2_max) {
 				no = ev2_misc;
+			}
 			if (no == next) {
-				write_log (_T("out of event2's!\n"));
-				return;
+				// we may have multiple interrupts queued, merge if possible
+				for (int i = 0; i < ev2_max; i++) {
+					auto ev2 = &eventtab2[i];
+					if (ev2->active && ev2->handler == func && ev2->evtime == et && func == event_doint_delay_do_ext) {
+						ev2->data |= data;
+						return;
+					}
+				}
+				write_log(_T("out of event2's!\n"));
+				// execute most recent event immediately
+				evt_t mintime = EVT_MAX;
+				int minevent = -1;
+				evt_t ct = get_cycles();
+				for (int i = 0; i < ev2_max; i++) {
+					if (eventtab2[i].active) {
+						evt_t eventtime = eventtab2[i].evtime - ct;
+						if (eventtime < mintime) {
+							mintime = eventtime;
+							minevent = i;
+						}
+					}
+				}
+				if (minevent >= 0) {
+					eventtab2[minevent].active = false;
+					eventtab2[minevent].handler(eventtab2[minevent].data);
+				}
+				continue;
 			}
 		}
 		next = no;
 	}
-	eventtab2[no].active = true;
-	eventtab2[no].evtime = et;
-	eventtab2[no].handler = func;
-	eventtab2[no].data = data;
-	MISC_handler ();
+	ev2 *e = &eventtab2[no];
+	e->active = true;
+	e->evtime = et;
+	e->handler = func;
+	e->data = data;
+	event2idx = addrdiff(e, eventtab2) + 1;
+	MISC_handler();
 }
 
-void event2_newevent_x_replace(evt t, uae_u32 data, evfunc2 func)
+void event2_newevent_x_replace_exists(evt_t t, uae_u32 data, evfunc2 func)
+{
+	for (int i = 0; i < ev2_max; i++) {
+		if (eventtab2[i].active && eventtab2[i].handler == func) {
+			eventtab2[i].active = false;
+			if (t <= 0) {
+				func(data);
+				return;
+			}
+			event2_newevent_xx(-1, t * CYCLE_UNIT, data, func);
+			return;
+		}
+	}
+}
+
+void event2_newevent_x_remove(evfunc2 func)
 {
 	for (int i = 0; i < ev2_max; i++) {
 		if (eventtab2[i].active && eventtab2[i].handler == func) {
 			eventtab2[i].active = false;
 		}
 	}
-	if (((int)t) <= 0) {
+}
+
+bool event2_newevent_x_exists(evfunc2 func)
+{
+	for (int i = 0; i < ev2_max; i++) {
+		if (eventtab2[i].active && eventtab2[i].handler == func) {
+			return true;
+		}
+	}
+	return false;
+}
+
+void event2_newevent_x_replace(evt_t t, uae_u32 data, evfunc2 func)
+{
+	event2_newevent_x_remove(func);
+	if (t <= 0) {
 		func(data);
 		return;
 	}
 	event2_newevent_xx(-1, t * CYCLE_UNIT, data, func);
+}
+
+void event2_newevent_x_add_not_exists(evt_t t, uae_u32 data, evfunc2 func)
+{
+	if (event2_newevent_x_exists(func)) {
+		return;
+	}
+	if (t <= 0) {
+		func(data);
+		return;
+	}
+	event2_newevent_xx(-1, t * CYCLE_UNIT, data, func);
+}
+
+void event_init(void)
+{
+}
+
+void clear_events(void)
+{
+	nextevent = EVT_MAX;
+	for (int i = 0; i < ev_max; i++) {
+		eventtab[i].active = 0;
+		eventtab[i].oldcycles = get_cycles();
+	}
+	for (int i = 0; i < ev2_max; i++) {
+		eventtab2[i].active = 0;
+	}
 }

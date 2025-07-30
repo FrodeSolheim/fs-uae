@@ -9,10 +9,6 @@
 #include "include/extern.h"
 #include "include/vars.h"
 
-#ifdef UAE
-#include "moduleripper.h"
-#endif
-
 #if 0
 int main ( int ac , char **av )
 #else

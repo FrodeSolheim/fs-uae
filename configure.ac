@@ -9,12 +9,11 @@ m4_define([fsbuild_version_minor], [0])
 m4_define([fsbuild_version_revision], [0])
 m4_define([fsbuild_commit], [])
 
-AC_INIT([FS-UAE], [fsbuild_version],
-        [frode@fs-uae.net], [fs-uae], [https://fs-uae.net])
-AC_CONFIG_AUX_DIR([.])
+AC_INIT([FS-UAE],[fsbuild_version],[frode@fs-uae.net],[fs-uae],[https://fs-uae.net])
+AC_CONFIG_AUX_DIR([od-fs/build/aux])
 AC_CANONICAL_HOST
-AC_CONFIG_SRCDIR([src/main.cpp])
-AC_CONFIG_HEADERS([config.h])
+AC_CONFIG_SRCDIR([./main.cpp])
+AC_CONFIG_HEADERS([od-fs/config.h])
 
 AC_DEFINE([FSBUILD_VERSION], ["fsbuild_version"], [Version])
 AC_DEFINE_UNQUOTED([FSBUILD_VERSION_MAJOR], [fsbuild_version_major], [Major])
@@ -29,20 +28,13 @@ AC_SUBST(FSBUILD_VERSION_MINOR)
 AC_SUBST(FSBUILD_VERSION_REVISION)
 AC_SUBST(FSBUILD_COMMIT)
 
-# AC_CONFIG_MACRO_DIRS requires newer autoconf/automake than is found in
-# Debian 7.0
-# AC_CONFIG_MACRO_DIRS([m4])
-m4_include([m4/ax_check_compile_flag.m4])
-m4_include([m4/ax_check_link_flag.m4])
-m4_include([m4/ax_gcc_builtin.m4])
-m4_include([m4/ax_gcc_func_attribute.m4])
-m4_include([m4/ax_gcc_var_attribute.m4])
+AC_CONFIG_MACRO_DIRS([od-fs/build/m4])
 
 AM_INIT_AUTOMAKE([tar-ustar subdir-objects])
 
 AC_SUBST([PACKAGE_SERIES], [devel])
 
-AC_DEFINE_UNQUOTED([UAE_BASE_VERSION], ["WinUAE 4.2.1"],
+AC_DEFINE_UNQUOTED([UAE_BASE_VERSION], ["WinUAE 6.0"],
 [Which UAE core this version is based on.])
 
 PACKAGE_MAJOR=`echo ${PACKAGE_VERSION} | sed -e 's,\(\.*\)\..*\..*,\1,g'`
@@ -255,15 +247,6 @@ AM_CONDITIONAL([WITH_LIBMPEG2], [test x$with_libmpeg2 != xno])
 
 AM_CONDITIONAL([BUILTIN_MANYMOUSE], [true])
 
-# The built-in Lua has been sandboxed, which is why we do not
-# want to pick up the system lua, if present.
-
-AC_SUBST([LUA_CFLAGS])
-AS_CASE([$host_os],
-	[mingw*], [],
-	[LUA_CFLAGS="-DLUA_USE_POSIX"]
-)
-
 AC_SUBST([IOKIT_LIBS])
 AS_CASE([$host_os],
 [darwin*], [
@@ -347,12 +330,15 @@ AS_IF([test "x$with_qt" = xyes], [
     PKG_CHECK_MODULES([QT], [Qt5Gui])
 ])
 
-AC_DEFINE([USE_SDL2], [1], [Define to 1 to use SDL 2.0])
-PKG_CHECK_MODULES([SDL2], [sdl2])
+AC_DEFINE([USE_SDL3], [1], [Define to 1 to use SDL3])
+PKG_CHECK_MODULES([SDL3], [sdl3])
 AC_DEFINE([USE_SDL_VIDEO], [1], [Define to 1 to use SDL for video])
 AC_DEFINE([USE_SDL_INPUT], [1], [Define to 1 to use SDL for input])
 
-PKG_CHECK_MODULES([SDL2_TTF], [SDL2_ttf])
+PKG_CHECK_MODULES([SDL3_TTF], [sdl3-ttf])
+PKG_CHECK_MODULES([SDL3_IMAGE], [sdl3-image])
+
+PKG_CHECK_MODULES([PYTHON3], [python3-embed])
 
 AS_CASE([$host_os],
 [mingw*], [],
@@ -691,29 +677,29 @@ AS_CASE([$host_os],
 # Byte swapping
 
 AC_MSG_CHECKING(for bswap_16)
-AC_TRY_LINK([
+AC_LINK_IFELSE([AC_LANG_PROGRAM([[
 	#if HAVE_BYTESWAP_H
 	# include <byteswap.h>
 	#endif
-], [
+]], [[
 	bswap_16(0x12);
-], [
+]])],[
 	AC_DEFINE(HAVE_BSWAP_16, 1, [Define to 1 if you have the 'bswap_16' function.])
 	AC_MSG_RESULT(yes)
-], [
+],[
 	AC_MSG_RESULT(no)
 ])
 AC_MSG_CHECKING(for bswap_32)
-AC_TRY_LINK([
+AC_LINK_IFELSE([AC_LANG_PROGRAM([[
 	#if HAVE_BYTESWAP_H
 	# include <byteswap.h>
 	#endif
-], [
+]], [[
 	bswap_32(0x1234);
-], [
+]])],[
 	AC_DEFINE(HAVE_BSWAP_32, 1, [Define to 1 if you have the 'bswap_32' function.])
 	AC_MSG_RESULT(yes)
-], [
+],[
 	AC_MSG_RESULT(no)
 ])
 
@@ -807,17 +793,17 @@ OPT_FEATURE([GFXBOARD], [gfxboard], [gfxboard],
 
 AC_ARG_ENABLE([jit], [AS_HELP_STRING([--disable-jit], [JIT compiler])])
 AS_IF([test "x$enable_jit" != xno], [
-    AC_TRY_COMPILE([
-    ], [
+    AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+    ]], [[
         #if !defined(__i386__) && !defined(__x86_64__)
         #error JIT is only supported on x86/x86-64
         #endif
         #if defined(__OpenBSD__) || defined(__FreeBSD__)
         #error no JIT on OpenBSD/FreeBSD right now
         #endif
-    ], [
+    ]])],[
         AC_DEFINE([JIT], [1], [Define to 1 to enable JIT compilation])
-    ], [
+    ],[
         if test "x$enable_jit" = xyes; then
             AC_MSG_FAILURE(
                 [JIT is not supported on $host])
@@ -831,8 +817,6 @@ AM_CONDITIONAL([JIT],
 
 OPT_FEATURE([USE_JIT_FPU], [jit_fpu], [jit-fpu],
             [JIT compilation of FPU instructions])
-DIS_FEATURE([WITH_LUA], [lua], [lua],
-            [LUA scripting (unfinished)])
 OPT_FEATURE([WITH_NETPLAY], [netplay], [netplay],
             [netplay support])
 OPT_FEATURE([NCR], [ncr], [ncr],
@@ -885,14 +869,15 @@ OPT_FEATURE([WITH_VPAR], [vpar], [vpar],
 
 AC_ARG_ENABLE([x86], [AS_HELP_STRING([--disable-x86], [x86 bridgeboard support])])
 AS_IF([test "x$enable_x86" != xno], [
-    AC_TRY_COMPILE([
-    ], [
-        #if !defined(__i386__) && !defined(__x86_64__)
+    AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+    ]], [[
+        // FIXME: REMOVE THIS TEST NOW...
+        #if 0
         #error Bridgeboard is only supported on x86/x86-64
         #endif
-    ], [
+    ]])],[
         AC_DEFINE([WITH_X86], [1], [Define to 1 to enable x86 bridgeboard support])
-    ], [
+    ],[
         if test "x$enable_x86" = xyes; then
             AC_MSG_FAILURE(
                 [x86 bridgeboard is not supported on $host])
@@ -914,7 +899,7 @@ AC_DEFINE([FPU_UAE], [1], [Define to 1])
 # Write Makefile
 
 AC_CONFIG_FILES([
-    src/fsuae/fs-uae.rc
+    od-fs/fs-uae.rc
     Makefile
 ])
 AC_OUTPUT
@@ -937,6 +922,9 @@ echo "  OPENGL_CFLAGS:     $OPENGL_CFLAGS"
 echo "  OPENGL_LIBS:       $OPENGL_LIBS"
 echo "  OS_CPPFLAGS:       $OS_CPPFLAGS"
 echo "  OS_LDFLAGS:        $OS_LDFLAGS"
-echo "  SDL2_CFLAGS:       $SDL2_CFLAGS"
-echo "  SDL2_LIBS:         $SDL2_LIBS"
+echo "  SDL3_CFLAGS:       $SDL3_CFLAGS"
+echo "  SDL3_LIBS:         $SDL3_LIBS"
+
+echo "  PYTHON3_CFLAGS:    $PYTHON3_CFLAGS"
+echo "  PYTHON3_LIBS:      $PYTHON3_LIBS"
 echo ""

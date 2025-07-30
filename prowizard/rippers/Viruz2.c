@@ -1,5 +1,3 @@
-#if 0
-
 /* Viruz2 - made by kb_ Farbrausch */
 /* 06-05-2007 - test version by Muerto - mostly asle :D*/
 /* 08-05-2007 - Saved the first V2m mod!! - BUT phoemes not incluted.. yet!*/
@@ -136,4 +134,3 @@ short testViruz2_E0 ()
 
 /* end of func */
 
-#endif

@@ -26,7 +26,6 @@
 #include "fpp.h"
 #include "uae/attributes.h"
 #include "uae/vm.h"
-#include "newcpu.h"
 
 #ifdef JIT
 uae_u32 xhex_exp_1[] ={0xa2bb4a9a, 0xadf85458, 0x4000};
@@ -66,7 +65,9 @@ static const double twoto32 = 4294967296.0;
 #define	FPCR_PRECISION_DOUBLE	0x00000080
 #define FPCR_PRECISION_EXTENDED	0x00000000
 
+#ifdef SOFTFLOAT_CONVERSIONS
 static struct float_status fs;
+#endif
 static uae_u32 fpu_mode_control = 0;
 static int fpu_prec;
 static int temp_prec;
@@ -145,7 +146,7 @@ static void set_fpucw_x87(uae_u32 m68k_cw)
 	x87_cw = x87_cw_tab[(m68k_cw >> 4) & 0xf];
 #if defined(X86_MSVC_ASSEMBLY) && 0
 	__asm { fldcw word ptr x87_cw }
-#elif defined(__GNUC__)
+#elif defined(__GNUC__) && 0
 	__asm__("fldcw %0" : : "m" (*&x87_cw));
 #else
 	((x87_fldcw_function) x87_fldcw_code)();
@@ -156,8 +157,10 @@ static void set_fpucw_x87(uae_u32 m68k_cw)
 
 static void native_set_fpucw(uae_u32 m68k_cw)
 {
+#ifndef __MACH__
 #if defined(CPU_i386) || defined(CPU_x86_64)
 	set_fpucw_x87(m68k_cw);
+#endif
 #endif
 }
 
@@ -380,70 +383,72 @@ static void fp_from_exten(fpdata *fpd, uae_u32 *wrd1, uae_u32 *wrd2, uae_u32 *wr
 #else // if !USE_LONG_DOUBLE
 static void fp_to_exten(fpdata *fpd, uae_u32 wrd1, uae_u32 wrd2, uae_u32 wrd3)
 {
-#if SOFTFLOAT_CONVERSIONS
-	floatx80 fx80;
-	fx80.high = wrd1 >> 16;
-	fx80.low = (((uae_u64)wrd2) << 32) | wrd3;
-	fs.float_exception_flags = 0;
-	float64 f = floatx80_to_float64(fx80, &fs);
-	// overflow -> infinity
-	if (fs.float_exception_flags & float_flag_overflow)
-		f = 0x7ff0000000000000 | (f & 0x8000000000000000);
-	fp_to_double(fpd, f >> 32, (uae_u32)f);
-#else
-    double frac;
-    if ((wrd1 & 0x7fff0000) == 0 && wrd2 == 0 && wrd3 == 0) {
-        fpd->fp = (wrd1 & 0x80000000) ? -0.0 : +0.0;
-        return;
-    }
-    frac = ((double)wrd2 + ((double)wrd3 / twoto32)) / 2147483648.0;
-    if (wrd1 & 0x80000000)
-        frac = -frac;
-    fpd->fp = ldexp (frac, ((wrd1 >> 16) & 0x7fff) - 16383);
-#endif
+	if (!currprefs.cachesize || !currprefs.compfpu) {
+		floatx80 fx80;
+		fx80.high = wrd1 >> 16;
+		fx80.low = (((uae_u64)wrd2) << 32) | wrd3;
+		fs.float_exception_flags = 0;
+		float64 f = floatx80_to_float64(fx80, &fs);
+		// overflow -> infinity
+		if (fs.float_exception_flags & float_flag_overflow) {
+			f = 0x7ff0000000000000 | (f & 0x8000000000000000);
+		}
+		fp_to_double(fpd, f >> 32, (uae_u32)f);
+	} else {
+		double frac;
+		if ((wrd1 & 0x7fff0000) == 0 && wrd2 == 0 && wrd3 == 0) {
+			fpd->fp = (wrd1 & 0x80000000) ? -0.0 : +0.0;
+			return;
+		}
+		frac = ((double)wrd2 + ((double)wrd3 / twoto32)) / 2147483648.0;
+		if (wrd1 & 0x80000000) {
+			frac = -frac;
+		}
+		fpd->fp = ldexp (frac, ((wrd1 >> 16) & 0x7fff) - 16383);
+	}
 }
 static void fp_from_exten(fpdata *fpd, uae_u32 *wrd1, uae_u32 *wrd2, uae_u32 *wrd3)
 {
-#if SOFTFLOAT_CONVERSIONS
-	uae_u32 w1, w2;
-	fp_from_double(fpd, &w1, &w2);
-	floatx80 f = float64_to_floatx80(((uae_u64)w1 << 32) | w2, &fs);
-	*wrd1 = f.high << 16;
-	*wrd2 = f.low >> 32;
-	*wrd3 = (uae_u32)f.low;
-#else
-    int expon;
-    double frac;
-    fptype v;
+	if (!currprefs.cachesize || !currprefs.compfpu) {
+		uae_u32 w1, w2;
+		fp_from_double(fpd, &w1, &w2);
+		floatx80 f = float64_to_floatx80(((uae_u64)w1 << 32) | w2, &fs);
+		*wrd1 = f.high << 16;
+		*wrd2 = f.low >> 32;
+		*wrd3 = (uae_u32)f.low;
+	} else {
+		int expon;
+		double frac;
+		fptype v;
     
-    if (fp_is_zero(fpd)) {
-        *wrd1 = signbit(fpd->fp) ? 0x80000000 : 0;
-        *wrd2 = 0;
-        *wrd3 = 0;
-        return;
-	} else if (fp_is_nan(fpd)) {
-		*wrd1 = 0x7fff0000;
-		*wrd2 = 0xffffffff;
-		*wrd3 = 0xffffffff;
-		return;
+		if (fp_is_zero(fpd)) {
+			*wrd1 = signbit(fpd->fp) ? 0x80000000 : 0;
+			*wrd2 = 0;
+			*wrd3 = 0;
+			return;
+		} else if (fp_is_nan(fpd)) {
+			*wrd1 = 0x7fff0000;
+			*wrd2 = 0xffffffff;
+			*wrd3 = 0xffffffff;
+			return;
+		}
+		v = fpd->fp;
+		if (v < 0) {
+			*wrd1 = 0x80000000;
+			v = -v;
+		} else {
+			*wrd1 = 0;
+		}
+		frac = frexp (v, &expon);
+		frac += 0.5 / (twoto32 * twoto32);
+		if (frac >= 1.0) {
+			frac /= 2.0;
+			expon++;
+		}
+		*wrd1 |= (((expon + 16383 - 1) & 0x7fff) << 16);
+		*wrd2 = (uae_u32) (frac * twoto32);
+		*wrd3 = (uae_u32) ((frac * twoto32 - *wrd2) * twoto32);
 	}
-	v = fpd->fp;
-	if (v < 0) {
-        *wrd1 = 0x80000000;
-        v = -v;
-    } else {
-        *wrd1 = 0;
-    }
-    frac = frexp (v, &expon);
-    frac += 0.5 / (twoto32 * twoto32);
-    if (frac >= 1.0) {
-        frac /= 2.0;
-        expon++;
-    }
-    *wrd1 |= (((expon + 16383 - 1) & 0x7fff) << 16);
-    *wrd2 = (uae_u32) (frac * twoto32);
-    *wrd3 = (uae_u32) ((frac * twoto32 - *wrd2) * twoto32);
-#endif
 }
 #endif // !USE_LONG_DOUBLE
 
@@ -578,8 +583,6 @@ static const TCHAR *fp_print(fpdata *fpd, int mode)
 	} else if(isnan(fpd->fp)) {
 		_stprintf(fsout, _T("%c%s"), n ? '-' : '+', _T("nan"));
 	} else {
-		if(n)
-			fpd->fp *= -1.0;
 #ifdef USE_LONG_DOUBLE
 		_stprintf(fsout, _T("#%Le"), fpd->fp);
 #else
@@ -701,9 +704,8 @@ static void fp_getexp(fpdata *a, fpdata *b)
     int expon;
 	fp_normal_prec();
 	frexpl(b->fp, &expon);
-    a->fp = (fptype) (expon - 1);
+	a->fp = (fptype)expon - 1;
 	fp_reset_normal_prec();
-	fp_round(a);
 }
 static void fp_getman(fpdata *a, fpdata *b)
 {
@@ -711,7 +713,6 @@ static void fp_getman(fpdata *a, fpdata *b)
 	fp_normal_prec();
 	a->fp = frexpl(b->fp, &expon) * 2.0;
 	fp_reset_normal_prec();
-	fp_round(a);
 }
 static void fp_div(fpdata *a, fpdata *b, int prec)
 {
@@ -888,7 +889,7 @@ static void fp_log2(fpdata *a, fpdata *b)
 static void fp_abs(fpdata *a, fpdata *b, int prec)
 {
 	fp_set_prec(prec);
-	a->fp = b->fp < 0.0 ? -b->fp : b->fp;
+	a->fp = fabsl(b->fp);
 	fp_reset_prec(a);
 }
 static void fp_cosh(fpdata *a, fpdata *b)
@@ -918,6 +919,16 @@ static void fp_cos(fpdata *a, fpdata *b)
 	fp_reset_normal_prec();
 	fp_round(a);
 }
+static void fp_sincos(fpdata *a, fpdata *b, fpdata *c)
+{
+	fp_normal_prec();
+	c->fp = cosl(b->fp);
+	a->fp = sinl(b->fp);
+	fp_reset_normal_prec();
+	fp_round(a);
+	fp_round(c);
+}
+
 static void fp_sub(fpdata *a, fpdata *b, int prec)
 {
 	fp_set_prec(prec);
@@ -1143,7 +1154,7 @@ static void fp_from_pack (fpdata *src, uae_u32 *wrd, int kfactor)
 	strp[1] = strp[0];
 	strp++;
 	// add trailing zeros
-	i = strlen (strp);
+	i = uaestrlen(strp);
 	cp = strp + i;
 	while (i < ndigits) {
 		*cp++ = '0';
@@ -1269,9 +1280,10 @@ static void fp_to_pack (fpdata *fpd, uae_u32 *wrd, int dummy)
 
 void fp_init_native(void)
 {
+#ifdef SOFTFLOAT_CONVERSIONS
 	set_floatx80_rounding_precision(80, &fs);
 	set_float_rounding_mode(float_round_to_zero, &fs);
-
+#endif
 	fpp_print = fp_print;
 	fpp_unset_snan = fp_unset_snan;
 
@@ -1343,6 +1355,7 @@ void fp_init_native(void)
 	fpp_neg = fp_neg;
 	fpp_acos = fp_acos;
 	fpp_cos = fp_cos;
+	fpp_sincos = fp_sincos;
 	fpp_getexp = fp_getexp;
 	fpp_getman = fp_getman;
 	fpp_div = fp_div;
@@ -1361,6 +1374,7 @@ void fp_init_native(void)
 
 double softfloat_tan(double v)
 {
+#if SOFTFLOAT_CONVERSIONS
 	struct float_status f = { 0 };
 	uae_u32 w1, w2;
 	fpdata fpd = { 0 };
@@ -1374,4 +1388,7 @@ double softfloat_tan(double v)
 	float64 f64 = floatx80_to_float64(fv, &fs);
 	fp_to_double(&fpd, f64 >> 32, (uae_u32)f64);
 	return fpd.fp;
+#else
+	return tanl(v);
+#endif
 }

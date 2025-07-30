@@ -10,9 +10,9 @@
 #include "xwin.h"
 #include "clipboard.h"
 #include "uae/fs.h"
-#include "../od-win32/debug_win32.h"
+#include "od-win32/debug_win32.h"
 
-#include <fs/emu/hacks.h>
+// #include <fs/emu/hacks.h>
 
 #ifndef PICASSO96
 // just to make ncr_scsi compile. it will not work, of course,
@@ -28,11 +28,11 @@ int _timezone;
 int _daylight;
 #endif
 
-int pause_emulation = 0;
-int uaelib_debug = 0;
+// int pause_emulation = 0;
+// int uaelib_debug = 0;
 
-int sleep_resolution = 1000 / 1;
-int pissoff_value = 15000 * CYCLE_UNIT;
+// int sleep_resolution = 1000 / 1;
+// int pissoff_value = 15000 * CYCLE_UNIT;
 
 //int uaeser_getdatalenght (void) {
 //    return uaeser_getdatalength();
@@ -44,8 +44,12 @@ void target_default_options (struct uae_prefs *p, int type) {
     // FIXME: move out of here - into a (lib)amiga_ function
     write_log("target_default_options: enabling floppy sounds\n");
 
+    // FIXME: Enabling floppy sounds by default...!
     for (int i = 0; i < 4; i++) {
-        p->floppyslots[i].dfxclick = 1;
+        // p->floppyslots[i].dfxclick = 1;
+        // FIXME: Relatively low volume (90 -> 100 - 90 = 10%)
+        p->dfxclickvolume_disk[i] = 90;
+        p->dfxclickvolume_empty[i] = 95;
     }
 
     if (type == 2 || type == 0) {
@@ -98,7 +102,7 @@ static int sleep_millis2 (int ms, bool main)
 int sleep_millis_main (int ms)
 {
     if (fsemu) {
-        printf("sleep_millis_main %d\n", ms);
+        //printf("sleep_millis_main %d\n", ms);
     }
 	return sleep_millis2(ms, true);
 }

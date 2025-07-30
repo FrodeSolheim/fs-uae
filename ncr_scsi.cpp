@@ -15,7 +15,7 @@
 
 #include "options.h"
 #include "uae.h"
-#include "uae/memory.h"
+#include "memory.h"
 #include "rommgr.h"
 #include "custom.h"
 #include "newcpu.h"
@@ -25,20 +25,20 @@
 #include "zfile.h"
 #include "blkdev.h"
 #include "cpuboard.h"
+#ifdef WITH_QEMU_CPU
 #include "qemuvga/qemuuaeglue.h"
 #include "qemuvga/queue.h"
 #include "qemuvga/scsi/scsi.h"
+#endif
 #include "autoconf.h"
 #include "gui.h"
 #include "devices.h"
 
 #define BOARD_SIZE 16777216
-#define IO_MASK 0x7f
 
 #define A4091_ROM_VECTOR 0x0200
 #define A4091_ROM_OFFSET 0x0000
-#define A4091_ROM_SIZE 32768
-#define A4091_ROM_MASK (A4091_ROM_SIZE - 1)
+#define A4091_ROM_SIZE 65536
 
 #define A4091_IO_OFFSET 0x00800000
 #define A4091_IO_ALT 0x00840000
@@ -70,7 +70,7 @@ struct ncr_state
 	int configured;
 	bool enabled;
 	int rom_start, rom_end, rom_offset;
-	int io_start, io_end;
+	int io_start, io_end, io_mask;
 	uae_u8 state[8];
 	addrbank *bank;
 	bool irq;
@@ -180,7 +180,7 @@ static void set_irq6(int id, int level)
 		safe_interrupt_set(IRQ_SOURCE_NCR, 0, true);
 }
 
-void ncr_rethink(void)
+static void ncr_rethink(void)
 {
 	for (int i = 0; ncr_units[i]; i++) {
 		if (ncr_units[i] != ncr_cs && ncr_units[i]->irq)
@@ -272,10 +272,10 @@ int pci_dma_rw(PCIDevice *dev, dma_addr_t addr, void *buf, dma_addr_t len, DMADi
 	uae_u8 *p = (uae_u8*)buf;
 	while (len > 0) {
 		if (!dir) {
-			*p = get_byte(addr);
+			*p = dma_get_byte(addr);
 		}
 		else {
-			put_byte(addr, *p);
+			dma_put_byte(addr, *p);
 		}
 		p++;
 		len--;
@@ -365,9 +365,9 @@ int pci710_dma_rw(PCIDevice *dev, dma_addr_t addr, void *buf, dma_addr_t len, DM
 	uae_u8 *p = (uae_u8*)buf;
 	while (len > 0) {
 		if (!dir) {
-			*p = get_byte (addr);
+			*p = dma_get_byte(addr);
 		} else {
-			put_byte (addr, *p);
+			dma_put_byte(addr, *p);
 		}
 		p++;
 		len--;
@@ -398,7 +398,7 @@ static void check_timer(struct ncr_state *ncr)
 	}
 }
 
-void ncr_vsync(void)
+static void ncr_vsync(void)
 {
 	for (int i = 0; ncr_units[i]; i++) {
 		if (ncr_units[i] == ncr_magnum40) {
@@ -426,13 +426,13 @@ static void ncr_io_bput(struct ncr_state *ncr, uaecptr addr, uae_u32 val)
 		cyberstorm_scsi_ram_put(addr, val);
 		return;
 	}
-	addr &= IO_MASK;
+	addr &= ncr->io_mask;
 	lsi_mmio_write(ncr->devobject.lsistate, beswap(addr), val, 1);
 }
 
 static void ncr710_io_bput(struct ncr_state *ncr, uaecptr addr, uae_u32 val)
 {
-	addr &= IO_MASK;
+	addr &= ncr->io_mask;
 	lsi710_mmio_write(ncr->devobject.lsistate, beswap(addr), val, 1);
 }
 
@@ -444,7 +444,7 @@ void cpuboard_ncr710_io_bput(uaecptr addr, uae_u32 v)
 void cpuboard_ncr720_io_bput(uaecptr addr, uae_u32 v)
 {
 	struct ncr_state *ncr = ncr_cpuboard;
-	addr &= IO_MASK;
+	addr &= ncr->io_mask;
 	lsi_mmio_write(ncr->devobject.lsistate, beswap(addr), v, 1);
 }
 
@@ -503,14 +503,14 @@ static uae_u32 ncr_io_bget(struct ncr_state *ncr, uaecptr addr)
 {
 	if (addr >= CYBERSTORM_SCSI_RAM_OFFSET && ncr->ramsize)
 		return cyberstorm_scsi_ram_get(addr);
-	addr &= IO_MASK;
-	return lsi_mmio_read(ncr->devobject.lsistate, beswap(addr), 1);
+	addr &= ncr->io_mask;
+	return (uae_u32)lsi_mmio_read(ncr->devobject.lsistate, beswap(addr), 1);
 }
 
 static uae_u32 ncr710_io_bget(struct ncr_state *ncr, uaecptr addr)
 {
-	addr &= IO_MASK;
-	return lsi710_mmio_read(ncr->devobject.lsistate, beswap(addr), 1);
+	addr &= ncr->io_mask;
+	return (uae_u32)lsi710_mmio_read(ncr->devobject.lsistate, beswap(addr), 1);
 }
 
 uae_u32 cpuboard_ncr710_io_bget(uaecptr addr)
@@ -521,8 +521,8 @@ uae_u32 cpuboard_ncr710_io_bget(uaecptr addr)
 uae_u32 cpuboard_ncr720_io_bget(uaecptr addr)
 {
 	struct ncr_state *ncr = ncr_cpuboard;
-	addr &= IO_MASK;
-	return lsi_mmio_read(ncr->devobject.lsistate, beswap(addr), 1);
+	addr &= ncr->io_mask;
+	return (uae_u32)lsi_mmio_read(ncr->devobject.lsistate, beswap(addr), 1);
 }
 
 static bool isncrboard(struct ncr_state *ncr, struct ncr_state **ncrb)
@@ -839,14 +839,32 @@ static void ncr_init_board(struct ncr_state *ncr)
 		else
 			lsi710_scsi_init (&ncr->devobject);
 	}
-	if (ncr->newncr)
+	if (ncr->newncr) {
+		ncr->io_mask = 0x7f;
 		lsi_scsi_reset(&ncr->devobject, ncr);
-	else
-		lsi710_scsi_reset (&ncr->devobject, ncr);
+	} else {
+		ncr->io_mask = 0x3f;
+		lsi710_scsi_reset(&ncr->devobject, ncr);
+	}
 	ncr->board_mask = 0xffff;
 	ncr->irq_func = set_irq2;
 	ncr->bank = &ncr_bank_generic;
 	ncr->configured = 0;
+}
+
+static void ncr_free(void)
+{
+	for (int i = 0; i < MAX_NCR_UNITS; i++) {
+		freencrunit(ncr_units[i]);
+	}
+}
+
+static void ncr_reset_board(struct ncr_state *ncr);
+void ncr_reset(int hardreset)
+{
+	for (int i = 0; i < MAX_NCR_UNITS; i++) {
+		ncr_reset_board(ncr_units[i]);
+	}
 }
 
 static void ncr_reset_board (struct ncr_state *ncr)
@@ -854,6 +872,11 @@ static void ncr_reset_board (struct ncr_state *ncr)
 	if (!ncr)
 		return;
 	ncr->irq = false;
+
+	device_add_rethink(ncr_rethink);
+	device_add_exit(ncr_free, NULL);
+	device_add_vsync_pre(ncr_vsync);
+	device_add_reset(ncr_reset);
 }
 
 // 01010040
@@ -869,6 +892,7 @@ static const uae_u8 warpengine_a4000_autoconfig[16] = {
 bool ncr710_warpengine_autoconfig_init(struct autoconfig_info *aci)
 {
 	aci->autoconfigp = warpengine_a4000_autoconfig;
+	device_add_reset(ncr_reset);
 	if (!aci->doinit)
 		return true;
 
@@ -886,6 +910,7 @@ bool ncr710_warpengine_autoconfig_init(struct autoconfig_info *aci)
 	ncr->rom_end = WARP_ENGINE_ROM_SIZE * 4;
 	ncr->io_start = WARP_ENGINE_IO_OFFSET;
 	ncr->io_end = WARP_ENGINE_IO_END;
+	ncr->io_mask = 0x7f;
 
 	for (int i = 0; i < 16; i++) {
 		uae_u8 b = warpengine_a4000_autoconfig[i];
@@ -925,8 +950,13 @@ bool ncr710_a4091_autoconfig_init (struct autoconfig_info *aci)
 	if (z) {
 		rom = xcalloc(uae_u8, A4091_ROM_SIZE * 4);
 		for (int i = 0; i < A4091_ROM_SIZE; i++) {
-			uae_u8 b;
-			zfile_fread(&b, 1, 1, z);
+			uae_u8 b = 0xff;
+			if (zfile_fread(&b, 1, 1, z) == 0) {
+				if (i == 32768) {
+					zfile_fseek(z, 0, SEEK_SET);
+					zfile_fread(&b, 1, 1, z);
+				}
+			}
 			rom[i * 4 + 0] = b | 0x0f;
 			rom[i * 4 + 1] = 0xff;
 			rom[i * 4 + 2] = (b << 4) | 0x0f;
@@ -940,14 +970,17 @@ bool ncr710_a4091_autoconfig_init (struct autoconfig_info *aci)
 		zfile_fclose(z);
 	}
 
+	device_add_reset(ncr_reset);
 	if (!aci->doinit) {
 		xfree(rom);
 		return true;
 	}
 
 	struct ncr_state *ncr = getscsi(aci->rc);
-	if (!ncr)
+	if (!ncr) {
+		xfree(rom);
 		return false;
+	}
 
 	xfree(ncr->rom);
 	ncr->rom = rom;
@@ -959,6 +992,7 @@ bool ncr710_a4091_autoconfig_init (struct autoconfig_info *aci)
 	ncr->rom_end = A4091_IO_OFFSET;
 	ncr->io_start = A4091_IO_OFFSET;
 	ncr->io_end = A4091_IO_END;
+	ncr->io_mask = 0x3f;
 
 	ncr_reset_board(ncr);
 
@@ -973,6 +1007,7 @@ static const uae_u8 zeus040_autoconfig[16] = {
 bool ncr710_zeus040_autoconfig_init(struct autoconfig_info *aci)
 {
 	aci->autoconfigp = zeus040_autoconfig;
+	device_add_reset(ncr_reset);
 	if (!aci->doinit)
 		return true;
 
@@ -990,6 +1025,7 @@ bool ncr710_zeus040_autoconfig_init(struct autoconfig_info *aci)
 	ncr->rom_end = 0x10000;
 	ncr->io_start = 0x4000;
 	ncr->io_end = 0x8000;
+	ncr->io_mask = 0x7f;
 
 	for (int i = 0; i < 16; i++) {
 		uae_u8 b = zeus040_autoconfig[i];
@@ -1008,6 +1044,7 @@ bool ncr710_zeus040_autoconfig_init(struct autoconfig_info *aci)
 
 bool ncr710_magnum40_autoconfig_init(struct autoconfig_info *aci)
 {
+	device_add_reset(ncr_reset);
 	if (!aci->doinit) {
 		load_rom_rc(aci->rc, ROMTYPE_CB_MAGNUM40, 65536, 0, aci->autoconfig_raw, 128, 0);
 		return true;
@@ -1027,7 +1064,7 @@ bool ncr710_magnum40_autoconfig_init(struct autoconfig_info *aci)
 	ncr->rom_end = 0x8000;
 	ncr->io_start = 0x8000;
 	ncr->io_end = 0x9000;
-
+	ncr->io_mask = 0x7f;
 
 	ncr->rom = xcalloc(uae_u8, 32768);
 	load_rom_rc(aci->rc, ROMTYPE_CB_MAGNUM40, 65536, 0, ncr->rom, 32768, 0);
@@ -1039,23 +1076,32 @@ bool ncr710_magnum40_autoconfig_init(struct autoconfig_info *aci)
 	return true;
 }
 
-void ncr_free(void)
+bool ncr710_draco_init(struct autoconfig_info *aci)
 {
-	for (int i = 0; i < MAX_NCR_UNITS; i++) {
-		freencrunit(ncr_units[i]);
+#ifdef WITH_DRACO
+	device_add_reset(ncr_reset);
+	if (!aci->doinit) {
+		return true;
 	}
+
+	struct ncr_state *ncr = getscsi(aci->rc);
+	if (!ncr)
+		return false;
+
+	ncr->enabled = true;
+	ncr->io_start = 0;
+	ncr->io_end = 0xffff;
+	ncr->io_mask = 0x7f;
+
+	ncr_reset_board(ncr);
+
+	aci->addrbank = &ncr_bank_generic;
+	return true;
+#else
+	return false;
+#endif
 }
 
-void ncr_init(void)
-{
-}
-
-void ncr_reset(void)
-{
-	for (int i = 0; i < MAX_NCR_UNITS; i++) {
-		ncr_reset_board(ncr_units[i]);
-	}
-}
 
 static void allocscsidevice(struct ncr_state *ncr, int ch, struct scsi_data *handle, int uae_unitnum)
 {
@@ -1204,6 +1250,18 @@ void magnum40_add_scsi_unit(int ch, struct uaedev_config_info *ci, struct romcon
 	ncr_magnum40->irq_func = set_irq6;
 	ncr_magnum40->irqlevel = true;
 	ncr_magnum40->z2 = true;
+}
+
+extern void draco_set_scsi_irq(int, int);
+
+void draco_add_scsi_unit(int ch, struct uaedev_config_info *ci, struct romconfig *rc)
+{
+#ifdef WITH_DRACO
+	ncr_add_scsi_unit(&ncr_cpuboard, ch, ci, rc, false);
+	ncr_cpuboard->irq_func = draco_set_scsi_irq;
+	ncr_cpuboard->irqlevel = true;
+	ncr_cpuboard->bank = &ncr_bank_generic;
+#endif
 }
 
 #endif

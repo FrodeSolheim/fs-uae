@@ -15,7 +15,7 @@
 #include <stddef.h>
 
 #include "options.h"
-#include "uae/memory.h"
+#include "memory.h"
 #include "custom.h"
 #include "newcpu.h"
 #include "autoconf.h"
@@ -25,13 +25,11 @@
 #include "native2amiga.h"
 #include "debug.h"
 
-#ifdef FSUAE // NL
+#ifdef FSUAE
 #if defined(WINDOWS) && !defined(_WIN32)
 #define _WIN32
 #endif
-#endif
 
-#ifdef FSUAE //NL
 /*
 FIXME: there is something strange here:
 For example, there is:
@@ -42,6 +40,7 @@ Bit iotextptrs are never initialized. Instead, there this this initalization usi
         errnotextptrs[i] = addstr (&tmp1, errortexts[i]);
 */
 #endif
+
 #ifdef BSDSOCKET
 
 #define NEWTRAP 1
@@ -89,7 +88,7 @@ uae_u32 addstr(TrapContext *ctx, uae_u32 * dst, const TCHAR *src)
 	uae_u32 res = *dst;
 	int len;
 	char *s = ua(src);
-	len = strlen(s) + 1;
+	len = uaestrlen(s) + 1;
 	if (trap_is_indirect()) {
 		trap_put_bytes(ctx, dst, res, len);
 	} else {
@@ -103,7 +102,7 @@ uae_u32 addstr_ansi(TrapContext *ctx, uae_u32 * dst, const uae_char *src)
 {
 	uae_u32 res = *dst;
 	int len;
-	len = strlen (src) + 1;
+	len = uaestrlen (src) + 1;
 	if (trap_is_indirect()) {
 		trap_put_bytes(ctx, dst, res, len);
 	} else {
@@ -1454,6 +1453,8 @@ static uae_u32 strErrptr, strReleaseVer;
 #define SBTC_ERRNOLONGPTR   24
 #define SBTC_HERRNOLONGPTR  25
 #define SBTC_RELEASESTRPTR  29
+#define SBTC_GET_BYTES_RECEIVED 64
+#define SBTC_GET_BYTES_SENT 65
 
 #define LOG_FACMASK     0x03f8
 
@@ -1705,6 +1706,21 @@ static uae_u32 REGPARAM2 bsdsocklib_SocketBaseTagList(TrapContext *ctx)
 						tagcopy(ctx, currtag, currval, tagptr, &strReleaseVer);
 					}
 					break;
+				case SBTC_GET_BYTES_RECEIVED:
+					BSDTRACE ((_T("SBTC_GET_BYTES_RECEIVED),%08x"), currval));
+					if ((currtag & 0x8001) == 0x8000) { /* SBTM_GETREF */
+						trap_put_long(ctx, currval + 0, sb->bytesreceived >> 32);
+						trap_put_long(ctx, currval + 4, sb->bytesreceived >> 0);
+					}
+					break;
+				case SBTC_GET_BYTES_SENT:
+					BSDTRACE ((_T("SBTC_GET_BYTES_SENT),%08x"), currval));
+					if ((currtag & 0x8001) == 0x8000) { /* SBTM_GETREF */
+						trap_put_long(ctx, currval + 0, sb->bytestransmitted >> 32);
+						trap_put_long(ctx, currval + 4, sb->bytestransmitted >> 0);
+					}
+					break;
+
 				default:
 					write_log (_T("bsdsocket: WARNING: Unsupported tag type (%08x=%d) in SocketBaseTagList(%x)\n"),
 						currtag, (currtag / 2) & SBTS_CODE, trap_get_areg(ctx, 0));
@@ -1809,15 +1825,15 @@ static uae_u32 REGPARAM2 bsdsocklib_init(TrapContext *ctx)
 	_stprintf(verStr, _T("UAE %d.%d.%d"), UAEMAJOR, UAEMINOR, UAESUBREV);
 	tmp1 = 0;
 	for (i = number_sys_error; i--;)
-		tmp1 += _tcslen (errortexts[i]) + 1;
+		tmp1 += uaetcslen (errortexts[i]) + 1;
 	for (i = number_host_error; i--;)
-		tmp1 += _tcslen (herrortexts[i]) + 1;
+		tmp1 += uaetcslen (herrortexts[i]) + 1;
 	for (i = number_sana2io_error; i--;)
-		tmp1 += _tcslen (sana2io_errlist[i]) + 1;
+		tmp1 += uaetcslen (sana2io_errlist[i]) + 1;
 	for (i = number_sana2wire_error; i--;)
-		tmp1 += _tcslen (sana2wire_errlist[i]) + 1;
-	tmp1 += _tcslen(strErr) + 1;
-	tmp1 += _tcslen(verStr) + 1;
+		tmp1 += uaetcslen (sana2wire_errlist[i]) + 1;
+	tmp1 += uaetcslen(strErr) + 1;
+	tmp1 += uaetcslen(verStr) + 1;
 
 #if NEWTRAP
 	trap_call_add_dreg(ctx, 0, tmp1);

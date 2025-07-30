@@ -2,11 +2,13 @@
  * ProWizard PC include file
 */
 
-/* for htonl */
+#ifdef FSUAE
+// for htonl
 #ifdef _WIN32
 #include <Winsock2.h>
 #else
 #include <arpa/inet.h>
+#endif
 #endif
 
 #include <stdio.h>

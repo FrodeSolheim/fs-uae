@@ -1,5 +1,6 @@
 #include "ibm.h"
 
+#include "device.h"
 #include "dma.h"
 #include "fdc.h"
 #include "io.h"
@@ -432,6 +433,7 @@ void dma16_write(uint16_t addr, uint8_t val, void *priv)
         }
 }
 
+
 static
 void dma_page_write(uint16_t addr, uint8_t val, void *priv)
 {
@@ -501,6 +503,7 @@ void ps2_dma_init()
         io_sethandler(0x001a, 0x0001, dma_ps2_read,  NULL, NULL, dma_ps2_write,  NULL, NULL,  NULL);
         dma_ps2.is_ps2 = 1;
 }
+
 
 static
 uint8_t _dma_read(uint32_t addr)

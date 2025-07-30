@@ -1046,6 +1046,7 @@ void FUNCTION_NAME(tms340x0_device::pixblt)(int src_is_linear, int dst_is_linear
 
 			/* fetch the initial source word */
 			srcword = (this->*word_read)(*m_program, srcwordaddr++ << 1);
+			//srcword &= m_plane_mask_inv;
 			readwrites++;
 
 			/* fetch the initial dest word */
@@ -1065,6 +1066,7 @@ void FUNCTION_NAME(tms340x0_device::pixblt)(int src_is_linear, int dst_is_linear
 				if (srcbit + BITS_PER_PIXEL > 16)
 				{
 					srcword |= (this->*word_read)(*m_program, srcwordaddr++ << 1) << 16;
+					//srcword &= m_plane_mask_inv;
 					readwrites++;
 				}
 
@@ -1096,6 +1098,7 @@ void FUNCTION_NAME(tms340x0_device::pixblt)(int src_is_linear, int dst_is_linear
 				dstbit += BITS_PER_PIXEL;
 				if (dstbit > 16)
 				{
+					if (m_plane_mask) dstword = do_plane_masking((this->*word_read)(*m_program, dstwordaddr << 1), dstword);
 					(this->*word_write)(*m_program, dstwordaddr++ << 1, dstword);
 					readwrites++;
 					dstbit -= 16;
@@ -1115,6 +1118,7 @@ void FUNCTION_NAME(tms340x0_device::pixblt)(int src_is_linear, int dst_is_linear
 					readwrites++;
 				}
 
+				if (m_plane_mask) dstword = do_plane_masking((this->*word_read)(*m_program, dstwordaddr << 1), dstword);
 				(this->*word_write)(*m_program, dstwordaddr++ << 1, dstword);
 				readwrites++;
 			}
@@ -1417,6 +1421,7 @@ if ((daddr & (BITS_PER_PIXEL - 1)) != 0) osd_printf_debug("PIXBLT_R%d with odd d
 
 			/* fetch the initial source word */
 			srcword = (this->*word_read)(*m_program, --swordaddr << 1);
+			//srcword &= m_plane_mask_inv;
 			srcmask = PIXEL_MASK << ((saddr - BITS_PER_PIXEL) & 15);
 
 			/* handle the right partial word */
@@ -1433,6 +1438,7 @@ if ((daddr & (BITS_PER_PIXEL - 1)) != 0) osd_printf_debug("PIXBLT_R%d with odd d
 					if (srcmask == 0)
 					{
 						srcword = (this->*word_read)(*m_program, --swordaddr << 1);
+						//srcword &= m_plane_mask_inv;
 						srcmask = PIXEL_MASK << (16 - BITS_PER_PIXEL);
 					}
 
@@ -1459,6 +1465,7 @@ if ((daddr & (BITS_PER_PIXEL - 1)) != 0) osd_printf_debug("PIXBLT_R%d with odd d
 				}
 
 				/* write the result */
+				if (m_plane_mask) dstword = do_plane_masking((this->*word_read)(*m_program, dwordaddr << 1), dstword);
 				(this->*word_write)(*m_program, dwordaddr << 1, dstword);
 			}
 
@@ -1480,6 +1487,7 @@ if ((daddr & (BITS_PER_PIXEL - 1)) != 0) osd_printf_debug("PIXBLT_R%d with odd d
 					if (srcmask == 0)
 					{
 						srcword = (this->*word_read)(*m_program, --swordaddr << 1);
+						//srcword &= m_plane_mask_inv;
 						srcmask = PIXEL_MASK << (16 - BITS_PER_PIXEL);
 					}
 
@@ -1506,6 +1514,7 @@ if ((daddr & (BITS_PER_PIXEL - 1)) != 0) osd_printf_debug("PIXBLT_R%d with odd d
 				}
 
 				/* write the result */
+				if (m_plane_mask) dstword = do_plane_masking((this->*word_read)(*m_program, dwordaddr << 1), dstword);
 				(this->*word_write)(*m_program, dwordaddr << 1, dstword);
 			}
 
@@ -1523,6 +1532,7 @@ if ((daddr & (BITS_PER_PIXEL - 1)) != 0) osd_printf_debug("PIXBLT_R%d with odd d
 					if (srcmask == 0)
 					{
 						srcword = (this->*word_read)(*m_program, --swordaddr << 1);
+						//srcword &= m_plane_mask_inv;
 						srcmask = PIXEL_MASK << (16 - BITS_PER_PIXEL);
 					}
 
@@ -1549,6 +1559,7 @@ if ((daddr & (BITS_PER_PIXEL - 1)) != 0) osd_printf_debug("PIXBLT_R%d with odd d
 				}
 
 				/* write the result */
+				if (m_plane_mask) dstword = do_plane_masking((this->*word_read)(*m_program, dwordaddr << 1), dstword);
 				(this->*word_write)(*m_program, dwordaddr << 1, dstword);
 			}
 
@@ -1675,6 +1686,7 @@ void FUNCTION_NAME(tms340x0_device::pixblt_b)(int dst_is_linear)
 
 			/* fetch the initial source word */
 			srcword = (this->*word_read)(*m_program, swordaddr++ << 1);
+			//srcword &= m_plane_mask_inv;
 			srcmask = 1 << (saddr & 15);
 
 			/* handle the left partial word */
@@ -1699,6 +1711,7 @@ void FUNCTION_NAME(tms340x0_device::pixblt_b)(int dst_is_linear)
 					if (srcmask == 0)
 					{
 						srcword = (this->*word_read)(*m_program, swordaddr++ << 1);
+						//srcword &= m_plane_mask_inv;
 						srcmask = 0x0001;
 					}
 
@@ -1707,6 +1720,7 @@ void FUNCTION_NAME(tms340x0_device::pixblt_b)(int dst_is_linear)
 				}
 
 				/* write the result */
+				if (m_plane_mask) dstword = do_plane_masking((this->*word_read)(*m_program, dwordaddr << 1), dstword);
 				(this->*word_write)(*m_program, dwordaddr++ << 1, dstword);
 			}
 
@@ -1735,6 +1749,7 @@ void FUNCTION_NAME(tms340x0_device::pixblt_b)(int dst_is_linear)
 					if (srcmask == 0)
 					{
 						srcword = (this->*word_read)(*m_program, swordaddr++ << 1);
+						//srcword &= m_plane_mask_inv;
 						srcmask = 0x0001;
 					}
 
@@ -1743,6 +1758,7 @@ void FUNCTION_NAME(tms340x0_device::pixblt_b)(int dst_is_linear)
 				}
 
 				/* write the result */
+				if (m_plane_mask) dstword = do_plane_masking((this->*word_read)(*m_program, dwordaddr << 1), dstword);
 				(this->*word_write)(*m_program, dwordaddr++ << 1, dstword);
 			}
 
@@ -1768,6 +1784,7 @@ void FUNCTION_NAME(tms340x0_device::pixblt_b)(int dst_is_linear)
 					if (srcmask == 0)
 					{
 						srcword = (this->*word_read)(*m_program, swordaddr++ << 1);
+						//srcword &= m_plane_mask_inv;
 						srcmask = 0x0001;
 					}
 
@@ -1776,6 +1793,7 @@ void FUNCTION_NAME(tms340x0_device::pixblt_b)(int dst_is_linear)
 				}
 
 				/* write the result */
+				if (m_plane_mask) dstword = do_plane_masking((this->*word_read)(*m_program, dwordaddr << 1), dstword);
 				(this->*word_write)(*m_program, dwordaddr++ << 1, dstword);
 			}
 
@@ -1907,6 +1925,7 @@ void FUNCTION_NAME(tms340x0_device::fill)(int dst_is_linear)
 				}
 
 				/* write the result */
+				if (m_plane_mask) dstword = do_plane_masking((this->*word_read)(*m_program, dwordaddr << 1), dstword);
 				(this->*word_write)(*m_program, dwordaddr++ << 1, dstword);
 			}
 
@@ -1934,6 +1953,7 @@ void FUNCTION_NAME(tms340x0_device::fill)(int dst_is_linear)
 				}
 
 				/* write the result */
+				if (m_plane_mask) dstword = do_plane_masking((this->*word_read)(*m_program, dwordaddr << 1), dstword);
 				(this->*word_write)(*m_program, dwordaddr++ << 1, dstword);
 			}
 
@@ -1958,6 +1978,7 @@ void FUNCTION_NAME(tms340x0_device::fill)(int dst_is_linear)
 				}
 
 				/* write the result */
+				if (m_plane_mask) dstword = do_plane_masking((this->*word_read)(*m_program, dwordaddr << 1), dstword);
 				(this->*word_write)(*m_program, dwordaddr++ << 1, dstword);
 			}
 

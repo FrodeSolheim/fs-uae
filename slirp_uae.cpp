@@ -1,7 +1,8 @@
+
+#include "sysconfig.h"
 #ifdef _WIN32
 #include "Winsock2.h"
 #endif
-#include "sysconfig.h"
 #include "sysdeps.h"
 
 #ifdef WITH_SLIRP
@@ -45,7 +46,7 @@ static int uae_slirp_log_level = UAE_LOG_INFO;
 
 #include "uae/time.h"
 
-#include "../slirp/src/libslirp.h"
+#include "od-fs/slirp/src/libslirp.h"
 
 void uae_slirp_output(const uint8_t *pkt, int pkt_len);
 
@@ -267,7 +268,7 @@ static volatile int slirp_thread_active;
 static uae_thread_id slirp_tid;
 extern uae_sem_t slirp_sem2;
 
-static void *slirp_receive_func(void *arg)
+static void slirp_receive_func(void *arg)
 {
 	uae_slirp_log("Slirp polling thread started\n");
 	slirp_thread_active = 1;
@@ -301,7 +302,7 @@ static void *slirp_receive_func(void *arg)
 	}
 	slirp_thread_active = -1;
 	uae_slirp_log("Slirp polling thread ended\n");
-	return 0;
+	return;
 }
 
 #else
@@ -333,11 +334,7 @@ static Implementation impl;
 
 static Implementation check_conf(Implementation check)
 {
-#ifdef FSUAE
-	int conf = currprefs.slirp_implementation;
-#else
 	int conf = AUTO_IMPLEMENTATION;
-#endif
 	if (conf == AUTO_IMPLEMENTATION || conf == check) {
 		return check;
 	}
@@ -522,7 +519,9 @@ void uae_slirp_input(const uint8_t *pkt, int pkt_len)
 
 void uae_slirp_output(const uint8_t *pkt, int pkt_len)
 {
-	uae_slirp_log_debug(_T("uae_slirp_output pkt_len %d\n"), pkt_len);
+#if 0
+	write_log(_T("uae_slirp_output pkt_len %d\n"), pkt_len);
+#endif
 	slirp_output(pkt, pkt_len);
 }
 
@@ -554,45 +553,52 @@ static volatile int slirp_thread_active;
 static uae_thread_id slirp_tid;
 extern uae_sem_t slirp_sem2;
 
-static void *slirp_receive_func(void *arg)
+static void slirp_receive_func(void *arg)
 {
 	slirp_thread_active = 1;
-	while (slirp_thread_active) {
-		// Wait for packets to arrive
+	while (slirp_thread_active == 1) {
 		fd_set rfds, wfds, xfds;
-		int nfds;
+		INT_PTR nfds;
 		int ret, timeout;
 
-		// ... in the output queue
 		nfds = -1;
 		FD_ZERO(&rfds);
 		FD_ZERO(&wfds);
 		FD_ZERO(&xfds);
-		uae_sem_wait (&slirp_sem2);
+
+		// Add timeout protection for semaphore acquisition
+		if (uae_sem_trywait_delay(&slirp_sem2, 500)) {
+			// Couldn't acquire semaphore within timeout
+			continue;
+		}
+
 		timeout = slirp_select_fill(&nfds, &rfds, &wfds, &xfds);
-		uae_sem_post (&slirp_sem2);
+		uae_sem_post(&slirp_sem2);
 		if (nfds < 0) {
 			/* Windows does not honour the timeout if there is not
 			   descriptor to wait for */
-			sleep_millis (timeout / 1000);
+			sleep_millis(timeout / 1000);
 			ret = 0;
 		} else {
 			struct timeval tv;
 			tv.tv_sec = 0;
 			tv.tv_usec = timeout;
-			ret = select(0, &rfds, &wfds, &xfds, &tv);
+			ret = select(nfds + 1, &rfds, &wfds, &xfds, &tv);
 			if (ret == SOCKET_ERROR) {
 				write_log(_T("SLIRP socket ERR=%d\n"), WSAGetLastError());
+				sleep_millis(10);
+				continue;
 			}
 		}
 		if (ret >= 0) {
-			uae_sem_wait (&slirp_sem2);
+			if (uae_sem_trywait_delay(&slirp_sem2, 500)) {
+				continue;
+			}
 			slirp_select_poll(&rfds, &wfds, &xfds);
-			uae_sem_post (&slirp_sem2);
+			uae_sem_post(&slirp_sem2);
 		}
 	}
 	slirp_thread_active = -1;
-	return 0;
 }
 
 int slirp_can_output(void)
@@ -630,7 +636,7 @@ bool uae_slirp_start (void)
 #endif
 }
 
-void uae_slirp_end (void)
+void uae_slirp_end(void)
 {
 	uae_slirp_log(_T("Slirp end\n"));
 #ifdef WITH_NEW_SLIRP
@@ -654,10 +660,18 @@ void uae_slirp_end (void)
 	if (impl == BUILTIN_IMPLEMENTATION) {
 		if (slirp_thread_active > 0) {
 			slirp_thread_active = 0;
-			while (slirp_thread_active == 0) {
-				sleep_millis (10);
+			// Use a proper timeout instead of infinite waiting
+			int wait_count = 0;
+			while (slirp_thread_active == 0 && wait_count < 100) {
+				sleep_millis(10);
+				wait_count++;
 			}
-			uae_end_thread (&slirp_tid);
+
+			// Force thread termination if it didn't exit cleanly
+			if (slirp_thread_active == 0) {
+				write_log(_T("SLIRP thread did not terminate properly, forcing exit\n"));
+			}
+			uae_end_thread(&slirp_tid);
 		}
 		slirp_thread_active = 0;
 		return;

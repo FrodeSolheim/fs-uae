@@ -1,3 +1,7 @@
+Version 5.0.0dev:
+
+*
+
 Version 4.0.x:
 
 * Allow overriding device names for hard drive directories.
@@ -15,6 +19,7 @@ Version 4.0.x:
 * Disabled some non-working shortcuts.
 
 Version 4.0.0dev:
+
 * New fsemu backend (work in progress).
 * Use RTLD_DEEPBIND with dlopen on Linux when loading plugins.
 * SCP floppy image doesn't wrap to revolution #0 cleanly [keirf].

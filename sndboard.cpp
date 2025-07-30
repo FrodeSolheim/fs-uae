@@ -26,14 +26,20 @@
 #include "devices.h"
 
 #define DEBUG_SNDDEV 0
+#define DEBUG_SNDDEV_READ 0
+#define DEBUG_SNDDEV_WRITE 0
 #define DEBUG_SNDDEV_FIFO 0
 
+static void snd_init(void);
+static void sndboard_rethink(void);
 static uae_u8 *sndboard_get_buffer(int *frames);
 static void sndboard_release_buffer(uae_u8 *buffer, int frames);
 static void sndboard_free_capture(void);
 static bool sndboard_init_capture(int freq);
+static void uaesndboard_reset(int hardreset);
+static void sndboard_reset(int hardreset);
 
-static double base_event_clock;
+static float base_event_clock;
 
 extern addrbank uaesndboard_bank_z2, uaesndboard_bank_z3;
 
@@ -55,24 +61,28 @@ struct uaesndboard_stream
 	int event_time;
 	uaecptr baseaddr;
 	uaecptr setaddr;
-	uaecptr address;
+	uaecptr address, original_address;
 	uaecptr next;
 	uaecptr repeat;
 	uaecptr indirect_ptr;
 	uaecptr indirect_address;
 	int indirect_len;
-	int len;
+	int lastlen;
+	int len, original_len;
 	int replen;
 	int repcnt;
-	bool first;
+	int first;
 	bool repeating;
 	uae_u8 chmode;
 	uae_s16 panx, pany;
 	uae_u8 intenamask;
 	uae_u8 intreqmask;
+	uae_u8 masterintenamask;
 	int framesize;
 	uae_u8 io[256];
 	uae_u16 wordlatch;
+	int timer_cnt;
+	int timer_event_time;
 	int sample[MAX_UAE_CHANNELS];
 };
 struct uaesndboard_data
@@ -82,6 +92,8 @@ struct uaesndboard_data
 	int configured;
 	uae_u32 streammask;
 	uae_u32 streamallocmask;
+	uae_u32 streamintenamask;
+	uae_u32 streamintreqmask;
 	uae_u8 acmemory[128];
 	int streamcnt;
 	int volume[MAX_UAE_CHANNELS];
@@ -117,17 +129,19 @@ static struct uaesndboard_data uaesndboard[MAX_DUPLICATE_SOUND_BOARDS];
 	12.L playback frequency in Hz * 256 (bits 8-27: integer part, bits 0 to 7 fractional part). In Paula periods if high word is FFFF (0xFFFFxxxx).
 	16.L repeat sample address pointer (Ignored if repeat address=0 and length=0)
 	20.L repeat sample length (negative=play backwards, 0 = repeat previous sample until length is updated.)
-	22.W repeat count (0=no repeat, -1=repeat forever)
-	24.W volume (0 to 32768)
-	26.L next sample set address (0=end, this was last set)
+	24.W repeat count (0=no repeat, -1=repeat forever)
+	26.W volume (0 to 32768)
+	28.L next sample set address (0=end, this was last set)
 	32.B number of channels. (interleaved samples if 2 or more channels)
-	33.B sample type (bit 0: bits per sample, 0=8,1=16, bit 6=signed, bit 7=little-endian)
+	33.B sample type (bit 0: bits per sample, 0=8,1=16,2=24,3=32 bit 6=signed, bit 7=little-endian)
 	34.B bit 0: interrupt when set starts, bit 1: interrupt when set ends (last sample played), bit 2: interrupt when repeat starts, bit 3: after each sample.
 	35.B if mono stream, bit mask that selects output channels. (0=default, redirect to left and right channels)
 	(Can be used for example when playing tracker modules by using 4 single channel streams)
 	stereo or higher: channel mode.
 	36.W horizontal panning (-32767 to 32767). Not yet implemented  Must be zero.
 	38.W front to back panning (-32767 to 32767). Not yet implemented. Must be zero.
+	40.L original address (RO)
+	44.L original length (RO)
 
 	Channel mode = 0
 
@@ -158,14 +172,16 @@ static struct uaesndboard_data uaesndboard[MAX_DUPLICATE_SOUND_BOARDS];
 	$0094.L size of RAM (or zero if no RAM)
 
 	$00E0.L allocated streams, bit mask. Hardware level stream allocation feature, use single test and set/clear instruction or
-		disable interrupts before allocating/freeing streams. If stream bit is not set, stream's address range is inactive.
-		byte access to $00E3 is also allowed.
+			disable interrupts before allocating/freeing streams. If stream bit is not set, stream's address range is inactive.
+			byte access to $00E3 is also allowed.
 
 	$00E4.L Stream latch bit. Write-only. Bit set = latch stream, bit not set = does nothing. ($00E6.W and $00E7.B also allowed)
 	$00E8.L Stream unlatch bit. Same behavior as $00E4.L. ($00EA.W and $00EB.B also allowed)
 
 	$00F0.L stream enable bit mask. RW. Can be used to start or stop multiple streams simultaneously. $00F3.B is also allowed.
-	Changing stream mask always clears stream's interrupt status register.
+			Changing stream mask always clears stream's interrupt status register.
+	$00F4.L stream master interrupt enable bit mask. RW.
+	$00F8.L stream master interrupt request bit mask. RO.
 
 	$0100 stream 1
 
@@ -175,13 +191,25 @@ static struct uaesndboard_data uaesndboard[MAX_DUPLICATE_SOUND_BOARDS];
 	$0184.B Reserved
 	$0185.B Reserved
 	$0186.B Reserved
-	$0187.B Interrupt status. 7: set when interrupt active. 0,1,2,3: same as 30.B bit, always set when condition matches,
-		even if 30.B bit is not set. If also 30.B bit is set: bit 7 set and interrupt is activated.
-		Reading clears interrupt. RO.
+	$0187.B Interrupt status. 7: set when interrupt active. 0,1,2,3: same as 34.B bit, always set when condition matches,
+			even if 34.B bit is not set. If also 34.B bit is set: bit 7 set and interrupt is activated.
+			bit 4 = timer interrupt. Reading clears interrupt. RO.
 	$0188.B Reserved
 	$0189.B Reserved
 	$018A.B Reserved
 	$018B.B Alternate interrupt status. Same as $187.B but reading does not clear interrupt. RO.
+	$018C.B Reserved
+	$018D.B Reserved
+	$018E.B Reserved
+	$018F.B Stream master interrupt enable (same bits as $0187.B)
+	$0190.B Reserved
+	$0191.B Reserved
+	$0192.B Reserved
+	$0193.B Status (Read: bit 0 = play active, bit 1 = output stream allocated, bit 2 = repeating, Write: reload sample set if not playing or repeating)
+	$0194.L Timer frequency (same format as 12.L), sets interrupt bit 4. Zero = disabled. WO.
+	$0198.L
+	$019C.L
+	$01a0.L Sample set pointer, force load. WO.
 
 	$0200 stream 2
 
@@ -198,7 +226,7 @@ static struct uaesndboard_data uaesndboard[MAX_DUPLICATE_SOUND_BOARDS];
 	68020+ aligned long accesses are always guaranteed safe.
 
 	Set structure is copied to emulator side internal address space when set starts.
-	This data can be always read and written in real time by accessing $0100-$011f space.
+	This data can be always read and written in real time by accessing $0100-$013f space.
 	Writes are nearly immediate, values are updated during next sample period.
 	(It probably is not a good idea to do on the fly change number of channels or bits per sample values..)
 
@@ -220,6 +248,8 @@ static struct uaesndboard_data uaesndboard[MAX_DUPLICATE_SOUND_BOARDS];
 
 	Hardware word and long accesses must be aligned (unaligned write is ignored, unaligned read will return 0xffff or 0xffffffff)
 
+	Timer is usable when stream is allocated. Active audio play is not required.
+
 */
 
 #define STREAM_STRUCT_SIZE 40
@@ -231,7 +261,7 @@ MEMORY_FUNCTIONS(uaesndboard_ram);
 addrbank uaesndboard_ram_bank = {
 	uaesndboard_ram_lget, uaesndboard_ram_wget, uaesndboard_ram_bget,
 	uaesndboard_ram_lput, uaesndboard_ram_wput, uaesndboard_ram_bput,
-	uaesndboard_ram_xlate, uaesndboard_ram_check, NULL, _T("*"), _T("USESND memory"),
+	uaesndboard_ram_xlate, uaesndboard_ram_check, NULL, _T("*"), _T("UAESND memory"),
 	uaesndboard_ram_lget, uaesndboard_ram_wget,
 	ABFLAG_RAM | ABFLAG_THREADSAFE, 0, 0
 };
@@ -243,10 +273,16 @@ static bool uaesnd_rethink(void)
 		struct uaesndboard_data *data = &uaesndboard[j];
 		if (data->enabled) {
 			for (int i = 0; i < MAX_UAE_STREAMS; i++) {
-				struct uaesndboard_stream *s = &uaesndboard[j].stream[i];
-				if (s->intreqmask & 0x80) {
-					irq = true;
-					break;
+				if (data->streamintenamask & (1 << i)) {
+					struct uaesndboard_stream *s = &uaesndboard[j].stream[i];
+					if (s->intreqmask & 0x80) {
+						data->streamintreqmask |= 1 << i;
+						irq = true;
+						break;
+					}
+				}
+				if (!irq) {
+					data->streamintreqmask &= ~(1 << i);
 				}
 			}
 		}
@@ -254,11 +290,53 @@ static bool uaesnd_rethink(void)
 	return irq;
 }
 
+static void uaesndboard_stop(struct uaesndboard_data *data, struct uaesndboard_stream *s)
+{
+	if (!s->play)
+		return;
+
+#if DEBUG_SNDDEV
+	write_log("UAESND %d: STOP\n", s - data->stream);
+#endif
+
+	s->play = 0;
+	s->next = 0;
+	data->streammask &= ~(1 << (s - data->stream));
+	audio_enable_stream(false, s->streamid, 0, NULL, NULL);
+	s->streamid = 0;
+	data->streamcnt--;
+}
+
+static void uaesndboard_maybe_alloc_stream(struct uaesndboard_data *data, struct uaesndboard_stream *s)
+{
+	if (!s->play)
+		return;
+	if (s->streamid > 0)
+		return;
+	if (s->event_time == MAX_EV || s->ch == 0) {
+		uaesndboard_stop(data, s);
+		return;
+	} else {
+		data->streamcnt++;
+		s->streamid = audio_enable_stream(true, -1, MAX_UAE_CHANNELS, audio_state_sndboard_uae, NULL);
+
+#if DEBUG_SNDDEV
+		write_log("UAESND %d: Stream allocated %d\n", s - data->stream, s->streamid);
+#endif
+
+		if (!s->streamid) {
+			uaesndboard_stop(data, s);
+		}
+	}
+}
+
 #define UAESND_MAX_FREQ 200000
 
-static void uaesnd_setfreq(struct uaesndboard_stream *s)
+static void uaesnd_setfreq(struct uaesndboard_data *data, struct uaesndboard_stream *s)
 {
-	if ((s->freq >> 16) == 0xffff) {
+	if (s->freq == 0) {
+		s->event_time = MAX_EV;
+	} else if ((s->freq >> 16) == 0xffff) {
 		s->event_time = s->freq & 65535;
 	} else {
 		if (s->freq < 1 * 256)
@@ -267,6 +345,7 @@ static void uaesnd_setfreq(struct uaesndboard_stream *s)
 			s->freq = UAESND_MAX_FREQ * 256;
 		s->event_time = (uae_s64)base_event_clock * CYCLE_UNIT * 256 / s->freq;
 	}
+	uaesndboard_maybe_alloc_stream(data, s);
 }
 
 static struct uaesndboard_stream *uaesnd_addr(uaecptr addr)
@@ -306,19 +385,9 @@ static struct uaesndboard_stream *uaesnd_get(uaecptr addr)
 	put_long_host(s->io + 0x80, s->setaddr);
 	put_long_host(s->io + 0x84, s->intreqmask);
 	put_long_host(s->io + 0x88, s->intreqmask);
+	put_long_host(s->io + 0x8c, s->masterintenamask);
 
 	return s;
-}
-
-static void uaesndboard_stop(struct uaesndboard_data *data, struct uaesndboard_stream *s)
-{
-	if (!s->play)
-		return;
-	s->play = 0;
-	data->streammask &= ~(1 << (s - data->stream));
-	audio_enable_stream(false, s->streamid, 0, NULL, NULL);
-	s->streamid = 0;
-	data->streamcnt--;
 }
 
 static void uaesndboard_start(struct uaesndboard_data *data, struct uaesndboard_stream *s)
@@ -329,16 +398,15 @@ static void uaesndboard_start(struct uaesndboard_data *data, struct uaesndboard_
 	if (!(data->streammask & (1 << (s - data->stream))))
 		return;
 
-	data->streamcnt++;
+#if DEBUG_SNDDEV
+	write_log("UAESND %d: PLAY\n", s - data->stream);
+#endif
+
 	s->play = 1;
 	for (int i = 0; i < MAX_UAE_CHANNELS; i++) {
 		s->sample[i] = 0;
 	}
-	uaesnd_setfreq(s);
-	s->streamid = audio_enable_stream(true, -1, MAX_UAE_CHANNELS, audio_state_sndboard_uae, NULL);
-	if (!s->streamid) {
-		uaesndboard_stop(data, s);
-	}
+	uaesnd_setfreq(data, s);
 }
 
 static bool get_indirect(struct uaesndboard_stream *s, uaecptr saddr)
@@ -359,32 +427,34 @@ static bool get_indirect(struct uaesndboard_stream *s, uaecptr saddr)
 	return true;
 }
 
-static bool uaesnd_validate(struct uaesndboard_stream *s)
+static bool uaesnd_validate(struct uaesndboard_data *data, struct uaesndboard_stream *s)
 {
 	int samplebits = (s->bitmode & 1) ? 16 : 8;
 
 	s->framesize = samplebits * s->ch / 8;
 
 	if (s->flags != 0) {
-		write_log(_T("UAESND: Flags must be zero\n"));
+		write_log(_T("UAESND: Flags must be zero (%08x)\n"), s->flags);
 		return false;
 	}
 	if (s->format != 0) {
-		write_log(_T("UAESND: Only format=0 supported\n"));
+		write_log(_T("UAESND: Only format=0 supported (%04x)\n"), s->format);
 		return false;
 	}
-	if (s->ch < 1 || s->ch > MAX_UAE_CHANNELS || s->ch == 3 || s->ch == 5 || s->ch == 7) {
+	if (s->ch < 0 || s->ch > MAX_UAE_CHANNELS || s->ch == 3 || s->ch == 5 || s->ch == 7) {
 		write_log(_T("UAESND: unsupported number of channels %d\n"), s->ch);
 		return false;
 	}
-	if ((s->freq >> 16) == 0xffff) {
-		if ((s->freq & 65535) == 0) {
-			write_log(_T("UAESND: zero period is not allowed\n"));
+	if (s->freq != 0) {
+		if ((s->freq >> 16) == 0xffff) {
+			if ((s->freq & 65535) == 0) {
+				write_log(_T("UAESND: zero period is not allowed\n"));
+				return false;
+			}
+		} else if (s->freq < 1 * 256 || s->freq > UAESND_MAX_FREQ * 256) {
+			write_log(_T("UAESND: unsupported frequency %d\n"), s->freq);
 			return false;
 		}
-	} else if (s->freq < 1 * 256 || s->freq > UAESND_MAX_FREQ * 256) {
-		write_log(_T("UAESND: unsupported frequency %d\n"), s->freq);
-		return false;
 	}
 	if (s->volume < 0 || s->volume > 32768) {
 		write_log(_T("UAESND: unsupported volume %d\n"), s->volume);
@@ -419,7 +489,7 @@ static bool uaesnd_validate(struct uaesndboard_stream *s)
 		write_log(_T("UAESND: Panning values must be zeros\n"));
 		return false;
 	}
-	uaesnd_setfreq(s);
+	uaesnd_setfreq(data, s);
 	for (int i = s->ch; i < MAX_UAE_CHANNELS; i++) {
 		s->sample[i] = 0;
 	}
@@ -444,55 +514,97 @@ static void uaesnd_load(struct uaesndboard_stream *s, uaecptr addr)
 	s->chmode =		get_byte(addr + 35);
 	s->panx =		get_word(addr + 36);
 	s->pany =		get_word(addr + 38);
+
+	if (s->len)
+		s->lastlen = s->len;
+
+	s->original_address = s->address;
+	s->original_len = s->len;
+	put_long_host(s->io + 40, s->original_address);
+	put_long_host(s->io + 44, s->original_len);
+
+#if DEBUG_SNDDEV
+	write_log(_T("PTR = %08x\n"), addr);
+	write_log(_T("Flags = %04x\n"), s->flags);
+	write_log(_T("Format = %04x\n"), s->format);
+	write_log(_T("Address = %08x\n"), s->address);
+	write_log(_T("Length = %08x\n"), s->len);
+	write_log(_T("Frequency = %d.%d\n"), s->freq >> 8, s->freq & 255);
+	write_log(_T("Repeat = %08x\n"), s->repeat);
+	write_log(_T("Replen = %08x\n"), s->replen);
+	write_log(_T("Repcnt = %04x\n"), s->repcnt);
+	write_log(_T("Volume = %04x\n"), s->volume);
+	write_log(_T("Next = %08x\n"), s->next);
+	write_log(_T("CH = %02x\n"), s->ch);
+	write_log(_T("Bitmode = %02x\n"), s->bitmode);
+	write_log(_T("Intena = %02x\n"), s->intenamask);
+	write_log(_T("CHmode = %02x\n"), s->chmode);
+	write_log(_T("PanX = %04x\n"), s->panx);
+	write_log(_T("PanY = %04x\n"), s->pany);
+#endif
 }
 
-static bool uaesnd_directload(struct uaesndboard_stream *s, int reg)
+static bool uaesnd_directload(struct uaesndboard_data *data, struct uaesndboard_stream *s, int reg)
 {
-	if (reg < 0 || reg == 4)
+	if (reg < 0 || reg == 4) {
 		s->address = get_long_host(s->io + 4);
-	if (reg < 0 || reg == 8)
+	}
+	if (reg < 0 || reg == 8) {
 		s->len = get_long_host(s->io + 8);
-	if (reg < 0 || reg == 12)
+		if (s->len)
+			s->lastlen = s->len;
+	}
+	if (reg < 0 || reg == 12) {
 		s->freq = get_long_host(s->io + 12);
-	if (reg < 0 || reg == 16)
+	}
+	if (reg < 0 || reg == 16) {
 		s->repeat = get_long_host(s->io + 16);
-	if (reg < 0 || reg == 20)
+	}
+	if (reg < 0 || reg == 20) {
 		s->replen = get_long_host(s->io + 20);
-	return uaesnd_validate(s);
+	}
+	return uaesnd_validate(data, s);
 }
 
-static bool uaesnd_next(struct uaesndboard_stream *s, uaecptr addr)
+static bool uaesnd_next(struct uaesndboard_data *data, struct uaesndboard_stream *s, uaecptr addr)
 {
-	if ((addr & 3) || !valid_address(addr, STREAM_STRUCT_SIZE)) {
+	if ((addr & 3) || !valid_address(addr, STREAM_STRUCT_SIZE) || addr < 0x100) {
 		write_log(_T("UAESND: invalid sample set pointer %08x\n"), addr);
 		return false;
 	}
 
 	s->setaddr = addr;
 	uaesnd_load(s, addr);
-	s->first = true;
+	s->first = 10;
 	s->repeating = false;
 
-	return uaesnd_validate(s);
+	return uaesnd_validate(data, s);
 }
 
-static void uaesnd_stream_start(struct uaesndboard_data *data, struct uaesndboard_stream *s)
+static void uaesnd_stream_start(struct uaesndboard_data *data, struct uaesndboard_stream *s, bool always)
 {
-	if (!s->play && s->next) {
+	if ((!s->play || always) && s->next) {
 		if (data->streammask & (1 << (s - data->stream))) {
-			if (uaesnd_next(s, s->next)) {
+#if DEBUG_SNDDEV
+			write_log(_T("UAESND %d start (old=%d,forced=%d,next=%08x)\n"), s - data->stream, s->play, always, s->next);
+#endif
+			if (uaesnd_next(data, s, s->next)) {
 				uaesndboard_start(data, s);
+				return;
 			}
 		}
-	} else if (s->play && !s->next) {
+	}
+	if (s->play && !s->next) {
 		uaesndboard_stop(data, s);
 	}
 }
 
 static void uaesnd_irq(struct uaesndboard_stream *s, uae_u8 mask)
 {
+	uae_u8 enablemask = s->masterintenamask;
+	uae_u8 intenamask = s->intenamask | 0x10 | 0x20 | 0x40;
 	s->intreqmask |= mask;
-	if ((s->intenamask & mask)) {
+	if ((intenamask & mask) && (enablemask & mask)) {
 		s->intreqmask |= 0x80;
 		devices_rethink_all(sndboard_rethink);
 	}
@@ -508,7 +620,7 @@ static void uaesnd_streammask(struct uaesndboard_data *data, uae_u32 m)
 			struct uaesndboard_stream *s = &data->stream[i];
 			s->intreqmask = 0;
 			if (data->streammask & (1 << i)) {
-				uaesnd_stream_start(data, s);
+				uaesnd_stream_start(data, s, false);
 			} else {
 				uaesndboard_stop(data, s);
 			}
@@ -530,7 +642,7 @@ static bool audio_state_sndboard_uae(int streamid, void *params)
 	if (!s)
 		return false;
 	int highestch = s->ch;
-	int streamnum = s - data->stream;
+	int streamnum = (int)(s - data->stream);
 	if (s->play && (data->streammask & (1 << streamnum))) {
 		uaecptr addr;
 		int len;
@@ -541,7 +653,7 @@ static bool audio_state_sndboard_uae(int streamid, void *params)
 			len = s->repeating ? s->replen : s->len;
 			addr = s->repeating ? s->repeat : s->address;
 		}
-		bool bit16 = (s->bitmode & 1) != 0;
+		int st = (s->bitmode & 7);
 		bool le = (s->bitmode & 0x80) != 0;
 		bool sign = (s->bitmode & 0x40) != 0;
 		bool len_nonzero = len != 0;
@@ -550,16 +662,28 @@ static bool audio_state_sndboard_uae(int streamid, void *params)
 				addr -= s->framesize;
 			for (int i = 0; i < s->ch; i++) {
 				uae_u16 sample = 0;
-				if (bit16) {
+				switch (st)
+				{
+				case 3: // 32-bit (last 2 bytes ignored)
+					sample = get_word(le ? (addr + 2) : (addr + 0));
+					addr += 4;
+					break;
+				case 2: // 24-bit (last byte ignored)
+					sample = get_word(le ? (addr + 1) : (addr + 0));
+					addr += 3;
+					break;
+				case 1: // 16-bit
 					sample = get_word(addr);
-					if (le)
-						sample = (sample >> 8) | (sample << 8);
 					addr += 2;
-				} else {
+					break;
+				case 0: // 8-bit
 					sample = get_byte(addr);
 					sample = (sample << 8) | sample;
 					addr += 1;
+					break;
 				}
+				if (le)
+					sample = (sample >> 8) | (sample << 8);
 				if (sign)
 					sample -= 0x8000;
 				uae_s16 samples = (uae_s16)sample;
@@ -592,9 +716,11 @@ static bool audio_state_sndboard_uae(int streamid, void *params)
 			}
 			uaesnd_irq(s, 8);
 		}
-		if (s->first) {
-			uaesnd_irq(s, 1);
-			s->first = false;
+		if (s->first > 0) {
+			s->first--;
+			if (!s->first) {
+				uaesnd_irq(s, 1);
+			}
 		}
 		// if len was zero when called: do nothing.
 		if (len == 0 && len_nonzero) {
@@ -604,7 +730,16 @@ static bool audio_state_sndboard_uae(int streamid, void *params)
 				if (s->repcnt != 0xffff)
 					s->repcnt--;
 				s->repeat = get_long(s->setaddr + 16);
-				s->replen = get_long(s->setaddr + 20);
+				if (s->repeat) {
+					s->replen = get_long(s->setaddr + 20);
+					if (s->replen == 0) {
+						s->replen = s->lastlen;
+					} else {
+						s->lastlen = s->replen;
+					}
+				} else {
+					s->repeat = 0;
+				}
 				s->repeating = true;
 				uaesnd_irq(s, 4);
 				end = false;
@@ -614,7 +749,7 @@ static bool audio_state_sndboard_uae(int streamid, void *params)
 					uaesndboard_stop(data, s);
 				}
 				if (!s->indirect_address) {
-					s->indirect_ptr = 0;
+					s->indirect_ptr = NULL;
 				}
 			}
 			if (end) {
@@ -622,7 +757,7 @@ static bool audio_state_sndboard_uae(int streamid, void *params)
 				uaesnd_irq(s, 2);
 				s->next = get_long(s->setaddr + 28);
 				if (s->next) {
-					if (!uaesnd_next(s, s->next)) {
+					if (!uaesnd_next(data, s, s->next)) {
 						uaesndboard_stop(data, s);
 					}
 				} else {
@@ -633,7 +768,7 @@ static bool audio_state_sndboard_uae(int streamid, void *params)
 	}
 	if (s->ch == 1 && s->chmode) {
 		int smp = s->sample[0];
-		for (int i = 0; i < MAX_UAE_CHANNELS; i++) {
+		for (int i = 1; i < MAX_UAE_CHANNELS; i++) {
 			if ((1 << i) & s->chmode) {
 				s->sample[i] = smp;
 				if (i > highestch)
@@ -660,7 +795,7 @@ static bool audio_state_sndboard_uae(int streamid, void *params)
 		s->sample[6] = c;
 		s->sample[7] = lfe;
 	}
-	audio_state_stream_state(s->streamid, s->sample, highestch, s->event_time);
+	audio_state_stream_state(streamid, s->sample, highestch, s->event_time);
 	return true;
 }
 
@@ -671,7 +806,7 @@ static void uaesnd_latch(struct uaesndboard_data *data, struct uaesndboard_strea
 static void uaesnd_latch_back(struct uaesndboard_data *data, struct uaesndboard_stream *s)
 {
 	memcpy(s->io + 0x00, s->io + 0x40, 0x40);
-	if (!uaesnd_directload(s, -1)) {
+	if (!uaesnd_directload(data, s, -1)) {
 		uaesndboard_stop(data, s);
 	} else if (!s->play) {
 		uaesndboard_start(data, s);
@@ -696,14 +831,70 @@ static void uaesnd_unlatch_mask(struct uaesndboard_data *data, uae_u32 mask)
 	}
 }
 
+static int uaesnd_timer_period(uae_u32 v)
+{
+	if (v == 0) {
+		v = 0;
+	} else if ((v >> 16) == 0xffff) {
+		v = v & 65535;
+	} else {
+		v = (int)(((uae_s64)base_event_clock * CYCLE_UNIT * 256) / v);
+	}
+	return v;
+}
+
+static void uaesnd_timer(uae_u32 v)
+{
+	struct uaesndboard_data *data = &uaesndboard[v >> 16];
+	struct uaesndboard_stream *s = &data->stream[v & 65535];
+	s->timer_cnt = get_long_host(s->io + 0x94);
+	if (s->timer_cnt > 0 && data->enabled) {
+		s->timer_event_time = uaesnd_timer_period(s->timer_cnt);
+		if (s->timer_event_time > 0) {
+			event2_newevent_xx(-1, s->timer_event_time, (int)(s - &data->stream[0]), uaesnd_timer);
+			uaesnd_irq(s, 0x10);
+		}
+	}
+}
+
 static void uaesnd_put(struct uaesndboard_data *data, struct uaesndboard_stream *s, int reg)
 {
 	if (reg == 0x80) { // set pointer write?
 		uaecptr setaddr = get_long_host(s->io + 0x80);
 		s->next = setaddr;
-		uaesnd_stream_start(data, s);
-	} else {
-		if (!uaesnd_directload(s, reg)) {
+		uaesnd_stream_start(data, s, false);
+	} else if (reg == 0xa0) { // force set pointer write?
+		uaecptr setaddr = get_long_host(s->io + 0xa0);
+		s->next = setaddr;
+		uaesnd_stream_start(data, s, true);
+	} else if (reg >= 0x8c && reg <= 0x8f) {
+		s->masterintenamask = get_long_host(s->io + 0x8c);
+	} else if (reg == 0x94) { // timer
+		int timer_cnt = get_long_host(s->io + 0x94);
+#if DEBUG_SNDDEV
+		write_log(_T("uaesnd timer %d: %d -> %d\n"), s - &data->stream[0], s->timer_cnt, timer_cnt);
+#endif
+		if (timer_cnt != s->timer_cnt) {
+			s->timer_cnt = 0;
+			if (timer_cnt > 0) {
+				s->timer_event_time = uaesnd_timer_period(timer_cnt);
+				if (s->timer_event_time > 0) {
+					s->timer_cnt = timer_cnt;
+					event2_newevent_xx(-1, s->timer_event_time, (((int)(data - &uaesndboard[0])) << 16) | ((int)(s - &data->stream[0])), uaesnd_timer);
+				}
+			}
+		}
+	} else if (reg == 0x93) { // status strobe
+		uae_u8 b = get_byte_host(s->io + 0x93);
+		if (b & 1) {
+			// new sample queued, do not repeat or if already repeating: start immediately
+			s->repcnt = 0;
+			if (s->repeating) {
+				s->replen = 1;
+			}
+		}
+	} else if (reg < 0x40) {
+		if (!uaesnd_directload(data, s, reg)) {
 			uaesndboard_stop(data, s);
 		}
 	}
@@ -719,6 +910,7 @@ static void uaesnd_configure(struct uaesndboard_data *data)
 
 static uae_u32 REGPARAM2 uaesndboard_bget(uaecptr addr)
 {
+	uae_u8 v = 0;
 	struct uaesndboard_data *data = &uaesndboard[0];
 	addr &= 65535;
 	if (addr < 0x80) {
@@ -729,20 +921,29 @@ static uae_u32 REGPARAM2 uaesndboard_bget(uaecptr addr)
 			int reg = addr & 255;
 			if (reg == 0x87)
 				s->intreqmask = 0;
-			return get_byte_host(s->io + reg);
+			s->io[0x93] = (s->play ? 1 : 0) | (s->streamid > 0 ? 2 : 0) | (s->repeating ? 4 : 0);
+			v = get_byte_host(s->io + reg);
 		} else if (addr >= 0x80 && addr < 0xe0) {
-			return get_byte_host(data->info + (addr & 0x7f));
+			v = get_byte_host(data->info + (addr & 0x7f));
 		} else if (addr >= 0xe0 && addr <= 0xe3) {
-			return data->streamallocmask >> (8 * (3 - (addr - 0xe0)));
+			v = data->streamallocmask >> (8 * (3 - (addr - 0xe0)));
 		} else if (addr >= 0xf0 && addr <= 0xf3) {
-			return data->streammask >> ((3 - (addr - 0xf0)) * 8);
+			v = data->streammask >> ((3 - (addr - 0xf0)) * 8);
+		} else if (addr >= 0xf4 && addr <= 0xf7) {
+			v = data->streamintenamask >> ((3 - (addr - 0xf0)) * 8);
+		} else if (addr >= 0xf8 && addr <= 0xfb) {
+			v = data->streamintreqmask >> ((3 - (addr - 0xf0)) * 8);
 		}
 	}
-	return 0;
+#if DEBUG_SNDDEV_READ
+	write_log(_T("uaesnd_bget %08x = %02x\n"), addr, v);
+#endif
+	return v;
 }
 static uae_u32 REGPARAM2 uaesndboard_wget(uaecptr addr)
 {
 	struct uaesndboard_data *data = &uaesndboard[0];
+	uae_u16 v = 0;
 	addr &= 65535;
 	if (addr < 0x80) {
 		return (uaesndboard_bget(addr) << 8) | uaesndboard_bget(addr + 1);
@@ -763,24 +964,36 @@ static uae_u32 REGPARAM2 uaesndboard_wget(uaecptr addr)
 			if (reg == 0x86) {
 				s->intreqmask = 0;
 			}
-			return get_word_host(s->io + reg);
+			v = get_word_host(s->io + reg);
 		} else if (addr >= 0x80 && addr < 0xe0 - 1) {
-			return get_word_host(data->info + (addr & 0x7f));
+			v = get_word_host(data->info + (addr & 0x7f));
 		} else if (addr == 0xe0) {
-			return data->streamallocmask >> 16;
+			v = data->streamallocmask >> 16;
 		} else if (addr == 0xe2) {
-			return data->streamallocmask >> 0;
+			v = data->streamallocmask >> 0;
 		} else if (addr == 0xf0) {
-			return data->streammask >> 16;
+			v = data->streammask >> 16;
 		} else if (addr == 0xf2) {
-			return data->streammask;
+			v = data->streammask;
+		} else if (addr == 0xf4) {
+			v = data->streamintenamask >> 16;
+		} else if (addr == 0xf6) {
+			v = data->streamintenamask;
+		} else if (addr == 0xf8) {
+			v = data->streamintreqmask >> 16;
+		} else if (addr == 0xfa) {
+			v = data->streamintreqmask;
 		}
 	}
-	return 0;
+#if DEBUG_SNDDEV_READ
+	write_log(_T("uaesnd_wget %08x = %04x\n"), addr, v);
+#endif
+	return v;
 }
 static uae_u32 REGPARAM2 uaesndboard_lget(uaecptr addr)
 {
 	struct uaesndboard_data *data = &uaesndboard[0];
+	uae_u32 v = 0;
 	addr &= 65535;
 	if (addr < 0x80) {
 		return (uaesndboard_wget(addr) << 16) | uaesndboard_wget(addr + 2);
@@ -792,16 +1005,23 @@ static uae_u32 REGPARAM2 uaesndboard_lget(uaecptr addr)
 			int reg = addr & 255;
 			if (reg == 0x84)
 				s->intreqmask = 0;
-			return get_long_host(s->io + reg);
+			v = get_long_host(s->io + reg);
 		} else if (addr >= 0x80 && addr < 0xe0 - 3) {
-			return get_long_host(data->info + (addr & 0x7f));
+			v = get_long_host(data->info + (addr & 0x7f));
 		} else if (addr == 0xe0) {
-			return data->streamallocmask;
+			v = data->streamallocmask;
 		} else if (addr == 0xf0) {
-			return data->streammask;
+			v = data->streammask;
+		} else if (addr == 0xf4) {
+			v = data->streamintenamask;
+		} else if (addr == 0xf8) {
+			v = data->streamintreqmask;
 		}
 	}
-	return 0;
+#if DEBUG_SNDDEV_READ
+	write_log(_T("uaesnd_lget %08x = %08x\n"), addr, v);
+#endif
+	return v;
 }
 static void REGPARAM2 uaesndboard_bput(uaecptr addr, uae_u32 b)
 {
@@ -830,6 +1050,9 @@ static void REGPARAM2 uaesndboard_bput(uaecptr addr, uae_u32 b)
 		return;
 	} else {
 		struct uaesndboard_stream *s = uaesnd_addr(addr);
+#if DEBUG_SNDDEV_WRITE
+		write_log(_T("uaesnd_bput %08x = %02x\n"), addr, b);
+#endif
 		if (s) {
 			int reg = addr & 255;
 			put_byte_host(s->io + reg, b);
@@ -874,6 +1097,9 @@ static void REGPARAM2 uaesndboard_wput(uaecptr addr, uae_u32 b)
 	} else {
 		if (addr & 1)
 			return;
+#if DEBUG_SNDDEV_WRITE
+		write_log(_T("uaesnd_wput %08x = %04x\n"), addr, b);
+#endif
 		struct uaesndboard_stream *s = uaesnd_addr(addr);
 		if (s) {
 			int reg = addr & 255;
@@ -897,6 +1123,9 @@ static void REGPARAM2 uaesndboard_lput(uaecptr addr, uae_u32 b)
 	if (data->configured) {
 		if (addr & 3)
 			return;
+#if DEBUG_SNDDEV_WRITE
+		write_log(_T("uaesnd_lput %08x = %08x\n"), addr, b);
+#endif
 		struct uaesndboard_stream *s = uaesnd_addr(addr);
 		if (s) {
 			int reg = addr & 255;
@@ -911,11 +1140,15 @@ static void REGPARAM2 uaesndboard_lput(uaecptr addr, uae_u32 b)
 			uaesnd_unlatch_mask(data, b);
 		} else if (addr == 0xf0) {
 			uaesnd_streammask(data, b);
+		} else if (addr == 0xf4) {
+			data->streamintenamask = b;
+		} else if (addr == 0xf8) {
+			data->streamintreqmask = b;
 		}
 	}
 }
 
-addrbank uaesndboard_sub_bank_z2 = {
+static addrbank uaesndboard_sub_bank_z2 = {
 	uaesndboard_lget, uaesndboard_wget, uaesndboard_bget,
 	uaesndboard_lput, uaesndboard_wput, uaesndboard_bput,
 	default_xlate, default_check, NULL, NULL, _T("uaesnd z2"),
@@ -957,9 +1190,14 @@ static void ew(uae_u8 *acmemory, int addr, uae_u32 value)
 	}
 }
 
-static bool uaesndboard_init (struct autoconfig_info *aci, int z)
+bool uaesndboard_init (struct autoconfig_info *aci, int z)
 {
 	struct uaesndboard_data *data = &uaesndboard[0];
+
+	device_add_reset(uaesndboard_reset);
+
+	if (aci->doinit)
+		snd_init();
 
 	data->configured = 0;
 	data->enabled = true;
@@ -998,7 +1236,7 @@ bool uaesndboard_init_z3(struct autoconfig_info *aci)
 	return uaesndboard_init(aci, 3);
 }
 
-void uaesndboard_free(void)
+static void uaesndboard_free(void)
 {
 	for (int j = 0; j < MAX_DUPLICATE_SOUND_BOARDS; j++) {
 		struct uaesndboard_data *data = &uaesndboard[j];
@@ -1008,7 +1246,7 @@ void uaesndboard_free(void)
 	sndboard_rethink();
 }
 
-void uaesndboard_reset(void)
+static void uaesndboard_reset(int hardreset)
 {
 	for (int j = 0; j < MAX_DUPLICATE_SOUND_BOARDS; j++) {
 		struct uaesndboard_data *data = &uaesndboard[j];
@@ -1133,11 +1371,14 @@ bool pmx_init (struct autoconfig_info *aci)
 
 	aci->addrbank = &pmx_bank;
 	aci->autoconfig_automatic = true;
+	device_add_reset(sndboard_reset);
 
 	if (!aci->doinit) {
 		aci->autoconfigp = ert->autoconfig;
 		return true;
 	}
+
+	snd_init();
 
 	data->configured = 0;
 	data->streamid = 0;
@@ -1152,7 +1393,7 @@ bool pmx_init (struct autoconfig_info *aci)
 	return true;
 }
 
-void pmx_free(void)
+static void pmx_free(void)
 {
 	for (int j = 0; j < MAX_DUPLICATE_SOUND_BOARDS; j++) {
 		struct pmx_data *data = &pmx[j];
@@ -1161,7 +1402,7 @@ void pmx_free(void)
 	sndboard_rethink();
 }
 
-void pmx_reset(void)
+static void pmx_reset(int hardreset)
 {
 	for (int j = 0; j < MAX_DUPLICATE_SOUND_BOARDS; j++) {
 		struct pmx_data *data = &pmx[j];
@@ -1188,6 +1429,7 @@ struct snddev_data {
 	uae_u8 acmemory[128];
 	int configured;
 	uae_u32 baseaddress;
+	uae_u32 baseaddress_mask, baseaddress_value;
 	uae_u8 ad1848_index;
 	uae_u8 ad1848_index_mask;
 	uae_u8 ad1848_regs[32];
@@ -1253,7 +1495,7 @@ extern addrbank toccata_bank;
 #define STATUS_READ_RECORD_HALF 4
 
 
-void update_sndboard_sound (double clk)
+void update_sndboard_sound (float clk)
 {
 	base_event_clock = clk;
 }
@@ -1334,7 +1576,7 @@ static bool audio_state_sndboard_toccata(int streamid, void *cb)
 #endif
 		}
 	}
-	audio_state_stream_state(data->streamid, data->ch_sample, 2, data->event_time);
+	audio_state_stream_state(streamid, data->ch_sample, 2, data->event_time);
 	return true;
 }
 
@@ -1429,8 +1671,8 @@ static void codec_start(struct snddev_data *data)
 
 	codec_setup(data);
 
-	data->event_time = base_event_clock * CYCLE_UNIT / data->freq;
-	data->record_event_time = base_event_clock * CYCLE_UNIT / (data->freq_adjusted * data->record_bytespersample);
+	data->event_time = (int)(base_event_clock * CYCLE_UNIT / data->freq);
+	data->record_event_time = (int)(base_event_clock * CYCLE_UNIT / (data->freq_adjusted * data->record_bytespersample));
 	data->record_event_counter = 0;
 
 	if (data->snddev_active & STATUS_FIFO_PLAY) {
@@ -1450,13 +1692,14 @@ static void codec_stop(struct snddev_data *data)
 	write_log(_T("CODEC stop\n"));
 	data->snddev_active = 0;
 	sndboard_free_capture();
-	audio_enable_stream(false, data->streamid, 0, NULL, NULL);
+	int streamid = data->streamid;
 	data->streamid = 0;
+	audio_enable_stream(false, streamid, 0, NULL, NULL);
 	xfree(data->capture_buffer);
 	data->capture_buffer = NULL;
 }
 
-void sndboard_rethink(void)
+static void sndboard_rethink(void)
 {
 	for (int i = 0; i < MAX_SNDDEVS; i++) {
 		if (snddev[i].enabled) {
@@ -1509,7 +1752,7 @@ static void check_prelude_interrupt(struct snddev_data *data)
 	}
 }
 
-void sndboard_hsync(void)
+static void sndboard_hsync(void)
 {
 	for (int i = 0; i < MAX_SNDDEVS; i++) {
 		struct snddev_data *data = &snddev[i];
@@ -1728,25 +1971,26 @@ static void toccata_put(struct snddev_data *data, uaecptr addr, uae_u8 v)
 			data->fifo_write_index = 0;
 			data->fifo_read_index = 0;
 			data->data_in_fifo = 0;
-			data->snddev_status = 0;
-			data->snddev_irq = 0;
 			data->fifo_half = 0;
 		} else if (addr < 0x90 || addr >= 0xc0) {
 			hit = false;
 		}
 	} else if (data->type == SNDDEV_PRELUDE1200) {
-		if ((addr & 0x00ff) == 0x15) { // Reset FIFOs and CS4231A
-			codec_stop(data);
-			data->snddev_status = 0;
-			data->snddev_irq = 0;
-			data->fifo_write_index = 0;
-			data->fifo_read_index = 0;
-			data->data_in_fifo = 0;
-			data->snddev_status = 0;
-			data->snddev_irq = 0;
-			data->fifo_half = 0;
-		} else if ((addr & 0x00ff) == 0x19) { // ?
-			;
+
+		if ((addr & data->baseaddress_mask) == data->baseaddress_value) {
+			if ((addr & 0x00ff) == 0x15) { // Reset FIFOs and CS4231A
+				codec_stop(data);
+				data->snddev_status = 0;
+				data->snddev_irq = 0;
+				data->fifo_write_index = 0;
+				data->fifo_read_index = 0;
+				data->data_in_fifo = 0;
+				data->fifo_half = 0;
+			} else if ((addr & 0x00ff) == 0x19) { // ?
+				;
+			} else {
+				hit = false;
+			}
 		} else {
 			hit = false;
 		}
@@ -1838,20 +2082,24 @@ static uae_u8 toccata_get(struct snddev_data *data, uaecptr addr)
 
 	} else if (data->type == SNDDEV_PRELUDE1200) {
 
-		if ((addr & 0x00ff) == 0x15) { // FIFO Status
-			if (data->data_in_fifo >= data->fifo_size / 2)
-				v |= 0x08;
-			if (!data->data_in_fifo)
-				v |= 0x04;
-			if (data->data_in_record_fifo >= data->fifo_size / 2)
-				v |= 0x02;
-			if (data->data_in_record_fifo >= data->fifo_size)
-				v |= 0x01;
-			v ^= 0xff;
-		} else if ((addr & 0x00ff) == 0x1d) { // id?
-			v = 0x05;
-		} else if ((addr & 0x00ff) == 0x19) { // ?
-			v = 0x00;
+		if ((addr & data->baseaddress_mask) == data->baseaddress_value) {
+			if ((addr & 0x00ff) == 0x15) { // FIFO Status
+				if (data->data_in_fifo >= data->fifo_size / 2)
+					v |= 0x08;
+				if (!data->data_in_fifo)
+					v |= 0x04;
+				if (data->data_in_record_fifo >= data->fifo_size / 2)
+					v |= 0x02;
+				if (data->data_in_record_fifo >= data->fifo_size)
+					v |= 0x01;
+				v ^= 0xff;
+			} else if ((addr & 0x00ff) == 0x1d) { // id?
+				v = 0x05;
+			} else if ((addr & 0x00ff) == 0x19) { // ?
+				v = 0x00;
+			} else {
+				hit = false;
+			}
 		} else {
 			hit = false;
 		}
@@ -1885,6 +2133,7 @@ static struct snddev_data *getsnddev(uaecptr addr)
 
 static void REGPARAM2 toccata_bput(uaecptr addr, uae_u32 b)
 {
+	addr &= 0xffffff;
 	struct snddev_data *data = getsnddev(addr);
 	if (!data)
 		return;
@@ -1927,6 +2176,7 @@ static void REGPARAM2 toccata_lput(uaecptr addr, uae_u32 b)
 static uae_u32 REGPARAM2 toccata_bget(uaecptr addr)
 {
 	uae_u8 v = 0;
+	addr &= 0xffffff;
 	struct snddev_data *data = getsnddev(addr);
 	if (!data)
 		return v;
@@ -2007,12 +2257,25 @@ bool prelude1200_init(struct autoconfig_info *aci)
 	aci->addrbank = &prelude1200_bank;
 	aci->start = 0xd80000;
 	aci->size = 0x10000;
+	if (aci->devnum > 0) {
+		aci->start = 0xd80000 + (aci->devnum - 1) * 0x4000;
+		aci->size = 0x4000;
+	}
+	device_add_reset(sndboard_reset);
 
 	if (!aci->doinit)
 		return true;
 
+	snd_init();
+
 	data->configured = 1;
 	data->baseaddress = 0xd80000;
+	data->baseaddress_mask = 0;
+	data->baseaddress_value = 0;
+	if (aci->devnum > 0) {
+		data->baseaddress_mask = 0xc000;
+		data->baseaddress_value = (aci->devnum - 1) * 0x4000;
+	}
 	data->type = SNDDEV_PRELUDE1200;
 	data->fifo_size = 1024;
 	data->codec_reg1_mask = 0x00ff;
@@ -2042,11 +2305,14 @@ bool prelude_init(struct autoconfig_info *aci)
 		return false;
 
 	aci->addrbank = &prelude_bank;
+	device_add_reset(sndboard_reset);
 
 	if (!aci->doinit) {
 		aci->autoconfigp = ert->autoconfig;
 		return true;
 	}
+
+	snd_init();
 
 	struct snddev_data *data = &snddev[1];
 
@@ -2083,11 +2349,14 @@ bool toccata_init(struct autoconfig_info *aci)
 		return false;
 
 	aci->addrbank = &toccata_bank;
+	device_add_reset(sndboard_reset);
 
 	if (!aci->doinit) {
 		aci->autoconfigp = ert->autoconfig;
 		return true;
 	}
+
+	snd_init();
 
 	struct snddev_data *data = &snddev[0];
 
@@ -2115,7 +2384,7 @@ bool toccata_init(struct autoconfig_info *aci)
 	return true;
 }
 
-void sndboard_reset(void)
+static void sndboard_reset(int hardreset)
 {
 	for (int i = 0; i < MAX_SNDDEVS; i++) {
 		struct snddev_data *data = &snddev[i];
@@ -2133,9 +2402,9 @@ void sndboard_reset(void)
 	sndboard_rethink();
 }
 
-void sndboard_free(void)
+static void sndboard_free(void)
 {
-	sndboard_reset();
+	sndboard_reset(1);
 	for (int i = 0; i < MAX_SNDDEVS; i++) {
 		struct snddev_data *data = &snddev[i];
 		data->rc = NULL;
@@ -2182,8 +2451,9 @@ static void fm801_stop(struct fm801_data *data)
 {
 	write_log(_T("FM801 STOP\n"));
 	data->play_on = false;
-	audio_enable_stream(false, data->streamid, 0, NULL, NULL);
+	int streamid = data->streamid;
 	data->streamid = 0;
+	audio_enable_stream(false, streamid, 0, NULL, NULL);
 }
 
 static void fm801_swap_buffers(struct fm801_data *data)
@@ -2240,7 +2510,7 @@ static bool audio_state_sndboard_fm801(int streamid, void *params)
 			fm801_interrupt(data);
 		}
 	}
-	audio_state_stream_state(data->streamid, data->ch_sample, data->ch, data->event_time);
+	audio_state_stream_state(streamid, data->ch_sample, data->ch, data->event_time);
 	return true;
 }
 
@@ -2255,7 +2525,7 @@ static void fm801_play(struct fm801_data *data)
 	data->freq = fm801_freq[f];
 	if (!data->freq)
 		data->freq = 44100;
-	data->event_time = base_event_clock * CYCLE_UNIT / data->freq;
+	data->event_time = (int)(base_event_clock * CYCLE_UNIT / data->freq);
 	data->bits = (control & 0x4000) ? 16 : 8;
 	f = (control >> 12) & 3;
 	switch (f)
@@ -2415,19 +2685,28 @@ static bool fm801_init(struct pci_board_state *pcibs, struct autoconfig_info *ac
 	return false;
 }
 
+static void fm801_config(struct pci_board_state *pcibs, uae_u8 *cfg)
+{
+	// Status register is read-only
+	cfg[4] = 0x02;
+	cfg[5] = 0x80;
+	// Clear command register reserved
+	cfg[6] &= 3;
+}
+
 static const struct pci_config fm801_pci_config =
 {
-	0x1319, 0x0801, 0, 0, 0xb2, 0x040100, 0x80, 0x1319, 0x1319, 1, 0x04, 0x28, { 128 | 1, 0, 0, 0, 0, 0, 0 }
+	0x1319, 0x0801, 0, 0x280, 0xb2, 0x040100, 0x80, 0x1319, 0x1319, 1, 0x04, 0x28, { 128 | 1, 0, 0, 0, 0, 0, 0 }
 };
 static const struct pci_config fm801_pci_config_func1 =
 {
-	0x1319, 0x0802, 0, 0, 0xb2, 0x098000, 0x80, 0x1319, 0x1319, 0, 0x04, 0x28, { 16 | 1, 0, 0, 0, 0, 0, 0 }
+	0x1319, 0x0802, 0, 0x280, 0xb2, 0x098000, 0x80, 0x1319, 0x1319, 0, 0x04, 0x28, { 16 | 1, 0, 0, 0, 0, 0, 0 }
 };
 
 const struct pci_board fm801_pci_board =
 {
 	_T("FM801"),
-	&fm801_pci_config, fm801_init, fm801_free, fm801_reset, fm801_hsync_handler,
+	&fm801_pci_config, fm801_init, fm801_free, fm801_reset, fm801_hsync_handler, fm801_config,
 	{
 		{ fm801_lget, fm801_wget, fm801_bget, fm801_lput, fm801_wput, fm801_bput },
 		{ NULL },
@@ -2436,13 +2715,14 @@ const struct pci_board fm801_pci_board =
 		{ NULL },
 		{ NULL },
 		{ NULL },
+		{ NULL }
 	}
 };
 
 const struct pci_board fm801_pci_board_func1 =
 {
 	_T("FM801-2"),
-	&fm801_pci_config_func1, NULL, NULL, NULL, NULL,
+	&fm801_pci_config_func1, NULL, NULL, NULL, NULL, fm801_config,
 	{
 		{ fm801_lget, fm801_wget, fm801_bget, fm801_lput, fm801_wput, fm801_bput },
 		{ NULL },
@@ -2451,6 +2731,7 @@ const struct pci_board fm801_pci_board_func1 =
 		{ NULL },
 		{ NULL },
 		{ NULL },
+		{ NULL }
 	}
 };
 
@@ -2535,7 +2816,7 @@ static const struct pci_config solo1_pci_config =
 const struct pci_board solo1_pci_board =
 {
 	_T("SOLO1"),
-	&solo1_pci_config, solo1_init, solo1_free, solo1_reset, NULL,
+	&solo1_pci_config, solo1_init, solo1_free, solo1_reset, NULL, NULL,
 	{
 		{ solo1_lget, solo1_wget, solo1_bget, solo1_lput, solo1_wput, solo1_bput },
 		{ solo1_lget, solo1_wget, solo1_bget, solo1_lput, solo1_wput, solo1_bput },
@@ -2544,6 +2825,7 @@ const struct pci_board solo1_pci_board =
 		{ solo1_lget, solo1_wget, solo1_bget, solo1_lput, solo1_wput, solo1_bput },
 		{ NULL },
 		{ NULL },
+		{ NULL }
 	}
 };
 
@@ -2592,7 +2874,7 @@ static bool audio_state_sndboard_qemu(int streamid, void *params)
 		out->ch_sample[1] = out->ch_sample[1] * out->right_volume / 32768;
 		out->samplebuf_index += out->bytesperframe;
 	}
-	audio_state_stream_state(out->streamid, out->ch_sample, out->ch, out->event_time);
+	audio_state_stream_state(streamid, out->ch_sample, out->ch, out->event_time);
 	return true;
 }
 
@@ -2621,7 +2903,7 @@ int AUD_write(SWVoiceOut *sw, void *pcm_buf, int size)
 void AUD_set_active_out(SWVoiceOut *sw, int on)
 {
 	sw->active = on != 0;
-	sw->event_time = base_event_clock * CYCLE_UNIT / sw->freq;
+	sw->event_time = (int)(base_event_clock * CYCLE_UNIT / sw->freq);
 	sw->samplebuf_index = 0;
 	sw->samplebuf_total = 0;
 	calculate_volume_qemu();
@@ -2697,7 +2979,7 @@ static void sndboard_vsync_qemu(void)
 	audio_activate();
 }
 
-void sndboard_vsync(void)
+static void sndboard_vsync(void)
 {
 	if (snddev[0].snddev_active)
 		sndboard_vsync_toccata(&snddev[0]);
@@ -2717,27 +2999,41 @@ void sndboard_ext_volume(void)
 		calculate_volume_qemu();
 }
 
+static void snd_init(void)
+{
+	device_add_hsync(sndboard_hsync);
+	device_add_vsync_post(sndboard_vsync);
+	device_add_rethink(sndboard_rethink);
+	device_add_exit(sndboard_free, NULL);
+	device_add_exit(uaesndboard_free, NULL);
+}
+
 #ifdef FSUAE
 
 static uae_u8 *sndboard_get_buffer(int *frames)
 {
+	// FIXME: Assert not called
 	return NULL;
 }
 
 static void sndboard_release_buffer(uae_u8 *buffer, int frames)
 {
+	// FIXME: Assert not called
 }
 
 static void sndboard_free_capture(void)
 {
+	// FIXME: Assert not called
 }
 
 static bool sndboard_init_capture(int freq)
 {
+	// FIXME: Assert not called
 	return false;
 }
 
 #else
+
 #ifdef _WIN32
 
 #include <mmdeviceapi.h>
@@ -2806,6 +3102,7 @@ static bool sndboard_init_capture(int freq)
 	WAVEFORMATEX wavfmtsrc;
 	WAVEFORMATEX *wavfmt2;
 	WAVEFORMATEX *wavfmt;
+	bool init = false;
 
 	wavfmt2 = NULL;
 
@@ -2830,7 +3127,6 @@ static bool sndboard_init_capture(int freq)
 	wavfmtsrc.nBlockAlign = wavfmtsrc.wBitsPerSample / 8 * wavfmtsrc.nChannels;
 	wavfmtsrc.nAvgBytesPerSec = wavfmtsrc.nBlockAlign * wavfmtsrc.nSamplesPerSec;
 
-	bool init = false;
 	AUDCLNT_SHAREMODE exc;
 	for (int mode = 0; mode < 2; mode++) {
 		exc = mode == 0 ? AUDCLNT_SHAREMODE_EXCLUSIVE : AUDCLNT_SHAREMODE_SHARED;
@@ -2882,4 +3178,4 @@ Exit:;
 }
 
 #endif
-#endif
+#endif // !FSUAE

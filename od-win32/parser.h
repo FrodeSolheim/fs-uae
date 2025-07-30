@@ -9,20 +9,21 @@
 
 #define PRTBUFSIZE 65536
 
-int setbaud (long baud );
+int setbaud(int baud, int origbaud);
 void getserstat(int *status);
-void setserstat (int mask, int onoff);
-int readser (int *buffer);
-int readseravail (void);
+void setserstat(int mask, int onoff);
+int readser(int *buffer);
+int readseravail(bool*);
+void flushser(void);
 void writeser(int c);
 void writeser_flush(void);
-int openser (const TCHAR *sername);
-void closeser (void);
-void doserout (void);
-void closeprinter (void);
-void flushprinter (void);
-int checkserwrite (int spaceneeded);
-void serialuartbreak (int);
+int openser(const TCHAR *sername);
+void closeser(void);
+void doserout(void);
+void closeprinter(void);
+void flushprinter(void);
+int checkserwrite(int spaceneeded);
+void serialuartbreak(int);
 
 void hsyncstuff(void);
 
@@ -31,6 +32,7 @@ bool shmem_serial_create(void);
 int shmem_serial_state(void);
 
 #define SERIAL_INTERNAL _T("INTERNAL_SERIAL")
+#define SERIAL_LOOPBACK _T("LOOPBACK_SERIAL")
 
 #define TIOCM_CAR 1
 #define TIOCM_DSR 2
@@ -46,7 +48,8 @@ extern int load_ghostscript (void);
 struct midiportinfo
 {
 	TCHAR *name;
-	unsigned int devid;
+    TCHAR *label;
+    int devid;
 };
 extern struct midiportinfo *midiinportinfo[MAX_MIDI_PORTS];
 extern struct midiportinfo *midioutportinfo[MAX_MIDI_PORTS];
@@ -75,5 +78,3 @@ extern void epson_close (void);
 #define PARALLEL_MATRIX_EPSON9 2
 #define PARALLEL_MATRIX_EPSON24 3
 #define PARALLEL_MATRIX_EPSON48 4
-
-void finishjob (void);

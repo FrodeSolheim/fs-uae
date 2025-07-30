@@ -10,13 +10,10 @@
 #define UAE_XWIN_H
 
 #include "uae/types.h"
-#ifdef FSUAE
-#include "uae/asm.h"
-#include <string.h>
-#endif
 #include "machdep/rpt.h"
+#include "options.h"
 
-#define MAX_AMIGADISPLAYS 4
+#include <stdbool.h>
 
 typedef uae_u32 xcolnr;
 
@@ -24,18 +21,19 @@ typedef int (*allocfunc_type)(int, int, int, xcolnr *);
 
 extern xcolnr xcolors[4096];
 extern uae_u32 p96_rgbx16[65536];
+extern xcolnr fullblack;
 
 extern int graphics_setup (void);
 extern int graphics_init (bool);
 extern void graphics_leave(void);
 extern void graphics_reset(bool);
 extern bool handle_events (void);
-extern int handle_msgpump (void);
+extern int handle_msgpump (bool);
 extern void setup_brkhandler (void);
 extern int isfullscreen (void);
 extern void toggle_fullscreen(int monid, int);
 extern bool toggle_rtg(int monid, int);
-extern void close_rtg(int monid);
+extern void close_rtg(int monid, bool reset);
 
 extern void toggle_mousegrab (void);
 void setmouseactivexy(int monid, int x, int y, int dir);
@@ -47,41 +45,21 @@ extern int vsync_isdone(frame_time_t*);
 extern void doflashscreen (void);
 extern int flashscreen;
 extern void updatedisplayarea(int monid);
-
-#ifdef FSUAE
-
-static inline int isvsync_chipset (void)
-{
-	return 0;
-}
-
-static inline int isvsync_rtg (void)
-{
-	return 0;
-}
-
-static inline int isvsync (void)
-{
-	return 0;
-}
-
-#else
-int isvsync_chipset (void);
-int isvsync_rtg (void);
-int isvsync (void);
-#endif
+extern int isvsync_chipset (void);
+extern int isvsync_rtg (void);
+extern int isvsync (void);
 
 extern void flush_line(struct vidbuffer*, int);
 extern void flush_block(struct vidbuffer*, int, int);
 extern void flush_screen(struct vidbuffer*, int, int);
 extern void flush_clear_screen(struct vidbuffer*);
-extern bool render_screen(int monid, int mode, bool immediate);
+extern bool render_screen(int monid, int, bool);
 extern void show_screen(int monid, int mode);
 extern bool show_screen_maybe(int monid, bool);
 
-int lockscr(struct vidbuffer *vb, bool fullupdate, bool first);
-void unlockscr(struct vidbuffer *vb, int y_start, int y_end);
-extern bool target_graphics_buffer_update(int monid);
+extern int lockscr(struct vidbuffer*, bool, bool);
+extern void unlockscr(struct vidbuffer*, int, int);
+extern bool target_graphics_buffer_update(int monid, bool force);
 extern float target_adjust_vblank_hz(int monid, float);
 extern int target_get_display_scanline(int displayindex);
 extern void target_spin(int);
@@ -95,52 +73,27 @@ void refreshtitle (void);
 
 extern int bits_in_mask (unsigned long mask);
 extern int mask_shift (unsigned long mask);
-extern unsigned int doMask (int p, int bits, int shift);
-extern unsigned int doMask256 (int p, int bits, int shift);
-extern void alloc_colors64k (int monid, int, int, int, int, int, int, int, int, int, int, bool);
+extern uae_u32 doMask (uae_u32 p, int bits, int shift);
+extern uae_u32 doMask256 (int p, int bits, int shift);
+extern void alloc_colors64k (int monid, int, int, int, int, int, int, int, int, int, int);
 extern void alloc_colors_rgb (int rw, int gw, int bw, int rs, int gs, int bs, int aw, int as, int alpha, int byte_swap,
 			      uae_u32 *rc, uae_u32 *gc, uae_u32 *bc);
+extern void alloc_colors_picasso (int rw, int gw, int bw, int rs, int gs, int bs, int rgbfmt, uae_u32 *rgbx16);
 extern float getvsyncrate(int monid, float hz, int *mult);
 
-void alloc_colors_picasso (int rw, int gw, int bw, int rs, int gs, int bs, int rgbfmt, uae_u32 *rgbx16);
-int getconvert(int rgbformat, int pixbytes);
-void copyrow_scale(int monid, uae_u8 *src, uae_u8 *src_screen, uae_u8 *dst,
-	int sx, int sy, int sxadd, int width, int srcbytesperrow, int srcpixbytes,
-	int screenbytesperrow, int screenpixbytes,
-	int dx, int dy, int dstwidth, int dstheight, int dstbytesperrow, int dstpixbytes,
-	bool ck, uae_u32 colorkey,
-	int convert_mode, uae_u32 *p96_rgbx16p, uae_u32 *clut, bool yuv_swap);
 
-    /* The graphics code has a choice whether it wants to use a large buffer
-     * for the whole display, or only a small buffer for a single line.
-     * If you use a large buffer:
-     *   - set bufmem to point at it
-     *   - set linemem to 0
-     *   - if memcpy within bufmem would be very slow, i.e. because bufmem is
-     *     in graphics card memory, also set emergmem to point to a buffer
-     *     that is large enough to hold a single line.
-     *   - implement flush_line to be a no-op.
-     * If you use a single line buffer:
-     *   - set bufmem and emergmem to 0
-     *   - set linemem to point at your buffer
-     *   - implement flush_line to copy a single line to the screen
-     */
 struct vidbuffer
 {
     /* Function implemented by graphics driver */
-    void (*flush_line)         (struct vidbuf_description *gfxinfo, struct vidbuffer *vb, int line_no);
-    void (*flush_block)        (struct vidbuf_description *gfxinfo, struct vidbuffer *vb, int first_line, int end_line);
-    void (*flush_screen)       (struct vidbuf_description *gfxinfo, struct vidbuffer *vb, int first_line, int end_line);
-    void (*flush_clear_screen) (struct vidbuf_description *gfxinfo, struct vidbuffer *vb);
     int  (*lockscr)            (struct vidbuf_description *gfxinfo, struct vidbuffer *vb);
     void (*unlockscr)          (struct vidbuf_description *gfxinfo, struct vidbuffer *vb);
-    uae_u8 *linemem;
-    uae_u8 *emergmem;
 
 	uae_u8 *bufmem, *bufmemend;
     uae_u8 *realbufmem;
 	uae_u8 *bufmem_allocated;
-	bool bufmem_lockable;
+	bool initialized;
+	bool locked;
+	bool vram_buffer;
     int rowbytes; /* Bytes per row in the memory pointed at by bufmem. */
     int pixbytes; /* Bytes per pixel. */
 	/* size of this buffer */
@@ -155,17 +108,15 @@ struct vidbuffer
 	/* same but doublescan multiplier included */
 	int inwidth2;
 	int inheight2;
-	/* use drawbuffer instead */
-	bool nativepositioning;
-	/* tempbuffer in use */
-	bool tempbufferinuse;
+	/* static, hardwired screen position and size (A2024) */
+	bool hardwiredpositioning;
 	/* extra width, chipset hpos extra in right border */
-	int extrawidth;
+	int extrawidth, extraheight;
 
 	int xoffset; /* superhires pixels from left edge */
 	int yoffset; /* lines from top edge */
 
-	int inxoffset; /* positive if sync positioning */
+	int inxoffset; /* sync positioning */
 	int inyoffset;
 
 	int monitor_id;
@@ -174,6 +125,7 @@ struct vidbuffer
 
 extern bool isnativevidbuf(int monid);
 extern int max_uae_width, max_uae_height;
+extern bool gfx_hdr;
 
 struct vidbuf_description
 {
@@ -195,6 +147,8 @@ struct amigadisplay
 	volatile bool picasso_requested_on;
 	bool picasso_requested_forced_on;
 	bool picasso_on;
+	bool interlace_on;
+	int gf_index;
 	int picasso_redraw_necessary;
 	int custom_frame_redraw_necessary;
 	int frame_redraw_necessary;

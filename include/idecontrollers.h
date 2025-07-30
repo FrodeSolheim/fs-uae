@@ -2,16 +2,8 @@
 #define UAE_IDECONTROLLERS_H
 
 #include "uae/types.h"
-#ifdef FSUAE
-#include "uae/memory.h"
-#endif
 
 // Other IDE controllers
-
-void idecontroller_free(void);
-void idecontroller_reset(void);
-void idecontroller_rethink(void);
-void idecontroller_hsync(void);
 
 void gvp_add_ide_unit(int ch, struct uaedev_config_info *ci, struct romconfig *rc);
 bool gvp_ide_rom_autoconfig_init(struct autoconfig_info *aci);
@@ -22,7 +14,7 @@ bool alf_init(struct autoconfig_info *aci);
 
 void apollo_add_ide_unit(int ch, struct uaedev_config_info *ci, struct romconfig *rc);
 bool apollo_init_hd(struct autoconfig_info *aci);
-bool apollo_init_cpu(struct autoconfig_info *aci);
+bool apollo_init_cpu_12xx(struct autoconfig_info *aci);
 
 void masoboshi_add_idescsi_unit (int ch, struct uaedev_config_info *ci, struct romconfig *rc);
 bool masoboshi_init(struct autoconfig_info *aci);
@@ -68,6 +60,15 @@ void trumpcard500at_add_ide_unit(int ch, struct uaedev_config_info *ci, struct r
 
 bool tandem_init(struct autoconfig_info *aci);
 void tandem_add_ide_unit(int ch, struct uaedev_config_info *ci, struct romconfig *rc);
+
+void dotto_add_ide_unit(int ch, struct uaedev_config_info *ci, struct romconfig *rc);
+bool dotto_init(struct autoconfig_info *aci);
+
+void dev_hd_add_ide_unit(int ch, struct uaedev_config_info* ci, struct romconfig* rc);
+bool dev_hd_init(struct autoconfig_info* aci);
+
+void ripple_add_ide_unit(int ch, struct uaedev_config_info* ci, struct romconfig* rc);
+bool ripple_init(struct autoconfig_info* aci);
 
 uae_u32 REGPARAM3 apollo_ide_lget (uaecptr addr) REGPARAM;
 uae_u32 REGPARAM3 apollo_ide_wget (uaecptr addr) REGPARAM;

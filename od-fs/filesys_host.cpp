@@ -2,9 +2,10 @@
 #include "config.h"
 #endif
 
-#include <fs/fs.h>
 #include "sysconfig.h"
 #include "sysdeps.h"
+
+#include <fs/fs.h>
 
 #include "fsdb.h"
 #include "uae/fs.h"
@@ -415,7 +416,8 @@ int my_rmdir(const TCHAR *path) {
     return result;
 }
 
-int my_unlink(const TCHAR *path) {
+int my_unlink (const TCHAR *path, bool dontrecycle)
+{
     if (g_fsdb_debug) {
         write_log("my_unlink %s\n", path);
     }

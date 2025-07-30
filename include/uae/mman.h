@@ -2,10 +2,6 @@
 #define UAE_MMAN_H
 
 #include "uae/types.h"
-#ifdef FSUAE
-#include "uae/limits.h"
-#include "uae/memory.h"
-#endif
 
 #define MAX_SHMID 256
 

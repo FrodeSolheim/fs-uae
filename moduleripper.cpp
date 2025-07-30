@@ -13,13 +13,13 @@
 
 #include "options.h"
 #include "uae/io.h"
-#include "uae/memory.h"
+#include "memory.h"
 #include "uae/seh.h"
 #include "moduleripper.h"
 #include "gui.h"
 #include "uae.h"
 
-#ifdef FSUAE // NL
+#ifdef FSUAE
 
 typedef unsigned char Uchar;
 typedef unsigned long Ulong;
@@ -30,6 +30,7 @@ extern "C" {
 }
 
 #endif
+
 
 static int got, canceled;
 
@@ -53,29 +54,29 @@ void moduleripper (void)
 	int size;
 	uae_u8 *buf, *p;
 
-	size = currprefs.chipmem_size;
+	size = currprefs.chipmem.size;
 	for (int i = 0; i < MAX_RAM_BOARDS; i++) {
 		size += currprefs.fastmem[i].size;
 		size += currprefs.z3fastmem[i].size;
 	}
-	size += currprefs.bogomem_size;
-	size += currprefs.mbresmem_low_size;
-	size += currprefs.mbresmem_high_size;
+	size += currprefs.bogomem.size;
+	size += currprefs.mbresmem_low.size;
+	size += currprefs.mbresmem_high.size;
 	buf = p = xmalloc (uae_u8, size);
 	if (!buf)
 		return;
-	memcpy (p, chipmem_bank.baseaddr, currprefs.chipmem_size);
-	p += currprefs.chipmem_size;
+	memcpy (p, chipmem_bank.baseaddr, currprefs.chipmem.size);
+	p += currprefs.chipmem.size;
 	for (int i = 0; i < MAX_RAM_BOARDS; i++) {
 		mc (p, fastmem_bank[i].start, currprefs.fastmem[i].size);
 		p += currprefs.fastmem[i].size;
 	}
-	mc (p, bogomem_bank.start, currprefs.bogomem_size);
-	p += currprefs.bogomem_size;
-	mc (p, a3000lmem_bank.start, currprefs.mbresmem_low_size);
-	p += currprefs.mbresmem_low_size;
-	mc (p, a3000hmem_bank.start, currprefs.mbresmem_high_size);
-	p += currprefs.mbresmem_high_size;
+	mc (p, bogomem_bank.start, currprefs.bogomem.size);
+	p += currprefs.bogomem.size;
+	mc (p, a3000lmem_bank.start, currprefs.mbresmem_low.size);
+	p += currprefs.mbresmem_low.size;
+	mc (p, a3000hmem_bank.start, currprefs.mbresmem_high.size);
+	p += currprefs.mbresmem_high.size;
 	for (int i = 0; i < MAX_RAM_BOARDS; i++) {
 		mc (p, z3fastmem_bank[i].start, currprefs.z3fastmem[i].size);
 		p += currprefs.z3fastmem[i].size;
@@ -84,21 +85,13 @@ void moduleripper (void)
 	got = 0;
 	canceled = 0;
 #ifdef _WIN32
-#ifdef FSUAE
-
-#else
 	__try {
-#endif
 #endif
 		prowizard_search (buf, size);
 #ifdef _WIN32
-#ifdef FSUAE
-
-#else
 	} __except(ExceptionFilter (GetExceptionInformation (), GetExceptionCode ())) {
 		write_log (_T("prowizard scan crashed\n"));
 	}
-#endif
 #endif
 	if (!got)
 		notify_user (NUMSG_MODRIP_NOTFOUND);
@@ -111,7 +104,7 @@ static void namesplit(TCHAR *s)
 {
 	int l;
 
-	l = _tcslen(s) - 1;
+	l = uaetcslen(s) - 1;
 	while (l >= 0) {
 		if (s[l] == '.')
 			s[l] = 0;
@@ -122,7 +115,7 @@ static void namesplit(TCHAR *s)
 		l--;
 	}
 	if (l > 0)
-		memmove(s, s + l, (_tcslen(s + l) + 1) * sizeof (TCHAR));
+		memmove(s, s + l, (uaetcslen(s + l) + 1) * sizeof (TCHAR));
 }
 
 static void moduleripper_filename(const char *aname, TCHAR *out, bool fullpath)
@@ -181,11 +174,7 @@ FILE *moduleripper2_fopen (const char *name, const char *mode, const char *aid, 
 	moduleripper_filename(name, outname, false);
 	id = au (aid);
 	_stprintf (msg2, msg, id, addr, size, outname);
-#ifdef FSUAE
-	ret = 1;
-#else
 	ret = gui_message_multibutton (2, msg2);
-#endif
 	xfree (id);
 	if (ret < 0)
 		canceled = 1;

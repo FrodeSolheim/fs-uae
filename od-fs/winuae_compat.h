@@ -1,13 +1,21 @@
 #ifndef UAE_OD_FS_WINUAE_COMPAT_H
 #define UAE_OD_FS_WINUAE_COMPAT_H
 
+#include <stdint.h>
+
 #ifdef WINDOWS
 
 // Include windef.h now to get RECT and DWORD defined (and not collide with
 // later includes of windows.h
 
-#include "windef.h"
-#include "windows.h"
+#include <windef.h>
+#include <windows.h>
+
+#else
+
+// Used by createstatusline declaration in statusline.h; defining it as void *
+// for now to let code compile.
+typedef void * HWND;
 
 #endif
 
@@ -53,19 +61,19 @@ extern int _daylight;
 
 #define _cdecl
 
-#ifndef ULONG
-#define ULONG unsigned long
-#endif
+typedef uint32_t ULONG;
+
+//#include "uae/compat/windows.h"
 
 //typedef unsigned int UAE_DWORD;
-typedef unsigned int DWORD;
+// typedef unsigned int DWORD;
 
-typedef struct tagRECT {
-    int left;
-    int top;
-    int right;
-    int bottom;
-} RECT, *PRECT, *PPRECT;
+// typedef struct tagRECT {
+//     int left;
+//     int top;
+//     int right;
+//     int bottom;
+// } RECT, *PRECT, *PPRECT;
 
 //#ifndef WINDOWS
 //#define DWORD UAE_DWORD
@@ -74,5 +82,6 @@ typedef struct tagRECT {
 #endif
 
 // #define STATIC_INLINE static inline
+#include "uae/inline.h"
 
 #endif // UAE_OD_FS_WINUAE_COMPAT_H

@@ -8,7 +8,8 @@
 * 8088 x86 and PC support chip emulation from Fake86.
 * 80286+ CPU and AT support chip emulation from DOSBox.
 *
-* 2018: Replaced Fake86 and DOSBox with PCem.
+* 2018: Replaced Fake86 and DOSBox with PCem v14.
+* 2020: PCem v16.
 *
 */
 
@@ -18,7 +19,7 @@
 #define X86_DEBUG_BRIDGE_IRQ 0
 #define X86_IO_PORT_DEBUG 0
 #define X86_DEBUG_SPECIAL_IO 0
-#define FLOPPY_DEBUG 0
+#define FLOPPY_DEBUG 1
 #define EMS_DEBUG 0
 
 #define DEBUG_DMA 0
@@ -49,6 +50,7 @@
 #include "audio.h"
 
 #include "pcem/ibm.h"
+#include "pcem/device.h"
 #include "pcem/pic.h"
 #include "pcem/pit.h"
 #include "pcem/timer.h"
@@ -66,14 +68,10 @@
 #include "pcem/sound_cms.h"
 #include "pcem/mouse.h"
 #include "pcem/mouse_serial.h"
-#include "pcem/io.h"
-#include "pcem/mouse_ps2.h"
-#include "pcem/mouse_serial.h"
-#include "pcem/sound_cms.h"
-#include "pcem/sound_sb.h"
-
+#include "pcem/serial.h"
 extern int cpu;
 extern int nvrmask;
+void keyboard_at_write(uint16_t port, uint8_t val, void *priv);
 
 #define MAX_IO_PORT 0x400
 
@@ -85,12 +83,14 @@ static void(*port_outw[MAX_IO_PORT])(uint16_t addr, uint16_t val, void *priv);
 static void(*port_outl[MAX_IO_PORT])(uint16_t addr, uint32_t val, void *priv);
 static void *port_priv[MAX_IO_PORT];
 
-static double x86_base_event_clock;
+static float x86_base_event_clock;
 static int x86_sndbuffer_playpos;
 static int x86_sndbuffer_playindex;
 static int sound_handlers_num;
-int sound_poll_time = 0, sound_poll_latch;
+static uint64_t sound_poll_latch;
+static pc_timer_t sound_poll_timer;
 void sound_poll(void *priv);
+void sound_speed_changed(bool);
 
 #define TYPE_SIDECAR 0
 #define TYPE_2088 1
@@ -101,6 +101,7 @@ void sound_poll(void *priv);
 void x86_doirq(uint8_t irqnum);
 
 bool x86_cpu_active;
+extern int cpu_multiplier;
 
 static int x86_vga_mode;
 static int x86_vga_board;
@@ -199,6 +200,10 @@ struct x86_bridge
 	uae_u8 vlsi_regs[0x100];
 	uae_u16 vlsi_regs_ems[64];
 	bool vlsi_config;
+	int a2386flipper;
+	bool a2386_amigapcdrive;
+
+	X86_INTERRUPT_CALLBACK irq_callback;
 };
 static int x86_found;
 
@@ -396,6 +401,7 @@ static uae_u8 x86_bridge_put_io(struct x86_bridge *xb, uaecptr addr, uae_u8 v)
 			v |= 2;
 		else if (!(v & 2))
 			v |= 1;
+		xb->a2386flipper = (v >> 5) & 3;
 #if X86_DEBUG_BRIDGE_IO
 		write_log(_T("IO_CONTROL_REGISTER %02X -> %02x\n"), old, v);
 #endif
@@ -436,8 +442,13 @@ static uae_u8 x86_bridge_put_io(struct x86_bridge *xb, uaecptr addr, uae_u8 v)
 			xb->a2386_default_video = v & 1;
 			write_log(_T("A2386 Default mode = %s\n"), xb->a2386_default_video ? _T("MDA") : _T("CGA"));
 		}
-		if (v == 6 || v == 7)
+		if (v == 6 || v == 7) {
 			xb->pc_speaker = (v & 1) != 0;
+		}
+		if (v == 10 || v == 11) {
+			xb->a2386_amigapcdrive = (v & 1) != 0;
+			write_log(_T("A2386 Flipper mode = %s\n"), xb->a2386_amigapcdrive ? _T("PC") : _T("Amiga"));
+		}
 		break;
 
 		default:
@@ -502,6 +513,7 @@ static uae_u8 x86_bridge_get_io(struct x86_bridge *xb, uaecptr addr)
 	return v;
 }
 
+static void x86_bridge_rethink(void);
 static void set_interrupt(struct x86_bridge *xb, int bit)
 {
 	if (xb->amiga_io[IO_AMIGA_INTERRUPT_STATUS] & (1 << bit))
@@ -513,249 +525,29 @@ static void set_interrupt(struct x86_bridge *xb, int bit)
 	devices_rethink_all(x86_bridge_rethink);
 }
 
-#if 0
-/* 8237 and 8253 from fake86 with small modifications */
-
-struct dmachan_s {
-	uint32_t page;
-	uint32_t addr;
-	uint32_t reload;
-	uint32_t count;
-	uint8_t direction;
-	uint8_t autoinit;
-	uint8_t writemode;
-	uint8_t modeselect;
-	uint8_t masked;
-	uint8_t verifymode;
-};
-
-static struct dmachan_s dmachan[2 * 4];
-static uae_u8 dmareg[2 * 16];
-static uint8_t flipflop = 0;
-
-static int write8237(struct x86_bridge *xb, uint8_t channel, uint8_t data)
-{
-	if (dmachan[channel].masked)
-		return 0;
-	if (dmachan[channel].autoinit && (dmachan[channel].count > dmachan[channel].reload))
-		dmachan[channel].count = 0;
-	if (dmachan[channel].count > dmachan[channel].reload)
-		return 0;
-	//if (dmachan[channel].direction) ret = RAM[dmachan[channel].page + dmachan[channel].addr + dmachan[channel].count];
-	//	else ret = RAM[dmachan[channel].page + dmachan[channel].addr - dmachan[channel].count];
-	if (!dmachan[channel].verifymode) {
-		xb->pc_ram[dmachan[channel].page + dmachan[channel].addr] = data;
-		if (dmachan[channel].direction == 0) {
-			dmachan[channel].addr++;
-		} else {
-			dmachan[channel].addr--;
-		}
-		dmachan[channel].addr &= 0xffff;
-	}
-	dmachan[channel].count++;
-	if (dmachan[channel].count > dmachan[channel].reload)
-		return -1;
-	return 1;
-}
-
-static uint8_t read8237(struct x86_bridge *xb, uint8_t channel, bool *end)
-{
-	uint8_t ret = 128;
-	*end = false;
-	if (dmachan[channel].masked) {
-		*end = true;
-		return ret;
-	}
-	if (dmachan[channel].autoinit && (dmachan[channel].count > dmachan[channel].reload))
-		dmachan[channel].count = 0;
-	if (dmachan[channel].count > dmachan[channel].reload) {
-		*end = true;
-		return ret;
-	}
-	//if (dmachan[channel].direction) ret = RAM[dmachan[channel].page + dmachan[channel].addr + dmachan[channel].count];
-	//	else ret = RAM[dmachan[channel].page + dmachan[channel].addr - dmachan[channel].count];
-	if (!dmachan[channel].verifymode) {
-		ret = xb->pc_ram[dmachan[channel].page + dmachan[channel].addr];
-		if (dmachan[channel].direction == 0) {
-			dmachan[channel].addr++;
-		} else {
-			dmachan[channel].addr--;
-		}
-		dmachan[channel].addr &= 0xffff;
-	}
-	dmachan[channel].count++;
-	if (dmachan[channel].count > dmachan[channel].reload)
-		*end = true;
-	return ret;
-}
-
-static void out8237(uint16_t addr, uint8_t value)
-{
-	uint8_t channel;
-	int chipnum = 0;
-	int reg = -1;
-#if DEBUG_DMA
-	write_log("out8237(0x%X, %X);\n", addr, value);
-#endif
-	if (addr >= 0x80 && addr <= 0x8f) {
-		dmareg[addr & 0xf] = value;
-		reg = addr;
-	} else if (addr >= 0xc0 && addr <= 0xdf) {
-		reg = (addr - 0xc0) / 2;
-		chipnum = 4;
-	} else if (addr <= 0x0f) {
-		reg = addr;
-		chipnum = 0;
-	}
-	switch (reg) {
-		case 0x0:
-		case 0x2: //channel 1 address register
-		case 0x4:
-		case 0x6:
-		channel = reg / 2 + chipnum;
-		if (flipflop == 1)
-			dmachan[channel].addr = (dmachan[channel].addr & 0x00FF) | ((uint32_t)value << 8);
-		else
-			dmachan[channel].addr = (dmachan[channel].addr & 0xFF00) | value;
-#if DEBUG_DMA
-		if (flipflop == 1) write_log("[NOTICE] DMA channel %d address register = %04X\n", channel, dmachan[channel].addr);
-#endif
-		flipflop = ~flipflop & 1;
-		break;
-		case 0x1:
-		case 0x3: //channel 1 count register
-		case 0x5:
-		case 0x7:
-		channel = reg / 2 + chipnum;
-		if (flipflop == 1)
-			dmachan[channel].reload = (dmachan[channel].reload & 0x00FF) | ((uint32_t)value << 8);
-		else
-			dmachan[channel].reload = (dmachan[channel].reload & 0xFF00) | value;
-		if (flipflop == 1) {
-			if (dmachan[channel].reload == 0)
-				dmachan[channel].reload = 65536;
-			dmachan[channel].count = 0;
-#if DEBUG_DMA
-			write_log("[NOTICE] DMA channel %d reload register = %04X\n", channel, dmachan[channel].reload);
-#endif
-		}
-		flipflop = ~flipflop & 1;
-		break;
-		case 0xA: //write single mask register
-		channel = (value & 3) + chipnum;
-		dmachan[channel].masked = (value >> 2) & 1;
-#if DEBUG_DMA
-		write_log("[NOTICE] DMA channel %u masking = %u\n", channel, dmachan[channel].masked);
-#endif
-		break;
-		case 0xB: //write mode register
-		channel = (value & 3) + chipnum;
-		dmachan[channel].direction = (value >> 5) & 1;
-		dmachan[channel].autoinit = (value >> 4) & 1;
-		dmachan[channel].modeselect = (value >> 6) & 3;
-		dmachan[channel].writemode = (value >> 2) & 1; //not quite accurate
-		dmachan[channel].verifymode = ((value >> 2) & 3) == 0;
-#if DEBUG_DMA
-		write_log("[NOTICE] DMA channel %u write mode reg: direction = %u, autoinit = %u, write mode = %u, verify mode = %u, mode select = %u\n",
-			   channel, dmachan[channel].direction, dmachan[channel].autoinit, dmachan[channel].writemode, dmachan[channel].verifymode, dmachan[channel].modeselect);
-#endif
-		break;
-		case 0xC: //clear byte pointer flip-flop
-#if DEBUG_DMA
-		write_log("[NOTICE] DMA cleared byte pointer flip-flop\n");
-#endif
-		flipflop = 0;
-		break;
-		case 0x89: // 6
-		case 0x8a: // 7
-		case 0x8b: // 5
-		case 0x81: // 2
-		case 0x82: // 3
-		case 0x83: // DMA channel 1 page register
-		// Original PC design. It can't get any more stupid.
-		if ((addr & 3) == 1)
-			channel = 2;
-		else if ((addr & 3) == 2)
-			channel = 3;
-		else
-			channel = 1;
-		if (addr >= 0x84)
-			channel += 4;
-		dmachan[channel].page = (uint32_t)value << 16;
-#if DEBUG_DMA
-		write_log("[NOTICE] DMA channel %d page base = %05X\n", channel, dmachan[channel].page);
-#endif
-		break;
-	}
-}
-
-static uint8_t in8237(uint16_t addr)
-{
-	struct x86_bridge *xb = bridges[0];
-	uint8_t channel;
-	int reg = -1;
-	int chipnum = addr >= 0xc0 ? 4 : 0;
-	uint8_t out = 0;
-
-	if (addr >= 0xc0 && addr <= 0xdf) {
-		reg = (addr - 0xc0) / 2;
-		chipnum = 4;
-	} else if (addr <= 0x0f) {
-		reg = addr;
-		chipnum = 0;
-	}
-	switch (reg) {
-		case 0x0:
-		case 0x2: //channel 1 address register
-		case 0x4:
-		case 0x6:
-		channel = reg / 2 + chipnum;
-		flipflop = ~flipflop & 1;
-		if (flipflop == 0)
-			out = dmachan[channel].addr >> 8;
-		else
-			out = dmachan[channel].addr;
-		break;
-		case 0x1:
-		case 0x3: //channel 1 count register
-		case 0x5:
-		case 0x7:
-		channel = reg / 2 + chipnum;
-		flipflop = ~flipflop & 1;
-		if (flipflop == 0)
-			out = dmachan[channel].reload >> 8;
-		else
-			out = dmachan[channel].reload;
-		break;
-	}
-	if (addr >= 0x80 && addr <= 0x8f)
-		out = dmareg[addr & 0xf];
-
-#if DEBUG_DMA
-	write_log("in8237(0x%X = %02x);\n", addr, out);
-#endif
-	return out;
-}
-#endif
-
 void x86_ack_keyboard(void)
 {
 	set_interrupt(bridges[0], 4);
 }
 
-static
 void x86_clearirq(uint8_t irqnum)
 {
 	struct x86_bridge *xb = bridges[0];
-
-	picintc(1 << irqnum);
+	if (xb->irq_callback) {
+		xb->irq_callback(irqnum, false);
+	} else {
+		picintc(1 << irqnum);
+	}
 }
 
 void x86_doirq(uint8_t irqnum)
 {
 	struct x86_bridge *xb = bridges[0];
-
-	picint(1 << irqnum);
+	if (xb->irq_callback) {
+		xb->irq_callback(irqnum, true);
+	} else {
+		picint(1 << irqnum);
+	}
 }
 
 struct pc_floppy
@@ -765,13 +557,14 @@ struct pc_floppy
 	int cyl;
 	uae_u8 sector;
 	uae_u8 head;
+	bool disk_changed;
 };
 
 static struct pc_floppy floppy_pc[4];
 static uae_u8 floppy_dpc;
 static uae_s8 floppy_idx;
 static uae_u8 floppy_dir;
-static uae_u8 floppy_cmd_len;
+static uae_s8 floppy_cmd_len;
 static uae_u8 floppy_cmd[16];
 static uae_u8 floppy_result[16];
 static uae_u8 floppy_status[4];
@@ -781,6 +574,9 @@ static uae_u8 floppy_seekcyl[4];
 static int floppy_delay_hsync;
 static bool floppy_did_reset;
 static bool floppy_irq;
+static bool floppy_specify_pio;
+static uae_u8 *floppy_pio_buffer;
+static int floppy_pio_len, floppy_pio_cnt, floppy_pio_active;
 static uae_s8 floppy_rate;
 
 #define PC_SEEK_DELAY 50
@@ -795,6 +591,20 @@ static void floppy_reset(void)
 	floppy_idx = 0;
 	floppy_dir = 0;
 	floppy_did_reset = true;
+	floppy_specify_pio = false;
+	floppy_pio_active = 0;
+	floppy_dpc = 0;
+	floppy_cmd_len = 0;
+	floppy_num = 0;
+	floppy_delay_hsync = 0;
+	floppy_irq = false;
+	floppy_pio_len = 0;
+	floppy_pio_cnt = 0;
+	for (int i = 0; i < 4; i++) {
+		floppy_seeking[i] = 0;
+		floppy_seekcyl[i] = 0;
+	}
+
 	if (xb->type == TYPE_2286) {
 		// apparently A2286 BIOS AT driver assumes
 		// floppy reset also resets IDE.
@@ -806,7 +616,12 @@ static void floppy_reset(void)
 
 static void floppy_hardreset(void)
 {
-	floppy_rate = -1;
+	struct x86_bridge *xb = bridges[0];
+	if (xb->type >= TYPE_2286 || xb->type < 0) {
+		floppy_rate = 0;
+	} else {
+		floppy_rate = -1;
+	}
 	floppy_reset();
 }
 
@@ -832,13 +647,16 @@ static void do_floppy_irq(void)
 
 static void do_floppy_seek(int num, int error)
 {
-	struct pc_floppy *pcf = &floppy_pc[floppy_num];
+	struct pc_floppy *pcf = &floppy_pc[num];
 
 	disk_reserved_reset_disk_change(num);
 	if (!error) {
 		struct floppy_reserved fr = { 0 };
-		bool valid_floppy = disk_reserved_getinfo(floppy_num, &fr);
+		bool valid_floppy = disk_reserved_getinfo(num, &fr);
 		if (floppy_seekcyl[num] != pcf->phys_cyl) {
+
+			pcf->disk_changed = false;
+
 			if (floppy_seekcyl[num] > pcf->phys_cyl)
 				pcf->phys_cyl++;
 			else if (pcf->phys_cyl > 0)
@@ -849,14 +667,14 @@ static void do_floppy_seek(int num, int error)
 				driveclick_click(fr.num, pcf->phys_cyl);
 #endif
 #if FLOPPY_DEBUG
-			write_log(_T("Floppy%d seeking.. %d\n"), floppy_num, pcf->phys_cyl);
+			write_log(_T("Floppy%d seeking.. %d\n"), num, pcf->phys_cyl);
 #endif
 			if (pcf->phys_cyl - pcf->seek_offset <= 0) {
 				pcf->phys_cyl = 0;
 				if (pcf->seek_offset) {
 					floppy_seekcyl[num] = 0;
 #if FLOPPY_DEBUG
-					write_log(_T("Floppy%d early track zero\n"), floppy_num);
+					write_log(_T("Floppy%d early track zero\n"), num);
 #endif
 					pcf->seek_offset = 0;
 				}
@@ -868,7 +686,7 @@ static void do_floppy_seek(int num, int error)
 				pcf->cyl = pcf->phys_cyl;
 
 			floppy_seeking[num] = PC_SEEK_DELAY;
-			disk_reserved_setinfo(floppy_num, pcf->cyl, pcf->head, 1);
+			disk_reserved_setinfo(num, pcf->cyl, pcf->head, 1);
 			return;
 		}
 
@@ -889,7 +707,7 @@ static void do_floppy_seek(int num, int error)
 
 done:
 #if FLOPPY_DEBUG
-	write_log(_T("Floppy%d seek done err=%d. pcyl=%d cyl=%d h=%d\n"), floppy_num, error, pcf->phys_cyl,pcf->cyl, pcf->head);
+	write_log(_T("Floppy%d seek done err=%d. pcyl=%d cyl=%d h=%d\n"), num, error, pcf->phys_cyl,pcf->cyl, pcf->head);
 #endif
 	floppy_status[0] = 0;
 	floppy_status[0] |= 0x20; // seek end
@@ -923,14 +741,226 @@ static int floppy_selected(void)
 	return -1;
 }
 
+static void floppy_clear_irq(void)
+{
+	if (floppy_irq) {
+		x86_clearirq(6);
+		floppy_irq = false;
+	}
+}
+
+static bool floppy_valid_format(struct floppy_reserved *fr)
+{
+	if (fr->secs == 11 || fr->secs == 22)
+		return false;
+	return true;
+}
+
 static bool floppy_valid_rate(struct floppy_reserved *fr)
 {
 	struct x86_bridge *xb = bridges[0];
-	// A2386 BIOS sets 720k data rate for both 720k and 1.4M drives
+	// A2386 BIOS sets 720k data rate for 720k, 1.2M and 1.4M drives
 	// probably because it thinks Amiga half-speed drive is connected?
-	if (xb->type == TYPE_2386 && fr->rate == 0 && floppy_rate == 2)
+	if (xb->type == TYPE_2386 && fr->rate == 0 && (floppy_rate == 1 || floppy_rate == 2))
 		return true;
 	return fr->rate == floppy_rate || floppy_rate < 0;
+}
+
+static void floppy_format(struct x86_bridge *xb, bool real)
+{
+	uae_u8 cmd = floppy_cmd[0];
+	struct pc_floppy *pcf = &floppy_pc[floppy_num];
+	struct floppy_reserved fr = { 0 };
+	bool valid_floppy = disk_reserved_getinfo(floppy_num, &fr);
+
+#if FLOPPY_DEBUG
+	write_log(_T("Floppy%d %s format MF=%d N=%d:SC=%d:GPL=%d:D=%d\n"),
+		floppy_num, real ? _T("real") : _T("sim"), (floppy_cmd[0] & 0x40) ? 1 : 0,
+		floppy_cmd[2], floppy_cmd[3], floppy_cmd[4], floppy_cmd[5]);
+	write_log(_T("DMA addr %08x len %04x\n"), dma[2].page | dma[2].ac, dma[2].cb);
+	write_log(_T("IMG: Secs=%d Heads=%d\n"), fr.secs, fr.heads);
+#endif
+	int secs = floppy_cmd[3];
+	int sector = pcf->sector;
+	int head = pcf->head;
+	int cyl = pcf->cyl;
+	if (valid_floppy && fr.img) {
+		// TODO: CHRN values totally ignored
+		pcf->head = (floppy_cmd[1] & 4) ? 1 : 0;
+		uae_u8 buf[512];
+		memset(buf, floppy_cmd[5], sizeof buf);
+		uae_u8 *pioptr = floppy_pio_buffer;
+		for (int i = 0; i < secs && i < fr.secs && !fr.wrprot; i++) {
+			uae_u8 cx = 0, hx = 0, rx = 0, nx = 0;
+			if (floppy_specify_pio) {
+				if (real) {
+					floppy_pio_cnt += 4;
+					if (floppy_pio_cnt <= floppy_pio_len) {
+						cx = *pioptr++;
+						hx = *pioptr++;
+						rx = *pioptr++;
+						nx = *pioptr++;
+					}
+				} else {
+					floppy_pio_len += 4;
+				}
+			} else {
+				if (real) {
+					cx = dma_channel_read(2);
+					hx = dma_channel_read(2);
+					rx = dma_channel_read(2);
+					nx = dma_channel_read(2);
+				}
+			}
+			pcf->sector = rx - 1;
+#if FLOPPY_DEBUG
+			write_log(_T("Floppy%d %d/%d: C=%d H=%d R=%d N=%d\n"), floppy_num, i, fr.secs, cx, hx, rx, nx);
+#endif
+			if (real) {
+				zfile_fseek(fr.img, (pcf->cyl * fr.secs * fr.heads + pcf->head * fr.secs + pcf->sector) * 512, SEEK_SET);
+				zfile_fwrite(buf, 1, 512, fr.img);
+			}
+			pcf->sector++;
+		}
+	} else {
+		floppy_status[0] |= 0x40; // abnormal termination
+		floppy_status[0] |= 0x10; // equipment check
+	}
+	floppy_cmd_len = 7;
+	if (fr.wrprot) {
+		floppy_status[0] |= 0x40; // abnormal termination
+		floppy_status[1] |= 0x02; // not writable
+	}
+	floppy_result[0] = floppy_status[0];
+	floppy_result[1] = floppy_status[1];
+	floppy_result[2] = floppy_status[2];
+	floppy_result[3] = pcf->cyl;
+	floppy_result[4] = pcf->head;
+	floppy_result[5] = pcf->sector + 1;
+	floppy_result[6] = floppy_cmd[2];
+	if (real) {
+		floppy_delay_hsync = 10;
+		disk_reserved_setinfo(floppy_num, pcf->cyl, pcf->head, 1);
+	} else {
+		pcf->cyl = cyl;
+		pcf->sector = sector;
+		pcf->head = head;
+	}
+}
+
+static void floppy_write(struct x86_bridge *xb, bool real)
+{
+	uae_u8 cmd = floppy_cmd[0];
+	struct pc_floppy *pcf = &floppy_pc[floppy_num];
+	struct floppy_reserved fr = { 0 };
+	bool valid_floppy = disk_reserved_getinfo(floppy_num, &fr);
+
+#if FLOPPY_DEBUG
+	write_log(_T("Floppy%d %s write MT=%d MF=%d C=%d:H=%d:R=%d:N=%d:EOT=%d:GPL=%d:DTL=%d\n"),
+		floppy_num, real ? _T("real") : _T("sim"), (floppy_cmd[0] & 0x80) ? 1 : 0, (floppy_cmd[0] & 0x40) ? 1 : 0,
+		floppy_cmd[2], floppy_cmd[3], floppy_cmd[4], floppy_cmd[5],
+		floppy_cmd[6], floppy_cmd[7], floppy_cmd[8]);
+	write_log(_T("DMA addr %08x len %04x\n"), dma[2].page | dma[2].ac, dma[2].ab);
+#endif
+	floppy_delay_hsync = 50;
+	int eot = floppy_cmd[6];
+	bool mt = (floppy_cmd[0] & 0x80) != 0;
+	int sector = pcf->sector;
+	int head = pcf->head;
+	int cyl = pcf->cyl;
+	if (valid_floppy) {
+		if (fr.img && pcf->cyl != floppy_cmd[2]) {
+			floppy_status[0] |= 0x40; // abnormal termination
+			floppy_status[2] |= 0x20; // wrong cylinder
+		} else if (fr.img) {
+			int end = 0;
+			pcf->sector = floppy_cmd[4] - 1;
+			pcf->head = (floppy_cmd[1] & 4) ? 1 : 0;
+			uae_u8 *pioptr = floppy_pio_buffer;
+			while (!end && !fr.wrprot) {
+				int len = 128 << floppy_cmd[5];
+				uae_u8 buf[512] = { 0 };
+				if (floppy_specify_pio) {
+					for (int i = 0; i < 512 && i < len; i++) {
+						if (real) {
+							if (floppy_pio_cnt >= floppy_pio_len) {
+								end = 1;
+								break;
+							}
+							int v = *pioptr++;
+							buf[i] = v;
+							floppy_pio_cnt++;
+						} else {
+							floppy_pio_len++;
+						}
+					}
+				} else {
+					for (int i = 0; i < 512 && i < len; i++) {
+						if (real) {
+							int v = dma_channel_read(2);
+							if (v < 0) {
+								end = -1;
+								break;
+							}
+							buf[i] = v;
+							if (v >= 0x10000) {
+								end = 1;
+								break;
+							}
+						}
+					}
+				}
+#if FLOPPY_DEBUG
+				write_log(_T("LEN=%d END=%d C=%d H=%d S=%d. IMG S=%d H=%d\n"), len, end, pcf->cyl, pcf->head, pcf->sector, fr.secs, fr.heads);
+#endif
+				if (end < 0)
+					break;
+				if (real) {
+					zfile_fseek(fr.img, (pcf->cyl * fr.secs * fr.heads + pcf->head * fr.secs + pcf->sector) * 512, SEEK_SET);
+					zfile_fwrite(buf, 1, 512, fr.img);
+				}
+				pcf->sector++;
+				if (pcf->sector == eot) {
+					if (mt) {
+						pcf->sector = 0;
+						if (pcf->head)
+							pcf->cyl++;
+						pcf->head ^= 1;
+					} else {
+						break;
+					}
+				}
+				if (pcf->sector >= fr.secs) {
+					pcf->sector = 0;
+					pcf->head ^= 1;
+					break;
+				}
+			}
+			floppy_result[3] = cyl;
+			floppy_result[4] = pcf->head;
+			floppy_result[5] = pcf->sector + 1;
+			floppy_result[6] = floppy_cmd[5];
+		} else {
+			floppy_status[0] |= 0x40; // abnormal termination
+			floppy_status[0] |= 0x10; // equipment check
+		}
+	}
+	floppy_cmd_len = 7;
+	if (fr.wrprot) {
+		floppy_status[0] |= 0x40; // abnormal termination
+		floppy_status[1] |= 0x02; // not writable
+	}
+	floppy_result[0] = floppy_status[0];
+	floppy_result[1] = floppy_status[1];
+	floppy_result[2] = floppy_status[2];
+	if (real) {
+		floppy_delay_hsync = 10;
+		disk_reserved_setinfo(floppy_num, pcf->cyl, pcf->head, 1);
+	} else {
+		pcf->cyl = cyl;
+		pcf->sector = sector;
+		pcf->head = head;
+	}
 }
 
 static void floppy_do_cmd(struct x86_bridge *xb)
@@ -943,7 +973,7 @@ static void floppy_do_cmd(struct x86_bridge *xb)
 	valid_floppy = disk_reserved_getinfo(floppy_num, &fr);
 
 #if FLOPPY_DEBUG
-	if (floppy_cmd_len) {
+	if (floppy_cmd_len > 0) {
 		write_log(_T("Command: "));
 		for (int i = 0; i < floppy_cmd_len; i++) {
 			write_log(_T("%02x "), floppy_cmd[i]);
@@ -970,8 +1000,7 @@ static void floppy_do_cmd(struct x86_bridge *xb)
 			// 0xc0 status after reset.
 			floppy_status[0] = 0xc0;
 		}
-		x86_clearirq(6);
-		floppy_irq = false;
+		floppy_clear_irq();
 		floppy_result[0] = floppy_status[0];
 		floppy_result[1] = pcf->phys_cyl;
 		floppy_status[0] = 0;
@@ -1001,6 +1030,10 @@ static void floppy_do_cmd(struct x86_bridge *xb)
 		write_log(_T("Floppy%d Specify SRT=%d HUT=%d HLT=%d ND=%d\n"), floppy_num, floppy_cmd[1] >> 4, floppy_cmd[1] & 0x0f, floppy_cmd[2] >> 1, floppy_cmd[2] & 1);
 #endif
 		floppy_delay_hsync = -5;
+		floppy_specify_pio = (floppy_cmd[2] & 1) != 0;
+		if (floppy_specify_pio && !floppy_pio_buffer) {
+			floppy_pio_buffer = xcalloc(uae_u8, 512 * 36);
+		}
 		break;
 
 		case 4:
@@ -1014,83 +1047,7 @@ static void floppy_do_cmd(struct x86_bridge *xb)
 
 		case 5:
 		{
-#if FLOPPY_DEBUG
-			write_log(_T("Floppy%d write MT=%d MF=%d C=%d:H=%d:R=%d:N=%d:EOT=%d:GPL=%d:DTL=%d\n"),
-				floppy_num, (floppy_cmd[0] & 0x80) ? 1 : 0, (floppy_cmd[0] & 0x40) ? 1 : 0,
-				floppy_cmd[2], floppy_cmd[3], floppy_cmd[4], floppy_cmd[5],
-				floppy_cmd[6], floppy_cmd[7], floppy_cmd[8]);
-			write_log(_T("DMA addr %08x len %04x\n"), dma[2].page | dma[2].ac, dma[2].ab);
-#endif
-			floppy_delay_hsync = 50;
-			int eot = floppy_cmd[6];
-			bool mt = (floppy_cmd[0] & 0x80) != 0;
-			int cyl = pcf->cyl;
-			if (valid_floppy) {
-				if (fr.img && pcf->cyl != floppy_cmd[2]) {
-					floppy_status[0] |= 0x40; // abnormal termination
-					floppy_status[2] |= 0x20; // wrong cylinder
-				} else if (fr.img) {
-					int end = 0;
-					pcf->sector = floppy_cmd[4] - 1;
-					pcf->head = (floppy_cmd[1] & 4) ? 1 : 0;
-					while (!end && !fr.wrprot) {
-						int len = 128 << floppy_cmd[5];
-						uae_u8 buf[512] = { 0 };
-						for (int i = 0; i < 512 && i < len; i++) {
-							int v = dma_channel_read(2);
-							if (v < 0) {
-								end = -1;
-								break;
-							}
-							buf[i] = v;
-							if (v >= 0x10000) {
-								end = 1;
-								break;
-							}
-						}
-#if FLOPPY_DEBUG
-						write_log(_T("LEN=%d END=%d C=%d H=%d S=%d. IMG S=%d H=%d\n"), len, end, pcf->cyl, pcf->head, pcf->sector, fr.secs, fr.heads);
-#endif
-						if (end < 0)
-							break;
-						zfile_fseek(fr.img, (pcf->cyl * fr.secs * fr.heads + pcf->head * fr.secs + pcf->sector) * 512, SEEK_SET);
-						zfile_fwrite(buf, 1, 512, fr.img);
-						pcf->sector++;
-						if (pcf->sector == eot) {
-							if (mt) {
-								pcf->sector = 0;
-								if (pcf->head)
-									pcf->cyl++;
-								pcf->head ^= 1;
-							} else {
-								break;
-							}
-						}
-						if (pcf->sector >= fr.secs) {
-							pcf->sector = 0;
-							pcf->head ^= 1;
-							break;
-						}
-					}
-					floppy_result[3] = cyl;
-					floppy_result[4] = pcf->head;
-					floppy_result[5] = pcf->sector + 1;
-					floppy_result[6] = floppy_cmd[5];
-				} else {
-					floppy_status[0] |= 0x40; // abnormal termination
-					floppy_status[0] |= 0x10; // equipment check
-				}
-			}
-			floppy_cmd_len = 7;
-			if (fr.wrprot) {
-				floppy_status[0] |= 0x40; // abnormal termination
-				floppy_status[1] |= 0x02; // not writable
-			}
-			floppy_result[0] = floppy_status[0];
-			floppy_result[1] = floppy_status[1];
-			floppy_result[2] = floppy_status[2];
-			floppy_delay_hsync = 10;
-			disk_reserved_setinfo(floppy_num, pcf->cyl, pcf->head, 1);
+			floppy_write(xb, true);
 		}
 		break;
 
@@ -1110,7 +1067,7 @@ static void floppy_do_cmd(struct x86_bridge *xb)
 			int cyl = pcf->cyl;
 			bool nodata = false;
 			if (valid_floppy) {
-				if (!floppy_valid_rate(&fr)) {
+				if (!floppy_valid_rate(&fr) || !floppy_valid_format(&fr)) {
 					nodata = true;
 				} else if (pcf->head && fr.heads == 1) {
 					nodata = true;
@@ -1121,15 +1078,25 @@ static void floppy_do_cmd(struct x86_bridge *xb)
 					bool end = false;
 					pcf->sector = floppy_cmd[4] - 1;
 					pcf->head = (floppy_cmd[1] & 4) ? 1 : 0;
+					floppy_pio_len = 0;
+					floppy_pio_cnt = 0;
+					uae_u8 *pioptr = floppy_pio_buffer;
 					while (!end) {
 						int len = 128 << floppy_cmd[5];
 						uae_u8 buf[512];
 						zfile_fseek(fr.img, (pcf->cyl * fr.secs * fr.heads + pcf->head * fr.secs + pcf->sector) * 512, SEEK_SET);
 						zfile_fread(buf, 1, 512, fr.img);
-						for (int i = 0; i < 512 && i < len; i++) {
-							int v = dma_channel_write(2, buf[i]);
-							if (v < 0 || v > 65535)
-								end = true;
+						if (floppy_specify_pio) {
+							memcpy(pioptr, buf, 512);
+							pioptr += 512;
+							floppy_pio_len += 512;
+							floppy_pio_active = 1;
+						} else {
+							for (int i = 0; i < 512 && i < len; i++) {
+								int v = dma_channel_write(2, buf[i]);
+								if (v < 0 || v > 65535)
+									end = true;
+							}
 						}
 						pcf->sector++;
 						if (pcf->sector == eot) {
@@ -1139,13 +1106,13 @@ static void floppy_do_cmd(struct x86_bridge *xb)
 									pcf->cyl++;
 								pcf->head ^= 1;
 							} else {
-								break;
+								end = true;
 							}
 						}
 						if (pcf->sector >= fr.secs) {
 							pcf->sector = 0;
 							pcf->head ^= 1;
-							break;
+							end = true;
 						}
 					}
 					floppy_result[3] = cyl;
@@ -1185,7 +1152,7 @@ static void floppy_do_cmd(struct x86_bridge *xb)
 #if FLOPPY_DEBUG
 		write_log(_T("Floppy read ID\n"));
 #endif
-		if (!valid_floppy || !fr.img || !floppy_valid_rate(&fr) || (pcf->head && fr.heads == 1)) {
+		if (!valid_floppy || !fr.img || !floppy_valid_rate(&fr) || (pcf->head && fr.heads == 1) || !floppy_valid_format(&fr)) {
 			floppy_status[0] |= 0x40; // abnormal termination
 			floppy_status[1] |= 0x04; // no data
 		}
@@ -1203,56 +1170,13 @@ static void floppy_do_cmd(struct x86_bridge *xb)
 			pcf->sector %= fr.secs;
 		}
 
-		floppy_delay_hsync = 10;
+		floppy_delay_hsync = maxvpos * 20;
 		disk_reserved_setinfo(floppy_num, pcf->cyl, pcf->head, 1);
 		break;
 
 		case 13:
 		{
-#if FLOPPY_DEBUG
-			write_log(_T("Floppy%d format MF=%d N=%d:SC=%d:GPL=%d:D=%d\n"),
-				floppy_num, (floppy_cmd[0] & 0x40) ? 1 : 0,
-				floppy_cmd[2], floppy_cmd[3], floppy_cmd[4], floppy_cmd[5]);
-			write_log(_T("DMA addr %08x len %04x\n"), dma[2].page | dma[2].ac, dma[2].cb);
-			write_log(_T("IMG: Secs=%d Heads=%d\n"), fr.secs, fr.heads);
-#endif
-			int secs = floppy_cmd[3];
-			if (valid_floppy && fr.img) {
-				// TODO: CHRN values totally ignored
-				pcf->head = (floppy_cmd[1] & 4) ? 1 : 0;
-				uae_u8 buf[512];
-				memset(buf, floppy_cmd[5], sizeof buf);
-				for (int i = 0; i < secs && i < fr.secs && !fr.wrprot; i++) {
-					uae_u8 cx = dma_channel_read(2);
-					uae_u8 hx = dma_channel_read(2);
-					uae_u8 rx = dma_channel_read(2);
-					uae_u8 nx = dma_channel_read(2);
-					pcf->sector = rx - 1;
-#if FLOPPY_DEBUG
-					write_log(_T("Floppy%d %d/%d: C=%d H=%d R=%d N=%d\n"), floppy_num, i, fr.secs, cx, hx, rx, nx);
-#endif
-					zfile_fseek(fr.img, (pcf->cyl * fr.secs * fr.heads + pcf->head * fr.secs + pcf->sector) * 512, SEEK_SET);
-					zfile_fwrite(buf, 1, 512, fr.img);
-					pcf->sector++;
-				}
-			} else {
-				floppy_status[0] |= 0x40; // abnormal termination
-				floppy_status[0] |= 0x10; // equipment check
-			}
-			floppy_cmd_len = 7;
-			if (fr.wrprot) {
-				floppy_status[0] |= 0x40; // abnormal termination
-				floppy_status[1] |= 0x02; // not writable
-			}
-			floppy_result[0] = floppy_status[0];
-			floppy_result[1] = floppy_status[1];
-			floppy_result[2] = floppy_status[2];
-			floppy_result[3] = pcf->cyl;
-			floppy_result[4] = pcf->head;
-			floppy_result[5] = pcf->sector + 1;
-			floppy_result[6] = floppy_cmd[2];
-			floppy_delay_hsync = 10;
-			disk_reserved_setinfo(floppy_num, pcf->cyl, pcf->head, 1);
+			floppy_format(xb, true);
 		}
 		break;
 
@@ -1268,14 +1192,20 @@ static void floppy_do_cmd(struct x86_bridge *xb)
 		}
 		break;
 
+		case 16:
+		floppy_status[0] = 0x90;
+		floppy_cmd_len = 1;
+		break;
+
 		default:
 		floppy_status[0] = 0x80;
 		floppy_cmd_len = 1;
 		break;
+
 	}
 
 end:
-	if (floppy_cmd_len) {
+	if (floppy_cmd_len > 0) {
 		floppy_idx = -1;
 		floppy_dir = 1;
 #if FLOPPY_DEBUG
@@ -1291,8 +1221,14 @@ end:
 	}
 }
 
+static int draco_force_irq;
+
 static void outfloppy(struct x86_bridge *xb, int portnum, uae_u8 v)
 {
+#if FLOPPY_IO_DEBUG
+	write_log(_T("out floppy port %04x %02x\n"), portnum, v);
+#endif
+
 	switch (portnum)
 	{
 		case 0x3f2: // dpc
@@ -1315,52 +1251,105 @@ static void outfloppy(struct x86_bridge *xb, int portnum, uae_u8 v)
 		}
 #endif
 		floppy_dpc = v;
+		if (xb->type < 0) {
+			floppy_dpc |= 8;
+		}
 		floppy_num = v & 3;
 		for (int i = 0; i < 2; i++) {
-			disk_reserved_setinfo(0, floppy_pc[i].cyl, floppy_pc[i].head, floppy_selected() == i);
+			disk_reserved_setinfo(i, floppy_pc[i].cyl, floppy_pc[i].head, floppy_selected() == i);
 		}
 		break;
 		case 0x3f5: // data reg
-		floppy_cmd[floppy_idx] = v;
-		if (floppy_idx == 0) {
-			switch(v & 31)
-			{
-				case 3: // specify
-				floppy_cmd_len = 3;
-				break;
-				case 4: // sense drive status
-				floppy_cmd_len = 2;
-				break;
-				case 5: // write data
-				floppy_cmd_len = 9;
-				break;
-				case 6: // read data
-				floppy_cmd_len = 9;
-				break;
-				case 7: // recalibrate
-				floppy_cmd_len = 2;
-				break;
-				case 8: // sense interrupt status
-				floppy_cmd_len = 1;
-				break;
-				case 10: // read id
-				floppy_cmd_len = 2;
-				break;
-				case 13: // format track
-				floppy_cmd_len = 6;
-				break;
-				case 15: // seek
-				floppy_cmd_len = 3;
-				break;
-				default:
-				write_log(_T("Floppy unimplemented command %02x\n"), v);
-				floppy_cmd_len = 1;
-				break;
+		if (floppy_pio_len > 0 && floppy_pio_cnt < floppy_pio_len && floppy_pio_active) {
+			floppy_pio_buffer[floppy_pio_cnt++] = v;
+			if (floppy_pio_cnt >= floppy_pio_len) {
+				floppy_pio_cnt = 0;
+				floppy_pio_active = 0;
+				floppy_clear_irq();
+				floppy_do_cmd(xb);
+				floppy_pio_cnt = 0;
+				floppy_pio_len = 0;
 			}
-		}
-		floppy_idx++;
-		if (floppy_idx >= floppy_cmd_len) {
-			floppy_do_cmd(xb);
+		} else {
+			floppy_cmd[floppy_idx] = v;
+			if (floppy_idx == 0) {
+				floppy_cmd_len = -1;
+				switch(v & 31)
+				{
+					case 3: // specify
+					floppy_cmd_len = 3;
+					break;
+					case 4: // sense drive status
+					floppy_cmd_len = 2;
+					break;
+					case 5: // write data
+					floppy_cmd_len = 9;
+					break;
+					case 6: // read data
+					floppy_cmd_len = 9;
+					break;
+					case 7: // recalibrate
+					floppy_cmd_len = 2;
+					break;
+					case 8: // sense interrupt status
+					floppy_cmd_len = 1;
+					break;
+					case 10: // read id
+					floppy_cmd_len = 2;
+					break;
+					case 12: // perpendiculaor mode
+					if (xb->type < 0) {
+						floppy_cmd_len = 2;
+					}
+					break;
+					case 13: // format track
+					floppy_cmd_len = 6;
+					break;
+					case 15: // seek
+					floppy_cmd_len = 3;
+					break;
+					case 16: // get versionm
+					if (xb->type < 0) {
+						floppy_cmd_len = 1;
+					}
+					break;
+					case 19: // configure
+					if (xb->type < 0) {
+						floppy_cmd_len = 4;
+					}
+					break;
+				}
+				if (floppy_cmd_len < 0) {
+					write_log(_T("Floppy unimplemented command %02x\n"), v);
+					floppy_cmd_len = 1;
+				}
+			}
+			floppy_idx++;
+			if (floppy_idx >= floppy_cmd_len) {
+				if (floppy_specify_pio && (floppy_cmd[0] & 31) == 5) {
+					floppy_write(xb, false);
+					floppy_pio_cnt = 0;
+					floppy_pio_active = 0;
+					if (floppy_pio_len > 0) {
+						floppy_delay_hsync = 10;
+						floppy_pio_active = 1;
+					} else {
+						floppy_write(xb, true);
+					}
+				} else if (floppy_specify_pio && (floppy_cmd[0] & 31) == 13) {
+					floppy_format(xb, false);
+					floppy_pio_cnt = 0;
+					floppy_pio_active = 0;
+					if (floppy_pio_len > 0) {
+						floppy_delay_hsync = 10;
+						floppy_pio_active = 1;
+					} else {
+						floppy_format(xb, true);
+					}
+				} else {
+					floppy_do_cmd(xb);
+				}
+			}
 		}
 		break;
 		case 0x3f7: // configuration control
@@ -1377,9 +1366,6 @@ static void outfloppy(struct x86_bridge *xb, int portnum, uae_u8 v)
 		write_log(_T("Unknown FDC %04x write %02x\n"), portnum, v);
 		break;
 	}
-#if FLOPPY_IO_DEBUG
-	write_log(_T("out floppy port %04x %02x\n"), portnum, v);
-#endif
 }
 
 static uae_u8 infloppy(struct x86_bridge *xb, int portnum)
@@ -1387,12 +1373,39 @@ static uae_u8 infloppy(struct x86_bridge *xb, int portnum)
 	uae_u8 v = 0;
 	switch (portnum)
 	{
+		case 0x3f0: // PS/2 status A (draco)
+		if (xb->type < 0) {
+			struct floppy_reserved fr = { 0 };
+			bool valid_floppy = disk_reserved_getinfo(floppy_num, &fr);
+			v |= floppy_irq ? 0x80 : 0x00; // INT PENDING
+			v |= 0x40; // nDRV2
+			v |= fr.wrprot ? 0 : 2; // nWP
+			v |= fr.cyl == 0 ? 0 : 16; // nTRK0
+		}
+		break;
+		case 0x3f1: // PS/2 status B (draco)
+		if (xb->type < 0) {
+			v |= 0x80 | 0x40;
+			if (floppy_dpc & 1)
+				v |= 0x20;
+			if ((floppy_dpc >> 4) & 1)
+				v |= 0x01;
+			if ((floppy_dpc >> 4) & 2)
+				v |= 0x02;
+		}
+		break;
+		case 0x3f2:
+			v = floppy_dpc;
+			break;
 		case 0x3f4: // main status
 		v = 0;
 		if (!floppy_delay_hsync && (floppy_dpc & 4))
 			v |= 0x80;
-		if (floppy_idx || floppy_delay_hsync)
+		if (floppy_idx || floppy_delay_hsync || floppy_pio_active) {
 			v |= 0x10;
+			if (floppy_pio_active)
+				v |= 0x20;
+		}
 		if ((v & 0x80) && floppy_dir)
 			v |= 0x40;
 		for (int i = 0; i < 4; i++) {
@@ -1401,7 +1414,15 @@ static uae_u8 infloppy(struct x86_bridge *xb, int portnum)
 		}
 		break;
 		case 0x3f5: // data reg
-		if (floppy_cmd_len && floppy_dir) {
+		if (floppy_pio_len > 0 && floppy_pio_cnt < floppy_pio_len) {
+			v = floppy_pio_buffer[floppy_pio_cnt++];
+			if (floppy_pio_cnt >= floppy_pio_len) {
+				floppy_pio_len = 0;
+				floppy_pio_active = 0;
+				floppy_clear_irq();
+				floppy_delay_hsync = 50;
+			}
+		} else if (floppy_cmd_len && floppy_dir) {
 			int idx = (-floppy_idx) - 1;
 			if (idx < sizeof floppy_result) {
 				v = floppy_result[idx];
@@ -1411,17 +1432,23 @@ static uae_u8 infloppy(struct x86_bridge *xb, int portnum)
 					floppy_cmd_len = 0;
 					floppy_dir = 0;
 					floppy_idx = 0;
+					floppy_clear_irq();
 				}
 			}
 		}
 		break;
 		case 0x3f7: // digital input register
-		if (xb->type >= TYPE_2286) {
+		if (xb->type >= TYPE_2286 || xb->type < 0) {
+			struct pc_floppy *pcf = &floppy_pc[floppy_num];
 			struct floppy_reserved fr = { 0 };
 			bool valid_floppy = disk_reserved_getinfo(floppy_num, &fr);
 			v = 0x00;
-			if (valid_floppy && fr.disk_changed)
+			if (valid_floppy && fr.disk_changed && (floppy_dpc >> 4) & (1 << floppy_num)) {
+				pcf->disk_changed = true;
+			}
+			if (pcf->disk_changed) {
 				v = 0x80;
+			}
 		}
 		break;
 		default:
@@ -1434,9 +1461,21 @@ static uae_u8 infloppy(struct x86_bridge *xb, int portnum)
 	return v;
 }
 
+uae_u16 floppy_get_raw_data(int *rate)
+{
+	struct floppy_reserved fr = { 0 };
+	bool valid_floppy = disk_reserved_getinfo(floppy_num, &fr);
+	*rate = fr.rate;
+	if (valid_floppy) {
+		return DSKBYTR_fake(fr.num);
+	}
+	return 0x8000;
+}
+
 static void set_cpu_turbo(struct x86_bridge *xb)
 {
-	cpu_set((int)currprefs.x86_speed_throttle);
+	cpu_multiplier = (int)currprefs.x86_speed_throttle;
+	cpu_set();
 	cpu_update_waitstates();
 	cpu_set_turbo(0);
 	cpu_set_turbo(1);
@@ -1895,7 +1934,7 @@ static uae_u8 vlsi_in(struct x86_bridge *xb, int portnum)
 		v = xb->scamp_idx1 | 0x80;
 		break;
 		case 0xea:
-		v = xb->vlsi_regs_ems[xb->scamp_idx1 & 0x3f];
+		v = (uae_u8)xb->vlsi_regs_ems[xb->scamp_idx1 & 0x3f];
 		break;
 		case 0xeb:
 		v = xb->vlsi_regs_ems[xb->scamp_idx1 & 0x3f] >> 8;
@@ -1949,7 +1988,7 @@ void portout(uint16_t portnum, uint8_t v)
 	{
 		case 0x60:
 		if (xb->type >= TYPE_2286) {
-			keyboard_at_write(portnum, v, NULL);
+			keyboard_at_write(portnum, v, &pit);
 		} else {
 			aio = 0x41f;
 		}
@@ -1957,10 +1996,10 @@ void portout(uint16_t portnum, uint8_t v)
 		case 0x61:
 		//write_log(_T("OUT Port B %02x\n"), v);
 		if (xb->type >= TYPE_2286) {
-			keyboard_at_write(portnum, v, NULL);
+			keyboard_at_write(portnum, v, &pit);
 		} else {
 			timer_process();
-			timer_update_outstanding();
+			//timer_update_outstanding();
 			speaker_update();
 			speaker_gated = v & 1;
 			speaker_enable = v & 2;
@@ -2014,7 +2053,7 @@ void portout(uint16_t portnum, uint8_t v)
 		break;
 		case 0x64:
 		if (xb->type >= TYPE_2286) {
-			keyboard_at_write(portnum, v, NULL);
+			keyboard_at_write(portnum, v, &pit);
 		}
 		break;
 
@@ -2277,6 +2316,7 @@ end:
 		xb->amiga_io[aio] = v;
 	xb->io_ports[portnum] = v;
 }
+
 void portout16(uint16_t portnum, uint16_t value)
 {
 	struct x86_bridge *xb = bridges[0];
@@ -2300,7 +2340,7 @@ void portout16(uint16_t portnum, uint16_t value)
 		if (port_outw[portnum]) {
 			port_outw[portnum](portnum, value, port_priv[portnum]);
 		} else {
-			portout(portnum, value);
+			portout(portnum, (uae_u8)value);
 			portout(portnum + 1, value >> 8);
 		}
 		break;
@@ -2610,7 +2650,7 @@ uint8_t portin(uint16_t portnum)
 		case 0x176:
 		case 0x177:
 		case 0x376:
-		v = x86_ide_hd_get(portnum, 0);
+		v = (uae_u8)x86_ide_hd_get(portnum, 0);
 		break;
 		// at ide 0
 		case 0x1f0:
@@ -2622,7 +2662,7 @@ uint8_t portin(uint16_t portnum)
 		case 0x1f6:
 		case 0x1f7:
 		case 0x3f6:
-		v = x86_ide_hd_get(portnum, 0);
+		v = (uae_u8)x86_ide_hd_get(portnum, 0);
 		break;
 
 		// universal xt bios
@@ -2642,7 +2682,7 @@ uint8_t portin(uint16_t portnum)
 		case 0x30d:
 		case 0x30e:
 		case 0x30f:
-		v = x86_ide_hd_get(portnum, 0);
+		v = (uae_u8)x86_ide_hd_get(portnum, 0);
 		break;
 
 		// led debug (a2286 bios uses this)
@@ -3047,7 +3087,7 @@ static void vga_writeb(uint32_t addr, uint8_t val, void *priv)
 }
 static void vga_writew(uint32_t addr, uint16_t val, void *priv)
 {
-	vga_ram_put(x86_vga_board, addr, val);
+	vga_ram_put(x86_vga_board, addr, (uae_u8)val);
 	vga_ram_put(x86_vga_board, addr + 1, val >> 8);
 }
 static void vga_writel(uint32_t addr, uint32_t val, void *priv)
@@ -3076,7 +3116,7 @@ static void vgalfb_writeb(uint32_t addr, uint8_t val, void *priv)
 }
 static void vgalfb_writew(uint32_t addr, uint16_t val, void *priv)
 {
-	vgalfb_ram_put(x86_vga_board, addr, val);
+	vgalfb_ram_put(x86_vga_board, addr, (uae_u8)val);
 	vgalfb_ram_put(x86_vga_board, addr + 1, val >> 8);
 }
 static void vgalfb_writel(uint32_t addr, uint32_t val, void *priv)
@@ -3166,7 +3206,7 @@ static void mem_write_romextw3(uint32_t addr, uint16_t val, void *priv)
 	} else if (addr >= 0x3800) {
 		int reg = to53c400reg(addr + 0, true);
 		if (reg >= 0)
-			x86_rt1000_bput(reg, val);
+			x86_rt1000_bput(reg, (uae_u8)val);
 		reg = to53c400reg(addr + 1, true);
 		if (reg >= 0)
 			x86_rt1000_bput(reg, val >> 8);
@@ -3192,7 +3232,7 @@ static uint32_t mem_read_romextl2(uint32_t addr, void *priv)
 	return *(uint32_t *)&xtiderom[addr & 0x3fff];
 }
 
-void x86_bridge_rethink(void)
+static void x86_bridge_rethink(void)
 {
 	struct x86_bridge *xb = bridges[0];
 	if (!xb)
@@ -3208,13 +3248,7 @@ void x86_bridge_rethink(void)
 	}
 }
 
-void x86_bridge_free(void)
-{
-	x86_bridge_reset();
-	x86_found = 0;
-}
-
-void x86_bridge_reset(void)
+static void x86_bridge_reset(int hardreset)
 {
 	for (int i = 0; i < X86_BRIDGE_MAX; i++) {
 		struct x86_bridge *xb = bridges[i];
@@ -3254,6 +3288,12 @@ void x86_bridge_reset(void)
 		memset(port_outw, 0, sizeof(port_outw));
 		memset(port_outl, 0, sizeof(port_outl));
 	}
+}
+
+static void x86_bridge_free(void)
+{
+	x86_bridge_reset(1);
+	x86_found = 0;
 }
 
 static void check_floppy_delay(void)
@@ -3338,7 +3378,7 @@ void x86_bridge_sync_change(void)
 		return;
 }
 
-void x86_bridge_vsync(void)
+static void x86_bridge_vsync(void)
 {
 	struct x86_bridge *xb = bridges[0];
 	if (!xb)
@@ -3351,10 +3391,10 @@ void x86_bridge_vsync(void)
 	if (rc) {
 		xb->mouse_port = (rc->device_settings & 3) + 1;
 	}
-	xb->audeventtime = x86_base_event_clock * CYCLE_UNIT / currprefs.sound_freq + 1;
+	xb->audeventtime = (int)(x86_base_event_clock * CYCLE_UNIT / currprefs.sound_freq + 1);
 }
 
-void x86_bridge_hsync(void)
+static void x86_bridge_hsync(void)
 {
 	static float totalcycles;
 	struct x86_bridge *xb = bridges[0];
@@ -3366,9 +3406,10 @@ void x86_bridge_hsync(void)
 		xb->sound_initialized = true;
 		if (xb->sound_emu) {
 			write_log(_T("x86 sound init\n"));
-			xb->audeventtime = x86_base_event_clock * CYCLE_UNIT / currprefs.sound_freq + 1;
-			timer_add(sound_poll, &sound_poll_time, TIMER_ALWAYS_ENABLED, NULL);
+			xb->audeventtime = (int)(x86_base_event_clock * CYCLE_UNIT / currprefs.sound_freq + 1);
+			timer_add(&sound_poll_timer, sound_poll, NULL, 0);
 			xb->audstream = audio_enable_stream(true, -1, 2, audio_state_sndboard_x86, NULL);
+			sound_speed_changed(true);
 		}
 	}
 
@@ -3411,6 +3452,8 @@ static void bridge_reset(struct x86_bridge *xb)
 	xb->pc_irq3a = xb->pc_irq3b = xb->pc_irq7 = false;
 	xb->mode_register = -1;
 	xb->video_initialized = false;
+	xb->a2386flipper = 0;
+	xb->a2386_amigapcdrive = false;
 	x86_cpu_active = false;
 	memset(xb->amiga_io, 0, 0x50000);
 	memset(xb->io_ports, 0, 0x10000);
@@ -3459,6 +3502,8 @@ int is_x86_cpu(struct uae_prefs *p)
 	}
 	if (!xb || xb->x86_reset)
 		return X86_STATE_STOP;
+	if (xb && xb->type < 0)
+		return X86_STATE_INACTIVE;
 	return X86_STATE_ACTIVE;
 }
 
@@ -3507,10 +3552,48 @@ void x86_xt_ide_bios(struct zfile *z, struct romconfig *rc)
 	mem_mapping_add(&bios_mapping[5], addr, 0x4000, mem_read_romext2, mem_read_romextw2, mem_read_romextl2, mem_write_null, mem_write_nullw, mem_write_nulll, xtiderom, MEM_MAPPING_EXTERNAL | MEM_MAPPING_ROM, 0);
 }
 
+void *sb_1_init();
+void *sb_15_init();
+void *sb_2_init();
+void *sb_pro_v1_init();
+void *sb_pro_v2_init();
+void *sb_16_init();
+void *cms_init(const device_t*);
+
 static int x86_global_settings;
 
-int device_get_config_int(char *s)
+int device_get_config_int(const char *s)
 {
+	if (!strcmp(s, "bilinear")) {
+		return 1;
+	}
+	if (!strcmp(s, "dithering")) {
+		return 1;
+	}
+	if (!strcmp(s, "dacfilter")) {
+		return 1;
+	}
+	if (!strcmp(s, "recompiler")) {
+		return 1;
+	}
+	if (!strcmp(s, "memory")) {
+		return pcem_getvramsize() >> 20;
+	}
+	if (!strcmp(s, "render_threads")) {
+#ifdef _WIN32
+		SYSTEM_INFO si;
+		GetSystemInfo(&si);
+		if (si.dwNumberOfProcessors >= 8)
+			return 4;
+		if (si.dwNumberOfProcessors >= 4)
+			return 2;
+		return 1;
+#else
+		return 4;
+#endif
+	}
+
+
 	if (x86_global_settings < 0)
 		return 0;
 	if (!strcmp(s, "addr")) {
@@ -3550,15 +3633,15 @@ static void set_sb_emu(struct x86_bridge *xb)
 	switch (model)
 	{
 	case 0:
-		c = cms_init();
+		c = cms_init(NULL);
 		p = sb_1_init();
 		break;
 	case 1:
-		c = cms_init();
+		c = cms_init(NULL);
 		p = sb_15_init();
 		break;
 	case 2:
-		c = cms_init();
+		c = cms_init(NULL);
 		p = sb_2_init();
 		break;
 	case 3:
@@ -3665,7 +3748,7 @@ static void load_vga_bios(void)
 		return;
 	struct zfile *zf = read_device_rom(&currprefs, ROMTYPE_x86_VGA, 0, NULL);
 	if (zf) {
-		int size = zfile_fread(romext, 1, 32768, zf);
+		int size = (int)zfile_fread(romext, 1, 32768, zf);
 		write_log(_T("X86 VGA BIOS '%s' loaded, %08x %d bytes\n"), zfile_getname(zf), 0xc0000, size);
 		zfile_fclose(zf);
 		mem_mapping_add(&bios_mapping[4], 0xc0000, 0x8000, mem_read_romext, mem_read_romextw, mem_read_romextl, mem_write_null, mem_write_nullw, mem_write_nulll, romext, MEM_MAPPING_EXTERNAL | MEM_MAPPING_ROM, 0);
@@ -3677,7 +3760,7 @@ static void set_vga(struct x86_bridge *xb)
 	// load vga bios
 	xb->vgaboard = -1;
 	for (int i = 0; i < MAX_RTG_BOARDS; i++) {
-		if (currprefs.rtgboards[i].rtgmem_type == GFXBOARD_VGA) {
+		if (currprefs.rtgboards[i].rtgmem_type == GFXBOARD_ID_VGA) {
 			xb->vgaboard = i;
 			x86_vga_board = i;
 			xb->vgaboard_vram = currprefs.rtgboards[i].rtgmem_size;
@@ -3690,33 +3773,42 @@ static void set_vga(struct x86_bridge *xb)
 	}
 }
 
-void x86_mouse(int port, int x, int y, int z, int b)
+void mouse_serial_poll(int x, int y, int z, int b, void *p);
+void mouse_ps2_poll(int x, int y, int z, int b, void *p);
+
+bool x86_mouse(int port, int x, int y, int z, int b)
 {
 	struct x86_bridge *xb = bridges[0];
 	if (!xb || !xb->mouse_port || !xb->mouse_base || xb->mouse_port != port + 1)
-		return;
+		return false;
 	switch (xb->mouse_type)
 	{
 		case 0:
 		default:
+		if (b < 0)
+			return true;
 		mouse_serial_poll(x, y, z, b, xb->mouse_base);
-		break;
+		return true;
 		case 1:
 		case 2:
+		if (b < 0)
+			return true;
 		mouse_ps2_poll(x, y, z, b, xb->mouse_base);
-		break;
+		return true;
 	}
+	return false;
 }
 
-void serial1_init(uint16_t addr, int irq);
-void serial_reset();
+void *mouse_serial_init();
+void *mouse_ps2_init();
+void *mouse_intellimouse_init();
 
 static void set_mouse(struct x86_bridge *xb)
 {
+	ps2_mouse_supported = false;
 	if (!is_board_enabled(&currprefs, ROMTYPE_X86MOUSE, 0))
 		return;
 	struct romconfig *rc = get_device_romconfig(&currprefs, ROMTYPE_X86MOUSE, 0);
-	ps2_mouse_supported = false;
 	if (rc) {
 		xb->mouse_port = (rc->device_settings & 3) + 1;
 		xb->mouse_type = (rc->device_settings >> 2) & 3;
@@ -3724,7 +3816,7 @@ static void set_mouse(struct x86_bridge *xb)
 		{
 			case 0:
 			default:
-			serial1_init(0x3f8, 4);
+			serial1_init(0x3f8, 4, 1);
 			serial_reset();
 			xb->mouse_base = mouse_serial_init();
 			break;
@@ -3749,6 +3841,7 @@ bool x86_bridge_init(struct autoconfig_info *aci, uae_u32 romtype, int type)
 	const uae_u8 *ac;
 	struct romconfig *rc = aci->rc;
 
+	device_add_reset(x86_bridge_reset);
 	if (type >= TYPE_2286) {
 		ac = type >= TYPE_2386 ? a2386_autoconfig : a1060_autoconfig;
 	}
@@ -3817,8 +3910,8 @@ bool x86_bridge_init(struct autoconfig_info *aci, uae_u32 romtype, int type)
 	}
 
 	romset = ROM_GENXT;
-	shadowbios = 0;
 	enable_sync = 1;
+	fpu_type = 0;
 
 	switch (xb->type)
 	{
@@ -3826,26 +3919,31 @@ bool x86_bridge_init(struct autoconfig_info *aci, uae_u32 romtype, int type)
 		model = 0;
 		cpu_manufacturer = 0;
 		cpu = 0; // 4.77MHz
+		fpu_type = (xb->settings  & (1 << 19)) ? FPU_8087 : FPU_NONE;
 		break;
 	case TYPE_2088:
 		model = 0;
 		cpu_manufacturer = 0;
 		cpu = 0; // 4.77MHz
+		fpu_type = (xb->settings & (1 << 19)) ? FPU_8087 : FPU_NONE;
 		break;
 	case TYPE_2088T:
 		model = 0;
 		cpu_manufacturer = 0;
 		cpu = 0; // 4.77MHz
+		fpu_type = (xb->settings & (1 << 19)) ? FPU_8087 : FPU_NONE;
 		break;
 	case TYPE_2286:
 		model = 1;
 		cpu_manufacturer = 0;
 		cpu = 1; // 8MHz
+		fpu_type = (xb->settings & (1 << 19)) ? FPU_287 : FPU_NONE;
 		break;
 	case TYPE_2386:
 		model = 2;
 		cpu_manufacturer = 0;
 		cpu = 2; // 25MHz
+		fpu_type = (xb->settings & (1 << 19)) ? FPU_387 : FPU_NONE;
 		break;
 	}
 	if (rc->configtext[0]) {
@@ -3854,11 +3952,23 @@ bool x86_bridge_init(struct autoconfig_info *aci, uae_u32 romtype, int type)
 		while (m->cpu[mannum].cpus) {
 			CPU *cpup = m->cpu[mannum].cpus;
 			int cpunum = 0;
-			while(cpup[cpunum].cpu_type >= 0) {
+			while (cpup[cpunum].cpu_type >= 0) {
 				TCHAR *cpuname = au(cpup[cpunum].name);
-				if (!_tcsicmp(rc->configtext, cpuname)) {
+				if (_tcsstr(rc->configtext, cpuname)) {
+					int cputype = cpup[cpunum].cpu_type;
 					cpu_manufacturer = mannum;
 					cpu = cpunum;
+					if (cputype == CPU_i486SX) {
+						fpu_type = FPU_NONE;
+					} else if (cputype == CPU_i486DX) {
+						fpu_type = FPU_BUILTIN;
+					} else if ((cputype == CPU_386DX || cputype == CPU_386SX) && fpu_type != FPU_NONE) {
+						fpu_type = FPU_387;
+					} else if (cputype == CPU_286 && fpu_type != FPU_NONE) {
+						fpu_type = FPU_287;
+					} else if (cputype == CPU_8088 && fpu_type != FPU_NONE) {
+						fpu_type = FPU_8087;
+					}
 					write_log(_T("CPU override = %s\n"), cpuname);
 				}
 				xfree(cpuname);
@@ -3868,7 +3978,8 @@ bool x86_bridge_init(struct autoconfig_info *aci, uae_u32 romtype, int type)
 		}
 	}
 
-	cpu_set(0);
+	cpu_multiplier = (int)currprefs.x86_speed_throttle;
+	cpu_set();
 	if (xb->type >= TYPE_2286) {
 		mem_size = (1024 * 1024) << ((xb->settings >> 16) & 7);
 	} else {
@@ -3876,6 +3987,7 @@ bool x86_bridge_init(struct autoconfig_info *aci, uae_u32 romtype, int type)
 	}
 	mem_size /= 1024;
 	mem_init();
+	mem_alloc();
 	xb->pc_ram = ram;
 	if (xb->type < TYPE_2286) {
 		mem_set_704kb();
@@ -3884,12 +3996,20 @@ bool x86_bridge_init(struct autoconfig_info *aci, uae_u32 romtype, int type)
 	bridge_reset(xb);
 
 	timer_reset();
+
+	// SB setup must come before DMA init
+	sound_reset();
+	speaker_init();
+	set_sb_emu(xb);
+	sound_pos_global = xb->sound_emu ? 0 : -1;
+
 	dma_init();
 	pit_init();
 	pic_init();
+
 	if (xb->type >= TYPE_2286) {
 		AT = 1;
-		nvr_init();
+		nvr_device.init(&nvr_device);
 		TCHAR path[MAX_DPATH];
 		cfgfile_resolve_path_out_load(currprefs.flashfile, path, MAX_DPATH, PATH_ROM);
 		xb->cmossize = xb->type == TYPE_2386 ? 192 : 64;
@@ -3992,17 +4112,17 @@ bool x86_bridge_init(struct autoconfig_info *aci, uae_u32 romtype, int type)
 		vlsi_init_mapping(xb);
 	}
 
-	sound_reset();
-	sound_speed_changed();
-	speaker_init();
-	set_sb_emu(xb);
-	sound_pos_global = xb->sound_emu ? 0 : -1;
-
 	set_mouse(xb);
 
 	xb->bank = &x86_bridge_bank;
 
 	aci->addrbank = xb->bank;
+
+	device_add_hsync(x86_bridge_hsync);
+	device_add_vsync_pre(x86_bridge_vsync);
+	device_add_exit(x86_bridge_free, NULL);
+	device_add_rethink(x86_bridge_rethink);
+
 	return true;
 }
 
@@ -4098,16 +4218,19 @@ void sound_add_handler(void(*get_buffer)(int32_t *buffer, int len, void *p), voi
 	sound_handlers_num++;
 }
 
-void sound_speed_changed()
+void sound_speed_changed(bool enable)
 {
-	sound_poll_latch = (int)((double)TIMER_USEC * (1000000.0 / currprefs.sound_freq));
+	if (sound_poll_timer.enabled || enable) {
+		sound_poll_latch = (uae_u64)((float)TIMER_USEC * (1000000.0f / currprefs.sound_freq));
+		timer_set_delay_u64(&sound_poll_timer, sound_poll_latch);
+	}
 }
 
 void sound_poll(void *priv)
 {
 	struct x86_bridge *xb = bridges[0];
 
-	sound_poll_time += sound_poll_latch;
+	timer_advance_u64(&sound_poll_timer, sound_poll_latch);
 
 	if (x86_sndbuffer_filled[x86_sndbuffer_index]) {
 		return;
@@ -4142,13 +4265,13 @@ void sound_set_cd_volume(unsigned int l, unsigned int r)
 
 }
 
-void x86_update_sound(double clk)
+void x86_update_sound(float clk)
 {
 	struct x86_bridge *xb = bridges[0];
 	x86_base_event_clock = clk;
 	if (xb) {
-		xb->audeventtime = x86_base_event_clock * CYCLE_UNIT / currprefs.sound_freq + 1;
-		sound_speed_changed();
+		xb->audeventtime = (int)(x86_base_event_clock * CYCLE_UNIT / currprefs.sound_freq + 1);
+		sound_speed_changed(false);
 	}
 }
 
@@ -4181,4 +4304,30 @@ bool isa_expansion_init(struct autoconfig_info *aci)
 	return true;
 }
 
-#endif // WITH_X86
+void x86_outfloppy(int portnum, uae_u8 v)
+{
+	struct x86_bridge *b = bridges[0];
+	outfloppy(b, portnum, v);
+}
+uae_u8 x86_infloppy(int portnum)
+{
+	struct x86_bridge *b = bridges[0];
+	return infloppy(b, portnum);
+}
+void x86_floppy_run(void)
+{
+	check_floppy_delay();
+}
+void x86_initfloppy(X86_INTERRUPT_CALLBACK irq_callback)
+{
+	struct x86_bridge *xb = bridges[0];
+	if (!xb) {
+		xb = x86_bridge_alloc();
+		bridges[0] = xb;
+	}
+	xb->type = -1;
+	xb->irq_callback = irq_callback;
+	floppy_hardreset();
+}
+
+#endif //WITH_X86

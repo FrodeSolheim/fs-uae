@@ -2,11 +2,6 @@
 #define UAE_ZARCHIVE_H
 
 #include "uae/types.h"
-#ifdef FSUAE
-#include "zfile.h"
-#include <stdio.h>
-#include <stddef.h>
-#endif
 
 typedef uae_s64 (*ZFILEREAD)(void*, uae_u64, uae_u64, struct zfile*);
 typedef uae_s64 (*ZFILEWRITE)(const void*, uae_u64, uae_u64, struct zfile*);
@@ -70,6 +65,7 @@ struct znode {
 struct zvolume
 {
     struct zfile *archive;
+    bool autofree;
     void *handle;
     struct znode root;
     struct zvolume *next;

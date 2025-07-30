@@ -127,7 +127,7 @@ static const TCHAR *fp_printx80(floatx80 *fx, int mode)
 		int8_t save_exception_flags = fs.float_exception_flags;
 		fs.float_exception_flags = 0;
 		floatx80 x = floatx80_to_floatdecimal(*fx, &len, &fs);
-		_stprintf(fsout, _T("%c%01lld.%016llde%c%04d%s%s"), n ? '-' : '+',
+		_stprintf(fsout, _T("%c%01lld.%016llde%c%05u%s%s"), n ? '-' : '+',
 				x.low / LIT64(10000000000000000), x.low % LIT64(10000000000000000),
 				(x.high & 0x4000) ? '-' : '+', x.high & 0x3FFF, d ? _T("D") : u ? _T("U") : _T(""),
 				(fs.float_exception_flags & float_flag_inexact) ? _T("~") : _T(""));
@@ -351,7 +351,7 @@ static void fp_getman(fpdata *a, fpdata *b)
 }
 static void fp_mod(fpdata *a, fpdata *b, uae_u64 *q, uae_u8 *s)
 {
-	a->fpx = floatx80_mod(a->fpx, b->fpx, (uint64_t *) q, s, &fs);
+	a->fpx = floatx80_mod(a->fpx, b->fpx, q, s, &fs);
 }
 static void fp_sgldiv(fpdata *a, fpdata *b)
 {
@@ -363,7 +363,7 @@ static void fp_sglmul(fpdata *a, fpdata *b)
 }
 static void fp_rem(fpdata *a, fpdata *b, uae_u64 *q, uae_u8 *s)
 {
-	a->fpx = floatx80_rem(a->fpx, b->fpx, (uint64_t *) q, s, &fs);
+	a->fpx = floatx80_rem(a->fpx, b->fpx, q, s, &fs);
 }
 static void fp_scale(fpdata *a, fpdata *b)
 {
@@ -510,6 +510,10 @@ static void fp_acos(fpdata *a, fpdata *b)
 static void fp_cos(fpdata *a, fpdata *b)
 {
     a->fpx = floatx80_cos(b->fpx, &fs);
+}
+static void fp_sincos(fpdata *a, fpdata *b, fpdata *c)
+{
+	a->fpx = floatx80_sincos(b->fpx, &c->fpx, &fs);
 }
 
 /* Functions for converting between float formats */
@@ -699,7 +703,7 @@ static void fp_from_pack(fpdata *fp, uae_u32 *wrd, int kfactor)
 			digit = significand % 10;
 			significand /= 10;
 			if (len == 0) {
-				pack_int = digit;
+				pack_int = (uae_u32)digit;
 			} else {
 				pack_frac |= digit << (64 - len * 4);
 			}
@@ -713,7 +717,7 @@ static void fp_from_pack(fpdata *fp, uae_u32 *wrd, int kfactor)
 			digit = exponent % 10;
 			exponent /= 10;
 			if (len == 0) {
-				pack_exp4 = digit;
+				pack_exp4 = (uae_u32)digit;
 			} else {
 				pack_exp |= digit << (12 - len * 4);
 			}
@@ -814,6 +818,7 @@ void fp_init_softfloat(int fpu_model)
 	fpp_neg = fp_neg;
 	fpp_acos = fp_acos;
 	fpp_cos = fp_cos;
+	fpp_sincos = fp_sincos;
 	fpp_getexp = fp_getexp;
 	fpp_getman = fp_getman;
 	fpp_div = fp_div;

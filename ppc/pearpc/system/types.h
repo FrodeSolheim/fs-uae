@@ -22,10 +22,7 @@
 #ifndef __TYPES_H__
 #define __TYPES_H__
 
-#ifdef FSUAE
-#else
 #define HAVE_CONFIG_H
-#endif
 #ifdef HAVE_CONFIG_H
 #include "pearpc_config.h"
 #endif
@@ -43,20 +40,6 @@
  *	compiler magic
  */
 
-#ifdef FSUAE
-#include <stdint.h>
-typedef uint64_t uint64;
-typedef int64_t sint64;
-typedef unsigned int uint32;
-typedef signed int sint32;
-typedef unsigned short uint16;
-typedef signed short sint16;
-typedef unsigned char uint8;
-typedef signed char sint8;
-typedef unsigned char byte;
-
-typedef unsigned int uint;
-#endif
 
 #ifdef __GNUC__
 

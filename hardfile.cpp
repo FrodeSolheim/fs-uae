@@ -12,7 +12,7 @@
 
 #include "threaddep/thread.h"
 #include "options.h"
-#include "uae/memory.h"
+#include "memory.h"
 #include "custom.h"
 #include "newcpu.h"
 #include "disk.h"
@@ -30,6 +30,7 @@
 #include "ide.h"
 #include "debug.h"
 #include "ini.h"
+#include "rommgr.h"
 
 #ifdef WITH_CHD
 #include "archivers/chd/chdtypes.h"
@@ -109,7 +110,7 @@ static void wl (uae_u8 *p, uae_u32 v)
 static void ww (uae_u8 *p, uae_u16 v)
 {
 	p[0] = v >> 8;
-	p[1] = v;
+	p[1] = (uae_u8)v;
 }
 static int rl (uae_u8 *p)
 {
@@ -185,7 +186,7 @@ static void getchsgeometry2 (uae_u64 size, int *pcyl, int *phead, int *psectorsp
 		// old-style head=1, spt=32 always mode
 		head = 1;
 		spt = 32;
-		cyl = total / (head * spt);
+		cyl = (int)(total / (head * spt));
 
 	} else {
 
@@ -198,7 +199,7 @@ static void getchsgeometry2 (uae_u64 size, int *pcyl, int *phead, int *psectorsp
 			int maxhead = sptt[i] < 255 ? 16 : 255;
 			spt = sptt[i];
 			for (head = 4; head <= maxhead; head++) {
-				cyl = total / (head * spt);
+				cyl = (int)(total / (head * spt));
 				if (size <= 512 * 1024 * 1024) {
 					if (cyl <= 1023)
 						break;
@@ -238,6 +239,7 @@ void getchsgeometry_hdf (struct hardfiledata *hfd, uae_u64 size, int *pcyl, int 
 	uae_u8 block[512];
 	int i;
 	uae_u64 minsize = 512 * 1024 * 1024;
+	uae_u32 error = 0;
 
 	if (size <= minsize) {
 		*phead = 1;
@@ -245,8 +247,8 @@ void getchsgeometry_hdf (struct hardfiledata *hfd, uae_u64 size, int *pcyl, int 
 	}
 	memset (block, 0, sizeof block);
 	if (hfd) {
-		hdf_read(hfd, block, 0, 512);
-		if (block[0] == 'D' && block[1] == 'O' && block[2] == 'S') {
+		hdf_read(hfd, block, 0, 512, &error);
+		if (!error && block[0] == 'D' && block[1] == 'O' && block[2] == 'S') {
 			int mode;
 			for (mode = 0; mode < 2; mode++) {
 				uae_u32 rootblock;
@@ -254,7 +256,7 @@ void getchsgeometry_hdf (struct hardfiledata *hfd, uae_u64 size, int *pcyl, int 
 				getchsgeometry2 (size, pcyl, phead, psectorspertrack, mode);
 				rootblock = (2 + ((*pcyl) * (*phead) * (*psectorspertrack) - 1)) / 2;
 				memset (block, 0, sizeof block);
-				hdf_read(hfd, block, (uae_u64)rootblock * 512, 512);
+				hdf_read(hfd, block, (uae_u64)rootblock * 512, 512, &error);
 				for (i = 0; i < 512; i += 4)
 					chk += (block[i] << 24) | (block[i + 1] << 16) | (block[i + 2] << 8) | (block[i + 3] << 0);
 				if (!chk && block[0] == 0 && block[1] == 0 && block[2] == 0 && block[3] == 2 &&
@@ -269,21 +271,38 @@ void getchsgeometry_hdf (struct hardfiledata *hfd, uae_u64 size, int *pcyl, int 
 	getchsgeometry2 (size, pcyl, phead, psectorspertrack, size <= minsize ? 1 : 2);
 }
 
+// partition hdf default
+void gethdfgeometry(uae_u64 size, struct uaedev_config_info *ci)
+{
+	int head = 1;
+	int sectorspertrack = 32;
+	if (size >= 1048576000) { // >=1000M
+		head = 16;
+		while ((size / 512) / ((uae_u64)head * sectorspertrack) >= 32768 && sectorspertrack < 32768) {
+			sectorspertrack *= 2;
+		}
+	}
+	ci->surfaces = head;
+	ci->sectors = sectorspertrack;
+	ci->reserved = 2;
+	ci->blocksize = 512;
+}
+
 void getchspgeometry (uae_u64 total, int *pcyl, int *phead, int *psectorspertrack, bool idegeometry)
 {
 	uae_u64 blocks = total / 512;
 
-	if (blocks > 16515072) {
-		/* >8G, CHS=16383/16/63 */
-		*pcyl = 16383;
-		*phead = 16;
-		*psectorspertrack = 63;
-		return;
-	}
 	if (idegeometry) {
 		*phead = 16;
 		*psectorspertrack = 63;
-		*pcyl = blocks / ((*psectorspertrack) * (*phead));
+		*pcyl = (int)(blocks / ((*psectorspertrack) * (*phead)));
+		if (blocks > 16515072) {
+			/* >8G, CHS=16383/16/63 */
+			*pcyl = 16383;
+			*phead = 16;
+			*psectorspertrack = 63;
+			return;
+		}
 		return;
 	}
 	getchsgeometry (total, pcyl, phead, psectorspertrack);
@@ -313,7 +332,7 @@ static void rdb_crc (uae_u8 *p)
 	blocksize = rl (p + 1 * 4);
 	for (i = 0; i < blocksize; i++)
 		sum += rl (p + i * 4);
-	sum = -sum;
+	sum = 0 - sum;
 	pl (p, 2, sum);
 }
 
@@ -462,7 +481,7 @@ static void create_virtual_rdb (struct hardfiledata *hfd)
 	pl(part, 6, -1);
 	pl(part, 7, -1);
 	pl(part, 8, 0); // devflags
-	part[9 * 4] = _tcslen (hfd->ci.devname);
+	part[9 * 4] = (uae_u8)_tcslen(hfd->ci.devname);
 	ua_copy ((char*)part + 9 * 4 + 1, 30, hfd->ci.devname);
 	denv = part + 128;
 	pl(denv, 0, 16);
@@ -543,6 +562,8 @@ void hdf_hd_close (struct hd_hardfiledata *hfd)
 int hdf_hd_open (struct hd_hardfiledata *hfd)
 {
 	struct uaedev_config_info *ci = &hfd->hfd.ci;
+	uae_u32 error = 0;
+
 	if (hdf_open (&hfd->hfd) <= 0)
 		return 0;
 	hfd->hfd.unitnum = ci->uae_unitnum;
@@ -562,9 +583,9 @@ int hdf_hd_open (struct hd_hardfiledata *hfd)
 	hfd->heads_def = hfd->heads;
 	if (ci->surfaces && ci->sectors) {
 		uae_u8 buf[512] = { 0 };
-		hdf_read (&hfd->hfd, buf, 0, 512);
-		if (buf[0] != 0 && memcmp (buf, _T("RDSK"), 4)) {
-			ci->highcyl = (hfd->hfd.virtsize / ci->blocksize) / (ci->sectors * ci->surfaces);
+		hdf_read (&hfd->hfd, buf, 0, 512, &error);
+		if (!error && buf[0] != 0 && memcmp (buf, _T("RDSK"), 4)) {
+			ci->highcyl = (int)((hfd->hfd.virtsize / ci->blocksize) / (ci->sectors * ci->surfaces));
 			ci->dostype = rl (buf);
 			create_virtual_rdb (&hfd->hfd);
 			while (ci->highcyl * ci->surfaces * ci->sectors > hfd->cyls_def * hfd->secspertrack_def * hfd->heads_def) {
@@ -590,24 +611,24 @@ static uae_u32 vhd_checksum (uae_u8 *p, int offset)
 	return ~sum;
 }
 
-static int hdf_write2 (struct hardfiledata *hfd, void *buffer, uae_u64 offset, int len);
-static int hdf_read2 (struct hardfiledata *hfd, void *buffer, uae_u64 offset, int len);
+static int hdf_write2(struct hardfiledata *hfd, void *buffer, uae_u64 offset, int len, uae_u32 *error);
+static int hdf_read2(struct hardfiledata *hfd, void *buffer, uae_u64 offset, int len, uae_u32 *error);
 
-static void hdf_init_cache (struct hardfiledata *hfd)
+static void hdf_init_cache(struct hardfiledata *hfd)
 {
 }
-static void hdf_flush_cache (struct hardfiledata *hdf)
+static void hdf_flush_cache(struct hardfiledata *hdf)
 {
 }
 
-static int hdf_cache_read (struct hardfiledata *hfd, void *buffer, uae_u64 offset, int len)
+static int hdf_cache_read(struct hardfiledata *hfd, void *buffer, uae_u64 offset, int len, uae_u32 *error)
 {
-	return hdf_read2 (hfd, buffer, offset, len);
+	return hdf_read2(hfd, buffer, offset, len, error);
 }
 
-static int hdf_cache_write (struct hardfiledata *hfd, void *buffer, uae_u64 offset, int len)
+static int hdf_cache_write(struct hardfiledata *hfd, void *buffer, uae_u64 offset, int len, uae_u32 *error)
 {
-	return hdf_write2 (hfd, buffer, offset, len);
+	return hdf_write2(hfd, buffer, offset, len, error);
 }
 
 int hdf_open (struct hardfiledata *hfd, const TCHAR *pname)
@@ -616,6 +637,7 @@ int hdf_open (struct hardfiledata *hfd, const TCHAR *pname)
 	uae_u8 tmp[512], tmp2[512];
 	uae_u32 v;
 	TCHAR filepath[MAX_DPATH];
+	uae_u32 error = 0;
 
 	if ((!pname || pname[0] == 0) && hfd->ci.rootdir[0] == 0)
 		return 0;
@@ -676,7 +698,7 @@ int hdf_open (struct hardfiledata *hfd, const TCHAR *pname)
 	ret = hdf_open_target (hfd, filepath);
 	if (ret <= 0)
 		return ret;
-	if (hdf_read_target (hfd, tmp, 0, 512) != 512)
+	if (hdf_read_target (hfd, tmp, 0, 512, &error) != 512)
 		goto nonvhd;
 	v = gl (tmp + 8); // features
 	if ((v & 3) != 2)
@@ -692,7 +714,7 @@ int hdf_open (struct hardfiledata *hfd, const TCHAR *pname)
 		goto nonvhd;
 	if (vhd_checksum (tmp, 8 + 4 + 4 + 8 + 4 + 4 + 4 + 4 + 8 + 8 + 4 + 4) != v)
 		goto nonvhd;
-	if (hdf_read_target (hfd, tmp2, hfd->physsize - sizeof tmp2, 512) != 512)
+	if (hdf_read_target (hfd, tmp2, hfd->physsize - sizeof tmp2, 512, &error) != 512)
 		goto end;
 	if (memcmp (tmp, tmp2, sizeof tmp))
 		goto nonvhd;
@@ -704,7 +726,7 @@ int hdf_open (struct hardfiledata *hfd, const TCHAR *pname)
 		hfd->vhd_bamoffset = gl (tmp + 8 + 4 + 4 + 4);
 		if (hfd->vhd_bamoffset == 0 || hfd->vhd_bamoffset >= hfd->physsize)
 			goto end;
-		if (hdf_read_target (hfd, tmp, hfd->vhd_bamoffset, 512) != 512)
+		if (hdf_read_target (hfd, tmp, hfd->vhd_bamoffset, 512, &error) != 512)
 			goto end;
 		v = gl (tmp + 8 + 8 + 8 + 4 + 4 + 4);
 		if (vhd_checksum (tmp, 8 + 8 + 8 + 4 + 4 + 4) != v)
@@ -717,7 +739,7 @@ int hdf_open (struct hardfiledata *hfd, const TCHAR *pname)
 		hfd->vhd_bamsize = (((hfd->virtsize + hfd->vhd_blocksize - 1) / hfd->vhd_blocksize) * 4 + 511) & ~511;
 		size = hfd->vhd_bamoffset + hfd->vhd_bamsize;
 		hfd->vhd_header = xmalloc (uae_u8, size);
-		if (hdf_read_target (hfd, hfd->vhd_header, 0, size) != size)
+		if (hdf_read_target (hfd, hfd->vhd_header, 0, size, &error) != size)
 			goto end;
 		hfd->vhd_sectormap = xmalloc (uae_u8, 512);
 		hfd->vhd_sectormapblock = -1;
@@ -784,6 +806,7 @@ static uae_u64 vhd_read (struct hardfiledata *hfd, void *v, uae_u64 offset, uae_
 {
 	uae_u64 read;
 	uae_u8 *dataptr = (uae_u8*)v;
+	uae_u32 error = 0;
 
 	//write_log (_T("%08x %08x\n"), (uae_u32)offset, (uae_u32)len);
 	read = 0;
@@ -792,7 +815,7 @@ static uae_u64 vhd_read (struct hardfiledata *hfd, void *v, uae_u64 offset, uae_
 	if (len & 511)
 		return read;
 	while (len > 0) {
-		uae_u32 bamoffset = (offset / hfd->vhd_blocksize) * 4 + hfd->vhd_bamoffset;
+		uae_u32 bamoffset = (uae_u32)((offset / hfd->vhd_blocksize) * 4 + hfd->vhd_bamoffset);
 		uae_u32 sectoroffset = gl (hfd->vhd_header + bamoffset);
 		if (sectoroffset == 0xffffffff) {
 			memset (dataptr, 0, 512);
@@ -808,7 +831,7 @@ static uae_u64 vhd_read (struct hardfiledata *hfd, void *v, uae_u64 offset, uae_
 			if (hfd->vhd_sectormapblock != sectormapblock) {
 				// read sector bitmap
 				//write_log (_T("BM %08x\n"), sectormapblock);
-				if (hdf_read_target (hfd, hfd->vhd_sectormap, sectormapblock, 512) != 512) {
+				if (hdf_read_target (hfd, hfd->vhd_sectormap, sectormapblock, 512, &error) != 512) {
 					write_log (_T("vhd_read: bitmap read error\n"));
 					return read;
 				}
@@ -819,7 +842,7 @@ static uae_u64 vhd_read (struct hardfiledata *hfd, void *v, uae_u64 offset, uae_
 				// read data block
 				uae_u64 block = sectoroffset * (uae_u64)512 + hfd->vhd_bitmapsize + bitmapoffsetbits * 512;
 				//write_log (_T("DB %08x\n"), block);
-				if (hdf_read_target (hfd, dataptr, block, 512) != 512) {
+				if (hdf_read_target (hfd, dataptr, block, 512, &error) != 512) {
 					write_log (_T("vhd_read: data read error\n"));
 					return read;
 				}
@@ -839,18 +862,19 @@ static int vhd_write_enlarge (struct hardfiledata *hfd, uae_u32 bamoffset)
 {
 	uae_u8 *buf, *p;
 	int len;
-	uae_u32 block;
+	uae_u32 block, error = 0;
 	int v;
 
 	len = hfd->vhd_blocksize + hfd->vhd_bitmapsize + 512;
 	buf = xcalloc (uae_u8, len);
 	if (!hdf_resize_target (hfd, hfd->physsize + len - 512)) {
 		write_log (_T("vhd_enlarge: failure\n"));
+		xfree(buf);
 		return 0;
 	}
 	// add footer (same as 512 byte header)
 	memcpy (buf + len - 512, hfd->vhd_header, 512);
-	v = hdf_write_target (hfd, buf, hfd->vhd_footerblock, len);
+	v = hdf_write_target (hfd, buf, hfd->vhd_footerblock, len, &error);
 	xfree (buf);
 	if (v != len) {
 		write_log (_T("vhd_enlarge: footer write error\n"));
@@ -858,13 +882,13 @@ static int vhd_write_enlarge (struct hardfiledata *hfd, uae_u32 bamoffset)
 	}
 	// write new offset to BAM
 	p = hfd->vhd_header + bamoffset;
-	block = hfd->vhd_footerblock / 512;
+	block = (uae_u32)(hfd->vhd_footerblock / 512);
 	p[0] = block >> 24;
 	p[1] = block >> 16;
 	p[2] = block >>  8;
 	p[3] = block >>  0;
 	// write to disk
-	if (hdf_write_target (hfd, hfd->vhd_header + hfd->vhd_bamoffset, hfd->vhd_bamoffset, hfd->vhd_bamsize) != hfd->vhd_bamsize) {
+	if (hdf_write_target (hfd, hfd->vhd_header + hfd->vhd_bamoffset, hfd->vhd_bamoffset, hfd->vhd_bamsize, &error) != hfd->vhd_bamsize) {
 		write_log (_T("vhd_enlarge: bam write error\n"));
 		return 0;
 	}
@@ -876,6 +900,7 @@ static uae_u64 vhd_write (struct hardfiledata *hfd, void *v, uae_u64 offset, uae
 {
 	uae_u64 written;
 	uae_u8 *dataptr = (uae_u8*)v;
+	uae_u32 error = 0;
 
 	//write_log (_T("%08x %08x\n"), (uae_u32)offset, (uae_u32)len);
 	written = 0;
@@ -884,7 +909,7 @@ static uae_u64 vhd_write (struct hardfiledata *hfd, void *v, uae_u64 offset, uae
 	if (len & 511)
 		return written;
 	while (len > 0) {
-		uae_u32 bamoffset = (offset / hfd->vhd_blocksize) * 4 + hfd->vhd_bamoffset;
+		uae_u32 bamoffset = (uae_u32)((offset / hfd->vhd_blocksize) * 4 + hfd->vhd_bamoffset);
 		uae_u32 sectoroffset = gl (hfd->vhd_header + bamoffset);
 		if (sectoroffset == 0xffffffff) {
 			if (!vhd_write_enlarge (hfd, bamoffset))
@@ -899,14 +924,14 @@ static uae_u64 vhd_write (struct hardfiledata *hfd, void *v, uae_u64 offset, uae
 			uae_u64 sectormapblock = sectoroffset * (uae_u64)512 + (bitmapoffsetbytes & ~511);
 			if (hfd->vhd_sectormapblock != sectormapblock) {
 				// read sector bitmap
-				if (hdf_read_target (hfd, hfd->vhd_sectormap, sectormapblock, 512) != 512) {
+				if (hdf_read_target (hfd, hfd->vhd_sectormap, sectormapblock, 512, &error) != 512) {
 					write_log (_T("vhd_write: bitmap read error\n"));
 					return written;
 				}
 				hfd->vhd_sectormapblock = sectormapblock;
 			}
 			// write data
-			if (hdf_write_target (hfd, dataptr, sectoroffset * (uae_u64)512 + hfd->vhd_bitmapsize + bitmapoffsetbits * 512, 512) != 512) {
+			if (hdf_write_target (hfd, dataptr, sectoroffset * (uae_u64)512 + hfd->vhd_bitmapsize + bitmapoffsetbits * 512, 512, &error) != 512) {
 				write_log (_T("vhd_write: data write error\n"));
 				return written;
 			}
@@ -914,7 +939,7 @@ static uae_u64 vhd_write (struct hardfiledata *hfd, void *v, uae_u64 offset, uae
 			if (!(hfd->vhd_sectormap[bitmapoffsetbytes & 511] & (1 << (7 - (bitmapoffsetbits & 7))))) {
 				// no, we need to mark it allocated and write the modified bitmap back to the disk
 				hfd->vhd_sectormap[bitmapoffsetbytes & 511] |= (1 << (7 - (bitmapoffsetbits & 7)));
-				if (hdf_write_target (hfd, hfd->vhd_sectormap, sectormapblock, 512) != 512) {
+				if (hdf_write_target (hfd, hfd->vhd_sectormap, sectormapblock, 512, &error) != 512) {
 					write_log (_T("vhd_write: bam write error\n"));
 					return written;
 				}
@@ -943,7 +968,7 @@ int vhd_create (const TCHAR *name, uae_u64 size, uae_u32 dostype)
 		blocksize = 2 * 1024 * 1024;
 	else
 		blocksize = 512 * 1024;
-	batsize = (size + blocksize - 1) / blocksize;
+	batsize = (uae_u32)((size + blocksize - 1) / blocksize);
 	batentrysize = batsize;
 	batsize *= 4;
 	batsize += 511;
@@ -966,22 +991,22 @@ int vhd_create (const TCHAR *name, uae_u64 size, uae_u32 dostype)
 	b[0x10 + 6] = 2; // data offset
 	// time stamp
 	tm = time (NULL) - 946684800;
-	b[0x18] = tm >> 24;
-	b[0x19] = tm >> 16;
-	b[0x1a] = tm >>  8;
-	b[0x1b] = tm >>  0;
+	b[0x18] = (uae_u8)(tm >> 24);
+	b[0x19] = (uae_u8)(tm >> 16);
+	b[0x1a] = (uae_u8)(tm >>  8);
+	b[0x1b] = (uae_u8)(tm >>  0);
 	strcpy ((char*)b + 0x1c, "vpc "); // creator application
 	b[0x21] = 5; // creator version
 	strcpy ((char*)b + 0x24, "Wi2k"); // creator host os
 	// original and current size
-	b[0x28] = b[0x30] = size >> 56;
-	b[0x29] = b[0x31] = size >> 48;
-	b[0x2a] = b[0x32] = size >> 40;
-	b[0x2b] = b[0x33] = size >> 32;
-	b[0x2c] = b[0x34] = size >> 24;
-	b[0x2d] = b[0x35] = size >> 16;
-	b[0x2e] = b[0x36] = size >>  8;
-	b[0x2f] = b[0x37] = size >>  0;
+	b[0x28] = b[0x30] = (uae_u8)(size >> 56);
+	b[0x29] = b[0x31] = (uae_u8)(size >> 48);
+	b[0x2a] = b[0x32] = (uae_u8)(size >> 40);
+	b[0x2b] = b[0x33] = (uae_u8)(size >> 32);
+	b[0x2c] = b[0x34] = (uae_u8)(size >> 24);
+	b[0x2d] = b[0x35] = (uae_u8)(size >> 16);
+	b[0x2e] = b[0x36] = (uae_u8)(size >>  8);
+	b[0x2f] = b[0x37] = (uae_u8)(size >>  0);
 	getchs2 (&hfd, &cyl, &cylsec, &head, &tracksec);
 	// cylinders
 	b[0x38] = cyl >> 8;
@@ -1064,27 +1089,31 @@ end:
 	return ret;
 }
 
-static int hdf_read2 (struct hardfiledata *hfd, void *buffer, uae_u64 offset, int len)
+static int hdf_read2(struct hardfiledata *hfd, void *buffer, uae_u64 offset, int len, uae_u32 *error)
 {
 	int ret = 0, extra = 0;
+
 	if (offset < hfd->virtual_size) {
 		uae_s64 len2 = offset + len <= hfd->virtual_size ? len : hfd->virtual_size - offset;
+		if (len > INT_MAX) {
+			return 0;
+		}
 		if (!hfd->virtual_rdb)
 			return 0;
-		memcpy(buffer, hfd->virtual_rdb + offset, len2);
-		len -= len2;
+		memcpy(buffer, hfd->virtual_rdb + offset, (size_t)len2);
+		len -= (int)len2;
 		if (len <= 0)
-			return len2;
+			return (int)len2;
 		offset += len2;
 		buffer = (uae_u8*)buffer + len2;
-		extra = len2;
+		extra = (int)len2;
 	}
 	offset -= hfd->virtual_size;
 
 	if (hfd->hfd_type == HFD_VHD_DYNAMIC)
-		ret = vhd_read (hfd, buffer, offset, len);
+		ret = (int)vhd_read (hfd, buffer, offset, len);
 	else if (hfd->hfd_type == HFD_VHD_FIXED)
-		ret = hdf_read_target (hfd, buffer, offset + 512, len);
+		ret = hdf_read_target (hfd, buffer, offset + 512, len, error);
 #ifdef WITH_CHD
 	else if (hfd->hfd_type == HFD_CHD_OTHER) {
 		chd_file *cf = (chd_file*)hfd->chd_handle;
@@ -1111,7 +1140,7 @@ static int hdf_read2 (struct hardfiledata *hfd, void *buffer, uae_u64 offset, in
 	}
 #endif
 	else
-		ret = hdf_read_target (hfd, buffer, offset, len);
+		ret = hdf_read_target (hfd, buffer, offset, len, error);
 
 	if (ret <= 0)
 		return ret;
@@ -1119,25 +1148,30 @@ static int hdf_read2 (struct hardfiledata *hfd, void *buffer, uae_u64 offset, in
 	return ret;
 }
 
-static int hdf_write2 (struct hardfiledata *hfd, void *buffer, uae_u64 offset, int len)
+static int hdf_write2(struct hardfiledata *hfd, void *buffer, uae_u64 offset, int len, uae_u32 *error)
 {
+	if (len > INT_MAX)
+		return 0;
 	int ret = 0, extra = 0;
 	// writes to virtual RDB are ignored
 	if (offset < hfd->virtual_size) {
 		uae_s64 len2 = offset + len <= hfd->virtual_size ? len : hfd->virtual_size - offset;
-		len -= len2;
+		if (len2 > INT_MAX) {
+			return 0;
+		}
+		len -= (int)len2;
 		if (len <= 0)
-			return len2;
+			return (int)len2;
 		offset += len2;
 		buffer = (uae_u8*)buffer + len2;
-		extra = len2;
+		extra = (int)len2;
 	}
 	offset -= hfd->virtual_size;
 
 	if (hfd->hfd_type == HFD_VHD_DYNAMIC)
-		ret = vhd_write (hfd, buffer, offset, len);
+		ret = (int)vhd_write(hfd, buffer, offset, len);
 	else if (hfd->hfd_type == HFD_VHD_FIXED)
-		ret = hdf_write_target (hfd, buffer, offset + 512, len);
+		ret = hdf_write_target(hfd, buffer, offset + 512, len, error);
 #ifdef WITH_CHD
 	else if (hfd->hfd_type == HFD_CHD_OTHER)
 		return 0;
@@ -1162,7 +1196,7 @@ static int hdf_write2 (struct hardfiledata *hfd, void *buffer, uae_u64 offset, i
 	}
 #endif
 	else
-		ret = hdf_write_target (hfd, buffer, offset, len);
+		ret = hdf_write_target(hfd, buffer, offset, len, error);
 
 	if (ret <= 0)
 		return ret;
@@ -1207,10 +1241,10 @@ static void hdf_byteswap (void *v, int len)
 	}
 }
 
-int hdf_read_rdb (struct hardfiledata *hfd, void *buffer, uae_u64 offset, int len)
+int hdf_read_rdb (struct hardfiledata *hfd, void *buffer, uae_u64 offset, int len, uae_u32 *error)
 {
 	int v;
-	v = hdf_read (hfd, buffer, offset, len);
+	v = hdf_read (hfd, buffer, offset, len, error);
 	if (v > 0 && offset < 16 * 512 && !hfd->byteswap && !hfd->adide)  {
 		uae_u8 *buf = (uae_u8*)buffer;
 		bool changed = false;
@@ -1224,77 +1258,94 @@ int hdf_read_rdb (struct hardfiledata *hfd, void *buffer, uae_u64 offset, int le
 			write_log (_T("HDF: byteswapped RDB detected\n"));
 		}
 		if (changed)
-			v = hdf_read (hfd, buffer, offset, len);
+			v = hdf_read (hfd, buffer, offset, len, error);
 	}
 	return v;
 }
 
-int hdf_read(struct hardfiledata *hfd, void *buffer, uae_u64 offset, int len)
+int hdf_read(struct hardfiledata *hfd, void *buffer, uae_u64 offset, int len, uae_u32 *error)
 {
 	int v;
+	uae_u32 error2 = 0;
+	
+	if (error) {
+		*error = 0;
+	} else {
+		error = &error2;
+	}
 
-	hf_log3 (_T("cmd_read: %p %04x-%08x (%d) %08x (%d)\n"),
+	hf_log3(_T("cmd_read: %p %04x-%08x (%d) %08x (%d)\n"),
 		buffer, (uae_u32)(offset >> 32), (uae_u32)offset, (uae_u32)(offset / hfd->ci.blocksize), (uae_u32)len, (uae_u32)(len / hfd->ci.blocksize));
 
 	if (!hfd->adide) {
-		v = hdf_cache_read (hfd, buffer, offset, len);
+		v = hdf_cache_read(hfd, buffer, offset, len, error);
 	} else {
 		offset += 512;
-		v = hdf_cache_read (hfd, buffer, offset, len);
-		adide_decode (buffer, len);
+		v = hdf_cache_read(hfd, buffer, offset, len, error);
+		adide_decode(buffer, len);
 	}
 	if (hfd->byteswap)
-		hdf_byteswap (buffer, len);
+		hdf_byteswap(buffer, len);
 	return v;
 }
 
-int hdf_write(struct hardfiledata *hfd, void *buffer, uae_u64 offset, int len)
+int hdf_write(struct hardfiledata *hfd, void *buffer, uae_u64 offset, int len, uae_u32 *error)
 {
 	int v;
 
-	hf_log3 (_T("cmd_write: %p %04x-%08x (%d) %08x (%d)\n"),
+	uae_u32 error2 = 0;
+
+	if (error) {
+		*error = 0;
+	} else {
+		error = &error2;
+	}
+
+	hf_log3(_T("cmd_write: %p %04x-%08x (%d) %08x (%d)\n"),
 		buffer, (uae_u32)(offset >> 32), (uae_u32)offset, (uae_u32)(offset / hfd->ci.blocksize), (uae_u32)len, (uae_u32)(len / hfd->ci.blocksize));
 
 	if (hfd->byteswap)
-		hdf_byteswap (buffer, len);
+		hdf_byteswap(buffer, len);
 	if (!hfd->adide) {
-		v = hdf_cache_write (hfd, buffer, offset, len);
+		v = hdf_cache_write(hfd, buffer, offset, len, error);
 	} else {
 		offset += 512;
-		adide_encode (buffer, len);
-		v = hdf_cache_write (hfd, buffer, offset, len);
-		adide_decode (buffer, len);
+		adide_encode(buffer, len);
+		v = hdf_cache_write(hfd, buffer, offset, len, error);
+		adide_decode(buffer, len);
 	}
 	if (hfd->byteswap)
-		hdf_byteswap (buffer, len);
+		hdf_byteswap(buffer, len);
 	return v;
 }
 
-static uae_u64 cmd_readx(struct hardfiledata *hfd, uae_u8 *dataptr, uae_u64 offset, uae_u64 len)
+static uae_u64 cmd_readx(struct hardfiledata *hfd, uae_u8 *dataptr, uae_u64 offset, uae_u64 len, uae_u32 *error)
 {
+	if (!len || len > INT_MAX)
+		return 0;
 	m68k_cancel_idle();
-	gui_flicker_led (LED_HD, hfd->unitnum, 1);
-	return hdf_read (hfd, dataptr, offset, len);
+	gui_flicker_led(LED_HD, hfd->unitnum, 1);
+	return hdf_read(hfd, dataptr, offset, (int)len, error);
 }
-static uae_u64 cmd_read(TrapContext *ctx, struct hardfiledata *hfd, uaecptr dataptr, uae_u64 offset, uae_u64 len)
+static uae_u64 cmd_read(TrapContext *ctx, struct hardfiledata *hfd, uaecptr dataptr, uae_u64 offset, uae_u64 len, uae_u32 *error)
 {
-	if (!len)
+	if (!len || len > INT_MAX)
 		return 0;
 	if (!ctx && real_address_allowed()) {
 		addrbank *bank_data = &get_mem_bank (dataptr);
 		if (!bank_data)
 			return 0;
-		if (bank_data->check(dataptr, len)) {
+		if (bank_data->check(dataptr, (uae_u32)len)) {
 			uae_u8 *buffer = bank_data->xlateaddr(dataptr);
-			return cmd_readx(hfd, buffer, offset, len);
+			return cmd_readx(hfd, buffer, offset, (uae_u32)len, error);
 		}
 	}
 	int total = 0;
 	while (len > 0) {
 		uae_u8 buf[RTAREA_TRAP_DATA_EXTRA_SIZE];
 		int max = RTAREA_TRAP_DATA_EXTRA_SIZE & ~511;
-		int size = len > max ? max : len;
-		if (cmd_readx(hfd, buf, offset, size) != size)
+		int size = (int)(len > max ? max : len);
+		if (cmd_readx(hfd, buf, offset, size, error) != size)
 			break;
 		trap_put_bytes(ctx, buf, dataptr, size);
 		offset += size;
@@ -1304,33 +1355,35 @@ static uae_u64 cmd_read(TrapContext *ctx, struct hardfiledata *hfd, uaecptr data
 	}
 	return total;
 }
-static uae_u64 cmd_writex(struct hardfiledata *hfd, uae_u8 *dataptr, uae_u64 offset, uae_u64 len)
+static uae_u64 cmd_writex(struct hardfiledata *hfd, uae_u8 *dataptr, uae_u64 offset, uae_u64 len, uae_u32 *error)
 {
+	if (!len || len > INT_MAX)
+		return 0;
 	m68k_cancel_idle();
-	gui_flicker_led (LED_HD, hfd->unitnum, 2);
-	return hdf_write (hfd, dataptr, offset, len);
+	gui_flicker_led(LED_HD, hfd->unitnum, 2);
+	return hdf_write(hfd, dataptr, offset, (uae_u32)len, error);
 }
 
-static uae_u64 cmd_write(TrapContext *ctx, struct hardfiledata *hfd, uaecptr dataptr, uae_u64 offset, uae_u64 len)
+static uae_u64 cmd_write(TrapContext *ctx, struct hardfiledata *hfd, uaecptr dataptr, uae_u64 offset, uae_u64 len, uae_u32 *error)
 {
-	if (!len)
+	if (!len || len > INT_MAX)
 		return 0;
 	if (!ctx && real_address_allowed()) {
 		addrbank *bank_data = &get_mem_bank (dataptr);
 		if (!bank_data)
 			return 0;
-		if (bank_data->check(dataptr, len)) {
+		if (bank_data->check(dataptr, (uae_u32)len)) {
 			uae_u8 *buffer = bank_data->xlateaddr(dataptr);
-			return cmd_writex(hfd, buffer, offset, len);
+			return cmd_writex(hfd, buffer, offset, len, error);
 		}
 	}
 	int total = 0;
 	while (len > 0) {
 		uae_u8 buf[RTAREA_TRAP_DATA_EXTRA_SIZE];
 		int max = RTAREA_TRAP_DATA_EXTRA_SIZE & ~511;
-		int size = len > max ? max : len;
+		int size = (int)(len > max ? max : len);
 		trap_get_bytes(ctx, buf, dataptr, size);
-		if (cmd_writex(hfd, buf, offset, size) != size)
+		if (cmd_writex(hfd, buf, offset, size, error) != size)
 			break;
 		offset += size;
 		dataptr += size;
@@ -1462,6 +1515,7 @@ int scsi_hd_emulate (struct hardfiledata *hfd, struct hd_hardfiledata *hdhfd, ua
 	bool omti = hfd->ci.unit_feature_level == HD_LEVEL_SASI_CHS;
 	uae_u8 sasi_sense = 0;
 	uae_u64 current_lba = ~0;
+	uae_u32 error = 0;
 
 	cmd = cmdbuf[0];
 
@@ -1718,22 +1772,26 @@ int scsi_hd_emulate (struct hardfiledata *hfd, struct hd_hardfiledata *hdhfd, ua
 		chkerr = checkbounds(hfd, offset, len, 1);
 		if (chkerr)
 			goto checkfail;
-		scsi_len = (uae_u32)cmd_readx(hfd, scsi_data, offset, len);
+		scsi_len = (uae_u32)cmd_readx(hfd, scsi_data, offset, len, &error);
+		if (error) {
+			chkerr = 1;
+			goto checkfail;
+		}
 		break;
 	case 0x0e: /* READ SECTOR BUFFER */
 		len = hfd->ci.blocksize;
-		scsi_len = len;
-		memset(scsi_data, 0, len);
+		scsi_len = (int)len;
+		memset(scsi_data, 0, (size_t)len);
 		if (len > sizeof(hfd->sector_buffer))
 			len = sizeof(hfd->sector_buffer);
-		memcpy(scsi_data, hfd->sector_buffer, len);
+		memcpy(scsi_data, hfd->sector_buffer, (size_t)len);
 		break;
 	case 0x0f: /* WRITE SECTOR BUFFER */
 		len = hfd->ci.blocksize;
-		scsi_len = len;
+		scsi_len = (int)len;
 		if (len > sizeof(hfd->sector_buffer))
 			len = sizeof(hfd->sector_buffer);
-		memcpy(hfd->sector_buffer, scsi_data, len);
+		memcpy(hfd->sector_buffer, scsi_data, (size_t)len);
 		break;
 	case 0x0a: /* WRITE (6) */
 		if (nodisk (hfd))
@@ -1754,7 +1812,11 @@ int scsi_hd_emulate (struct hardfiledata *hfd, struct hd_hardfiledata *hdhfd, ua
 		chkerr = checkbounds(hfd, offset, len, 2);
 		if (chkerr)
 			goto checkfail;
-		scsi_len = (uae_u32)cmd_writex(hfd, scsi_data, offset, len);
+		scsi_len = (uae_u32)cmd_writex(hfd, scsi_data, offset, len, &error);
+		if (error) {
+			chkerr = 2;
+			goto checkfail;
+		}
 		break;
 	case 0x55: // MODE SELECT(10)
 	case 0x15: // MODE SELECT(6)
@@ -1808,7 +1870,7 @@ int scsi_hd_emulate (struct hardfiledata *hfd, struct hd_hardfiledata *hdhfd, ua
 				p += bdlen;
 			}
 			for (;;) {
-				int rem = plen - (p - scsi_data);
+				int rem = (int)(plen - (p - scsi_data));
 				if (!rem)
 					break;
 				if (rem < 2)
@@ -1963,7 +2025,7 @@ int scsi_hd_emulate (struct hardfiledata *hfd, struct hd_hardfiledata *hdhfd, ua
 	case 0x25: /* READ CAPACITY */
 		{
 			int pmi = cmdbuf[8] & 1;
-			uae_u32 lba = (cmdbuf[2] << 24) | (cmdbuf[3] << 16) | (cmdbuf[4] << 8) | cmdbuf[5];
+			uae_u64 lba = (cmdbuf[2] << 24) | (cmdbuf[3] << 16) | (cmdbuf[4] << 8) | cmdbuf[5];
 			uae_u64 blocks;
 			int cyl, head, tracksec;
 			if (nodisk (hfd))
@@ -2016,7 +2078,11 @@ int scsi_hd_emulate (struct hardfiledata *hfd, struct hd_hardfiledata *hdhfd, ua
 		chkerr = checkbounds(hfd, offset, len, 1);
 		if (chkerr)
 			goto checkfail;
-		scsi_len = (uae_u32)cmd_readx (hfd, scsi_data, offset, len);
+		scsi_len = (uae_u32)cmd_readx(hfd, scsi_data, offset, len, &error);
+		if (error) {
+			chkerr = 1;
+			goto checkfail;
+		}
 		break;
 	case 0x2a: /* WRITE (10) */
 		if (nodisk (hfd))
@@ -2031,7 +2097,11 @@ int scsi_hd_emulate (struct hardfiledata *hfd, struct hd_hardfiledata *hdhfd, ua
 		chkerr = checkbounds(hfd, offset, len, 2);
 		if (chkerr)
 			goto checkfail;
-		scsi_len = (uae_u32)cmd_writex (hfd, scsi_data, offset, len);
+		scsi_len = (uae_u32)cmd_writex(hfd, scsi_data, offset, len, &error);
+		if (error) {
+			chkerr = 2;
+			goto checkfail;
+		}
 		break;
 	case 0x2f: /* VERIFY (10) */
 		{
@@ -2049,7 +2119,11 @@ int scsi_hd_emulate (struct hardfiledata *hfd, struct hd_hardfiledata *hdhfd, ua
 					goto checkfail;
 				uae_u8 *vb = xmalloc(uae_u8, hfd->ci.blocksize);
 				while (len > 0) {
-					int readlen = cmd_readx (hfd, vb, offset, hfd->ci.blocksize);
+					uae_u64 readlen = cmd_readx (hfd, vb, offset, hfd->ci.blocksize, &error);
+					if (error) {
+						chkerr = 1;
+						goto checkfail;
+					}
 					if (readlen != hfd->ci.blocksize || memcmp (vb, scsi_data, hfd->ci.blocksize)) {
 						xfree (vb);
 						goto miscompare;
@@ -2079,7 +2153,11 @@ int scsi_hd_emulate (struct hardfiledata *hfd, struct hd_hardfiledata *hdhfd, ua
 		chkerr = checkbounds(hfd, offset, len, 1);
 		if (chkerr)
 			goto checkfail;
-		scsi_len = (uae_u32)cmd_readx (hfd, scsi_data, offset, len);
+		scsi_len = (uae_u32)cmd_readx(hfd, scsi_data, offset, len, &error);
+		if (error) {
+			chkerr = 1;
+			goto checkfail;
+		}
 		break;
 	case 0xaa: /* WRITE (12) */
 		if (nodisk (hfd))
@@ -2094,7 +2172,11 @@ int scsi_hd_emulate (struct hardfiledata *hfd, struct hd_hardfiledata *hdhfd, ua
 		chkerr = checkbounds(hfd, offset, len, 2);
 		if (chkerr)
 			goto checkfail;
-		scsi_len = (uae_u32)cmd_writex (hfd, scsi_data, offset, len);
+		scsi_len = (uae_u32)cmd_writex (hfd, scsi_data, offset, len, &error);
+		if (error) {
+			chkerr = 2;
+			goto checkfail;
+		}
 		break;
 	case 0x37: /* READ DEFECT DATA */
 		if (nodisk (hfd))
@@ -2347,14 +2429,12 @@ void hardfile_do_disk_change (struct uaedev_config_data *uci, bool insert)
 	int fsid = uci->configoffset;
 	struct hardfiledata *hfd;
 
-	if (uci->ci.controller_type == HD_CONTROLLER_TYPE_PCMCIA) {
-		if (uci->ci.controller_type_unit == 0) {
-			gayle_modify_pcmcia_sram_unit (&uci->ci, insert);
-		} else {
-			gayle_modify_pcmcia_ide_unit (&uci->ci, insert);
-		}
+	const struct expansionromtype *ert = get_unit_expansion_rom(uci->ci.controller_type);
+	if (ert && (ert->deviceflags & EXPANSIONTYPE_PCMCIA)) {
+		pcmcia_reinsert(&currprefs);
 		return;
 	}
+
 	hfd = get_hardfile_data (fsid);
 	if (!hfd)
 		return;
@@ -2432,7 +2512,7 @@ static void abort_async (struct hardfileprivdata *hfpd, uaecptr request, int err
 	}
 }
 
-static void *hardfile_thread (void *devs);
+static void hardfile_thread (void *devs);
 static int start_thread (TrapContext *ctx, int unit)
 {
 	struct hardfileprivdata *hfpd = &hardfpd[unit];
@@ -2605,7 +2685,7 @@ static uae_u32 hardfile_do_io (TrapContext *ctx, struct hardfiledata *hfd, struc
 		if (isbadblock(hfd, offset, len)) {
 			goto bad_block;
 		}
-		actual = (uae_u32)cmd_read(ctx, hfd, dataptr, offset, len);
+		actual = (uae_u32)cmd_read(ctx, hfd, dataptr, offset, len, &error);
 		break;
 
 #if HDF_SUPPORT_TD64
@@ -2636,7 +2716,7 @@ static uae_u32 hardfile_do_io (TrapContext *ctx, struct hardfiledata *hfd, struc
 		if (isbadblock(hfd, offset64, len)) {
 			goto bad_block;
 		}
-		actual = (uae_u32)cmd_read(ctx, hfd, dataptr, offset64, len);
+		actual = (uae_u32)cmd_read(ctx, hfd, dataptr, offset64, len, &error);
 		break;
 #endif
 
@@ -2666,7 +2746,7 @@ static uae_u32 hardfile_do_io (TrapContext *ctx, struct hardfiledata *hfd, struc
 			if (isbadblock(hfd, offset, len)) {
 				goto bad_block;
 			}
-			actual = (uae_u32)cmd_write(ctx, hfd, dataptr, offset, len);
+			actual = (uae_u32)cmd_write(ctx, hfd, dataptr, offset, len, &error);
 		}
 		break;
 
@@ -2703,7 +2783,7 @@ static uae_u32 hardfile_do_io (TrapContext *ctx, struct hardfiledata *hfd, struc
 			if (isbadblock(hfd, offset64, len)) {
 				goto bad_block;
 			}
-			actual = (uae_u32)cmd_write(ctx, hfd, dataptr, offset64, len);
+			actual = (uae_u32)cmd_write(ctx, hfd, dataptr, offset64, len, &error);
 		}
 		break;
 #endif
@@ -2864,7 +2944,6 @@ no_disk:
 		break;
 
 	default:
-no_cmd:
 		/* Command not understood. */
 		error = IOERR_NOCMD;
 		break;
@@ -2981,7 +3060,7 @@ static uae_u32 REGPARAM2 hardfile_beginio (TrapContext *ctx)
 	}
 }
 
-static void *hardfile_thread (void *devs)
+static void hardfile_thread (void *devs)
 {
 	struct hardfileprivdata *hfpd = (struct hardfileprivdata*)devs;
 
@@ -2997,8 +3076,8 @@ static void *hardfile_thread (void *devs)
 			hfpd->thread_running = 0;
 			uae_sem_post (&hfpd->sync_sem);
 			uae_sem_post (&change_sem);
-			return 0;
-		} else if (hardfile_do_io(ctx, get_hardfile_data_controller(hfpd - &hardfpd[0]), hfpd, iobuf, request) == 0) {
+			return;
+		} else if (hardfile_do_io(ctx, get_hardfile_data_controller((int)(hfpd - &hardfpd[0])), hfpd, iobuf, request) == 0) {
 			put_byte_host(iobuf + 30, get_byte_host(iobuf + 30) & ~1);
 			trap_put_bytes(ctx, iobuf + 8, request + 8, 48 - 8);
 			release_async_request(hfpd, request);

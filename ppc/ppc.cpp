@@ -2,8 +2,6 @@
 #include "sysconfig.h"
 #include "sysdeps.h"
 
-#ifdef WITH_PPC
-
 #include "options.h"
 #include "threaddep/thread.h"
 #include "machdep/rpt.h"
@@ -18,6 +16,7 @@
 #include "uae/log.h"
 #include "uae/ppc.h"
 #include "uae/qemu.h"
+#include "devices.h"
 
 #define SPINLOCK_DEBUG 0
 #define PPC_ACCESS_LOG 0
@@ -33,7 +32,7 @@
 
 #define TRACE(format, ...) write_log(_T("PPC: ") format, ## __VA_ARGS__)
 
-#ifdef WINUAE
+#ifdef WIN32
 #define WIN32_SPINLOCK
 #endif
 
@@ -233,11 +232,7 @@ static bool load_qemu_implementation(void)
 
 	UAE_DLHANDLE handle = uae_qemu_uae_init();
 	if (!handle) {
-#ifdef FSUAE
-		gui_message(_T("PPC: Error loading qemu-uae plugin\n"));
-#else
 		notify_user (NUMSG_NO_PPC);
-#endif
 		return false;
 	}
 	write_log(_T("PPC: Loaded qemu-uae library at %p\n"), handle);
@@ -358,14 +353,8 @@ static PPCLockStatus get_ppc_lock(PPCLockMethod method)
 			trylock_called = true;
 		}
 	} else {
-#ifdef FSUAE
-		//uae_abort("invalid ppc loc method");
-		write_log("invalid ppc loc method");
-		abort();
-#else
 		write_log("?\n");
 		return PPC_NO_LOCK_NEEDED;
-#endif
 	}
 }
 
@@ -412,7 +401,9 @@ static void map_banks(void)
 
 	PPCMemoryRegion regions[UAE_MEMORY_REGIONS_MAX];
 	UaeMemoryMap map;
+#ifdef DEBUGGER
 	uae_memory_map(&map);
+#endif
 
 	for (int i = 0; i < map.num_regions; i++) {
 		UaeMemoryRegion *r = &map.regions[i];
@@ -618,7 +609,7 @@ static void uae_ppc_cpu_reset(void)
 	ppc_state = PPC_STATE_ACTIVE;
 }
 
-static void *ppc_thread(void *v)
+static void ppc_thread(void *v)
 {
 	if (using_qemu()) {
 		write_log(_T("PPC: Warning - ppc_thread started with QEMU impl\n"));
@@ -631,7 +622,6 @@ static void *ppc_thread(void *v)
 		write_log(_T("ppc_cpu_run() exited.\n"));
 		ppc_thread_running = false;
 	}
-	return NULL;
 }
 
 void uae_ppc_execute_check(void)
@@ -820,6 +810,21 @@ bool UAECALL uae_ppc_io_mem_read64(uint32_t addr, uint64_t *data)
 	return true;
 }
 
+static void uae_ppc_hsync_handler(void)
+{
+	if (ppc_state == PPC_STATE_INACTIVE)
+		return;
+	if (using_pearpc()) {
+		if (ppc_state != PPC_STATE_SLEEP)
+			return;
+		if (impl.get_dec() == 0) {
+			uae_ppc_wakeup();
+		} else {
+			impl.do_dec(ppc_cycle_count);
+		}
+	}
+}
+
 void uae_ppc_cpu_stop(void)
 {
 	if (ppc_state == PPC_STATE_INACTIVE)
@@ -849,6 +854,8 @@ void uae_ppc_cpu_reboot(void)
 	TRACE(_T("uae_ppc_cpu_reboot\n"));
 
 	initialize();
+
+	device_add_hsync(uae_ppc_hsync_handler);
 
 	if (!ppc_thread_running) {
 		write_log(_T("Starting PPC thread.\n"));
@@ -958,21 +965,6 @@ void uae_ppc_crash(void)
 	}
 }
 
-void uae_ppc_hsync_handler(void)
-{
-	if (ppc_state == PPC_STATE_INACTIVE)
-		return;
-	if (using_pearpc()) {
-		if (ppc_state != PPC_STATE_SLEEP)
-			return;
-		if (impl.get_dec() == 0) {
-			uae_ppc_wakeup();
-		} else {
-			impl.do_dec(ppc_cycle_count);
-		}
-	}
-}
-
 void uae_ppc_pause(int pause)
 {
 	if (ppc_state == PPC_STATE_INACTIVE)
@@ -991,33 +983,3 @@ void uae_ppc_pause(int pause)
 	}
 #endif
 }
-
-#ifdef FSUAE // NL
-
-UAE_EXTERN_C void fsuae_ppc_pause(int pause);
-UAE_EXTERN_C void fsuae_ppc_pause(int pause)
-{
-	/* We cannot call uae_ppc_pause except from the UAE thread due
-	 * to use of the spinlock */
-	if (using_qemu()) {
-		if (pause) {
-			set_and_wait_for_state(PPC_CPU_STATE_PAUSED, 0);
-		}
-		else {
-			set_and_wait_for_state(PPC_CPU_STATE_RUNNING, 0);
-		}
-	}
-}
-
-#endif
-
-#else
-
-#include "uae/ppc.h"
-
-bool uae_self_is_ppc(void)
-{
-	return false;
-}
-
-#endif /* WITH_PPC */

@@ -265,8 +265,8 @@ int amiga_send_input_event(int input_event, int state);
 
 void amiga_write_config(const char *path);
 
-void amiga_add_key_dir(const char *path);
-int amiga_add_rom_file(const char *path, const char *cache_path);
+// void amiga_add_key_dir(const char *path);
+// int amiga_add_rom_file(const char *path, const char *cache_path);
 
 void amiga_set_paths(const char **rom_paths, const char **floppy_paths,
         const char **cd_paths, const char **hd_paths);
@@ -276,13 +276,14 @@ void amiga_set_native_library_dirs(const char **library_dirs);
 } // extern "C"
 #endif
 
-#ifndef UAE_FS_H_
+#ifndef UAE_FS_H
 
 // This section must only be included by external code and cannot be used
 // by od-fs code.
 
 #define DEFEVENT(A, B, C, D, E, F) INPUTEVENT_ ## A,
 #define DEFEVENT2(A, B, B2, C, D, E, F, G) INPUTEVENT_ ## A,
+#define DEFEVENTKB(A, B, C, F, PC) INPUTEVENT_ ## A,
 enum inputevents {
 INPUTEVENT_ZERO,
 #include "uae_inputevents_def.h"

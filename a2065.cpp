@@ -13,7 +13,7 @@
 #ifdef A2065
 
 #include "options.h"
-#include "uae/memory.h"
+#include "memory.h"
 #include "custom.h"
 #include "newcpu.h"
 #include "a2065.h"
@@ -24,6 +24,7 @@
 #include "rommgr.h"
 #include "debug.h"
 #include "devices.h"
+#include "threaddep/thread.h"
 
 #ifdef FSUAE
 #define DUMPPACKET 1
@@ -58,12 +59,13 @@ static int rap;
 static int configured;
 static int romtype;
 static bool AM79C960;
-static int byteswap;
+static int abyteswap;
+static uae_sem_t sync_sem;
 
 static struct netdriverdata *td;
 static void *sysdata;
 
-static int am_initialized;
+static volatile int am_initialized;
 static volatile int transmitnow;
 static uae_u16 am_mode;
 static uae_u64 am_ladrf;
@@ -240,6 +242,26 @@ static int mungepacket (uae_u8 *packet, int len)
 	return ret;
 }
 
+static void rethink_a2065(void)
+{
+	if (!configured)
+		return;
+	csr[0] &= ~CSR0_INTR;
+	uae_u16 mask = csr[0];
+	if (AM79C960)
+		mask &= (~csr[3]) & (0x4000 | 0x1000 | 0x800 | 0x400 | 0x200 | 0x100);
+	if (mask & (CSR0_BABL | CSR0_MISS | CSR0_MERR | CSR0_RINT | CSR0_TINT | CSR0_IDON))
+		csr[0] |= CSR0_INTR;
+	if ((csr[0] & (CSR0_INTR | CSR0_INEA)) == (CSR0_INTR | CSR0_INEA)) {
+		safe_interrupt_set(IRQ_SOURCE_A2065, 0, false);
+		if (log_a2065 > 2)
+			write_log(_T("7990 +IRQ\n"));
+	}
+	if (log_a2065) {
+		write_log(_T("7990 -IRQ\n"));
+	}
+}
+
 static int mcfilter (const uae_u8 *data)
 {
 	if (am_ladrf == 0) // multicast filter completely disabled?
@@ -265,7 +287,7 @@ static void put_ram_word(uae_u32 offset, uae_u16 v)
 	put_ram_byte(offset + 1, (uae_u8)v);
 }
 
-static void gotfunc (void *devv, const uae_u8 *databuf, int len)
+static void gotfunc2(void *devv, const uae_u8 *databuf, int len)
 {
 	int i;
 	int size, insize, first;
@@ -276,9 +298,6 @@ static void gotfunc (void *devv, const uae_u8 *databuf, int len)
 	uae_u8 tmp[MAX_PACKET_SIZE], *data;
 	const uae_u8 *dstmac, *srcmac;
 	struct s2devstruct *dev = (struct s2devstruct*)devv;
-
-	if (!am_rdr_rlen)
-		return;
 
 	dstmac = databuf;
 	srcmac = databuf + 6;
@@ -417,7 +436,7 @@ static void gotfunc (void *devv, const uae_u8 *databuf, int len)
 		size = 65536 - rmd2;
 		uae_u8 *pr = boardram + addr;
 		for (i = 0; i < size && insize < len; i++, insize++) {
-			pr[(i ^ byteswap) & RAM_MASK] = data[insize];
+			pr[(i ^ abyteswap) & RAM_MASK] = data[insize];
 		}
 		if (insize >= len) {
 			rmd1 |= RX_ENP;
@@ -435,10 +454,24 @@ static void gotfunc (void *devv, const uae_u8 *databuf, int len)
 	devices_rethink_all(rethink_a2065);
 }
 
+static void gotfunc(void *devv, const uae_u8 *databuf, int len)
+{
+	if (!am_initialized)
+		return;
+	if (!am_rdr_rlen)
+		return;
+
+	uae_sem_wait(&sync_sem);
+	gotfunc2(devv, databuf, len);
+	uae_sem_post(&sync_sem);
+}
+
 static int getfunc (void *devv, uae_u8 *d, int *len)
 {
 	struct s2devstruct *dev = (struct s2devstruct*)devv;
 
+	if (!am_initialized)
+		return 0;
 	if (transmitlen <= 0)
 		return 0;
 	if (transmitlen > *len) {
@@ -505,7 +538,7 @@ static void do_transmit (void)
 				size = MAX_PACKET_SIZE;
 			uae_u8 *pm = boardram + addr;
 			for (i = 0; i < size; i++) {
-				transmitbuffer[outsize++] = pm[(i ^ byteswap) & RAM_MASK];
+				transmitbuffer[outsize++] = pm[(i ^ abyteswap) & RAM_MASK];
 			}
 			if (size < 60 && (csr[4] & 0x0800)) { // APAD_XMT
 				while (size < 60) {
@@ -567,7 +600,7 @@ static void check_transmit(bool tdmd)
 	do_transmit ();
 }
 
-void a2065_hsync_handler (void)
+static void a2065_hsync_handler(void)
 {
 	static int cnt;
 
@@ -575,26 +608,6 @@ void a2065_hsync_handler (void)
 	if (cnt < 0 || transmitnow) {
 		check_transmit(false);
 		cnt = 15;
-	}
-}
-
-void rethink_a2065 (void)
-{
-	if (!configured)
-		return;
-	csr[0] &= ~CSR0_INTR;
-	uae_u16 mask = csr[0];
-	if (AM79C960)
-		mask &= (~csr[3]) & (0x4000 | 0x1000 | 0x800 | 0x400 | 0x200 | 0x100);
-	if (mask & (CSR0_BABL | CSR0_MISS | CSR0_MERR | CSR0_RINT | CSR0_TINT | CSR0_IDON))
-		csr[0] |= CSR0_INTR;
-	if ((csr[0] & (CSR0_INTR | CSR0_INEA)) == (CSR0_INTR | CSR0_INEA)) {
-		safe_interrupt_set(IRQ_SOURCE_A2065, 0, false);
-		if (log_a2065 > 2)
-			write_log(_T("7990 +IRQ\n"));
-	}
-	if (log_a2065) {
-		write_log(_T("7990 -IRQ\n"));
 	}
 }
 
@@ -936,7 +949,7 @@ static uae_u32 REGPARAM2 a2065_bget (uaecptr addr)
 {
 	uae_u32 v;
 	addr &= 65535;
-	v = a2065_bget2 (addr ^ byteswap);
+	v = a2065_bget2 (addr ^ abyteswap);
 	if (log_a2065 > 3 && addr < MEM_MIN)
 		write_log (_T("7990_BGET: %08X -> %02X PC=%08X\n"), addr, v & 0xff, M68K_GETPC);
 	return v;
@@ -1003,7 +1016,7 @@ static void REGPARAM2 a2065_bput (uaecptr addr, uae_u32 b)
 	addr &= 65535;
 	if (log_a2065 > 3 && addr < MEM_MIN)
 		write_log (_T("7990_BPUT: %08X <- %02X PC=%08X\n"), addr, b & 0xff, M68K_GETPC);
-	a2065_bput2 (addr ^ byteswap, b);
+	a2065_bput2 (addr ^ abyteswap, b);
 }
 
 static uae_u32 REGPARAM2 a2065_wgeti (uaecptr addr)
@@ -1020,12 +1033,53 @@ static uae_u32 REGPARAM2 a2065_lgeti (uaecptr addr)
 	return v;
 }
 
+static void a2065_reset(int hardreset)
+{
+	if (!sync_sem) {
+		return;
+	}
+
+	uae_sem_wait(&sync_sem);
+
+	am_initialized = 0;
+
+	ethernet_close(td, sysdata);
+
+	for (int i = 0; i < RAP_SIZE; i++)
+		csr[i] = 0;
+	csr[0] = CSR0_STOP;
+	csr[1] = csr[2] = csr[3] = 0;
+	csr[4] = 0x0115;
+	dbyteswap = 0;
+	rap = 0;
+
+	free_expansion_bank(&a2065_bank);
+	boardram = NULL;
+	xfree(sysdata);
+	sysdata = NULL;
+	td = NULL;
+
+	uae_sem_post(&sync_sem);
+}
+
+static void a2065_free(void)
+{
+	a2065_reset(1);
+}
+
 static bool a2065_config (struct autoconfig_info *aci)
 {
 	uae_u8 maco[3];
 
-	if (!aci)
+	if (!sync_sem) {
+		uae_sem_init(&sync_sem, 0, 1);
+	}
+
+	if (!aci) {
 		return false;
+	}
+
+	device_add_reset(a2065_reset);
 
 	if (aci->postinit) {
 		configured = expamem_board_pointer >> 16;
@@ -1046,7 +1100,7 @@ static bool a2065_config (struct autoconfig_info *aci)
 		addr_rdp = A2065_RDP;
 		rap_mask = 3;
 		AM79C960 = false;
-		byteswap = 0;
+		abyteswap = 0;
 		break;
 		case ROMTYPE_ARIADNE:
 		maco[0] = 0x00;
@@ -1057,7 +1111,7 @@ static bool a2065_config (struct autoconfig_info *aci)
 		addr_rdp = ARIADNE_RDP;
 		rap_mask = 127;
 		AM79C960 = true;
-		byteswap = 1;
+		abyteswap = 1;
 		break;
 		default:
 		return false;
@@ -1100,12 +1154,15 @@ static bool a2065_config (struct autoconfig_info *aci)
 
 	alloc_expansion_bank(&a2065_bank, aci);
 	boardram = a2065_bank.baseaddr + RAM_OFFSET;
+
+	device_add_hsync(a2065_hsync_handler);
+	device_add_rethink(rethink_a2065);
+	device_add_exit(a2065_free, NULL);
+
 	return true;
 }
 
-#ifdef SAVESTATE
-
-uae_u8 *save_a2065 (int *len, uae_u8 *dstptr)
+uae_u8 *save_a2065 (size_t *len, uae_u8 *dstptr)
 {
 	uae_u8 *dstbak,*dst;
 
@@ -1137,8 +1194,6 @@ void restore_a2065_finish (void)
 		a2065_config(NULL);
 }
 
-#endif /* SAVESTATE */
-
 bool a2065_init (struct autoconfig_info *aci)
 {
 	configured = 0;
@@ -1149,30 +1204,6 @@ bool ariadne_init(struct autoconfig_info *aci)
 {
 	configured = 0;
 	return a2065_config(aci);
-}
-
-void a2065_free(void)
-{
-	a2065_reset();
-}
-
-void a2065_reset(void)
-{
-	am_initialized = 0;
-	for (int i = 0; i < RAP_SIZE; i++)
-		csr[i] = 0;
-	csr[0] = CSR0_STOP;
-	csr[1] = csr[2] = csr[3] = 0;
-	csr[4] = 0x0115;
-	dbyteswap = 0;
-	rap = 0;
-
-	free_expansion_bank(&a2065_bank);
-	boardram = NULL;
-	ethernet_close(td, sysdata);
-	xfree(sysdata);
-	sysdata = NULL;
-	td = NULL;
 }
 
 #endif /* A2065 */

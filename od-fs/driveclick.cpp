@@ -1,6 +1,7 @@
-#include <fs/filesys.h>
 #include "sysconfig.h"
 #include "sysdeps.h"
+
+#include <fs/filesys.h>
 
 #include "driveclick.h"
 #include "uae/fs.h"
@@ -39,19 +40,20 @@ int driveclick_loadresource (struct drvsample *sp, int drivetype)
         const char *name = NULL;
         switch (type) {
         case 0:
-            name = "share/fs-uae/floppy_sounds/drive_click.wav";
+            // FIXME: Remove data/ ...
+            name = "data/floppy_sounds/drive_click.wav";
             break;
         case 1:
-            name = "share/fs-uae/floppy_sounds/drive_spin.wav";
+            name = "data/floppy_sounds/drive_spin.wav";
             break;
         case 2:
-            name = "share/fs-uae/floppy_sounds/drive_spinnd.wav";
+            name = "data/floppy_sounds/drive_spinnd.wav";
             break;
         case 3:
-            name = "share/fs-uae/floppy_sounds/drive_startup.wav";
+            name = "data/floppy_sounds/drive_startup.wav";
             break;
         case 4:
-            name = "share/fs-uae/floppy_sounds/drive_snatch.wav";
+            name = "data/floppy_sounds/drive_snatch.wav";
             break;
         default:
             continue;
@@ -64,6 +66,8 @@ int driveclick_loadresource (struct drvsample *sp, int drivetype)
             s->p = decodewav((uae_u8*) data, &len);
             s->len = len;
             free(data);
+        } else {
+            write_log("WARNING: Could not load %s\n", name);
         }
     }
     return 1;

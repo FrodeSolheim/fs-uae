@@ -39,12 +39,12 @@ static inline unsigned int uaerand (void) {
 */
 
 #define DEBUG_SYNC
-//#define DEBUG_SYNC_MEMORY
+// #define DEBUG_SYNC_MEMORY
 #ifdef DEBUG_SYNC
 #include <stdio.h>
 extern FILE *g_fs_uae_sync_debug_file;
-#define write_sync_log(format, ...) \
-    if (g_fs_uae_sync_debug_file) { \
+#define write_sync_log(format, ...)                             \
+    if (g_fs_uae_sync_debug_file) {                             \
         fprintf(g_fs_uae_sync_debug_file, format, __VA_ARGS__); \
     }
 #endif
@@ -55,7 +55,6 @@ extern FILE *g_fs_uae_sync_debug_file;
 #define ECS_DENISE
 // #define ENFORCER
 #define GFXFILTER
-
 #define MMU
 #define MMUEMU /* Aranym 68040 MMU */
 // #define MULTIDISPLAY 1
@@ -63,6 +62,9 @@ extern FILE *g_fs_uae_sync_debug_file;
 #define FULLMMU /* Aranym 68040 MMU */
 #define SUPPORT_THREADS
 #define UAE_FILESYS_THREADS
+#define WITH_SPECIALMONITORS
+#define WITH_SNDBOARD
+
 // #define UAE_FILESYS_ASYNCHRONOUS
 // #define USE_SDL
 
@@ -86,7 +88,7 @@ extern FILE *g_fs_uae_sync_debug_file;
 #define FSDB_DIR_SEPARATOR_S "/"
 
 // FIXME: OK?
-//#define _stat64 stat
+// #define _stat64 stat
 
 #ifndef INVALID_SOCKET
 #define INVALID_SOCKET -1
@@ -99,7 +101,6 @@ typedef int SOCKET;
 
 typedef unsigned short USHORT;
 
-
 #ifndef DO_NOT_INCLUDE_WINUAE_COMPAT_H
 // we do not always want to include these, especially not in uae_host.cpp
 // were we actually need access to some of the underlying function names
@@ -111,17 +112,16 @@ typedef unsigned short USHORT;
 // when compiling FS-UAE for Windows. FS-UAE code use the WINDOWS define
 // instead to avoid collision with WinUAE.
 
-//#undef _WIN32
-//#undef WIN32
+// #undef _WIN32
+// #undef WIN32
 
-#include "../include/sysdeps.h"
+#include "sysdeps.h"
 
 #undef ENUMNAME
 #undef ENUMDECL
 
-#include "uae/enum.h"
-
 #include "machdep/machdep.h"
+#include "uae/enum.h"
 
 // some code needs uae_sem_t but does not include thread.h properly
 // (include/bsdsocket.h)
@@ -129,19 +129,7 @@ typedef unsigned short USHORT;
 #include "threaddep/thread.h"
 
 // FIXME: IMPLEMENT
-//void _stprintf(wchar_t* buffer, wchar_t* format, ...);
-
-extern TCHAR start_path_data[];
-extern void picasso_reset (void);
-extern void picasso_handle_hsync (void);
-extern void init_hz_p96 (void);
-int GetDriveType(TCHAR* vol);
-
-//void sleep_millis(int ms);
-//void install_driver(int flags);
-
-extern int uae_start_thread_fast (void *(*f)(void *), void *arg,
-        uae_thread_id *thread);
+// void _stprintf(wchar_t* buffer, wchar_t* format, ...);
 
 #ifdef WINDOWS
 
@@ -153,19 +141,17 @@ extern int uae_start_thread_fast (void *(*f)(void *), void *arg,
 #define FILEFLAG_EXECUTE S_IXUSR
 #define FILEFLAG_DIR S_IFDIR
 
-
 #define Sleep sleep_millis
 
 // needed to compile gencpu.cpp as C code (which is needed because
 // of int to enum conversions (illegal in C++)
 #ifndef __cplusplus
 // FIXME:
-//typedef int bool
+// typedef int bool
 #define bool int
 #define true 1
 #define false 0
 #endif
-
 
 // -------------------------- windows temp --------------------------
 // FIXME: THESE ARE HERE IN ORDER TO COMPILE blkdev.cpp
@@ -203,15 +189,20 @@ extern int uae_start_thread_fast (void *(*f)(void *), void *arg,
 #define _argv __argv
 #endif
 extern int _argc;
-extern char** _argv;
+extern char **_argv;
 #undef main
 // prevent later imports of SDL to overwrite main
 #define _SDL_main_h
-int _uae_main(int argc, char* argv[]);
-#define main(a, b) WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) { \
-    return _uae_main(_argc, _argv); \
-} \
-int _uae_main(int argc, char* argv[])
+int _uae_main(int argc, char *argv[]);
+#define main(a, b)                          \
+    WINAPI WinMain(HINSTANCE hInstance,     \
+                   HINSTANCE hPrevInstance, \
+                   LPSTR lpCmdLine,         \
+                   int nCmdShow)            \
+    {                                       \
+        return _uae_main(_argc, _argv);     \
+    }                                       \
+    int _uae_main(int argc, char *argv[])
 #endif
 
-#endif // EXTRA_DEFINES_H
+#endif  // EXTRA_DEFINES_H

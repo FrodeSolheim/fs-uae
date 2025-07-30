@@ -27,7 +27,7 @@ static void unacquire_joystick (int num)
 
 static void read_joystick (void)
 {
-	UAE_LOG_STUB ("");
+	UAE_LOG_STUB_MAX(1, "");
 }
 
 static int get_joystick_num (void)
@@ -87,14 +87,14 @@ struct inputdevice_functions inputdevicefunc_joystick = {
 	get_joystick_flags
 };
 
-int input_get_default_joystick (struct uae_input_device *uid, int num, int port, int af, int mode, bool gp, bool joymouseswap)
+int input_get_default_joystick (struct uae_input_device *uid, int i, int port, int af, int mode, bool gp, bool joymouseswap, bool default_osk)
 {
-	UAE_LOG_STUB ("num=%d return 0", num);
+	UAE_LOG_STUB("i=%d", i);
 	return 0;
 }
 
-int input_get_default_joystick_analog (struct uae_input_device *uid, int num, int port, int af, bool gp, bool joymouseswap)
+int input_get_default_joystick_analog (struct uae_input_device *uid, int i, int port, int af, bool gp, bool joymouseswap, bool default_osk)
 {
-	UAE_LOG_STUB ("num=%d return 0", num);
+	UAE_LOG_STUB("i=%d", i);
 	return 0;
 }

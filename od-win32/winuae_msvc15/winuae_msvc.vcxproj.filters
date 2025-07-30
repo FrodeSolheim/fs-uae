@@ -5,10 +5,6 @@
       <UniqueIdentifier>{86cfeeb5-a9b0-4c06-bd94-69c258884a66}</UniqueIdentifier>
       <Extensions>cpp;c;cxx;rc;def;r;odl;idl;hpj;bat</Extensions>
     </Filter>
-    <Filter Include="win32\Resource Files">
-      <UniqueIdentifier>{5c4c971a-37b6-4c1e-82f1-d225ebb12808}</UniqueIdentifier>
-      <Extensions>ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe</Extensions>
-    </Filter>
     <Filter Include="common">
       <UniqueIdentifier>{c0e78831-47fa-48a0-a34e-8c3c4410c34b}</UniqueIdentifier>
       <Extensions>cpp;c;cxx;rc;def;r;odl;idl;hpj;bat</Extensions>
@@ -59,9 +55,6 @@
     <Filter Include="mame">
       <UniqueIdentifier>{961c1680-65e6-445a-bf6e-82775255ef2d}</UniqueIdentifier>
     </Filter>
-    <Filter Include="x86">
-      <UniqueIdentifier>{c9a4aeea-c63c-40e4-9da2-371acd5ea8fe}</UniqueIdentifier>
-    </Filter>
     <Filter Include="support">
       <UniqueIdentifier>{fe9d96c8-c5ef-4f92-b9dc-79b5d3e4145c}</UniqueIdentifier>
     </Filter>
@@ -71,8 +64,21 @@
     <Filter Include="win32\Shaders">
       <UniqueIdentifier>{34d75786-02bd-43a5-b45d-934eef34e96e}</UniqueIdentifier>
     </Filter>
-    <Filter Include="win32\FX11">
-      <UniqueIdentifier>{aacd260d-3fd9-43a0-9cac-463ddd009704}</UniqueIdentifier>
+    <Filter Include="nasm">
+      <UniqueIdentifier>{9d6d0e7b-76b0-4b28-a9ef-0b69a02528c7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="pcem">
+      <UniqueIdentifier>{c9a4aeea-c63c-40e4-9da2-371acd5ea8fe}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="win32\Resource Files">
+      <UniqueIdentifier>{5c4c971a-37b6-4c1e-82f1-d225ebb12808}</UniqueIdentifier>
+      <Extensions>ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe</Extensions>
+    </Filter>
+    <Filter Include="dsp3210">
+      <UniqueIdentifier>{6f046035-4e6d-4038-a65f-d789a89ee702}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="kbmcu">
+      <UniqueIdentifier>{b60c3d87-d969-4982-8508-e9fdfc29a312}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -112,9 +118,6 @@
     <ClCompile Include="..\driveclick_win32.cpp">
       <Filter>win32</Filter>
     </ClCompile>
-    <ClCompile Include="..\dxwrap.cpp">
-      <Filter>win32</Filter>
-    </ClCompile>
     <ClCompile Include="..\fsdb_mywin32.cpp">
       <Filter>win32</Filter>
     </ClCompile>
@@ -122,9 +125,6 @@
       <Filter>win32</Filter>
     </ClCompile>
     <ClCompile Include="..\hardfile_win32.cpp">
-      <Filter>win32</Filter>
-    </ClCompile>
-    <ClCompile Include="..\hq2x_d3d.cpp">
       <Filter>win32</Filter>
     </ClCompile>
     <ClCompile Include="..\ioport.cpp">
@@ -160,12 +160,6 @@
     <ClCompile Include="..\rp.cpp">
       <Filter>win32</Filter>
     </ClCompile>
-    <ClCompile Include="..\scaler.cpp">
-      <Filter>win32</Filter>
-    </ClCompile>
-    <ClCompile Include="..\scaler_more.cpp">
-      <Filter>win32</Filter>
-    </ClCompile>
     <ClCompile Include="..\screenshot.cpp">
       <Filter>win32</Filter>
     </ClCompile>
@@ -185,9 +179,6 @@
       <Filter>win32</Filter>
     </ClCompile>
     <ClCompile Include="..\win32gfx.cpp">
-      <Filter>win32</Filter>
-    </ClCompile>
-    <ClCompile Include="..\win32gui.cpp">
       <Filter>win32</Filter>
     </ClCompile>
     <ClCompile Include="..\win32gui_extra.cpp">
@@ -248,9 +239,6 @@
       <Filter>common</Filter>
     </ClCompile>
     <ClCompile Include="..\..\cdtv.cpp">
-      <Filter>common</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\cfgfile.cpp">
       <Filter>common</Filter>
     </ClCompile>
     <ClCompile Include="..\..\cia.cpp">
@@ -719,7 +707,7 @@
       <Filter>mame</Filter>
     </ClCompile>
     <ClCompile Include="..\..\x86.cpp">
-      <Filter>x86</Filter>
+      <Filter>pcem</Filter>
     </ClCompile>
     <ClCompile Include="..\..\vm.cpp">
       <Filter>common</Filter>
@@ -823,28 +811,10 @@
     <ClCompile Include="..\direct3d11.cpp">
       <Filter>win32</Filter>
     </ClCompile>
-    <ClCompile Include="..\FX11\d3dxGlobal.cpp">
-      <Filter>win32\FX11</Filter>
-    </ClCompile>
-    <ClCompile Include="..\FX11\EffectLoad.cpp">
-      <Filter>win32\FX11</Filter>
-    </ClCompile>
-    <ClCompile Include="..\FX11\EffectNonRuntime.cpp">
-      <Filter>win32\FX11</Filter>
-    </ClCompile>
-    <ClCompile Include="..\FX11\EffectReflection.cpp">
-      <Filter>win32\FX11</Filter>
-    </ClCompile>
-    <ClCompile Include="..\FX11\EffectRuntime.cpp">
-      <Filter>win32\FX11</Filter>
-    </ClCompile>
-    <ClCompile Include="..\FX11\EffectAPI.cpp">
-      <Filter>win32\FX11</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\debugmem.cpp">
       <Filter>common</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\casablanca.cpp">
+    <ClCompile Include="..\..\draco.cpp">
       <Filter>common</Filter>
     </ClCompile>
     <ClCompile Include="..\fpp_native_msvc_80bit.cpp">
@@ -854,88 +824,229 @@
       <Filter>common</Filter>
     </ClCompile>
     <ClCompile Include="..\..\pcem\386.cpp">
-      <Filter>x86</Filter>
+      <Filter>pcem</Filter>
     </ClCompile>
     <ClCompile Include="..\..\pcem\808x.cpp">
-      <Filter>x86</Filter>
+      <Filter>pcem</Filter>
     </ClCompile>
     <ClCompile Include="..\..\pcem\cpu.cpp">
-      <Filter>x86</Filter>
+      <Filter>pcem</Filter>
     </ClCompile>
     <ClCompile Include="..\..\pcem\keyboard.cpp">
-      <Filter>x86</Filter>
+      <Filter>pcem</Filter>
     </ClCompile>
     <ClCompile Include="..\..\pcem\keyboard_at.cpp">
-      <Filter>x86</Filter>
+      <Filter>pcem</Filter>
     </ClCompile>
     <ClCompile Include="..\..\pcem\mem.cpp">
-      <Filter>x86</Filter>
+      <Filter>pcem</Filter>
     </ClCompile>
     <ClCompile Include="..\..\pcem\pcemglue.cpp">
-      <Filter>x86</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\pcem\pcemnvr.cpp">
-      <Filter>x86</Filter>
+      <Filter>pcem</Filter>
     </ClCompile>
     <ClCompile Include="..\..\pcem\pcemrtc.cpp">
-      <Filter>x86</Filter>
+      <Filter>pcem</Filter>
     </ClCompile>
     <ClCompile Include="..\..\pcem\pic.cpp">
-      <Filter>x86</Filter>
+      <Filter>pcem</Filter>
     </ClCompile>
     <ClCompile Include="..\..\pcem\pit.cpp">
-      <Filter>x86</Filter>
+      <Filter>pcem</Filter>
     </ClCompile>
     <ClCompile Include="..\..\pcem\timer.cpp">
-      <Filter>x86</Filter>
+      <Filter>pcem</Filter>
     </ClCompile>
     <ClCompile Include="..\..\pcem\x86seg.cpp">
-      <Filter>x86</Filter>
+      <Filter>pcem</Filter>
     </ClCompile>
     <ClCompile Include="..\..\pcem\x87.cpp">
-      <Filter>x86</Filter>
+      <Filter>pcem</Filter>
     </ClCompile>
     <ClCompile Include="..\..\pcem\sound_speaker.cpp">
-      <Filter>x86</Filter>
+      <Filter>pcem</Filter>
     </ClCompile>
     <ClCompile Include="..\..\pcem\dma.cpp">
-      <Filter>x86</Filter>
+      <Filter>pcem</Filter>
     </ClCompile>
     <ClCompile Include="..\..\pcem\sound_sb.cpp">
-      <Filter>x86</Filter>
+      <Filter>pcem</Filter>
     </ClCompile>
     <ClCompile Include="..\..\pcem\sound_sb_dsp.cpp">
-      <Filter>x86</Filter>
+      <Filter>pcem</Filter>
     </ClCompile>
     <ClCompile Include="..\..\pcem\sound_opl.cpp">
-      <Filter>x86</Filter>
+      <Filter>pcem</Filter>
     </ClCompile>
     <ClCompile Include="..\..\pcem\sound_dbopl.cpp">
-      <Filter>x86</Filter>
+      <Filter>pcem</Filter>
     </ClCompile>
     <ClCompile Include="..\..\pcem\dosbox\dbopl.cpp">
-      <Filter>x86</Filter>
+      <Filter>pcem</Filter>
     </ClCompile>
     <ClCompile Include="..\..\pcem\dosbox\nukedopl.cpp">
-      <Filter>x86</Filter>
+      <Filter>pcem</Filter>
     </ClCompile>
     <ClCompile Include="..\..\pcem\sound_cms.cpp">
-      <Filter>x86</Filter>
+      <Filter>pcem</Filter>
     </ClCompile>
     <ClCompile Include="..\..\pcem\sound_mpu401_uart.cpp">
-      <Filter>x86</Filter>
+      <Filter>pcem</Filter>
     </ClCompile>
     <ClCompile Include="..\..\pcem\mouse_serial.cpp">
-      <Filter>x86</Filter>
+      <Filter>pcem</Filter>
     </ClCompile>
     <ClCompile Include="..\..\pcem\serial.cpp">
-      <Filter>x86</Filter>
+      <Filter>pcem</Filter>
     </ClCompile>
     <ClCompile Include="..\..\pcem\386_dynarec.cpp">
-      <Filter>x86</Filter>
+      <Filter>pcem</Filter>
     </ClCompile>
     <ClCompile Include="..\..\pcem\mouse_ps2.cpp">
-      <Filter>x86</Filter>
+      <Filter>pcem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\disasm.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\win32gui.cpp">
+      <Filter>win32</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\cfgfile.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pcem\386_common.cpp">
+      <Filter>pcem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pcem\nvr.cpp">
+      <Filter>pcem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pcem\x87_timings.cpp">
+      <Filter>pcem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pcem\vid_s3_virge.cpp">
+      <Filter>pcem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pcem\vid_svga.cpp">
+      <Filter>pcem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pcem\vid_svga_render.cpp">
+      <Filter>pcem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pcem\vid_s3.cpp">
+      <Filter>pcem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pcem\vid_sdac_ramdac.cpp">
+      <Filter>pcem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tinyxml2.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pcem\vid_cl5429.cpp">
+      <Filter>pcem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pcem\vid_voodoo_banshee.cpp">
+      <Filter>pcem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pcem\vid_voodoo_banshee_blitter.cpp">
+      <Filter>pcem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pcem\vid_voodoo_display.cpp">
+      <Filter>pcem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pcem\vid_voodoo_fifo.cpp">
+      <Filter>pcem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pcem\vid_voodoo_render.cpp">
+      <Filter>pcem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pcem\vid_voodoo_fb.cpp">
+      <Filter>pcem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pcem\vid_voodoo_reg.cpp">
+      <Filter>pcem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pcem\vid_voodoo_setup.cpp">
+      <Filter>pcem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pcem\vid_voodoo_blitter.cpp">
+      <Filter>pcem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pcem\vid_voodoo_texture.cpp">
+      <Filter>pcem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pcem\vid_voodoo.cpp">
+      <Filter>pcem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\floppybridge\floppybridge_lib.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gdirender.cpp">
+      <Filter>win32</Filter>
+    </ClCompile>
+    <ClCompile Include="..\darkmode.cpp">
+      <Filter>win32</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\midiemu.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\dsp3210\DSP3210_emulation.cpp">
+      <Filter>dsp3210</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\dsp3210\dsp_glue.cpp">
+      <Filter>dsp3210</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pcem\vid_ncr.cpp">
+      <Filter>pcem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pcem\vid_permedia2.cpp">
+      <Filter>pcem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pcem\vid_inmos.cpp">
+      <Filter>pcem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pcem\vid_et4000.cpp">
+      <Filter>pcem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pcem\vid_sc1502x_ramdac.cpp">
+      <Filter>pcem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pcem\vid_et4000w32.cpp">
+      <Filter>pcem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pcem\vid_bt482_ramdac.cpp">
+      <Filter>pcem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\kbmcu\keyboard_mcu_6500_1.cpp">
+      <Filter>kbmcu</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\kbmcu\keyboard_mcu_6805.cpp">
+      <Filter>kbmcu</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\kbmcu\keyboard_mcu_d8039hlc .cpp">
+      <Filter>kbmcu</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\kbmcu\m6805\m68_ops.cpp">
+      <Filter>kbmcu</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\kbmcu\m6805\m68emu.cpp">
+      <Filter>kbmcu</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\kbmcu\8048\co8048.cpp">
+      <Filter>kbmcu</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mos6502.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pcem\vid_mga.cpp">
+      <Filter>pcem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pcem\vid_tvp3026_ramdac.cpp">
+      <Filter>pcem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\hq2x_d3d.cpp">
+      <Filter>win32</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pcem\keyboard_at_draco.cpp">
+      <Filter>pcem</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -954,13 +1065,7 @@
     <None Include="..\resources\configfile.ico">
       <Filter>win32\Resource Files</Filter>
     </None>
-    <None Include="configfile.ico">
-      <Filter>win32\Resource Files</Filter>
-    </None>
     <None Include="..\resources\cpu.ico">
-      <Filter>win32\Resource Files</Filter>
-    </None>
-    <None Include="diskimage.ico">
       <Filter>win32\Resource Files</Filter>
     </None>
     <None Include="..\resources\diskimage.ico">
@@ -972,13 +1077,7 @@
     <None Include="..\resources\expansion.ico">
       <Filter>win32\Resource Files</Filter>
     </None>
-    <None Include="expansion.ico">
-      <Filter>win32\Resource Files</Filter>
-    </None>
     <None Include="..\resources\file.ico">
-      <Filter>win32\Resource Files</Filter>
-    </None>
-    <None Include="file.ico">
       <Filter>win32\Resource Files</Filter>
     </None>
     <None Include="..\resources\folder.ico">
@@ -1011,9 +1110,6 @@
     <None Include="..\resources\port.ico">
       <Filter>win32\Resource Files</Filter>
     </None>
-    <None Include="port.ico">
-      <Filter>win32\Resource Files</Filter>
-    </None>
     <None Include="..\resources\quickstart.ico">
       <Filter>win32\Resource Files</Filter>
     </None>
@@ -1044,14 +1140,6 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <Library Include="..\hq2x16.obj" />
-    <Library Include="..\hq2x32.obj" />
-    <Library Include="..\hq3x16.obj" />
-    <Library Include="..\hq3x32.obj" />
-    <Library Include="..\hq4x16.obj" />
-    <Library Include="..\hq4x32.obj" />
-  </ItemGroup>
-  <ItemGroup>
     <ClInclude Include="..\resources\resource.h" />
   </ItemGroup>
   <ItemGroup>
@@ -1070,9 +1158,23 @@
     <FxCompile Include="..\shaders\PixelShaderMask.hlsl">
       <Filter>win32\Shaders</Filter>
     </FxCompile>
+    <FxCompile Include="..\shaders\PixelShaderPlain_HDR.hlsl">
+      <Filter>win32\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="..\shaders\PixelShader_HDR.hlsl">
+      <Filter>win32\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="..\shaders\PixelShaderAlpha_HDR.hlsl">
+      <Filter>win32\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="..\shaders\PixelShaderMask_HDR.hlsl">
+      <Filter>win32\Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
-    <Object Include="..\fpux86_80.obj" />
-    <Object Include="..\fpux64_80.obj" />
+    <CustomBuild Include="..\fpux64_80.asm">
+      <Filter>nasm</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\fpux86_80.asm" />
   </ItemGroup>
 </Project>

@@ -24,10 +24,6 @@ void UAECALL uae_log(const char *format, ...) UAE_PRINTF_FORMAT(1, 2);
 extern uae_log_function uae_log;
 #endif
 
-#ifdef FSUAE // NL
-void UAECALL uae_log_reset_timestamp(void);
-#endif
-
 #if 0
 void uae_warning(const char *format, ...) UAE_PRINTF_FORMAT(1, 2);
 void uae_error(const char *format, ...) UAE_PRINTF_FORMAT(1, 2);
@@ -66,24 +62,27 @@ void uae_fatal(const char *format, ...) UAE_PRINTF_FORMAT(1, 2);
 	if (log_stub_count < max) { \
 		LOG_STUB(format, ##__VA_ARGS__) \
 		if (++log_stub_count == max) { \
-			uae_log("(Will not log further calls to %s)\n", __func__); \
+			uae_log("    (ignoring further calls to %s)\n", __func__); \
 		} \
 	} \
 }
 
-#define UAE_LOG_STUB_ONCE(format, ...) \
-	UAE_LOG_STUB_MAX(1, format, , ##__VA_ARGS__)
+#define UAE_STUB(format, ...) \
+{ \
+	UAE_LOG_STUB(format, ##__VA_ARGS__) \
+	printf(" -- stub -- %s " format "\n", __func__, ##__VA_ARGS__); \
+}
 
 /* UAE-specific functions */
 
 #ifdef UAE
 
 void write_log (const char *, ...) UAE_PRINTF_FORMAT(1, 2);
-void write_logx(const char *, ...);
 #if SIZEOF_TCHAR != 1
 void write_log (const TCHAR *, ...) UAE_WPRINTF_FORMAT(1, 2);
-void write_logx(const TCHAR *, ...);
 #endif
+
+#define uae_log_warning(format, ...) write_log("\nWARNING: " format "\n", ##__VA_ARGS__)
 
 #endif
 
@@ -91,7 +90,7 @@ void write_logx(const TCHAR *, ...);
 
 #ifdef UAE
 
-#define STUB UAE_LOG_STUB
+#define STUB UAE_STUB
 #define LOG_STUB UAE_LOG_STUB
 #define LOG_STUB_MAX UAE_LOG_STUB_MAX
 #define VERBOSE_STUB STUB

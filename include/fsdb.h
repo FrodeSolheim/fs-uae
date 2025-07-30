@@ -11,9 +11,6 @@
 #define UAE_FSDB_H
 
 #include "uae/types.h"
-#ifdef FSUAE
-#include <stdio.h>
-#endif
 
 #ifndef FSDB_FILE
 #define FSDB_FILE _T("_UAEFSDB.___")
@@ -129,7 +126,7 @@ extern TCHAR *build_aname (const TCHAR *d, const TCHAR *n);
 
 /* Filesystem-independent functions.  */
 extern void fsdb_clean_dir (a_inode *);
-extern TCHAR *fsdb_search_dir (const TCHAR *dirname, TCHAR *rel);
+extern TCHAR *fsdb_search_dir (const TCHAR *dirname, TCHAR *rel, TCHAR **relalt);
 extern void fsdb_dir_writeback (a_inode *);
 extern int fsdb_used_as_nname (a_inode *base, const TCHAR *);
 extern a_inode *fsdb_lookup_aino_aname (a_inode *base, const TCHAR *);
@@ -156,11 +153,12 @@ extern int my_readdir (struct my_opendir_s*, TCHAR*);
 
 extern int my_rmdir (const TCHAR*);
 extern int my_mkdir (const TCHAR*);
-extern int my_unlink (const TCHAR*);
+extern int my_unlink (const TCHAR*, bool);
 extern int my_rename (const TCHAR*, const TCHAR*);
 extern int my_setcurrentdir (const TCHAR *curdir, TCHAR *oldcur);
 bool my_isfilehidden (const TCHAR *path);
 void my_setfilehidden (const TCHAR *path, bool hidden);
+int my_readonlyfile(const TCHAR *path);
 
 extern struct my_openfile_s *my_open (const TCHAR*, int);
 extern void my_close (struct my_openfile_s*);
@@ -186,6 +184,7 @@ extern int my_issamevolume(const TCHAR *path1, const TCHAR *path2, TCHAR *path);
 extern bool my_issamepath(const TCHAR *path1, const TCHAR *path2);
 extern bool my_createsoftlink(const TCHAR *path, const TCHAR *target);
 extern bool my_createshortcut(const TCHAR *source, const TCHAR *target, const TCHAR *description);
+extern void makesafefilename(TCHAR*, bool);
 
 extern a_inode *custom_fsdb_lookup_aino_aname (a_inode *base, const TCHAR *aname);
 extern a_inode *custom_fsdb_lookup_aino_nname (a_inode *base, const TCHAR *nname);
@@ -199,7 +198,7 @@ extern int custom_fsdb_used_as_nname (a_inode *base, const TCHAR *nname);
 
 extern int my_getvolumeinfo (const TCHAR *root);
 
-#ifdef FSUAE // NL
+#ifdef FSUAE
 char *fsdb_native_path(const char *root_dir, const char *amiga_path);
 void fsdb_get_file_time(a_inode *node, int *days, int *mins, int *ticks);
 int fsdb_set_file_time(a_inode *node, int days, int mins, int ticks);

@@ -1,12 +1,8 @@
 #ifndef UAE_IDE_H
 #define UAE_IDE_H
 
-#include "uae/types.h"
-#ifdef FSUAE
-#include "uae/memory.h"
 #include "commpipe.h"
-#include "filesys.h"
-#endif
+#include "uae/types.h"
 
 /* IDE drive registers */
 #define IDE_DATA	0x00
@@ -38,6 +34,8 @@ typedef void (*hsync_func)(struct ide_board*);
 struct ide_board
 {
 	uae_u8 *rom;
+	void *flashrom;
+	struct zfile *romfile;
 	uae_u8 acmemory[128];
 	int rom_size;
 	int rom_start;
@@ -51,7 +49,9 @@ struct ide_board
 	bool irq;
 	bool intena;
 	bool enabled;
+	bool hardreset;
 	bool intlev6;
+	bool flashenabled;
 	int state;
 	uae_u8 state2[8];
 	int type;
@@ -97,6 +97,7 @@ struct ide_hdf
 	uae_u8 multiple_mode;
 	int irq_delay;
 	int irq;
+	bool irq_inhibit;
 	bool irq_new;
 	int num;
 	int blocksize;
@@ -144,7 +145,6 @@ void alloc_ide_mem (struct ide_hdf **ide, int max, struct ide_thread_state *its)
 void ide_reset_device(struct ide_hdf *ide);
 
 void ata_byteswapidentity(uae_u8 *d);
-
 void ata_parse_identity(uae_u8 *out, struct uaedev_config_info *uci, bool *lba, bool *lba48, int *max_multiple);
 bool ata_get_identity(struct ini_data *ini, uae_u8 *out, bool overwrite);
 

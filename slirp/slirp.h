@@ -3,7 +3,7 @@
 
 #define CONFIG_QEMU
 
-#define DEBUG 1
+//#define DEBUG 1
 
 #ifndef CONFIG_QEMU
 #include "version.h"
@@ -11,13 +11,7 @@
 #include "sysconfig.h"
 #include "slirp_config.h"
 
-#ifdef FSUAE // NL
-#ifndef _MSC_VER
-#define container_of(ptr, type, member) ({ \
-                const typeof( ((type *)0)->member ) *__mptr = (ptr); \
-                (type *)( (char *)__mptr - offsetof(type,member) );})
-#endif
-#endif
+#define SLIRP_ICMP 0
 
 #ifdef _WIN32
 #include <stdint.h>
@@ -295,11 +289,8 @@ void if_start(struct ttys *);
  extern char *strerror(int error);
 #endif
 
-#ifdef FSUAE
-#else
 #ifndef HAVE_INDEX
  char *index(const char *, int);
-#endif
 #endif
 
 #ifndef HAVE_GETHOSTID
@@ -315,7 +306,7 @@ void lprint(const char *, ...);
 #define DEFAULT_BAUD 115200
 
 /* cksum.c */
-int cksum(struct mbuf *m, int len);
+u_short cksum(struct mbuf *m, int len);
 
 /* if.c */
 void if_init(void);

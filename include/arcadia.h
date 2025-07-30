@@ -3,12 +3,9 @@
 
 #ifdef ARCADIA
 
-extern void arcadia_reset(void);
-
 extern int is_arcadia_rom (const TCHAR *path);
 extern int arcadia_map_banks (void);
 extern void arcadia_unmap (void);
-extern void arcadia_vsync (void);
 extern uae_u8 arcadia_parport (int port, uae_u8 pra, uae_u8 dra);
 extern struct romdata *scan_arcadia_rom (TCHAR*, int);
 
@@ -36,6 +33,8 @@ extern int alg_get_player(uae_u16);
 extern uae_u16 alg_potgor(uae_u16);
 extern uae_u16 alg_joydat(int, uae_u16);
 extern uae_u8 alg_joystick_buttons(uae_u8, uae_u8, uae_u8);
+extern uae_u8 alg_parallel_port(uae_u8, uae_u8);
+extern struct romdata *get_alg_rom(const TCHAR *name);
 
 extern void ld_serial_read(uae_u16 v);
 extern int ld_serial_write(void);
@@ -45,8 +44,6 @@ extern void touch_serial_read(uae_u16 w);
 extern int touch_serial_write(void);
 
 extern bool cubo_init(struct autoconfig_info *aci);
-
-extern void check_arcadia_prefs_changed(void);
 
 extern void cubo_function(int);
 

@@ -19,8 +19,8 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * along with ARAnyM; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
 
@@ -28,10 +28,6 @@
 #define UAE_CPUMMU_H
 
 #include "uae/types.h"
-#ifdef FSUAE
-#include "uae/inline.h"
-#include "newcpu.h"
-#endif
 
 #define MMU_ICACHE 0
 #define MMU_IPAGECACHE 1
@@ -47,11 +43,6 @@
 
 #define DUNUSED(x)
 #define D
-#if DEBUG
-#define bug write_log
-#else
-#define bug
-#endif
 
 static __inline void flush_internals (void) { }
 
@@ -180,6 +171,8 @@ extern void mmu_bus_error_ttr_write_fault(uaecptr addr, bool super, bool data, u
 extern int mmu_match_ttr_write(uaecptr addr, bool super, bool data, uae_u32 val, int size);
 extern int mmu_match_ttr_maybe_write(uaecptr addr, bool super, bool data, int size, bool write);
 extern uaecptr mmu_translate(uaecptr addr, uae_u32 val, bool super, bool data, bool write, int size);
+extern void mmu_hardware_bus_error(uaecptr addr, uae_u32 v, bool read, bool ins, int size);
+extern bool mmu_is_super_access(bool read);
 
 extern uae_u32 REGPARAM3 mmu060_get_rmw_bitfield (uae_u32 src, uae_u32 bdata[2], uae_s32 offset, int width) REGPARAM;
 extern void REGPARAM3 mmu060_put_rmw_bitfield (uae_u32 dst, uae_u32 bdata[2], uae_u32 val, uae_s32 offset, int width) REGPARAM;

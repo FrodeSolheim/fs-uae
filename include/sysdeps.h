@@ -40,17 +40,29 @@ using namespace std;
 #define UAE
 #endif
 
-#if defined(__x86_64__) || defined(_M_AMD64)
-#define CPU_x86_64 1
+#if defined(_M_ARM64) || defined(_M_ARM64EC) || defined(__aarch64__)
+#define CPU_arm 1
+#define ARM_ASSEMBLY 1
 #define CPU_64_BIT 1
-#elif defined(__i386__) || defined(_M_IX86)
-#define CPU_i386 1
 #elif defined(__arm__) || defined(_M_ARM)
 #define CPU_arm 1
-#elif defined(__powerpc__) || defined(__ppc__) || defined(_M_PPC)
+#define ARM_ASSEMBLY 1
+#elif defined(__x86_64__) || defined(_M_AMD64)
+#define CPU_x86_64 1
+#define CPU_64_BIT 1
+#define X86_64_ASSEMBLY 1
+#ifdef FSUAE
+// FIXME: Cleanup this (?)
+#define SAHF_SETO_PROFITABLE
+#endif
+#elif defined(__i386__) || defined(_M_IX86)
+#define CPU_i386 1
+#define X86_ASSEMBLY 1
+#define SAHF_SETO_PROFITABLE
+#elif defined(__powerpc__) || defined(_M_PPC)
 #define CPU_powerpc 1
 #else
-#define CPU_unknown 1
+#error unrecognized CPU type
 #endif
 
 #ifdef _WIN32
@@ -73,10 +85,12 @@ using namespace std;
 #define REGPARAM2 JITCALL
 #define REGPARAM3 JITCALL
 
-#ifdef FSUAE
-#include "uae/types.h"
+#include "uae/tchar.h"
+
+#if CPU_64_BIT
+#define addrdiff(a, b) ((int)((a) - (b)))
 #else
-#include <tchar.h>
+#define addrdiff(a, b) ((a) - (b))
 #endif
 
 #ifndef __STDC__
@@ -162,6 +176,15 @@ struct utimbuf
 };
 #endif
 
+#ifdef FSUAE
+
+#include "uae/types.h"
+
+#define VAL64(a) (a ## ll)
+#define UVAL64(a) (a ## ull)
+
+#else
+
 /* If char has more then 8 bits, good night. */
 typedef unsigned char uae_u8;
 typedef signed char uae_s8;
@@ -169,11 +192,6 @@ typedef char uae_char;
 
 typedef struct { uae_u8 RGB[3]; } RGB;
 
-#ifdef FSUAE
-#define VAL64(a) (a ## LL)
-#define UVAL64(a) (a ## uLL)
-
-#else
 #if SIZEOF_SHORT == 2
 typedef unsigned short uae_u16;
 typedef short uae_s16;
@@ -199,7 +217,12 @@ typedef uae_u32 uaecptr;
 #undef uae_s64
 #undef uae_u64
 
-#if SIZEOF_LONG_LONG == 8
+#if SIZEOF_LONG == 8
+#define uae_s64 long
+#define uae_u64 unsigned long
+#define VAL64(a) (a ## l)
+#define UVAL64(a) (a ## ul)
+#elif SIZEOF_LONG_LONG == 8
 #define uae_s64 long long
 #define uae_u64 unsigned long long
 #define VAL64(a) (a ## LL)
@@ -209,12 +232,8 @@ typedef uae_u32 uaecptr;
 #define uae_u64 unsigned __int64
 #define VAL64(a) (a)
 #define UVAL64(a) (a)
-#elif SIZEOF_LONG == 8
-#define uae_s64 long;
-#define uae_u64 unsigned long;
-#define VAL64(a) (a ## l)
-#define UVAL64(a) (a ## ul)
 #endif
+
 #endif
 
 #ifdef FSUAE
@@ -250,23 +269,15 @@ extern TCHAR *utf8u (const char *s);
 extern void unicode_init (void);
 extern void to_lower (TCHAR *s, int len);
 extern void to_upper (TCHAR *s, int len);
+#ifdef FSUAE
+// Defined in uae/string.h instead
+#else
+extern int uaestrlen(const char*);
+extern int uaetcslen(const TCHAR*);
+#endif
 
-/* We can only rely on GNU C getting enums right. Mickeysoft VSC++ is known
- * to have problems, and it's likely that other compilers choke too. */
-#ifdef __GNUC__
 #define ENUMDECL typedef enum
 #define ENUMNAME(name) name
-
-/* While we're here, make abort more useful.  */
-#define abort() \
-  do { \
-    write_log ("Internal error; file %s, line %d\n", __FILE__, __LINE__); \
-    (abort) (); \
-} while (0)
-#else
-#define ENUMDECL enum
-#define ENUMNAME(name) ; typedef int name
-#endif
 
 /*
  * Porters to weird systems, look! This is the preferred way to get
@@ -439,14 +450,11 @@ extern void mallocemu_free (void *ptr);
 
 #endif
 
-#ifdef FSUAE
-#include "uae/asm.h"
-#else
 #ifdef X86_ASSEMBLY
-#define ASM_SYM_FOR_FUNC(a) __asm__(a)
+//#define ASM_SYM_FOR_FUNC(a) __asm__(a)
+#define ASM_SYM_FOR_FUNC(a)
 #else
 #define ASM_SYM_FOR_FUNC(a)
-#endif
 #endif
 
 #include "target.h"
@@ -456,9 +464,6 @@ extern void mallocemu_free (void *ptr);
 #define write_log write_log_standard
 #endif
 
-#ifdef FSUAE
-#include "uae/log.h"
-#else
 #if __GNUC__ - 1 > 1 || __GNUC_MINOR__ - 1 > 6
 extern void write_log(const TCHAR *, ...);
 extern void write_logx(const TCHAR *, ...);
@@ -468,15 +473,16 @@ extern void write_log(const TCHAR *, ...);
 extern void write_logx(const TCHAR *, ...);
 extern void write_log(const char *, ...);
 #endif
-#endif
 extern void write_dlog (const TCHAR *, ...);
 extern int read_log(void);
 
 extern void flush_log (void);
 extern TCHAR *setconsolemode (TCHAR *buffer, int maxlen);
 extern void close_console (void);
-extern void reopen_console (void);
-extern void activate_console (void);
+extern void open_console(void);
+extern void reopen_console(void);
+extern void activate_console(void);
+extern void deactivate_console(void);
 extern void console_out (const TCHAR *);
 extern void console_out_f (const TCHAR *, ...);
 extern void console_flush (void);
@@ -492,6 +498,7 @@ extern void logging_init (void);
 extern FILE *log_open (const TCHAR *name, int append, int bootlog, TCHAR*);
 extern void log_close (FILE *f);
 extern TCHAR *write_log_get_ts(void);
+extern bool is_console_open(void);
 
 extern bool use_long_double;
 
@@ -519,9 +526,6 @@ extern bool use_long_double;
 #endif
 #endif
 
-#ifdef FSUAE // NL
-#include "uae/cycleunit.h"
-#else
 /* Every Amiga hardware clock cycle takes this many "virtual" cycles.  This
    used to be hardcoded as 1, but using higher values allows us to time some
    stuff more precisely.
@@ -535,7 +539,6 @@ extern bool use_long_double;
 /* This one is used by cfgfile.c.  We could reduce the CYCLE_UNIT back to 1,
    I'm not 100% sure this code is bug free yet.  */
 #define OFFICIAL_CYCLE_UNIT 512
-#endif
 
 /*
  * You can specify numbers from 0 to 5 here. It is possible that higher
@@ -544,29 +547,6 @@ extern bool use_long_double;
  * Best to leave this as it is.
  */
 #define CPU_EMU_SIZE 0
-
-/*
- * Byte-swapping functions
- */
-
-/* Try to use system bswap_16/bswap_32 functions. */
-#if defined HAVE_BSWAP_16 && defined HAVE_BSWAP_32
-# include <byteswap.h>
-#  ifdef HAVE_BYTESWAP_H
-#  include <byteswap.h>
-# endif
-#else
-/* Else, if using SDL, try SDL's endian functions. */
-# ifdef USE_SDL
-#  include <SDL_endian.h>
-#  define bswap_16(x) SDL_Swap16(x)
-#  define bswap_32(x) SDL_Swap32(x)
-# else
-/* Otherwise, we'll roll our own. */
-#  define bswap_16(x) (((x) >> 8) | (((x) & 0xFF) << 8))
-#  define bswap_32(x) (((x) << 24) | (((x) << 8) & 0x00FF0000) | (((x) >> 8) & 0x0000FF00) | ((x) >> 24))
-# endif
-#endif
 
 #ifndef __cplusplus
 
@@ -584,7 +564,7 @@ extern void xfree (const void*);
 #else
 
 #define xmalloc(T, N) static_cast<T*>(malloc (sizeof (T) * (N)))
-#define xcalloc(T, N) static_cast<T*>(calloc ((N), sizeof (T)))
+#define xcalloc(T, N) static_cast<T*>(calloc (sizeof (T), N))
 #define xrealloc(T, TP, N) static_cast<T*>(realloc (TP, sizeof (T) * (N)))
 #define xfree(T) free(T)
 
@@ -598,14 +578,26 @@ extern void xfree (const void*);
 #define NOWARN_UNUSED(x) x
 #endif
 
-#ifdef FSUAE // NL
+#include "uae/inline.h"
+#include "uae/io.h"
+#include "uae/types.h"
+#include "uae/likely.h"
+
+#ifdef FSUAE
+
+#include "uae/byteswap.h"
+#include "uae/declarations.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
+
 extern int fsemu;
+
 #ifdef __cplusplus
 }
 #endif
+
 #endif
 
 #endif /* UAE_SYSDEPS_H */

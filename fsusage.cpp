@@ -1,20 +1,19 @@
 /* fsusage.c -- return space usage of mounted filesystems
- * Copyright (C) 1991, 1992, 1996 Free Software Foundation, Inc.
+Copyright (C) 1991, 1992, 1996 Free Software Foundation, Inc.
 
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2, or (at your option)
- * any later version.
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2, or (at your option)
+any later version.
 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- */
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software Foundation,
+Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  */
 
 #include "sysconfig.h"
 #include "sysdeps.h"
@@ -48,26 +47,28 @@ static long adjust_blocks (long blocks, int fromsize, int tosize)
 }
 
 #ifdef FSUAE
+
 static int get_fs_usage_fake (const TCHAR *path, const TCHAR *disk,
-		struct fs_usage *fsp)
+                struct fs_usage *fsp)
 {
-	fsp->total = 2ll * 1024 * 1024 * 1024;
-	fsp->avail = 1ll * 1024 * 1024 * 1024;
-	return 0;
+        fsp->total = 2ll * 1024 * 1024 * 1024;
+        fsp->avail = 1ll * 1024 * 1024 * 1024;
+        return 0;
 }
-#endif
-#ifdef WINDOWS
-#ifdef FSUAE
+
+int get_fs_usage (const TCHAR *path, const TCHAR *disk, struct fs_usage *fsp)
+{
+        // FIXME: if net play only
+        return get_fs_usage_fake(path, disk, fsp);
+}
+
 #else
+
+#ifdef WINDOWS
 #include "od-win32/posixemu.h"
-#endif
 #include <windows.h>
 int get_fs_usage (const TCHAR *path, const TCHAR *disk, struct fs_usage *fsp)
 {
-#ifdef FSUAE
-	/* FIXME: Use fake values in deterministic mode only. */
-	return get_fs_usage_fake(path, disk, fsp);
-#endif
 	TCHAR buf2[MAX_DPATH];
 	ULARGE_INTEGER FreeBytesAvailable, TotalNumberOfBytes, TotalNumberOfFreeBytes;
 
@@ -117,7 +118,7 @@ int statfs ();
 # include <sys/mount.h>
 #endif
 
-#if HAVE_SYS_VFS_H
+#if HAVE_SYS_VFS_H and !defined(__MACH__)
 # include <sys/vfs.h>
 #endif
 
@@ -133,7 +134,7 @@ int statfs ();
 # include <fcntl.h>
 #endif
 
-#if HAVE_SYS_STATFS_H
+#if HAVE_SYS_STATFS_H and !defined(__MACH__)
 # include <sys/statfs.h>
 #endif
 
@@ -180,10 +181,6 @@ on a system that requires a non-NULL value.  */
 #ifndef WINDOWS
 int get_fs_usage (const TCHAR *path, const TCHAR *disk, struct fs_usage *fsp)
 {
-#ifdef FSUAE
-	// FIXME: if net play only
-	return get_fs_usage_fake(path, disk, fsp);
-#else
 #ifdef STAT_STATFS3_OSF1
 # define CONVERT_BLOCKS(B) adjust_blocks ((B), fsd.f_fsize, 512)
 
@@ -327,7 +324,6 @@ int get_fs_usage (const TCHAR *path, const TCHAR *disk, struct fs_usage *fsp)
 #endif /* not STAT_STATFS2_FS_DATA && not STAT_READ_FILSYS */
 
 	return 0;
-#endif // FSUAE
 }
 #endif
 
@@ -361,3 +357,5 @@ struct statfs *fsb;
 #endif /* _AIX && _I386 */
 
 #endif /* ! _WIN32 */
+
+#endif // FSUAE

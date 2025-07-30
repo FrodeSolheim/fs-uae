@@ -18,6 +18,22 @@
 #include "uae/endian.h"
 
 #include <stdint.h>
+#if defined __MACH__
+#include <machine/endian.h>
+#include <libkern/OSByteOrder.h>
+#define htobe16(x) OSSwapHostToBigInt16(x)
+#define htole16(x) OSSwapHostToLittleInt16(x)
+#define be16toh(x) OSSwapBigToHostInt16(x)
+#define le16toh(x) OSSwapLittleToHostInt16(x)
+#define htobe32(x) OSSwapHostToBigInt32(x)
+#define htole32(x) OSSwapHostToLittleInt32(x)
+#define be32toh(x) OSSwapBigToHostInt32(x)
+#define le32toh(x) OSSwapLittleToHostInt32(x)
+#define htobe64(x) OSSwapHostToBigInt64(x)
+#define htole64(x) OSSwapHostToLittleInt64(x)
+#define be64toh(x) OSSwapBigToHostInt64(x)
+#define le64toh(x) OSSwapLittleToHostInt64(x)
+#endif
 
 #define MAX_REVS 5
 
@@ -187,7 +203,7 @@ static int scp_next_flux(struct scpdrive *d)
          * reversal sits exactly on the index we have some time to donate to 
          * the first reversal of the first revolution. */
         val = d->total_ticks - d->acc_ticks;
-        d->acc_ticks = -val;
+        d->acc_ticks = 0 - val;
     }
 
     for (;;) {
@@ -275,15 +291,15 @@ void scp_loadrevolution(
         if (b)
             mfmbuf[i>>4] |= 0x8000u >> (i&15);
         if ((i & 7) == 7) {
-            tracktiming[i>>3] = d->latency - prev_latency;
+            tracktiming[i>>3] = (uae_u16)(d->latency - prev_latency);
             prev_latency = d->latency;
         }
     }
 
     if (i & 7)
-        tracktiming[i>>3] = ((d->latency - prev_latency) * 8) / (i & 7);
+        tracktiming[i>>3] = (uae_u16)(((d->latency - prev_latency) * 8) / (i & 7));
 
-    av_latency = prev_latency / (i>>3);
+    av_latency = (uint32_t)(prev_latency / (i>>3));
     for (j = 0; j < (i+7)>>3; j++)
         tracktiming[j] = ((uint32_t)tracktiming[j] * 1000u) / av_latency;
 

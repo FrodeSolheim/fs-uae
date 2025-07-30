@@ -1,3 +1,11 @@
+#ifdef _WIN32
+#else
+typedef void * HWAVEOUT;
+#endif
+
+#include "od-win32/cda_play.h"
+
+#if 0
 extern volatile bool cd_audio_mode_changed;
 
 class cda_audio {
@@ -26,3 +34,4 @@ public:
 	void wait(int bufnum);
 	bool isplaying(int bufnum);
 };
+#endif

@@ -36,7 +36,6 @@
 #include "qemuuaeglue.h"
 #include "vga.h"
 #include "vga_int.h"
-#include "xwin.h"
 #endif
 //#define DEBUG_VGA
 //#define DEBUG_VGA_MEM
@@ -325,7 +324,7 @@ static uint8_t vga_precise_retrace(VGACommonState *s)
 
         cur_tick = qemu_get_clock_ns(vm_clock);
 
-        cur_char = (cur_tick / r->ticks_per_char) % r->total_chars;
+        cur_char = (int)((cur_tick / r->ticks_per_char) % r->total_chars);
         cur_line = cur_char / r->htotal;
 
         if (cur_line >= r->vstart && cur_line <= r->vend) {
@@ -1944,9 +1943,8 @@ static void vga_draw_graphic(VGACommonState *s, int full_update)
 			bool ck, uint32_t colorkey,
 			int convert_mode, uint32_t *p96_rgbx16p, uint32_t *clut, bool yuv_swap);
 		void alloc_colors_picasso(int rw, int gw, int bw, int rs, int gs, int bs, int rgbfmt, uint32_t *rgbx16);
-		int getconvert(int rgbformat, int pixbytes);
+		int getconvert(int rgbformat);
 
-		int outbpp = surface_bits_per_pixel(surface) / 8;
 		uint32_t format = (s->cr[0x3e] >> 1) & 7;
 		bool clutmode = false;
 
@@ -1970,7 +1968,7 @@ static void vga_draw_graphic(VGACommonState *s, int full_update)
 				convert = 5;
 			break;
 		}
-		convert = getconvert(convert, outbpp);
+		convert = getconvert(convert);
 
 		int ovl_format = 5;
 		if (s->old_ovl_format != ovl_format) {
@@ -1986,8 +1984,8 @@ static void vga_draw_graphic(VGACommonState *s, int full_update)
 		uint32_t r2sz = s->cr[0x34] | (((s->cr[0x36] >> 2) & 3) << 8);
 		uint32_t r2adjust = (s->cr[0x5d] >> 4) & 3;
 		uint32_t r2dsz = s->cr[0x35] | (((s->cr[0x36] >> 4) & 3) << 8);
-		uint32_t wvs = s->cr[0x37] | (((s->cr[0x39] >> 0) & 3) << 8);
-		uint32_t wve = s->cr[0x38] | (((s->cr[0x39] >> 2) & 3) << 8);
+		int32_t wvs = s->cr[0x37] | (((s->cr[0x39] >> 0) & 3) << 8);
+		int32_t wve = s->cr[0x38] | (((s->cr[0x39] >> 2) & 3) << 8);
 		bool occlusion = ((s->cr[0x3e] >> 7) & 1) != 0 && bits < 24;
 		uint32_t region1size = 32 * r1sz / gfxbpp + (r1adjust * 8 / gfxbpp);
 		uint32_t region2size = 32 * r2sz / gfxbpp + (r2adjust * 8 / gfxbpp);
@@ -2030,7 +2028,7 @@ static void vga_draw_graphic(VGACommonState *s, int full_update)
 			copyrow_scale(s->monid, s->vram_ptr + vptr, s->vram_ptr + s->start_addr * 4, d2,
 				0, y >> 8, hzoom, overlay_width, bytesperrow, overlaybpp,
 				line_offset, bits / 8,
-				region1size, wvs, width, height, linesize, outbpp,
+				region1size, wvs, width, height, linesize, 32,
 				occlusion, colorkey,
 				convert, s->cirrus_rgbx16, s->last_palette, false);
 			wvs++;
@@ -2380,7 +2378,7 @@ static void vga_update_text(void *opaque, console_ch_t *chardata)
     for (dst = chardata, i = 0; i < s->last_width * height; i ++)
         console_write_ch(dst ++, ' ');
 
-    size = strlen(msg_buffer);
+    size = (int)strlen(msg_buffer);
     width = (s->last_width - size) / 2;
     dst = chardata + s->last_width + width;
     for (i = 0; i < size; i ++)
@@ -2402,7 +2400,7 @@ static void vga_mem_write(void *opaque, hwaddr addr,
 {
     VGACommonState *s = (VGACommonState*)opaque;
 
-    return vga_mem_writeb(s, addr, data);
+    return vga_mem_writeb(s, addr, (uint32_t)data);
 }
 
 const MemoryRegionOps vga_mem_ops = {
@@ -2573,8 +2571,6 @@ void vga_init(VGACommonState *s, MemoryRegion *address_space,
 {
     MemoryRegion *vga_io_memory;
     const MemoryRegionPortio *vga_ports, *vbe_ports;
-    PortioList *vga_port_list = g_new(PortioList, 1);
-    PortioList *vbe_port_list = g_new(PortioList, 1);
 
 //    qemu_register_reset(vga_reset, s);
 
@@ -2589,10 +2585,12 @@ void vga_init(VGACommonState *s, MemoryRegion *address_space,
                                         1);
     memory_region_set_coalescing(vga_io_memory);
     if (init_vga_ports) {
+        PortioList* vga_port_list = g_new(PortioList, 1);
         portio_list_init(vga_port_list, vga_ports, s, "vga");
         portio_list_add(vga_port_list, address_space_io, 0x3b0);
     }
     if (vbe_ports) {
+        PortioList* vbe_port_list = g_new(PortioList, 1);
         portio_list_init(vbe_port_list, vbe_ports, s, "vbe");
         portio_list_add(vbe_port_list, address_space_io, 0x1ce);
     }

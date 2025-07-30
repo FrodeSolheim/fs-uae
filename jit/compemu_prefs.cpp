@@ -5,14 +5,11 @@ extern bool have_done_picasso;
 
 bool check_prefs_changed_comp (bool checkonly)
 {
-#ifdef FSUAE
-	if (!g_fs_uae_jit_compiler) {
-		return false;
-	}
-#endif
 	bool changed = 0;
 	static int cachesize_prev, comptrust_prev;
 	static bool canbang_prev;
+
+	special_mem_default = currprefs.comptrustbyte ? (S_READ | S_WRITE | S_N_ADDR) : 0;
 
 	if (currprefs.comptrustbyte != changed_prefs.comptrustbyte ||
 		currprefs.comptrustword != changed_prefs.comptrustword ||

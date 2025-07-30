@@ -55,7 +55,6 @@ void opl_init(void (*timer_callback)(void *param, int timer, int64_t period), vo
 	}
 }
 
-static
 void opl_status_update(int nr)
 {
         if (opl[nr].status & (STATUS_TIMER_1 | STATUS_TIMER_2) & opl[nr].status_mask)
@@ -142,12 +141,16 @@ uint8_t opl_read(int nr, uint16_t addr)
         return opl[nr].is_opl3 ? 0 : 0xff;
 }
 
+#ifdef UAE
 static Bit32s buffer_32[8192 * 2];
+#endif
 
 void opl2_update(int nr, int16_t *buffer, int samples)
 {
         int c;
-        
+#ifndef UAE
+        Bit32s buffer_32[samples];
+#endif    
         opl[nr].chip.GenerateBlock2(samples, buffer_32);
         
         for (c = 0; c < samples; c++)
@@ -157,6 +160,9 @@ void opl2_update(int nr, int16_t *buffer, int samples)
 void opl3_update(int nr, int16_t *buffer, int samples)
 {
         int c;
+#ifndef UAE
+        Bit32s buffer_32[samples*2];
+#endif
 
 	if (opl[nr].opl_emu)
 	{

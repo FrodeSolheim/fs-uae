@@ -10,13 +10,17 @@
 #define UAE_AUDIO_H
 
 #include "uae/types.h"
-#ifdef FSUAE
-#include "uae/inline.h"
-#endif
 
 #ifdef FSUAE
-// FIXME: changed PERIOD_MAX from ULONG_MAX
-#define PERIOD_MAX UINT_MAX
+// both int and long are 32 bits on Windows, so using ULONG_MAX is probably
+// not good. Although ULONG_MAX is also used with a signed int variable in
+// audio.cpp...
+// FIXME: changed PERIOD_MAX from ULONG_MAX to UINT_MAX
+// since cdp[1].per is int, not long. But should per
+// be an unsigned int??
+// - COMMENT MIGHT BE OUTDATED!
+//#define PERIOD_MAX UINT_MAX
+#define PERIOD_MAX INT_MAX
 #else
 #define PERIOD_MAX ULONG_MAX
 #endif
@@ -32,22 +36,23 @@ void AUDxLEN (int nr, uae_u16 value);
 
 uae_u16 audio_dmal (void);
 void audio_state_machine (void);
-uaecptr audio_getpt (int nr, bool reset);
+uaecptr *audio_getpt(int nr);
+uaecptr audio_getloadpt(int nr);
 int init_audio (void);
 void audio_reset (void);
 void update_audio (void);
 void audio_evhandler (void);
 void audio_hsync (void);
 void audio_update_adkmasks (void);
-void update_sound (double clk);
-void update_cda_sound (double clk);
+void update_sound (float clk);
+void update_cda_sound (float clk);
 void led_filter_audio (void);
 void set_audio (void);
 int audio_activate (void);
 void audio_deactivate (void);
 void audio_vsync (void);
 void audio_sampleripper(int);
-void write_wavheader (struct zfile *wavfile, uae_u32 size, uae_u32 freq);
+void write_wavheader (struct zfile *wavfile, size_t size, uae_u32 freq);
 
 int audio_is_pull(void);
 int audio_pull_buffer(void);
@@ -91,6 +96,8 @@ enum {
 	SND_4CH,
 	SND_6CH_CLONEDSTEREO,
 	SND_6CH,
+	SND_8CH_CLONEDSTEREO,
+	SND_8CH,
 	SND_NONE
 };
 
@@ -103,22 +110,24 @@ static inline int get_audio_stereomode (int channels)
 	case 2:
 		return SND_STEREO;
 	case 4:
-		return SND_4CH;
+		return SND_4CH_CLONEDSTEREO;
 	case 6:
-		return SND_6CH;
+		return SND_6CH_CLONEDSTEREO;
+	case 8:
+		return SND_8CH_CLONEDSTEREO;
 	}
 	return SND_STEREO;
 }
 
 STATIC_INLINE int get_audio_nativechannels (int stereomode)
 {
-	int ch[] = { 1, 2, 4, 4, 6, 6, 0 };
+	int ch[] = { 1, 2, 4, 4, 6, 6, 8, 8, 0 };
 	return ch[stereomode];
 }
 
 STATIC_INLINE int get_audio_amigachannels (int stereomode)
 {
-	int ch[] = { 1, 2, 2, 4, 2, 4, 0 };
+	int ch[] = { 1, 2, 2, 4, 2, 4, 2, 4, 0 };
 	return ch[stereomode];
 }
 

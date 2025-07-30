@@ -9,7 +9,7 @@
 
 #include "options.h"
 #include "uae.h"
-#include "uae/memory.h"
+#include "memory.h"
 #include "custom.h"
 #include "newcpu.h"
 #include "autoconf.h"

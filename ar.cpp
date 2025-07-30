@@ -206,7 +206,7 @@
 
 #include "options.h"
 #include "uae.h"
-#include "uae/memory.h"
+#include "memory.h"
 #include "rommgr.h"
 #include "custom.h"
 #include "newcpu.h"
@@ -1131,10 +1131,11 @@ void action_replay_cia_access(bool write)
 		return;
 	if (action_replay_flag == ACTION_REPLAY_INACTIVE)
 		return;
+	int delay = currprefs.cpu_cycle_exact ? 1 : 0;
 	if ((armode_write & ARMODE_ACTIVATE_BFE001) && !write) {
-		event2_newevent_xx(-1, 1, write, action_replay_cia_access_delay);
+		event2_newevent_xx(-1, delay, write, action_replay_cia_access_delay);
 	} else if ((armode_write & ARMODE_ACTIVATE_BFD100) && write) {
-		event2_newevent_xx(-1, 1, write, action_replay_cia_access_delay);
+		event2_newevent_xx(-1, delay, write, action_replay_cia_access_delay);
 	}
 }
 
@@ -1414,7 +1415,7 @@ static void disable_rom_test (void)
 	*/
 
 	if (armodel == 1) {
-		uae_u16 search_value_rel = end_addr - start_addr;
+		uae_u16 search_value_rel = addrdiff(end_addr, start_addr);
 		addr = find_relative_word(start_addr, end_addr, search_value_rel);
 
 		if (addr) {
@@ -1426,7 +1427,7 @@ static void disable_rom_test (void)
 			}
 		}
 	} else {
-		uae_u32 search_value_abs = arrom_start + end_addr - start_addr;
+		uae_u32 search_value_abs = arrom_start + addrdiff(end_addr, start_addr);
 		addr = find_absolute_long (start_addr, end_addr, search_value_abs);
 
 		if (addr) {
@@ -1518,7 +1519,7 @@ int action_replay_unload (int in_memory_reset)
 
 static int superiv_init (struct romdata *rd, struct zfile *f)
 {
-	uae_u32 chip = currprefs.chipmem_size - 0x10000;
+	uae_u32 chip = currprefs.chipmem.size - 0x10000;
 	int subtype = rd->id;
 	int flags = rd->type & ROMTYPE_MASK;
 	const TCHAR *memname1, *memname2, *memname3;
@@ -1644,7 +1645,7 @@ int action_replay_load (void)
 		write_log (_T("action_replay_load () ROM already loaded.\n"));
 		return 0;
 	}
-	if (_tcslen (currprefs.cartfile) == 0 || currprefs.cartfile[0] == ':')
+	if (currprefs.cartfile[0] == '\0' || currprefs.cartfile[0] == ':')
 		return 0;
 	if (currprefs.cs_cd32fmv)
 		return 0;
@@ -1658,7 +1659,7 @@ int action_replay_load (void)
 		if (rd->type & ROMTYPE_CD32CART)
 			return 0;
 	}
-	f = read_rom_name (currprefs.cartfile);
+	f = read_rom_name(currprefs.cartfile, false);
 	if (!f) {
 		write_log (_T("failed to load '%s' cartridge ROM\n"), currprefs.cartfile);
 		return 0;
@@ -1673,7 +1674,7 @@ int action_replay_load (void)
 		}
 	}
 	zfile_fseek(f, 0, SEEK_END);
-	ar_rom_file_size = zfile_ftell(f);
+	ar_rom_file_size = zfile_ftell32(f);
 	zfile_fseek(f, 0, SEEK_SET);
 	zfile_fread (header, 1, sizeof header, f);
 	zfile_fseek (f, 0, SEEK_SET);
@@ -1777,7 +1778,7 @@ static void hrtmon_configure(void)
 	cfg->hexmode = TRUE;
 	cfg->entered = 0;
 	cfg->keyboard = hrtmon_lang;
-	do_put_mem_long (&cfg->max_chip, currprefs.chipmem_size);
+	do_put_mem_long (&cfg->max_chip, currprefs.chipmem.size);
 	do_put_mem_long (&cfg->mon_size, 0x800000);
 	cfg->ide = currprefs.cs_ide ? 1 : 0;
 	cfg->a1200 = currprefs.cs_ide == IDE_A600A1200 ? 1 : 0; /* type of IDE interface, not Amiga model */
@@ -1809,9 +1810,9 @@ int hrtmon_load (void)
 	}
 
 	if (!isinternal) {
-		if (_tcslen (currprefs.cartfile) == 0)
+		if (currprefs.cartfile[0] == '\0')
 			return 0;
-		f = read_rom_name (currprefs.cartfile);
+		f = read_rom_name(currprefs.cartfile, false);
 		if(!f) {
 			write_log (_T("failed to load '%s' cartridge ROM\n"), currprefs.cartfile);
 			return 0;
@@ -2008,9 +2009,7 @@ void action_replay_memory_reset (void)
 		action_replay_flag = ACTION_REPLAY_ACTIVE;
 }
 
-#ifdef SAVESTATE
-
-uae_u8 *save_hrtmon (int *len, uae_u8 *dstptr)
+uae_u8 *save_hrtmon(size_t *len, uae_u8 *dstptr)
 {
 	uae_u8 *dstbak, *dst;
 
@@ -2089,7 +2088,7 @@ uae_u8 *restore_hrtmon (uae_u8 *src)
 	return src;
 }
 
-uae_u8 *save_action_replay (int *len, uae_u8 *dstptr)
+uae_u8 *save_action_replay(size_t *len, uae_u8 *dstptr)
 {
 	uae_u8 *dstbak, *dst;
 
@@ -2190,8 +2189,6 @@ void restore_ar_finish(void)
 		hide_cart((ar_state2 & 2) ? 1 : 0);
 	}
 }
-
-#endif /* SAVESTATE */
 
 #define NPSIZE 65536
 

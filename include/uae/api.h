@@ -46,7 +46,11 @@
 /* WinUAE (or external libs) might be compiled with fastcall by default,
  * so we force all external functions to use cdecl calling convention. */
 
-#define UAECALL uae_cdecl
+#ifdef _WIN32
+#define UAECALL __cdecl
+#else
+#define UAECALL
+#endif
 
 /* Helpers to make it easy to import functions from plugins. */
 

@@ -4,7 +4,7 @@
 #include "sysdeps.h"
 
 #include "options.h"
-#include "uae/memory.h"
+#include "memory.h"
 #include "execlib.h"
 #include "disk.h"
 #include "rommgr.h"
@@ -38,9 +38,9 @@ void consolehook_config (struct uae_prefs *p)
 	p->cachesize = 8192;
 	p->cpu_compatible = 0;
 	p->address_space_24 = 0;
-	p->chipmem_size = 0x00200000;
+	p->chipmem.size = 0x00200000;
 	p->fastmem[0].size = 0x00800000;
-	p->bogomem_size = 0;
+	p->bogomem.size = 0;
 	p->nr_floppies = 1;
 	p->floppyslots[1].dfxtype = DRV_NONE;
 	p->floppy_speed = 0;
@@ -59,7 +59,7 @@ void consolehook_config (struct uae_prefs *p)
 	add_filesys_config (p, -1, &ci);
 }
 
-static void *console_thread (void *v)
+static void console_thread (void *v)
 {
 	uae_set_thread_priority (NULL, 1);
 	for (;;) {
@@ -69,10 +69,9 @@ static void *console_thread (void *v)
 		c[0] = 0;
 		c[1] = 0;
 		ua_copy (c, 1, &wc);
-		record_key_direct ((0x10 << 1) | 0);
-		record_key_direct ((0x10 << 1) | 1);
+		record_key_direct((0x10 << 1) | 0, false);
+		record_key_direct((0x10 << 1) | 1, false);
 	}
-	return NULL;
 }
 
 int consolehook_activate (void)
@@ -103,7 +102,7 @@ uaecptr consolehook_beginio(TrapContext *ctx, uaecptr request)
 		if (len == -1) {
 			dbuf = xmalloc(char, MAX_DPATH);
 			trap_get_string(ctx, dbuf, io_data, MAX_DPATH);
-			len = strlen(dbuf);
+			len = uaestrlen(dbuf);
 		} else {
 			dbuf = xmalloc(char, len);
 			trap_get_bytes(ctx, dbuf, io_data, len);

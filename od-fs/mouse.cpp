@@ -28,7 +28,7 @@ static void unacquire_mouse (int num)
 
 static void read_mouse (void)
 {
-	UAE_LOG_STUB ("");
+	UAE_LOG_STUB_MAX(1, "");
 }
 
 static int get_mouse_num (void)
@@ -40,30 +40,31 @@ static int get_mouse_num (void)
 static TCHAR *get_mouse_friendlyname (int mouse)
 {
 	UAE_LOG_STUB ("mouse=%d", mouse);
-	return strdup ("");
+	// FIXME: Leak or not
+	return strdup ("Windows mouse");
 }
 
 static TCHAR *get_mouse_uniquename (int mouse)
 {
 	UAE_LOG_STUB ("mouse=%d", mouse);
-	return strdup ("");
+	return strdup ("WINMOUSE1");
 }
 
 static int get_mouse_widget_num (int mouse)
 {
-	UAE_LOG_STUB ("mouse=%d return 255", mouse);
+	// UAE_LOG_STUB ("mouse=%d return 255", mouse);
 	return 255;
 }
 
 static int get_mouse_widget_type (int mouse, int num, TCHAR *name, uae_u32 *code)
-{
-	UAE_LOG_STUB ("return IDEV_WIDGET_NONE");
+{ 
+	// UAE_LOG_STUB ("return IDEV_WIDGET_NONE");
 	return IDEV_WIDGET_KEY;
 }
 
 static int get_mouse_widget_first (int mouse, int type)
 {
-	UAE_LOG_STUB ("mouse=%d type=%d return 0", mouse, type);
+	// UAE_LOG_STUB ("mouse=%d type=%d return 0", mouse, type);
 	return 0;
 }
 

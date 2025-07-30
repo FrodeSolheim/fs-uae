@@ -18,14 +18,19 @@
 
 extern void fp_init_native(void);
 #ifdef MSVC_LONG_DOUBLE
-extern void fp_init_native_80(void);
+extern bool fp_init_native_80(void);
 #endif
 extern void fp_init_softfloat(int);
 extern void fpsr_set_exception(uae_u32 exception);
 extern void fpu_modechange(void);
 extern void fpu_clearstatus(void);
 
-double softfloat_tan(double v);
+extern void fpp_set_fpcr(uae_u32 val);
+extern void fpp_set_fpsr(uae_u32 val);
+extern void fpp_set_fpiar(uae_u32 val);
+extern uae_u32 fpp_get_fpsr(void);
+extern uae_u32 fpp_get_fpcr(void);
+extern uae_u32 fpp_get_fpiar(void);
 
 #if defined(CPU_i386) || defined(CPU_x86_64)
 extern void init_fpucw_x87(void);
@@ -33,6 +38,9 @@ extern void init_fpucw_x87(void);
 extern void init_fpucw_x87_80(void);
 #endif
 #endif
+extern void fpu_reset(void);
+
+double softfloat_tan(double v);
 
 #define PREC_NORMAL 0
 #define PREC_FLOAT 1
@@ -46,6 +54,7 @@ typedef void (*FPP_ABQS)(fpdata*, fpdata*, uae_u64*, uae_u8*);
 typedef void (*FPP_AB)(fpdata*, fpdata*);
 typedef void (*FPP_ABP)(fpdata*, fpdata*, int);
 typedef void (*FPP_A)(fpdata*);
+typedef void (*FPP_ABC)(fpdata*, fpdata*, fpdata*);
 
 typedef bool (*FPP_IS)(fpdata*);
 typedef void (*FPP_SET_MODE)(uae_u32);
@@ -146,6 +155,7 @@ extern FPP_AB fpp_cosh;
 extern FPP_ABP fpp_neg;
 extern FPP_AB fpp_acos;
 extern FPP_AB fpp_cos;
+extern FPP_ABC fpp_sincos;
 extern FPP_AB fpp_getexp;
 extern FPP_AB fpp_getman;
 extern FPP_ABP fpp_div;

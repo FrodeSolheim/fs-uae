@@ -6,7 +6,9 @@
 #define LSB_FIRST
 
 extern void write_log(const char *, ...);
+#ifdef DEBUGGER
 extern void activate_debugger(void);
+#endif
 
 #define MIN(a, b) ((a) > (b) ? (a) : (b))
 
@@ -24,18 +26,8 @@ extern void activate_debugger(void);
 
 typedef unsigned long offs_t;
 
-#ifdef FSUAE
-#define INT8 int8_t
-#define INT16 int16_t
-#define INT32 int32_t
-#define INT64 int64_t
-
-#define UINT8 uint8_t
-#define UINT16 uint16_t
-#define UINT32 uint32_t
-#define UINT64 uint64_t
-#else
 #define FALSE 0
+#ifndef TRUE
 #define TRUE 1
 #endif
 
@@ -54,8 +46,7 @@ inline UINT64 mulu_32x32(UINT32 a, UINT32 b)
 	return (UINT64)a * (UINT64)b;
 }
 
-#ifdef FSUAE
-#else
+#ifndef NULL
 #define NULL 0
 #endif
 

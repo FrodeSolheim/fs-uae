@@ -23,6 +23,8 @@
 #include "custom.h"
 #include "savestate.h"
 
+int key_swap_hack2 = false;
+
 static int kpb_first, kpb_last;
 
 #define KEYBUF_SIZE 256
@@ -32,6 +34,10 @@ static int keyinject_offset;
 static uae_u8 keyinject_previous;
 static bool keyinject_state;
 static bool keyinject_do;
+static bool ignore_next_release;
+static int delayed_released_code;
+static int delayed_released_time;
+
 
 struct kbtab
 {
@@ -171,17 +177,17 @@ static void keytoscancode(int key, bool release)
 	v = (v << 1) | (v >> 7);
 	q |= mask;
 	if (release) {
-		record_key(v);
+		record_key(v, false);
 		if (q & 0x7f) {
 			q = (q << 1) | (q >> 7);
-			record_key(q);
+			record_key(q, false);
 		}
 	} else {
 		if (q & 0x7f) {
 			q = (q << 1) | (q >> 7);
-			record_key(q);
+			record_key(q, false);
 		}
-		record_key(v);
+		record_key(v, false);
 	}
 }
 
@@ -238,22 +244,85 @@ int get_next_key (void)
 	key = keybuf[kpb_last];
 	if (++kpb_last == KEYBUF_SIZE)
 		kpb_last = 0;
+
+	// send release immediately in warp mode if not qualifier key
+	delayed_released_time = 0;
+	if (currprefs.turbo_emulation && !(key & 0x01) && (key >> 1) < 0x60) {
+		if (!keys_available()) {
+			delayed_released_code = key | 0x01;
+			delayed_released_time = 5;
+		}
+	}
+
 	//write_log (_T("%02x:%d\n"), key >> 1, key & 1);
 	return key;
 }
 
-int record_key (int kc)
+void keybuf_vsync(void)
+{
+	if (delayed_released_time > 0) {
+		delayed_released_time--;
+		if (delayed_released_time == 0) {
+			record_key(delayed_released_code, false);
+		}
+	}
+}
+
+int record_key(int kc, bool direct)
 {
 	if (pause_emulation)
 		return 0;
-	return record_key_direct (kc);
+	return record_key_direct(kc, direct);
 }
 
-int record_key_direct (int kc)
+static void keyswap(int *kcdp, int *kcp, uae_u8 k1, uae_u8 k2)
+{
+	int kcd = *kcdp;
+	int kc = *kcp;
+	if ((kcd & 0x7f) == k1) {
+		kcd = k2 | (kcd & 0x80);
+		kc = (kcd << 1) | (kcd >> 7);
+	} else if ((kcd & 0x7f) == k2) {
+		kcd = k1 | (kcd & 0x80);
+		kc = (kcd << 1) | (kcd >> 7);
+	}
+	*kcdp = kcd;
+	*kcp = kc;
+}
+
+int record_key_direct(int kc, bool direct)
 {
 	int kpb_next = kpb_first + 1;
+	int kcd = (kc << 7) | (kc >> 1);
+#ifdef WITH_DRACO
+	if (currprefs.cs_compatible == CP_DRACO) {
+		if (currprefs.cpuboard_settings & 0x10) {
+			inputdevice_draco_key(kc);
+		}
+		if (currprefs.keyboard_mode < 0) {
+			return 1;
+		}
+	}
+#endif
+	if (!direct) {
+		if (key_swap_hack2) {
+			// $0D <> $0C
+			keyswap(&kcd, &kc, 0x0d, 0x0c);
+		}
+		if (key_swap_hack == 2) {
+			// $2B <> $0D
+			keyswap(&kcd, &kc, 0x2b, 0x0d);
+		}
 
-	//write_log (_T("got kc %02X\n"), ((kc << 7) | (kc >> 1)) & 0xff);
+		if (ignore_next_release) {
+			ignore_next_release = false;
+			if (kcd & 0x80) {
+				return 0;
+			}
+		}
+	}
+
+	//write_log (_T("got kc %02X\n"), kcd & 0xff);
 	if (kpb_next == KEYBUF_SIZE)
 		kpb_next = 0;
 	if (kpb_next == kpb_last) {
@@ -271,7 +340,14 @@ void keybuf_init (void)
 	keyinject_offset = 0;
 	xfree(keyinject);
 	keyinject = NULL;
+	delayed_released_code = -1;
+	delayed_released_time = 0;
 	inputdevice_updateconfig (&changed_prefs, &currprefs);
+}
+
+void keybuf_ignore_next_release(void)
+{
+	ignore_next_release = true;
 }
 
 void keybuf_inject(const uae_char *txt)

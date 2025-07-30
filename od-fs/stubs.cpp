@@ -51,8 +51,9 @@ int get_guid_target (uae_u8 *out) {
     return 0;
 }
 
-uae_u8 *save_log (int bootlog, int *len) {
-    STUB("");
+uae_u8 *save_log(int bootlog, size_t *len)
+{
+    UAE_LOG_STUB("");
     return NULL;
 }
 
@@ -85,35 +86,17 @@ void target_addtorecent (const TCHAR *name, int t) {
     STUB("name=\"%s\" t=%d", name, t);
 }
 
-uae_u8 sampler_getsample (int) {
-    return 0;
-}
-
-int sampler_init (void) {
-    return 0;
-}
-
-void sampler_free (void) {
-}
-
-void sampler_vsync (void) {
-}
-
 #include "include/zfile.h"
 
 // --- win32gui.cpp ---
 
-int target_cfgfile_load (struct uae_prefs *p, const TCHAR *filename, int type, int isdefault)
-{
-    LOG_STUB("");
-    return 1;
-}
-
+// Cfgfile callback to save target-specific options to config file
 void target_save_options (struct zfile *f, struct uae_prefs *p) {
-    LOG_STUB("zfile=%p p=%p", f, p);
+    // LOG_STUB("zfile=%p p=%p", f, p);
 }
 
-int target_parse_option (struct uae_prefs *p, const TCHAR *option, const TCHAR *value) {
+int target_parse_option(struct uae_prefs *p, const TCHAR *option, const TCHAR *value, int type)
+{
     STUB("p=%p\n, option=\"%s\"", p, option);
     return 0;
 }
@@ -144,17 +127,15 @@ void refreshtitle (void) {
     STUB("");
 }
 
-void updatedisplayarea(int monid)
-{
-    LOG_STUB("");
-}
-
 void filesys_addexternals(void) {
     LOG_STUB("");
 }
 
 void target_run (void) {
     LOG_STUB("");
+#if 0
+	shellexecute (currprefs.win32_commandpathstart);
+#endif
 }
 
 void target_restart (void) {
@@ -163,7 +144,10 @@ void target_restart (void) {
 
 void target_quit (void)
 {
-    uae_log("target_quit\n");
+	uae_log("target_quit\n");
+#if 0
+	shellexecute (currprefs.win32_commandpathend);
+#endif
 }
 
 // FIXME: No longer a stub
@@ -238,10 +222,11 @@ bool gui_ask_disk(int drv, TCHAR *name)
     return false;
 }
 
-void target_inputdevice_unacquire(void)
+void target_inputdevice_unacquire(bool full)
 {
     STUB("");
 }
+
 void target_inputdevice_acquire(void)
 {
     STUB("");
@@ -259,7 +244,7 @@ void target_getdate(int *y, int *m, int *d)
     *d = 8;
 }
 
-uae_u8 *save_screenshot(int monid, int *len)
+uae_u8 *save_screenshot(int monid, size_t *len)
 {
     STUB("");
     return NULL;
@@ -269,4 +254,45 @@ uae_u8 *save_screenshot(int monid, int *len)
 bool frame_drawn (int monid)
 {
     return false;
+}
+
+void systray (HWND hwnd, int remove)
+{
+
+}
+
+#include "uae/compat/windows2.h"
+#include "od-win32/registry.h"
+
+int regsetint(UAEREG *root, const TCHAR *name, int val)
+{
+	return 0;
+}
+
+void updatewinrect(struct AmigaMonitor *mon, bool allowfullscreen)
+{
+	UAE_LOG_STUB("");
+}
+
+void wait_keyrelease(void)
+{
+	UAE_LOG_STUB("");
+}
+
+bool setpaused(int priority)
+{
+	UAE_LOG_STUB("priority=%d", priority);
+	return true;
+}
+
+int regqueryint (UAEREG *root, const TCHAR *name, int *val)
+{
+	UAE_LOG_STUB("name=%s", name);
+    return 0;
+}
+
+int isfocus(void)
+{
+    UAE_LOG_STUB("");
+	return 1;
 }

@@ -22,8 +22,6 @@ UAE_DLHANDLE uae_dlopen(const TCHAR *path)
 	}
 #ifdef _WIN32
 	result = LoadLibrary(path);
-#elif HAVE_DECL_RTLD_DEEPBIND == 1
-	result = dlopen(path, RTLD_NOW | RTLD_DEEPBIND);
 #else
 	result = dlopen(path, RTLD_NOW);
 	const char *error = dlerror();
@@ -60,19 +58,23 @@ void uae_dlclose(UAE_DLHANDLE handle)
 #endif
 }
 
-#ifdef FSUAE // NL
+#ifdef FSUAE
+
 #include "uae/uae.h"
+
 static amiga_plugin_lookup_function plugin_lookup;
+
 UAE_EXTERN_C void amiga_set_plugin_lookup_function(
-		amiga_plugin_lookup_function function)
+                amiga_plugin_lookup_function function)
 {
-	plugin_lookup = function;
+        plugin_lookup = function;
 }
+
 #endif
 
 UAE_DLHANDLE uae_dlopen_plugin(const TCHAR *name)
 {
-#if defined(FSUAE) // KP
+#if defined(FSUAE)
 	const TCHAR *path = NULL;
 	if (plugin_lookup) {
 		path = plugin_lookup(name);

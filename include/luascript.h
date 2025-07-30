@@ -10,20 +10,8 @@
 #define UAE_LUASCRIPT_H
 
 #ifdef WITH_LUA
-
-#ifdef FSUAE // NL
-extern "C" {
-#endif // NL
-
 #include <lauxlib.h>
 
-#ifdef FSUAE // NL
-}
-#endif
-
-#ifdef FSUAE
-//void uae_lua_init(void (*lock)(void), void (*unlock)(void));
-#endif
 void uae_lua_init(void);
 void uae_lua_load(const TCHAR *filename);
 void uae_lua_loadall(void);

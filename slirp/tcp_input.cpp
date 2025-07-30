@@ -243,6 +243,7 @@ void tcp_input(struct mbuf *m, int iphlen, struct socket *inso)
 	u_long tiwin;
 	int ret;
 	/* int ts_present = 0; */
+	int needfree = 0;
 
 	DEBUG_CALL("tcp_input");
 	DEBUG_ARGS((" m = %8lx  iphlen = %2d  inso = %lx\n",
@@ -394,8 +395,8 @@ findso:
 			goto dropwithreset;
 		}
 		
-		sbreserve(&so->so_snd, tcp_sndspace);
-		sbreserve(&so->so_rcv, tcp_rcvspace);
+		sbreserve(&so->so_snd, (int)tcp_sndspace);
+		sbreserve(&so->so_rcv, (int)tcp_rcvspace);
 	  
 		/*		tcp_last_so = so; */  /* XXX ? */
 		/*		tp = sototcpcb(so);    */
@@ -1359,7 +1360,7 @@ dodata:
 		 */
 		len = so->so_rcv.sb_datalen - (tp->rcv_adv - tp->rcv_nxt);
 	} else {
-		m_free(m);
+		needfree = 1;
 		tiflags &= ~TH_FIN;
 	}
 
@@ -1444,6 +1445,9 @@ dodata:
 	if (ti->ti_len && (unsigned)ti->ti_len <= 5 &&
 		((struct tcpiphdr_2 *)ti)->first_char == (char)27) {
 		tp->t_flags |= TF_ACKNOW;
+	}
+	if (needfree) {
+		m_free(m);
 	}
 
 	/*
@@ -1694,7 +1698,7 @@ u_int tcp_mss(struct tcpcb *tp, u_int offer)
 	DEBUG_ARG("tp = %p", tp);
 	DEBUG_ARG("offer = %d", offer);
 	
-	mss = min(if_mtu, if_mru) - sizeof(struct tcpiphdr);
+	mss = (u_int)(min(if_mtu, if_mru) - sizeof(struct tcpiphdr));
 	if (offer)
 		mss = min(mss, offer);
 	mss = max(mss, 32);
@@ -1703,8 +1707,8 @@ u_int tcp_mss(struct tcpcb *tp, u_int offer)
 	
 	tp->snd_cwnd = mss;
 	
-	sbreserve(&so->so_snd, tcp_sndspace+((tcp_sndspace%mss)?(mss-(tcp_sndspace%mss)):0));
-	sbreserve(&so->so_rcv, tcp_rcvspace+((tcp_rcvspace%mss)?(mss-(tcp_rcvspace%mss)):0));
+	sbreserve(&so->so_snd, (int)(tcp_sndspace+((tcp_sndspace%mss)?(mss-(tcp_sndspace%mss)):0)));
+	sbreserve(&so->so_rcv, (int)(tcp_rcvspace+((tcp_rcvspace%mss)?(mss-(tcp_rcvspace%mss)):0)));
 	
 	DEBUG_MISC((" returning mss = %d\n", mss));
 	

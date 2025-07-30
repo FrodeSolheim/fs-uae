@@ -99,11 +99,7 @@ short testTitanicsPlayer ( void )
 
 
 /* With the help of Xigh :) .. thx */
-#ifdef FSUAE
 static int cmplong(const void * a, const void * b)
-#else
-int _cdecl cmplong(const void * a, const void * b)
-#endif
 {
   long * aa = (long *) a;
   long * bb = (long *) b;

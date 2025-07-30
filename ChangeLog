@@ -1,3 +1,15 @@
+# ChangeLog
+
+## WinUAE
+
+See od-win32/winuaechangelog.txt.
+
+## FS-UAE
+
+See od-fs/ChangeLog.
+
+## UAE
+
 9C0702 Correct an overflow problem in the CIA code.
 9C0407 Sprite code updates; correct CIA memory access handlers (Toni).
 9C0306 Make w/d representable for fsdb_win32.

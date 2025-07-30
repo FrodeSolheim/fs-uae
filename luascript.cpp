@@ -8,8 +8,9 @@
 
 #include "sysconfig.h"
 #include "sysdeps.h"
-
+#ifdef WITH_LUA
 #include <lualib.h>
+#endif
 
 #include "options.h"
 #include "savestate.h"
@@ -95,7 +96,7 @@ static int l_uae_write_config(lua_State *L)
     const char *s = luaL_checkstring(L, 1);
 	TCHAR *ts = au(s);
 	TCHAR out[MAX_DPATH];
-	cfgfile_modify(-1, ts, _tcslen(ts), out, sizeof out / sizeof(TCHAR));
+	cfgfile_modify(-1, ts, uaetcslen(ts), out, sizeof out / sizeof(TCHAR));
 	char *c = ua(out);
 	lua_pushstring(L, c);
 	xfree(c);
@@ -149,11 +150,7 @@ void uae_lua_load(const TCHAR *filename)
 {
 	char *fn;
 	lua_State *L = luaL_newstate();
-#ifdef FSUAE
-
-#else
 	luaL_openlibs(L);
-#endif
 	fn = ua (filename);
 	int err = luaL_loadfilex(L, fn, NULL);
 	if (!err) {

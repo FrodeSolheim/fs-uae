@@ -11,7 +11,9 @@
 #ifndef OPTIONSFILENAME
 #define OPTIONSFILENAME "unused.uaerc"
 #endif
-#define OPTIONS_IN_HOME
+
+// Don't define this - will cause home dir to be prepended to config paths.
+// #define OPTIONS_IN_HOME
 
 #define DEFPRTNAME "lpr"
 #define DEFSERNAME "/dev/ttyS1"

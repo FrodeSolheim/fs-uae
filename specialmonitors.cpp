@@ -12,10 +12,14 @@
 #include "specialmonitors.h"
 #include "debug.h"
 #include "zfile.h"
+#ifdef VIDEOGRAB
 #include "videograb.h"
+#endif
 #include "arcadia.h"
+#include "uae/attributes.h"
 
-#define VIDEOGRAB 1
+// We have this in sysconfig.h
+//#define VIDEOGRAB 1
 
 const TCHAR *specialmonitorfriendlynames[] =
 {
@@ -77,60 +81,69 @@ extern uae_u8 **row_map_genlock;
 
 static uae_u8 graffiti_palette[256 * 4];
 
-STATIC_INLINE bool is_transparent(uae_u8 v)
+static bool specialmonitor_setresolution(struct vidbuffer *src, struct vidbuffer *dst, int width, int height, bool nativeposition)
+{
+	src->outwidth = width;
+	src->outheight = height;
+	dst->outwidth = width;
+	dst->outheight = height;
+	dst->inwidth = width;
+	dst->inheight = height;
+	dst->inwidth2 = width;
+	dst->inheight2 = height;
+	src->hardwiredpositioning = !nativeposition;
+	dst->hardwiredpositioning = !nativeposition;
+
+	if (dst->width_allocated != width || dst->height_allocated != height) {
+		bool locked = dst->locked;
+		if (dst->locked) {
+			unlockscr(dst, false, false);
+		}
+		if (!target_graphics_buffer_update(dst->monitor_id, false)) {
+			return false;
+		}
+		if (locked) {
+			if (!lockscr(dst, false, false)) {
+				return false;
+			}
+		}
+	}
+	return true;
+}
+
+STATIC_INLINE bool is_transparent(uae_u16 v)
 {
 	return v == 0;
 }
 
 STATIC_INLINE uae_u8 FVR(struct vidbuffer *src, uae_u8 *dataline)
 {
-	if (src->pixbytes == 4)
-		return dataline[2];
-	else
-		return ((((uae_u16*)dataline)[0] >> 11) & 31) << 3;
+	return dataline[2];
 }
 STATIC_INLINE uae_u8 FVG(struct vidbuffer *src, uae_u8 *dataline)
 {
-	if (src->pixbytes == 4)
-		return dataline[1];
-	else
-		return ((((uae_u16*)dataline)[0] >> 5) & 63) << 2;
+	return dataline[1];
 }
 STATIC_INLINE uae_u8 FVB(struct vidbuffer *src, uae_u8 *dataline)
 {
-	if (src->pixbytes == 4)
-		return dataline[0];
-	else
-		return ((((uae_u16*)dataline)[0] >> 0) & 31) << 2;
+	return dataline[0];
 }
 
 STATIC_INLINE bool FR(struct vidbuffer *src, uae_u8 *dataline)
 {
-	if (src->pixbytes == 4)
-		return (dataline[2] & 0x80) != 0;
-	else
-		return ((dataline[1] >> 7) & 1) != 0;
+	return (dataline[2] & 0x80) != 0;
 }
 STATIC_INLINE bool FG(struct vidbuffer *src, uae_u8 *dataline)
 {
-	if (src->pixbytes == 4)
-		return (dataline[1] & 0x80) != 0;
-	else
-		return ((dataline[1] >> 2) & 1) != 0;
+	return (dataline[1] & 0x80) != 0;
 }
 STATIC_INLINE bool FB(struct vidbuffer *src, uae_u8 *dataline)
 {
-	if (src->pixbytes == 4)
-		return (dataline[0] & 0x80) != 0;
-	else
-		return ((dataline[0] >> 4) & 1) != 0;
+	return (dataline[0] & 0x80) != 0;
 }
 STATIC_INLINE bool FI(struct vidbuffer *src, uae_u8 *dataline)
 {
-	if (src->pixbytes == 4)
-		return (dataline[0] & 0x10) != 0;
-	else
-		return ((dataline[0] >> 1) & 1) != 0;
+	return (dataline[0] & 0x10) != 0;
 }
 
 STATIC_INLINE uae_u8 FIRGB(struct vidbuffer *src, uae_u8 *dataline)
@@ -174,52 +187,38 @@ STATIC_INLINE uae_u8 DCTV_FIRBG(struct vidbuffer *src, uae_u8 *dataline)
 
 STATIC_INLINE void PRGB(struct vidbuffer *dst, uae_u8 *dataline, uae_u8 r, uae_u8 g, uae_u8 b)
 {
-	if (dst->pixbytes == 4) {
-		dataline[0] = b;
-		dataline[1] = g;
-		dataline[2] = r;
-	} else {
-		r >>= 3;
-		g >>= 2;
-		b >>= 3;
-		((uae_u16*)dataline)[0] = (r << 11) | (g << 5) | b;
-	}
+	dataline[0] = b;
+	dataline[1] = g;
+	dataline[2] = r;
 }
 
 STATIC_INLINE void PRGBA(struct vidbuffer *dst, uae_u8 *dataline, uae_u8 r, uae_u8 g, uae_u8 b, uae_u8 a)
 {
-	if (dst->pixbytes == 4) {
-		dataline[0] = b;
-		dataline[1] = g;
-		dataline[2] = r;
-		dataline[3] = a;
-	} else {
-		r >>= 3;
-		g >>= 2;
-		b >>= 3;
-		((uae_u16*)dataline)[0] = (r << 11) | (g << 5) | b;
-	}
+	dataline[0] = b;
+	dataline[1] = g;
+	dataline[2] = r;
+	dataline[3] = a;
 }
 
 
 STATIC_INLINE void PUT_PRGB(uae_u8 *d, uae_u8 *d2, struct vidbuffer *dst, uae_u8 r, uae_u8 g, uae_u8 b, int xadd, int doublelines, bool hdouble)
 {
 	if (hdouble)
-		PRGB(dst, d - dst->pixbytes, r, g, b);
+		PRGB(dst, d - 4, r, g, b);
 	PRGB(dst, d, r, g, b);
 	if (xadd >= 2) {
-		PRGB(dst, d + 1 * dst->pixbytes, r, g, b);
+		PRGB(dst, d + 1 * 4, r, g, b);
 		if (hdouble)
-			PRGB(dst, d + 2 * dst->pixbytes, r, g, b);
+			PRGB(dst, d + 2 * 4, r, g, b);
 	}
 	if (doublelines) {
 		if (hdouble)
-			PRGB(dst, d2 - dst->pixbytes, r, g, b);
+			PRGB(dst, d2 - 4, r, g, b);
 		PRGB(dst, d2, r, g, b);
 		if (xadd >= 2) {
-			PRGB(dst, d2 + 1 * dst->pixbytes, r, g, b);
+			PRGB(dst, d2 + 1 * 4, r, g, b);
 			if (hdouble)
-				PRGB(dst, d2 + 2 * dst->pixbytes, r, g, b);
+				PRGB(dst, d2 + 2 * 4, r, g, b);
 		}
 	}
 }
@@ -227,70 +226,46 @@ STATIC_INLINE void PUT_PRGB(uae_u8 *d, uae_u8 *d2, struct vidbuffer *dst, uae_u8
 STATIC_INLINE void PUT_PRGBA(uae_u8 *d, uae_u8 *d2, struct vidbuffer *dst, uae_u8 r, uae_u8 g, uae_u8 b, uae_u8 a, int xadd, int doublelines, bool hdouble)
 {
 	if (hdouble)
-		PRGBA(dst, d - dst->pixbytes, r, g, b, a);
+		PRGBA(dst, d - 4, r, g, b, a);
 	PRGBA(dst, d, r, g, b, a);
 	if (xadd >= 2) {
-		PRGBA(dst, d + 1 * dst->pixbytes, r, g, b, a);
+		PRGBA(dst, d + 1 * 4, r, g, b, a);
 		if (hdouble)
-			PRGBA(dst, d + 2 * dst->pixbytes, r, g, b, a);
+			PRGBA(dst, d + 2 * 4, r, g, b, a);
 	}
 	if (doublelines) {
 		if (hdouble)
-			PRGBA(dst, d2 - dst->pixbytes, r, g, b, a);
+			PRGBA(dst, d2 - 4, r, g, b, a);
 		PRGBA(dst, d2, r, g, b, a);
 		if (xadd >= 2) {
-			PRGBA(dst, d2 + 1 * dst->pixbytes, r, g, b, a);
+			PRGBA(dst, d2 + 1 * 4, r, g, b, a);
 			if (hdouble)
-				PRGBA(dst, d2 + 2 * dst->pixbytes, r, g, b, a);
+				PRGBA(dst, d2 + 2 * 4, r, g, b, a);
 		}
 	}
 }
 
 STATIC_INLINE void PUT_AMIGARGB(uae_u8 *d, uae_u8 *s, uae_u8 *d2, uae_u8 *s2, struct vidbuffer *dst, int xadd, int doublelines, bool hdouble)
 {
-	if (dst->pixbytes == 4) {
-		if (hdouble)
-			((uae_u32*)d)[-1] = ((uae_u32*)s)[-1];
-		((uae_u32*)d)[0] = ((uae_u32*)s)[0];
-	} else {
-		if (hdouble)
-			((uae_u16*)d)[-1] = ((uae_u16*)s)[-1];
-		((uae_u16*)d)[0] = ((uae_u16*)s)[0];
-	}
+	if (hdouble)
+		((uae_u32*)d)[-1] = ((uae_u32*)s)[-1];
+	((uae_u32*)d)[0] = ((uae_u32*)s)[0];
 	if (doublelines) {
-		if (dst->pixbytes == 4) {
-			if (hdouble)
-				((uae_u32*)d2)[-1] = ((uae_u32*)s2)[-1];
-			((uae_u32*)d2)[0] = ((uae_u32*)s2)[0];
-		} else {
-			if (hdouble)
-				((uae_u16*)d2)[-1] = ((uae_u16*)s2)[-1];
-			((uae_u16*)d2)[0] = ((uae_u16*)s2)[0];
-		}
+		if (hdouble)
+			((uae_u32*)d2)[-1] = ((uae_u32*)s2)[-1];
+		((uae_u32*)d2)[0] = ((uae_u32*)s2)[0];
 	}
 }
 
 STATIC_INLINE void PUT_AMIGARGBA(uae_u8 *d, uae_u8 *s, uae_u8 *d2, uae_u8 *s2, struct vidbuffer *dst, int xadd, int doublelines, bool hdouble)
 {
-	if (dst->pixbytes == 4) {
-		if (hdouble)
-			((uae_u32*)d)[-1] = (((uae_u32*)s)[-1]) | 0xff000000;
-		((uae_u32*)d)[0] = (((uae_u32*)s)[0]) | 0xff000000;
-	} else {
-		if (hdouble)
-			((uae_u16*)d)[-1] = (((uae_u16*)s)[-1]) | 0xff000000;
-		((uae_u16*)d)[0] = (((uae_u16*)s)[0]) | 0xff000000;
-	}
+	if (hdouble)
+		((uae_u32*)d)[-1] = (((uae_u32*)s)[-1]) | 0xff000000;
+	((uae_u32*)d)[0] = (((uae_u32*)s)[0]) | 0xff000000;
 	if (doublelines) {
-		if (dst->pixbytes == 4) {
-			if (hdouble)
-				((uae_u32*)d2)[-1] = (((uae_u32*)s2)[-1]) | 0xff000000;
-			((uae_u32*)d2)[0] = (((uae_u32*)s2)[0]) | 0xff000000;
-		} else {
-			if (hdouble)
-				((uae_u16*)d2)[-1] = (((uae_u16*)s2)[-1]) | 0xff000000;
-			((uae_u16*)d2)[0] = (((uae_u16*)s2)[0]) | 0xff000000;
-		}
+		if (hdouble)
+			((uae_u32*)d2)[-1] = (((uae_u32*)s2)[-1]) | 0xff000000;
+		((uae_u32*)d2)[0] = (((uae_u32*)s2)[0]) | 0xff000000;
 	}
 }
 
@@ -307,16 +282,12 @@ static void blank_generic(struct vidbuffer *src, struct vidbuffer *dst, int oddl
 {
 	struct vidbuf_description *avidinfo = &adisplays[dst->monitor_id].gfxvidinfo;
 	int y, vdbl;
-	int ystart, yend, isntsc;
-
-	isntsc = (beamcon0 & 0x20) ? 0 : 1;
-	if (!(currprefs.chipset_mask & CSMASK_ECS_AGNUS))
-		isntsc = currprefs.ntscmode ? 1 : 0;
+	int ystart, yend;
 
 	vdbl = avidinfo->ychange;
 
-	ystart = isntsc ? VBLANK_ENDLINE_NTSC : VBLANK_ENDLINE_PAL;
-	yend = isntsc ? MAXVPOS_NTSC : MAXVPOS_PAL;
+	ystart = minfirstline;
+	yend = maxvpos;
 
 	for (y = ystart; y < yend; y++) {
 		int yoff = (((y * 2 + oddlines) - src->yoffset) / vdbl);
@@ -707,7 +678,6 @@ static bool dctv(struct vidbuffer *src, struct vidbuffer *dst, bool doublelines,
 	}
 
 	if (dctv_enabled) {
-		dst->nativepositioning = true;
 		if (monitor != MONITOREMU_DCTV) {
 			monitor = MONITOREMU_DCTV;
 			write_log(_T("DCTV mode\n"));
@@ -723,9 +693,9 @@ static bool do_dctv(struct vidbuffer *src, struct vidbuffer *dst)
 	bool v;
 	if (interlace_seen) {
 		if (currprefs.gfx_iscanlines) {
-			v = dctv(src, dst, false, lof_store ? 0 : 1);
+			v = dctv(src, dst, false, lof_store ? 1 : 0);
 			if (v && currprefs.gfx_iscanlines >= 2)
-				blank_generic(src, dst, lof_store ? 1 : 0);
+				blank_generic(src, dst, lof_store ? 0 : 1);
 		} else {
 			v = dctv(src, dst, false, 0);
 			v |= dctv(src, dst, false, 1);
@@ -896,7 +866,6 @@ static bool firecracker24(struct vidbuffer *src, struct vidbuffer *dst, bool dou
 		fc24_y += 2;
 	}
 
-	dst->nativepositioning = true;
 	if (monitor != MONITOREMU_FIRECRACKER24) {
 		monitor = MONITOREMU_FIRECRACKER24;
 		write_log(_T("FireCracker mode\n"));
@@ -1211,9 +1180,9 @@ static bool do_firecracker24(struct vidbuffer *src, struct vidbuffer *dst)
 	bool v;
 	if (interlace_seen) {
 		if (currprefs.gfx_iscanlines) {
-			v = firecracker24(src, dst, false, lof_store ? 0 : 1);
+			v = firecracker24(src, dst, false, lof_store ? 1 : 0);
 			if (v && currprefs.gfx_iscanlines >= 2)
-				blank_generic(src, dst, lof_store ? 1 : 0);
+				blank_generic(src, dst, lof_store ? 0 : 1);
 		} else {
 			v = firecracker24(src, dst, false, 0);
 			v |= firecracker24(src, dst, false, 1);
@@ -1481,7 +1450,6 @@ static bool avideo(struct vidbuffer *src, struct vidbuffer *dst, bool doubleline
 		}
 	}
 
-	dst->nativepositioning = true;
 	if (monitor != MONITOREMU_AVIDEO12 && monitor != MONITOREMU_AVIDEO24) {
 		monitor = av24 ? MONITOREMU_AVIDEO24 : MONITOREMU_AVIDEO12;
 		write_log (_T("AVIDEO%d mode\n"), av24 ? 24 : 12);
@@ -1580,10 +1548,11 @@ static bool videodac18(struct vidbuffer *src, struct vidbuffer *dst, bool double
 		return false;
 	getsyncregisters(&hsstrt, &hsstop, &vsstrt, &vsstop);
 
-	if (hsstop >= (maxhpos & ~1))
-		hsstrt = 0;
-	xstart = ((hsstrt * 2) << RES_MAX) - src->xoffset;
-	xstop = ((hsstop * 2) << RES_MAX) - src->xoffset;
+	if (hsstop < hsstrt) {
+		hsstop += maxhpos + 1;
+	}
+	xstart = (hsstrt << RES_MAX) - src->xoffset;
+	xstop = (hsstop << RES_MAX) - src->xoffset;
 
 	isntsc = (beamcon0 & 0x20) ? 0 : 1;
 	if (!(currprefs.chipset_mask & CSMASK_ECS_AGNUS))
@@ -1631,7 +1600,7 @@ static bool videodac18(struct vidbuffer *src, struct vidbuffer *dst, bool double
 				} else {
 					g = data;
 				}
-				if (y >= vsstrt && y < vsstop && x >= xstart && y < xstop) {
+				if (y >= vsstrt && y < vsstop && x >= xstart && x < xstop) {
 					PUT_PRGB(d, d2, dst, r, g, b, xaddpix, doublelines, true);
 				} else {
 					PUT_AMIGARGB(d, s, d2, s2, dst, xaddpix, doublelines, true);
@@ -1642,7 +1611,6 @@ static bool videodac18(struct vidbuffer *src, struct vidbuffer *dst, bool double
 		}
 	}
 
-	dst->nativepositioning = true;
 	if (monitor != MONITOREMU_VIDEODAC18) {
 		monitor = MONITOREMU_VIDEODAC18;
 		write_log (_T("Video DAC 18 mode\n"));
@@ -1656,9 +1624,9 @@ static bool do_videodac18(struct vidbuffer *src, struct vidbuffer *dst)
 	bool v;
 	if (interlace_seen) {
 		if (currprefs.gfx_iscanlines) {
-			v = videodac18(src, dst, false, lof_store ? 0 : 1);
+			v = videodac18(src, dst, false, lof_store ? 1 : 0);
 			if (v && currprefs.gfx_iscanlines >= 2)
-				blank_generic(src, dst, lof_store ? 1 : 0);
+				blank_generic(src, dst, lof_store ? 0 : 1);
 		} else {
 			v = videodac18(src, dst, false, 0);
 			v |= videodac18(src, dst, false, 1);
@@ -1867,7 +1835,6 @@ static bool ham_e(struct vidbuffer *src, struct vidbuffer *dst, bool doublelines
 	}
 
 	if (was_active) {
-		dst->nativepositioning = true;
 		if (monitor != MONITOREMU_HAM_E) {
 			monitor = MONITOREMU_HAM_E;
 			write_log (_T("HAM-E mode, %s\n"), was_active == ham_e_magic_cookie_reg ? _T("REG") : _T("HAM"));
@@ -1882,9 +1849,9 @@ static bool do_hame(struct vidbuffer *src, struct vidbuffer *dst)
 	bool v;
 	if (interlace_seen) {
 		if (currprefs.gfx_iscanlines) {
-			v = ham_e(src, dst, false, lof_store ? 0 : 1);
-			if (v && currprefs.gfx_iscanlines >= 1)
-				blank_generic(src, dst, lof_store ? 1 : 0);
+			v = ham_e(src, dst, false, lof_store ? 1 : 0);
+			if (v && currprefs.gfx_iscanlines >= 2)
+				blank_generic(src, dst, lof_store ? 0 : 1);
 		} else {
 			v = ham_e(src, dst, false, 0);
 			v |= ham_e(src, dst, false, 1);
@@ -2056,8 +2023,6 @@ static bool graffiti(struct vidbuffer *src, struct vidbuffer *dst)
 			waitline--;
 	}
 
-	dst->nativepositioning = true;
-
 	if (monitor != MONITOREMU_GRAFFITI) {
 		monitor = MONITOREMU_GRAFFITI;
 		write_log (_T("GRAFFITI %s mode\n"), hires ? _T("hires") : _T("lores"));
@@ -2083,21 +2048,37 @@ static bool a2024(struct vidbuffer *src, struct vidbuffer *dst)
 	int total_width, total_height;
 	
 	dbl = avidinfo->ychange == 1 ? 2 : 1;
-	doff = (128 * 2 / avidinfo->xchange) * src->pixbytes;
+	int dxoff = 64;
+	doff = ((dxoff << RES_MAX) / avidinfo->xchange) * src->pixbytes;
 	found = false;
 
 	for (idline = 21; idline <= 29; idline += 8) {
 		if (src->yoffset > (idline << VRES_MAX))
 			continue;
-		// min 178 max 234
-		dataline = src->bufmem + (((idline << VRES_MAX) - src->yoffset) / avidinfo->ychange) * src->rowbytes + (((200 << RES_MAX) - src->xoffset) / avidinfo->xchange) * src->pixbytes;
+		int x = (210 << RES_MAX) - src->xoffset;
+		int sy = (((idline << VRES_MAX) - src->yoffset) / avidinfo->ychange) * src->rowbytes;
+		int sx = (x / avidinfo->xchange) * src->pixbytes;
+		dataline = src->bufmem + sy + sx;
 
 #if 0
-		write_log (_T("%02x%02x%02x %02x%02x%02x %02x%02x%02x %02x%02x%02x\n"),
+		write_log(_T("%02x%02x%02x %02x%02x%02x %02x%02x%02x %02x%02x%02x\n"),
 			dataline[0 * doff + 0], dataline[0 * doff + 1], dataline[0 * doff + 2],
 			dataline[1 * doff + 0], dataline[1 * doff + 1], dataline[1 * doff + 2],
 			dataline[2 * doff + 0], dataline[2 * doff + 1], dataline[2 * doff + 2],
 			dataline[3 * doff + 0], dataline[3 * doff + 1], dataline[3 * doff + 2]);
+#endif
+#if 0
+		int dy = (((idline << VRES_MAX) - dst->yoffset) / avidinfo->ychange) * dst->rowbytes;
+		int dx = ((x << RES_MAX) / avidinfo->xchange) * dst->pixbytes;
+		uae_u8 *p = dst->bufmem + dy + dx;
+		memcpy(dst->bufmem + dy, src->bufmem + sy, dst->outwidth * dst->pixbytes);
+		for(int i = 0; i < 6; i++) {
+			*((uae_u32*)&p[0 * doff + 4]) = 0xff00ff;
+			*((uae_u32*)&p[1 * doff + 4]) = 0xff00ff;
+			*((uae_u32*)&p[2 * doff + 4]) = 0xff00ff;
+			*((uae_u32*)&p[3 * doff + 4]) = 0xff00ff;
+			p += dst->rowbytes;
+		}
 #endif
 
 		if (FB(src, &dataline[0 * doff]))			// 0:B = 0
@@ -2142,7 +2123,7 @@ static bool a2024(struct vidbuffer *src, struct vidbuffer *dst)
 		panel_width_draw = px == 2 ? 352 : 336;
 		pxcnt = 3;
 		hires = false;
-		srcxoffset = 113;
+		srcxoffset = (112 << RES_MAX) - 360;
 		if (px > 2)
 			return false;
 		total_width = 336 + 336 + 352;
@@ -2151,7 +2132,7 @@ static bool a2024(struct vidbuffer *src, struct vidbuffer *dst)
 		panel_width_draw = 512;
 		pxcnt = 2;
 		hires = true;
-		srcxoffset = 129;
+		srcxoffset = (128 << RES_MAX) - 360;
 		if (px > 1)
 			return false;
 		total_width = 512 + 512;
@@ -2184,7 +2165,11 @@ static bool a2024(struct vidbuffer *src, struct vidbuffer *dst)
 	}
 	total_height = panel_height * dbl;
 	
-	srcbuf = src->bufmem + (((44 << VRES_MAX) - src->yoffset) / avidinfo->ychange) * src->rowbytes + (((srcxoffset << RES_MAX) - src->xoffset) / avidinfo->xchange) * src->pixbytes;
+	if (!specialmonitor_setresolution(src, dst, (total_width / 2) << currprefs.gfx_resolution, total_height, false)) {
+		return false;
+	}
+
+	srcbuf = src->bufmem + (((44 << VRES_MAX) - src->yoffset) / avidinfo->ychange) * src->rowbytes + (srcxoffset / avidinfo->xchange) * src->pixbytes;
 	dstbuf = dst->bufmem + py * (panel_height / avidinfo->ychange) * dst->rowbytes + px * ((panel_width * 2) / avidinfo->xchange) * dst->pixbytes;
 
 	for (y = 0; y < (panel_height / (dbl == 1 ? 1 : 2)) / avidinfo->ychange; y++) {
@@ -2239,20 +2224,9 @@ static bool a2024(struct vidbuffer *src, struct vidbuffer *dst)
 		dstbuf += dst->rowbytes * dbl;
 	}
 
-	total_width /= 2;
-	total_width <<= currprefs.gfx_resolution;
-
-	dst->outwidth = total_width;
-	dst->outheight = total_height;
-	dst->inwidth = total_width;
-	dst->inheight = total_height;
-	dst->inwidth2 = total_width;
-	dst->inheight2 = total_height;
-	dst->nativepositioning = false;
-
 	if (monitor != MONITOREMU_A2024) {
 		monitor = MONITOREMU_A2024;
-		write_log (_T("A2024 %dHz %s mode\n"), hires ? 10 : 15, ntsc ? _T("NTSC") : _T("PAL"));
+		write_log (_T("A2024 %dHz %s mode\n"), hires ? 15 : 10, ntsc ? _T("NTSC") : _T("PAL"));
 	}
 
 	return true;
@@ -2292,15 +2266,10 @@ static uae_u8 get_noise(void)
 struct png_cb
 {
 	uae_u8 *ptr;
-	int size;
+	size_t size;
 };
 
-#ifdef FSUAE
-// FIXME
-static void readcallback(png_structp png_ptr, png_bytep out, png_size_t count)
-#else
-static void __cdecl readcallback(png_structp png_ptr, png_bytep out, png_size_t count)
-#endif
+static void uae_cdecl readcallback(png_structp png_ptr, png_bytep out, png_size_t count)
 {
 	png_voidp io_ptr = png_get_io_ptr(png_ptr);
 
@@ -2402,12 +2371,12 @@ end:
 	return ok;
 }
 
-static bool do_genlock(struct vidbuffer *src, struct vidbuffer *dst, bool doublelines, int oddlines)
+static bool do_genlock(struct vidbuffer *src, struct vidbuffer *dst, bool doublelines, int oddlines, bool zclken)
 {
 	struct vidbuf_description *avidinfo = &adisplays[dst->monitor_id].gfxvidinfo;
 
 	int y, x, vdbl, hdbl;
-	int ystart, yend, isntsc;
+	int ystart, yend, xstart, xend;
 	int mix1 = 0, mix2 = 0;
 
 	int genlock_image_pixbytes = 4;
@@ -2418,11 +2387,7 @@ static bool do_genlock(struct vidbuffer *src, struct vidbuffer *dst, bool double
 
 	uae_u8 *genlock_image = NULL;
 
-	isntsc = (beamcon0 & 0x20) ? 0 : 1;
-	if (!(currprefs.chipset_mask & CSMASK_ECS_AGNUS))
-		isntsc = currprefs.ntscmode ? 1 : 0;
-
-#if VIDEOGRAB
+#ifdef VIDEOGRAB
 	if (currprefs.genlock_image == 5) {
 		genlock_blank = false;
 		if ((!genlock_video && !genlock_error) || _tcsicmp(_T(":CAPTURE:"), genlock_video_file)) {
@@ -2522,7 +2487,7 @@ skip:
 		xfree(genlock_image_data);
 		genlock_image_data = NULL;
 	}
-#if VIDEOGRAB
+#ifdef VIDEOGRAB
 	if (genlock_video && currprefs.genlock_image != 4 && currprefs.genlock_image != 5 && currprefs.genlock_image < 6) {
 		uninitvideograb();
 		genlock_video = false;
@@ -2536,20 +2501,22 @@ skip:
 		genlock_image_file[0] = 0;
 	}
 
-	if (avidinfo->ychange == 1)
+	if (avidinfo->ychange == 1) {
 		vdbl = 0; // double
-	else
+	} else {
 		vdbl = 1; // single
+		doublelines = false;
+	}
 
-	if (avidinfo->xchange == 1)
+	if (avidinfo->xchange == 1) {
 		hdbl = 0; // shres
-	else if (avidinfo->xchange == 2)
+	} else if (avidinfo->xchange == 2) {
 		hdbl = 1; // hires
-	else
+	} else {
 		hdbl = 2; // lores
+	}
 
-	ystart = isntsc ? VBLANK_ENDLINE_NTSC : VBLANK_ENDLINE_PAL;
-	yend = isntsc ? MAXVPOS_NTSC : MAXVPOS_PAL;
+	get_mode_blanking_limits(&xstart, &xend,  &ystart, &yend);
 
 	init_noise();
 
@@ -2560,11 +2527,31 @@ skip:
 	uae_u8 amix1 = 255 - (currprefs.genlock_mix > 255 ? 255 : 0);
 	uae_u8 amix2 = 255 - amix1;
 
-	int ah = (((yend - ystart) * 2) >> vdbl);
-	int aw = src->inwidth;
+	int aw = ((xend - xstart) >> 1);
+	if (avidinfo->xchange == 1) {
+		aw *= 2;
+	} else if (avidinfo->xchange == 4) {
+		aw /= 2;
+	}
 
-	int deltax = genlock_image_width * 65536 / aw;
-	int deltay = genlock_image_height * 65536 / ah;
+	int ah = (((yend - ystart) * 2) >> 0);
+	if (avidinfo->ychange == 2) {
+		ah /= 2;
+	}
+
+	if (ah < 16 || aw < 16) {
+		return false;
+	}
+
+	int deltax = 65536;
+	int deltay = 65536;
+
+	if (abs(genlock_image_width - aw) > 8) {
+		deltax = genlock_image_width * 65536 / aw;
+	}
+	if (abs(genlock_image_height - ah) > 8) {
+		deltay = genlock_image_height * 65536 / ah;
+	}
 
 	deltax -= currprefs.genlock_scale * 256;
 	deltay -= currprefs.genlock_scale * 256;
@@ -2573,46 +2560,71 @@ skip:
 	int offsety = 0;
 
 	if (deltax && deltay) {
-		offsetx = (aw - genlock_image_width * 65536 / deltax) / 2;
-		offsety = (ah - genlock_image_height * 65536 / deltay) / 2;
+		offsetx = (aw - (genlock_image_width * 65536 / deltax)) / 2;
+		offsety = (ah - (genlock_image_height * 65536 / deltay)) / 2;
 	
 		if (currprefs.genlock_aspect) {
 			if (deltax < deltay) {
-				offsetx = (aw - genlock_image_width * 65536 / deltay) / 2;
+				offsetx = (aw - (genlock_image_width * 65536 / deltay)) / 2;
 				deltax = deltay;
 			} else {
-				offsety = (ah - genlock_image_height * 65536 / deltax) / 2;
+				offsety = (ah - (genlock_image_height * 65536 / deltax)) / 2;
 				deltay = deltax;
 			}
 		}
 	}
 
+	int gen_xoffset = 0;
+	int gen_yoffset = 0;
+
+	gen_xoffset = 0;
+	if (currprefs.gfx_overscanmode == OVERSCANMODE_EXTREME) {
+		gen_xoffset += 16 * 2;
+	} else if (currprefs.gfx_overscanmode >= OVERSCANMODE_ULTRA) {
+		gen_xoffset += 36 * 2;
+	}
+	gen_yoffset = (ystart - minfirstline) * 2 / 2;
+
+	gen_xoffset += currprefs.genlock_offset_x;
+	gen_yoffset += currprefs.genlock_offset_y;
+
+	bool first = true;
+	uae_u8 *firstdstline = NULL;
+	int firstdstlinex = -1;
+
 	uae_u8 r = 0, g = 0, b = 0, a = 0;
 	for (y = ystart; y < yend; y++) {
-		int yoff = (y * 2 + oddlines) - src->yoffset;
+		int yoff = ((y * 2 + oddlines) - src->yoffset) >> vdbl;
 		if (yoff < 0)
 			continue;
 		if (yoff >= src->inheight)
 			continue;
 
+		bool ztoggle = false;
 		uae_u8 *line = src->bufmem + yoff * src->rowbytes;
-		uae_u8 *dstline = dst->bufmem + ((y * 2 + oddlines) - dst->yoffset) * dst->rowbytes;
+		uae_u8 *dstline = dst->bufmem + (((y * 2 + oddlines) - dst->yoffset) >> vdbl) * dst->rowbytes;
 		uae_u8 *line_genlock = row_map_genlock[yoff];
-		int gy = ((y * 2 + oddlines) - src->yoffset - offsety) * deltay / 65536;
+		int gy = (((y * 2 + oddlines) - src->yoffset + offsety - gen_yoffset) >> vdbl) * deltay / 65536;
 		if (genlock_image_upsidedown)
 			gy = (genlock_image_height - 1) - gy;
 		uae_u8 *image_genlock = genlock_image + gy * genlock_image_pitch;
-		r = g = b;
+		r = g = b = 0;
 		a = amix1;
 		noise_add = (quickrand() & 15) | 1;
+		uae_u8 *s = line;
+		uae_u8 *d = dstline;
+		uae_u8 *s_genlock = line_genlock;
+		if (first) {
+			firstdstline = dstline;
+			first = false;
+		}
+		int hwidth = 0;
 		for (x = 0; x < src->inwidth; x++) {
-			uae_u8 *s = line + x * src->pixbytes;
-			uae_u8 *d = dstline + x * dst->pixbytes;
-			uae_u8 *s_genlock = line_genlock + x;
 			uae_u8 *s2 = s + src->rowbytes;
 			uae_u8 *d2 = d + dst->rowbytes;
-
-			if (is_transparent(*s_genlock)) {
+			if (*s_genlock == 0xffff) {
+				PUT_PRGBA(d, d2, dst, 0, 0, 0, 0, 0, doublelines, false);
+			} else if ((!zclken && is_transparent(*s_genlock)) || (zclken && ztoggle)) {
 				a = amix2;
 				if (genlock_error) {
 					r = 0x00;
@@ -2621,8 +2633,11 @@ skip:
 				} else if (genlock_blank) {
 					r = g = b = 0;
 				} else if (genlock_image) {
-					int gx = (x - offsetx) * deltax / 65536;
+					int gx = (x + offsetx - gen_xoffset) * deltax / 65536;
 					if (gx >= 0 && gx < genlock_image_width && gy >= 0 && gy < genlock_image_height) {
+						if (firstdstlinex < 0) {
+							firstdstlinex = gx;
+						}
 						uae_u8 *s_genlock_image = image_genlock + gx * genlock_image_pixbytes;
 						r = s_genlock_image[genlock_image_red_index];
 						g = s_genlock_image[genlock_image_green_index];
@@ -2642,32 +2657,45 @@ skip:
 			} else {
 				PUT_AMIGARGBA(d, s, d2, s2, dst, 0, doublelines, false);
 			}
+			s += src->pixbytes;
+			d += dst->pixbytes;
+			s_genlock++;
+			// ZCLKEN hires pixel clock
+			hwidth += 1 << currprefs.gfx_resolution;
+			if (hwidth >= 2) {
+				hwidth = 0;
+				ztoggle = !ztoggle;
+			}
 		}
 	}
+	
+	if (firstdstline && firstdstlinex >= 0) {
+		firstdstline += firstdstlinex * dst->pixbytes;
+		genlock_infotext(firstdstline, dst);
+	}
 
-	dst->nativepositioning = true;
 	return true;
 }
 
-bool emulate_genlock(struct vidbuffer *src, struct vidbuffer *dst)
+bool emulate_genlock(struct vidbuffer *src, struct vidbuffer *dst, bool zclken)
 {
 	bool v;
 	if (interlace_seen) {
 		if (currprefs.gfx_iscanlines) {
-			v = do_genlock(src, dst, false, lof_store ? 0 : 1);
-			if (v && currprefs.gfx_iscanlines > 1)
-				blank_generic(src, dst, lof_store ? 1 : 0);
+			v = do_genlock(src, dst, false, lof_store ? 1 : 0, zclken);
+			if (v && currprefs.gfx_iscanlines >= 2)
+				blank_generic(src, dst, lof_store ? 0 : 1);
 		} else {
-			v = do_genlock(src, dst, false, 0);
-			v |= do_genlock(src, dst, false, 1);
+			v = do_genlock(src, dst, false, 0, zclken);
+			v |= do_genlock(src, dst, false, 1, zclken);
 		}
 	} else {
 		if (currprefs.gfx_pscanlines) {
-			v = do_genlock(src, dst, false, lof_store ? 0 : 1);
+			v = do_genlock(src, dst, false, lof_store ? 0 : 1, zclken);
 			if (v && currprefs.gfx_pscanlines >= 2)
-				do_genlock(src, dst, false, lof_store ? 1 : 0);
+				do_genlock(src, dst, false, lof_store ? 1 : 0, zclken);
 		} else {
-			v = do_genlock(src, dst, true, 0);
+			v = do_genlock(src, dst, true, 0, zclken);
 		}
 	}
 	return v;
@@ -2679,33 +2707,30 @@ static bool do_grayscale(struct vidbuffer *src, struct vidbuffer *dst, bool doub
 {
 	struct vidbuf_description *avidinfo = &adisplays[dst->monitor_id].gfxvidinfo;
 	int y, x, vdbl;
-	int ystart, yend, isntsc;
-
-	isntsc = (beamcon0 & 0x20) ? 0 : 1;
-	if (!(currprefs.chipset_mask & CSMASK_ECS_AGNUS))
-		isntsc = currprefs.ntscmode ? 1 : 0;
+	int ystart, yend;
 
 	if (avidinfo->ychange == 1)
 		vdbl = 0;
 	else
 		vdbl = 1;
 
-	ystart = isntsc ? VBLANK_ENDLINE_NTSC : VBLANK_ENDLINE_PAL;
-	yend = isntsc ? MAXVPOS_NTSC : MAXVPOS_PAL;
+	ystart = minfirstline;
+	yend = maxvpos;
 
 	uae_u8 r = 0, g = 0, b = 0;
 	for (y = ystart; y < yend; y++) {
 		int yoff = (((y * 2 + oddlines) - src->yoffset) >> vdbl);
-		if (yoff < 0)
+		int dyoff = (((y * 2 + oddlines) - dst->yoffset) >> vdbl);
+		if (yoff < 0 || dyoff < 0)
 			continue;
-		if (yoff >= src->inheight)
+		if (yoff >= src->inheight || dyoff >= dst->inheight)
 			continue;
 
 		uae_u8 *line = src->bufmem + yoff * src->rowbytes;
-		uae_u8 *dstline = dst->bufmem + (((y * 2 + oddlines) - dst->yoffset) >> vdbl) * dst->rowbytes;
+		uae_u8 *dstline = dst->bufmem + dyoff * dst->rowbytes;
 		uae_u8 line_colorburst = currprefs.gfx_grayscale ? 0 : row_map_color_burst_buffer[yoff];
 
-		for (x = 0; x < src->inwidth; x++) {
+		for (x = 0; x < src->inwidth && x < dst->inwidth; x++) {
 			uae_u8 *s = line + x * src->pixbytes;
 			uae_u8 *d = dstline + x * dst->pixbytes;
 			uae_u8 *s2 = s + src->rowbytes;
@@ -2726,7 +2751,6 @@ static bool do_grayscale(struct vidbuffer *src, struct vidbuffer *dst, bool doub
 		}
 	}
 
-	dst->nativepositioning = true;
 	return true;
 }
 
@@ -2735,9 +2759,9 @@ bool emulate_grayscale(struct vidbuffer *src, struct vidbuffer *dst)
 	bool v;
 	if (interlace_seen) {
 		if (currprefs.gfx_iscanlines) {
-			v = do_grayscale(src, dst, false, lof_store ? 0 : 1);
+			v = do_grayscale(src, dst, false, lof_store ? 1 : 0);
 			if (v && currprefs.gfx_iscanlines >= 2)
-				blank_generic(src, dst, lof_store ? 1 : 0);
+				blank_generic(src, dst, lof_store ? 0 : 1);
 		} else {
 			v = do_grayscale(src, dst, false, 0);
 			v |= do_grayscale(src, dst, false, 1);
@@ -2843,6 +2867,7 @@ struct opals {
 	bool opal;
 	int active_banks[6];
 	int bank_field;
+	int loaded_bank_field;
 	int address_load;
 	int rowbytes;
 	uae_u8 control_line[OPAL_CONTROL_LINE_LENGTH];
@@ -2963,6 +2988,7 @@ static bool opalvision(struct vidbuffer *src, struct vidbuffer *dst, bool double
 	int ystartcopro = ystart + 4;
 	int yimgstart = ystart + 6;
 	int yend = (isntsc ? MAXVPOS_NTSC : MAXVPOS_PAL) + 1;
+	int wrappos = -1;
 
 	if (yline < 0 || yline == ystart) {
 		opal->address_load_sync = -1;
@@ -2991,11 +3017,11 @@ static bool opalvision(struct vidbuffer *src, struct vidbuffer *dst, bool double
 		uae_u8 *dstline = NULL;
 		int ydisp = -1;
 
-		int yoff = (((y * 2 + oddlines) - src->yoffset) / vdbl);
+		int yoff = (((y * 2 - oddlines) - src->yoffset) / vdbl);
 		if (yoff >= 0 && yoff < src->inheight) {
 			line = src->bufmem + yoff * src->rowbytes;
 			line_genlock = row_map_genlock ? row_map_genlock[yoff] : NULL;
-			dstline = dst->bufmem + (((y * 2 + oddlines) - dst->yoffset) / vdbl) * dst->rowbytes;
+			dstline = dst->bufmem + (((y * 2 - oddlines) - dst->yoffset) / vdbl) * dst->rowbytes;
 			if (y >= yimgstart) {
 				ydisp = y - yimgstart;
 			}
@@ -3026,6 +3052,7 @@ static bool opalvision(struct vidbuffer *src, struct vidbuffer *dst, bool double
 		if (!(copro & 0x80)) {
 			// Add_Load
 			opal->vram_read_offset = opal->address_load;
+			opal->vram_write_offset = opal->address_load;
 		}
 
 
@@ -3051,9 +3078,13 @@ static bool opalvision(struct vidbuffer *src, struct vidbuffer *dst, bool double
 #if 0
 		if ((!opal->auto_field && opal->bank_field) || (opal->auto_field && oddlines)) {
 #endif
+		opal->bank_field = opal->loaded_bank_field;
 		if (opal->bank_field) {
 			vram_read_pixel_offset2 = 3 * OPAL_SEGMENT_SIZE;
 			vram_write_pixel_offset2 = 3 * OPAL_SEGMENT_SIZE;
+		} else {
+			vram_read_pixel_offset2 = 0;
+			vram_write_pixel_offset2 = 0;
 		}
 		vram_read_pixel_offset += vram_read_pixel_offset2;
 		vram_write_pixel_offset += vram_write_pixel_offset2;
@@ -3061,13 +3092,15 @@ static bool opalvision(struct vidbuffer *src, struct vidbuffer *dst, bool double
 		bool command_update = false;
 		bool hstart = false;
 
-		int ax = 7;
-		for (x = 0; x < src->inwidth; x++, ax++) {
+		int xoffset = 8;
+		int ax = xoffset;
+
+		for (x = 0; x < src->inwidth - xoffset; x++, ax++) {
 			uae_u8 *sa = line + ((x << 1) >> hdbl_shift) * src->pixbytes;
 			uae_u8 newval = FIRGB(src, sa);
 			uae_u8 val = prev | newval;
 
-			uae_u8 *d = dstline + ((x << 1) >> hdbl_shift) * dst->pixbytes + dst->pixbytes;
+			uae_u8 *d = dstline + ((ax << 1) >> hdbl_shift) * dst->pixbytes;
 			uae_u8 *d2 = d + dst->rowbytes;
 
 			uae_u8 *s = line + ((ax << 1) >> hdbl_shift) * src->pixbytes;
@@ -3219,6 +3252,18 @@ static bool opalvision(struct vidbuffer *src, struct vidbuffer *dst, bool double
 				vram_read_pixel_offset -= vram_read_pixel_offset2;
 				vram_read_pixel_offset++;
 				vram_read_pixel_offset &= (OPAL_SEGMENT_SIZE - 1);
+				if (vram_read_pixel_offset == 0) {
+					wrappos = x;
+				}
+				if (x == wrappos) {
+					opal->bank_field = opal->bank_field ? 0 : 1;
+					if (opal->bank_field) {
+						vram_read_pixel_offset2 = 3 * OPAL_SEGMENT_SIZE;
+					} else {
+						vram_read_pixel_offset2 = 0;
+					}
+					vram_read_pixel_offset2 += 1;
+				}
 				vram_read_pixel_offset += vram_read_pixel_offset2;
 			}
 
@@ -3241,9 +3286,6 @@ static bool opalvision(struct vidbuffer *src, struct vidbuffer *dst, bool double
 
 					int vb = val == 0x11;
 
-					if ((opal_debug & 4) && y == ystart) {
-						write_log(_T("%02x."), val);
-					}
 					if (opal->opal) {
 						if (!bitcount) {
 							if (vb)
@@ -3251,40 +3293,38 @@ static bool opalvision(struct vidbuffer *src, struct vidbuffer *dst, bool double
 							controlmode = -1;
 						}
 						if (bitcount > 0) {
-							uae_u8 *p = NULL;
 							controlcnt = (bitcount - 1) / 16;
 							bool phase = ((bitcount - 1) & 15) < 8;
 							int pos = (bitcount - 1) & 7;
 
-							if (controlcnt < OPAL_CONTROL_LINE_LENGTH && controlcnt >= 0)
-								p = &control_line_tmp[OPAL_CONTROL_LINE_LENGTH - controlcnt - 1];
-
+							uae_s8 pv = -1;
 							if (pos == 0 && phase) {
 								if (controlmode <= 0) {
-									if (p)
-										*p = 0;
+									pv = 0;
 								} else if (controlmode == 1) {
-									if (p)
-										*p = 1;
+									pv = 1;
 								}
 							}
 
 							if (phase == true && !vb && (controlmode < 0 || controlmode == 0)) {
-								if (p)
-									*p = 1;
+								pv = 1;
 								controlmode = 0;
-								if (opal_debug & 4) {
-									write_log(_T("[1]."));
-								}
 							}
 							if (phase == false && vb && (controlmode < 0 || controlmode == 1)) {
-								if (p)
-									*p = 0;
+								pv = 0;
 								controlmode = 1;
-								if (opal_debug & 4) {
-									write_log(_T("[0]."));
+							}
+
+							if (pv >= 0) {
+								uae_u8 *p = NULL;
+								if (controlcnt < OPAL_CONTROL_LINE_LENGTH) {
+									p = &control_line_tmp[OPAL_CONTROL_LINE_LENGTH - controlcnt - 1];
+								}
+								if (p) {
+									*p = pv;
 								}
 							}
+
 							bitcount++;
 						}
 					} else {
@@ -3323,6 +3363,16 @@ static bool opalvision(struct vidbuffer *src, struct vidbuffer *dst, bool double
 					}
 				}
 
+#if 0
+				static bool xxx;
+				if (y == opal->control_y + 1) {
+					write_log("%02x ", val);
+					xxx = true;
+				} else if (xxx) {
+					write_log("\n");
+					xxx = false;
+				}
+#endif
 				if (opal->control_y && y >= opal->control_y) {
 				
 					if (opal_debug & 2)
@@ -3344,8 +3394,9 @@ static bool opalvision(struct vidbuffer *src, struct vidbuffer *dst, bool double
 
 							if ((pixcnt & 3) != 0) {
 								if (opal->palcoprocnt < OPAL_MAXLINES) {
-									if (opal->wren)
+									if (opal->wren) {
 										opal->copro[opal->palcoprocnt] = val;
+									}
 								} else if (opal->palcoprocnt == OPAL_MAXLINES + 7) {
 									opal->video_command = val;
 									command_update = true;
@@ -3382,16 +3433,19 @@ static bool opalvision(struct vidbuffer *src, struct vidbuffer *dst, bool double
 							}
 						}
 
-					} else if (pixcnt < 0 && y == opal->control_y + 2) {
+					} else if (pixcnt < 0 && (y == opal->control_y + 1 || y == opal->control_y + 2)) {
 
 						if (opal->address_load_sync < 0 && val == 0xff)
 							opal->address_load_sync = 0;
 						if (opal->address_load_sync > 0 && opal->address_load_sync < 4) {
 							if (opal->address_load_sync == 1 && (val & 0xfe))
-								write_log(_T("Address load %02x\n"), val);
+								write_log(_T("Unexpected address load %02x\n"), val);
 							opal->address_load <<= 8;
 							opal->address_load |= val;
 							opal->address_load &= (OPAL_SEGMENT_SIZE - 1);
+							if ((opal_debug & 1) && opal->address_load_sync == 3) {
+								write_log(_T("Address load %08x\n"), opal->address_load);
+							}
 						}
 						if (opal->address_load_sync >= 0)
 							opal->address_load_sync++;
@@ -3402,6 +3456,24 @@ static bool opalvision(struct vidbuffer *src, struct vidbuffer *dst, bool double
 				}
 				prevbyte = val;
 			}
+		}
+
+		// blank left and right edge
+		for (x = 1; x < (xoffset + 2); x++) {
+			uae_u8 *d = dstline + ((x << 1) >> hdbl_shift) * dst->pixbytes;
+			uae_u8 *d2 = d + dst->rowbytes;
+			PUT_PRGB(d, d2, dst, 0, 0, 0, 0, doublelines, true);
+		}
+		for (x = src->inwidth - (xoffset + 2); x < src->inwidth; x++) {
+			uae_u8 *d = dstline + ((x << 1) >> hdbl_shift) * dst->pixbytes;
+			uae_u8 *d2 = d + dst->rowbytes;
+			PUT_PRGB(d, d2, dst, 0, 0, 0, 0, doublelines, true);
+		}
+		if (ydisp < 0) {
+			uae_u8 *d = dstline;
+			uae_u8 *d2 = d + dst->rowbytes;
+			memset(d, 0, dst->inwidth * dst->pixbytes);
+			memset(d2, 0, dst->inwidth * dst->pixbytes);
 		}
 
 		if (command_update) {
@@ -3451,10 +3523,10 @@ static bool opalvision(struct vidbuffer *src, struct vidbuffer *dst, bool double
 						c[12], c[13], c[14], c[15], c[16], c[17]);
 				}
 				if (c[18] || c[19] || c[11])
-						write_log(_T("UNIMPLEMENTED BITS!\n"));
-				if (opal_debug & 4) {
-					for (int i = 0; i < 20; i++) {
-						write_log(_T("%d."), opal->control_line[i]);
+					write_log(_T("UNIMPLEMENTED BITS!\n"));
+				if (opal_debug & 8) {
+					for (int i = 0; i < OPAL_CONTROL_LINE_LENGTH; i++) {
+						write_log(_T("%02x."), opal->control_line[i]);
 					}
 					write_log(_T("\n"));
 				}
@@ -3462,7 +3534,7 @@ static bool opalvision(struct vidbuffer *src, struct vidbuffer *dst, bool double
 				opal->latched = c[10] != 0;
 				opal->wren = c[4] != 0;
 				opal->colcopro = c[5] != 0;
-				opal->bank_field = c[8];
+				opal->loaded_bank_field = c[8];
 				opal->auto_field = c[9] != 0;
 				opal->active_banks[0] = c[12];
 				opal->active_banks[1] = c[13];
@@ -3518,7 +3590,6 @@ static bool opalvision(struct vidbuffer *src, struct vidbuffer *dst, bool double
 		monitor = MONITOREMU_COLORBURST;
 		write_log(_T("Colorburst control line detected\n"));
 	}
-	dst->nativepositioning = true;
 
 	return true;
 }
@@ -3528,9 +3599,9 @@ static bool do_opalvision(struct vidbuffer *src, struct vidbuffer *dst, int line
 	bool v;
 	if (interlace_seen) {
 		if (currprefs.gfx_iscanlines) {
-			v = opalvision(src, dst, false, lof_store ? 0 : 1, line, opal);
-			if (v && currprefs.gfx_iscanlines >= 1)
-				blank_generic(src, dst, lof_store ? 1 : 0);
+			v = opalvision(src, dst, false, lof_store ? 1 : 0, line, opal);
+			if (v && currprefs.gfx_iscanlines >= 2)
+				blank_generic(src, dst, lof_store ? 0 : 1);
 		} else {
 			v = opalvision(src, dst, false, 0, line, opal);
 			v |= opalvision(src, dst, false, 1, line, opal);
@@ -3592,27 +3663,31 @@ static bool emulate_specialmonitors2(struct vidbuffer *src, struct vidbuffer *ds
 
 bool emulate_specialmonitors(struct vidbuffer *src, struct vidbuffer *dst)
 {
+	// compatibility fix for new chipset emulation
+	uae_u8 *bf = src->bufmem;
+	src->bufmem -= src->rowbytes;
+	
+	bool ret = true;
 	if (!emulate_specialmonitors2(src, dst, -1)) {
 		if (monitor) {
 			clearmonitor(dst);
 			monitor = 0;
 			write_log(_T("Native mode\n"));
 		}
-		return false;
+		ret = false;
 	}
-	return true;
-}
 
-bool emulate_specialmonitors_line(struct vidbuffer *src, struct vidbuffer *dst, int line)
-{
-	return emulate_specialmonitors2(src, dst, line);
+	src->bufmem = bf;
+	return ret;
 }
 
 void specialmonitor_reset(void)
 {
 	if (!currprefs.monitoremu)
 		return;
+#ifdef VIDEOGRAB
 	uninitvideograb();
+#endif
 	specialmonitor_store_fmode(-1, -1, 0);
 	fc24_reset();
 }
@@ -3628,7 +3703,7 @@ bool specialmonitor_need_genlock(void)
 	case MONITOREMU_COLORBURST:
 	return true;
 	}
-	if (currprefs.genlock_image && currprefs.genlock)
+	if (currprefs.genlock_image && (currprefs.genlock || currprefs.genlock_effects))
 		return true;
 	return false;
 }

@@ -8,11 +8,7 @@
 #include "sysconfig.h"
 #include "sysdeps.h"
 
-#ifdef FSUAE
-void write_log (const char *fmt, ...)
-#else
 void write_log_standard (const char *fmt, ...)
-#endif
 {
     va_list ap;
     va_start (ap, fmt);

@@ -14,7 +14,7 @@
 
 #include "threaddep/thread.h"
 #include "options.h"
-#include "uae/memory.h"
+#include "memory.h"
 #include "custom.h"
 #include "newcpu.h"
 #include "autoconf.h"
@@ -40,7 +40,7 @@ void native2amiga_reset (void)
 	p->rdp = p->wrp = 0;
 	p->reader_waiting = 0;
 	p->writer_waiting = 0;
-};
+}
 
 /*
 * to be called when the Amiga boots, i.e. by filesys_diagentry()
@@ -131,6 +131,15 @@ void uae_ShellExecute(TCHAR *command)
 	uae_nativesem_wait();
 	write_comm_pipe_int(&native2amiga_pending, 5, 0);
 	write_comm_pipe_pvoid(&native2amiga_pending, cmd, 1);
+	do_uae_int_requested();
+	uae_nativesem_post();
+}
+
+void uae_ShellExecute2(uae_u32 id)
+{
+	uae_nativesem_wait();
+	write_comm_pipe_int(&native2amiga_pending, 6, 0);
+	write_comm_pipe_int(&native2amiga_pending, id, 1);
 	do_uae_int_requested();
 	uae_nativesem_post();
 }

@@ -1,15 +1,9 @@
-#ifndef UAE_ATOMIC_H_
-#define UAE_ATOMIC_H_
+#ifndef UAE_ATOMIC_H
+#define UAE_ATOMIC_H
+
+#include "uae/types.h"
 
 typedef int uae_atomic;
-
-#if 0
-uae_atomic atomic_and(volatile uae_atomic *p, uae_u32 v);
-uae_atomic atomic_or(volatile uae_atomic *p, uae_u32 v);
-uae_atomic atomic_inc(volatile uae_atomic *p);
-uae_atomic atomic_dec(volatile uae_atomic *p);
-uae_u32 atomic_bit_test_and_reset(volatile uae_atomic *p, uae_u32 v);
-#endif
 
 static inline uae_atomic atomic_and(volatile uae_atomic *p, uae_u32 v)
 {
@@ -42,4 +36,4 @@ static inline uae_u32 atomic_bit_test_and_reset(volatile uae_atomic *p, uae_u32 
     return (value >> v) & 1;
 }
 
-#endif  // UAE_ATOMIC_H_
+#endif /* UAE_ATOMIC_H */

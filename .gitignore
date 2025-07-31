@@ -20,7 +20,6 @@
 /Data
 /Floppies
 /Games
-/python
 /od-fs/fsapp
 /od-fs/fsemu
 /od-fs/fsgui
@@ -28,6 +27,7 @@
 /od-fs/fsuae
 /od-fs/libfsemu
 /od-fs/libuae
+/od-fs/python
 /System
 
 # WinUAE

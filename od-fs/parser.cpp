@@ -567,9 +567,11 @@ void flushser(void)
 	}
 }
 
-#warning Not handling breakcound...
+#warning Not handling breakcond...
 int readseravail(bool *breakcond)
 {
+	if (breakcond)
+		*breakcond = false;
 	if (tcpserial) {
 		if (tcp_is_connected ()) {
 			int err = uae_socket_select_read(serialconn);
@@ -593,11 +595,13 @@ int readseravail(bool *breakcond)
 		if (dataininput > dataininputcnt)
 			return 1;
 		if (hCom != INVALID_HANDLE_VALUE)  {
-			COMSTAT ComStat;
-			DWORD dwErrorFlags;
 			ClearCommError (hCom, &dwErrorFlags, &ComStat);
+			if (breakcond && ((dwErrorFlags & CE_BREAK) || breakpending)) {
+				*breakcond = true;
+				breakpending = false;
+			}
 			if (ComStat.cbInQue > 0)
-				return 1;
+				return ComStat.cbInQue;
 		}
 #else
 		/* device is closed */
@@ -835,7 +839,7 @@ int setbaud(int baud, int origbaud)
 	}
 
 	/* map to terminal baud rate constant */
-	write_log ("serial: setbaud: %ld\n", baud);
+	write_log ("serial: setbaud: %d\n", baud);
 	switch (baud) {
 	case 300: pspeed=B300; break;
 	case 1200: pspeed=B1200; break;
@@ -848,7 +852,7 @@ int setbaud(int baud, int origbaud)
 	case 115200: pspeed=B115200; break;
 	case 230400: pspeed=B230400; break;
 	default:
-		write_log ("serial: unsupported baudrate %ld\n", baud);
+		write_log ("serial: unsupported baudrate %d\n", baud);
 		return 0;
 	}
 
@@ -859,11 +863,11 @@ int setbaud(int baud, int origbaud)
 	}
 
 	if (cfsetispeed (&tios, pspeed) < 0) { /* set serial input speed */
-		write_log ("serial: CFSETISPEED (%ld bps) failed\n", baud);
+		write_log ("serial: CFSETISPEED (%d bps) failed\n", baud);
 		return 0;
 	}
 	if (cfsetospeed (&tios, pspeed) < 0) { /* set serial output speed */
-		write_log ("serial: CFSETOSPEED (%ld bps) failed\n", baud);
+		write_log ("serial: CFSETOSPEED (%d bps) failed\n", baud);
 		return 0;
 	}
 

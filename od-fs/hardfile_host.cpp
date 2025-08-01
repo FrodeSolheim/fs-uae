@@ -41,6 +41,11 @@ static int g_debug = 0;
 #define DEBUG_LOG(...) do ; while(0)
 #endif
 
+#include <stddef.h>
+
+static int num_drives;
+static bool drives_enumerated;
+
 struct hardfilehandle
 {
 	int zfile;
@@ -49,12 +54,14 @@ struct hardfilehandle
 };
 
 struct uae_driveinfo {
-	char vendor_id[128];
-	char product_id[128];
-	char product_rev[128];
-	char product_serial[128];
-	char device_name[2048];
-	char device_path[2048];
+	TCHAR vendor_id[128];
+	TCHAR product_id[128];
+	TCHAR product_rev[128];
+	TCHAR product_serial[128];
+	TCHAR device_name[1024];
+	TCHAR device_path[1024];
+	TCHAR device_full_path[2048];
+	uae_u8 identity[512];
 	uae_u64 size;
 	uae_u64 offset;
 	int bytespersector;
@@ -64,9 +71,12 @@ struct uae_driveinfo {
 	int readonly;
 };
 
-#define HDF_HANDLE_WIN32 1
-#define HDF_HANDLE_ZFILE 2
-#define HDF_HANDLE_LINUX 3
+#define HDF_HANDLE_WIN32_NORMAL 1
+#define HDF_HANDLE_WIN32_CHS 2
+#define HDF_HANDLE_ZFILE 3
+#define HDF_HANDLE_UNKNOWN 4
+#define HDF_HANDLE_LINUX 5
+
 #undef INVALID_HANDLE_VALUE
 #define INVALID_HANDLE_VALUE NULL
 
@@ -78,14 +88,15 @@ struct uae_driveinfo {
 * - block 0 is zeroed
 */
 
-int harddrive_dangerous, do_rdbdump;
+int harddrive_dangerous; // = 0x1234dead; // test only!
+int do_rdbdump;
 static struct uae_driveinfo uae_drives[MAX_FILESYSTEM_UNITS];
 
 static void rdbdump (FILE *h, uae_u64 offset, uae_u8 *buf, int blocksize)
 {
 	static int cnt = 1;
 	int i, blocks;
-	char name[100];
+	TCHAR name[100];
 	FILE *f;
 
 	blocks = (buf[132] << 24) | (buf[133] << 16) | (buf[134] << 8) | (buf[135] << 0);
@@ -118,6 +129,43 @@ static int ismounted (FILE* f) {
 	//mounted = 1;
 	mounted = 0;
 	return mounted;
+}
+
+static void tochs(uae_u8 *data, uae_s64 offset, int *cp, int *hp, int *sp)
+{
+	int c, h, s;
+	c = (data[1 * 2 + 0] << 8) | (data[1 * 2 + 1] << 0);
+	h = (data[3 * 2 + 0] << 8) | (data[3 * 2 + 1] << 0);
+	s = (data[6 * 2 + 0] << 8) | (data[6 * 2 + 1] << 0);
+	if (offset >= 0) {
+		offset /= 512;
+		c = (int)(offset / (h * s));
+		offset -= c * h * s;
+		h = (int)(offset / s);
+		offset -= h * s;
+		s = (int)offset + 1;
+	}
+	*cp = c;
+	*hp = h;
+	*sp = s;
+}
+
+static bool ischs(uae_u8 *identity)
+{
+	if (!identity[0] && !identity[1])
+		return false;
+	uae_u8 *d = identity;
+	// C/H/S = zeros?
+	if ((!d[2] && !d[3]) || (!d[6] && !d[7]) || (!d[12] && !d[13]))
+		return false;
+	// LBA = zero?
+	if (d[60 * 2 + 0] || d[60 * 2 + 1] || d[61 * 2 + 0] || d[61 * 2 + 1])
+		return false;
+	uae_u16 v = (d[49 * 2 + 0] << 8) | (d[49 * 2 + 1] << 0);
+	if (!(v & (1 << 9))) { // LBA not supported?
+		return true;
+	}
+	return false;
 }
 
 #define CA "Commodore\0Amiga\0"
@@ -185,19 +233,18 @@ static int safetycheck (FILE *h, const char *name, uae_u64 offset, uae_u8 *buf, 
 	return -9;
 }
 
-/*
+
+#if 0
 static void trim (TCHAR *s)
 {
-	while(_tcslen(s) > 0 && s[_tcslen(s) - 1] == ' ') {
+	while(s[0] != '\0' && s[_tcslen(s) - 1] == ' ')
 		s[_tcslen(s) - 1] = 0;
-	}
 }
-*/
+#endif
 
 static int isharddrive (const TCHAR *name)
 {
 	int i;
-
 	for (i = 0; i < hdf_getnumharddrives (); i++) {
 		if (!_tcscmp (uae_drives[i].device_name, name))
 			return i;
@@ -205,9 +252,9 @@ static int isharddrive (const TCHAR *name)
 	return -1;
 }
 
-static const char *hdz[] = { "hdz", "zip", "rar", "7z", NULL };
+static const TCHAR *hdz[] = { _T("hdz"), _T("zip"), _T("rar"), _T("7z"), NULL };
 
-int hdf_open_target (struct hardfiledata *hfd, const char *pname)
+int hdf_open_target (struct hardfiledata *hfd, const TCHAR *pname)
 {
 	FILE *h = INVALID_HANDLE_VALUE;
 	int i;
@@ -400,7 +447,7 @@ end:
 	return 0;
 }
 
-/*
+#if 0
 static void freehandle (struct hardfilehandle *h)
 {
 	if (!h)
@@ -413,9 +460,10 @@ static void freehandle (struct hardfilehandle *h)
 	h->h = INVALID_HANDLE_VALUE;
 	h->zfile = 0;
 }
-*/
+#endif
 
-void hdf_close_target (struct hardfiledata *hfd) {
+void hdf_close_target (struct hardfiledata *hfd)
+{
 	write_log("hdf_close_target\n");
 	if (hfd->handle && hfd->handle->h) {
 		write_log("closing file handle %p\n", hfd->handle->h);
@@ -446,7 +494,7 @@ int hdf_dup_target (struct hardfiledata *dhfd, const struct hardfiledata *shfd)
 	return 0;
 }
 
-static int hdf_seek (struct hardfiledata *hfd, uae_u64 offset)
+static int hdf_seek (struct hardfiledata *hfd, uae_u64 offset, bool write)
 {
 	size_t ret;
 
@@ -479,7 +527,7 @@ static int hdf_seek (struct hardfiledata *hfd, uae_u64 offset)
 static void poscheck (struct hardfiledata *hfd, int len)
 {
 	int ret;
-	uae_u64 pos = 0;
+	uae_s64 pos = -1;
 
 	if (hfd->handle_valid == HDF_HANDLE_LINUX) {
 		ret = uae_fseeko64 (hfd->handle->h, 0, SEEK_CUR);
@@ -534,7 +582,7 @@ void hfd_flush_cache (struct hardfiledata *hfd, int now)
 }
 #endif
 
-static int hdf_read_2 (struct hardfiledata *hfd, void *buffer, uae_u64 offset, int len)
+static int hdf_read_2(struct hardfiledata *hfd, void *buffer, uae_u64 offset, int len, uae_u32 *error)
 {
 	long outlen = 0;
 	int coffset;
@@ -549,15 +597,20 @@ static int hdf_read_2 (struct hardfiledata *hfd, void *buffer, uae_u64 offset, i
 	hfd->cache_offset = offset;
 	if (offset + CACHE_SIZE > hfd->offset + (hfd->physsize - hfd->virtual_size))
 		hfd->cache_offset = hfd->offset + (hfd->physsize - hfd->virtual_size) - CACHE_SIZE;
-	hdf_seek (hfd, hfd->cache_offset);
+	if (hdf_seek(hfd, hfd->cache_offset, false)) {
+		*error = 45;
+		return 0;
+	}
 	poscheck (hfd, CACHE_SIZE);
 	if (hfd->handle_valid == HDF_HANDLE_LINUX)
 		outlen = fread (hfd->cache, 1, CACHE_SIZE, hfd->handle->h);
 	else if (hfd->handle_valid == HDF_HANDLE_ZFILE)
 		outlen = zfile_fread (hfd->cache, 1, CACHE_SIZE, hfd->handle->zf);
 	hfd->cache_valid = 0;
-	if (outlen != CACHE_SIZE)
+	if (outlen != CACHE_SIZE) {
+		*error = 45;
 		return 0;
+	}
 	hfd->cache_valid = 1;
 	coffset = isincache (hfd, offset, len);
 	if (coffset >= 0) {
@@ -566,10 +619,11 @@ static int hdf_read_2 (struct hardfiledata *hfd, void *buffer, uae_u64 offset, i
 	}
 	write_log ("hdf_read: cache bug! offset=0x%llx len=%d\n", offset, len);
 	hfd->cache_valid = 0;
+	*error = 45;
 	return 0;
 }
 
-int hdf_read_target (struct hardfiledata *hfd, void *buffer, uae_u64 offset, int len, uae_u32 *error)
+int hdf_read_target(struct hardfiledata *hfd, void *buffer, uae_u64 offset, int len, uae_u32 *error)
 {
 	int got = 0;
 	uae_u8 *p = (uae_u8*)buffer;
@@ -591,7 +645,8 @@ int hdf_read_target (struct hardfiledata *hfd, void *buffer, uae_u64 offset, int
 		int ret = 0;
 		if (hfd->physsize < CACHE_SIZE) {
 			hfd->cache_valid = 0;
-			hdf_seek (hfd, offset);
+			if (hdf_seek(hfd, offset, false))
+				return got;
 			poscheck (hfd, len);
 			if (hfd->handle_valid == HDF_HANDLE_LINUX) {
 				ret = fread (hfd->cache, 1, len, hfd->handle->h);
@@ -602,7 +657,7 @@ int hdf_read_target (struct hardfiledata *hfd, void *buffer, uae_u64 offset, int
 			maxlen = len;
 		} else {
 			maxlen = len > CACHE_SIZE ? CACHE_SIZE : len;
-			ret = hdf_read_2 (hfd, p, offset, maxlen);
+			ret = hdf_read_2 (hfd, p, offset, maxlen, error);
 		}
 		got += ret;
 		if (ret != maxlen)
@@ -614,24 +669,41 @@ int hdf_read_target (struct hardfiledata *hfd, void *buffer, uae_u64 offset, int
 	return got;
 }
 
-static int hdf_write_2 (struct hardfiledata *hfd, void *buffer, uae_u64 offset, int len)
+static int hdf_write_2(struct hardfiledata *hfd, void *buffer, uae_u64 offset, int len, uae_u32 *error)
 {
 	int outlen = 0;
 
-	if (hfd->ci.readonly) {
-		if (g_debug) {
-			write_log("hfd->readonly\n");
-		}
-		return 0;
-	}
 	if (hfd->dangerous) {
 		if (g_debug) {
 			write_log("hfd->dangerous\n");
 		}
+		*error = 28;
+#ifdef RETROPLATFORM
+		rp_drive_access_error(3);
+#endif
 		return 0;
 	}
+	if (hfd->ci.readonly) {
+		if (g_debug) {
+			write_log("hfd->readonly\n");
+		}
+		*error = 28;
+#ifdef RETROPLATFORM
+		rp_drive_access_error(4);
+#endif
+		return 0;
+	}
+	if (len == 0)
+		return 0;
+
 	hfd->cache_valid = 0;
-	hdf_seek (hfd, offset);
+	if (hdf_seek(hfd, offset, true)) {
+		*error = 45;
+#ifdef RETROPLATFORM
+		rp_drive_access_error(2);
+#endif
+		return 0;
+	}
 	poscheck (hfd, len);
 	memcpy (hfd->cache, buffer, len);
 	if (hfd->handle_valid == HDF_HANDLE_LINUX) {
@@ -649,7 +721,7 @@ static int hdf_write_2 (struct hardfiledata *hfd, void *buffer, uae_u64 offset, 
 			tmp = (uae_u8*)xmalloc (uae_u8, tmplen);
 			if (tmp) {
 				memset (tmp, 0xa1, tmplen);
-				hdf_seek (hfd, offset);
+				hdf_seek (hfd, offset, true);
 				outlen2 = fread (tmp, 1, tmplen, hfd->handle->h);
 				if (memcmp (hfd->cache, tmp, tmplen) != 0 || outlen != len)
 					gui_message (_T("\"%s\"\n\nblock zero write failed!"), name);
@@ -687,7 +759,7 @@ int hdf_write_target(struct hardfiledata *hfd, void *buffer, uae_u64 offset, int
 	}
 	while (len > 0) {
 		int maxlen = len > CACHE_SIZE ? CACHE_SIZE : len;
-		int ret = hdf_write_2 (hfd, p, offset, maxlen);
+		int ret = hdf_write_2(hfd, p, offset, maxlen, error);
 		if (ret < 0)
 			return ret;
 		got += ret;
@@ -700,7 +772,7 @@ int hdf_write_target(struct hardfiledata *hfd, void *buffer, uae_u64 offset, int
 	return got;
 }
 
-int hdf_resize_target(struct hardfiledata *hfd, uae_u64 newsize)
+int hdf_resize_target (struct hardfiledata *hfd, uae_u64 newsize)
 {
 	if (newsize < hfd->physsize) {
 		uae_log("hdf_resize_target: truncation not implemented\n");
@@ -725,20 +797,17 @@ int hdf_resize_target(struct hardfiledata *hfd, uae_u64 newsize)
 	return 1;
 }
 
-static int num_drives;
-
 static int hdf_init2 (int force)
 {
-	static int done;
-
-	if (done && !force)
+	if (drives_enumerated && !force)
 		return num_drives;
-	done = 1;
+	drives_enumerated = true;
 	num_drives = 0;
 	return num_drives;
 }
 
-int hdf_init_target (void) {
+int hdf_init_target (void)
+{
 	return hdf_init2 (0);
 }
 
@@ -748,7 +817,7 @@ int hdf_getnumharddrives (void)
 }
 
 #if 0
-TCHAR *hdf_getnameharddrive (int index, int flags, int *sectorsize, int *dangerousdrive, uae_u32 *outflags);
+TCHAR *hdf_getnameharddrive (int index, int flags, int *sectorsize, int *dangerousdrive, uae_u32 *outflags)
 {
 	static char name[512];
 	char tmp[32];

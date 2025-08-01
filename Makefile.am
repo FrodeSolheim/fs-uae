@@ -445,7 +445,6 @@ libuae_a_SOURCES = \
 	include/uae/atomic.h \
 	include/uae/attributes.h \
 	include/uae/byteswap.h \
-	include/uae/caps.h \
 	include/uae/cdrom.h \
 	include/uae/cycleunit.h \
 	include/uae/debuginfo.h \

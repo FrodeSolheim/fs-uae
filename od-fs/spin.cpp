@@ -6,9 +6,10 @@
 
 static uae_u64 spincount;
 
+#warning target_spin not really implemented
 void target_spin(int total)
 {
-    STUB("");
+    UAE_LOG_STUB_MAX(1, "");
 #if 0
 	if (!spincount)
 		return;

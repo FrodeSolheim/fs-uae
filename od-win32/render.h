@@ -113,10 +113,7 @@ typedef enum
 	blue_mask
 } DirectDraw_Mask_e;
 
-#ifdef FSUAE
-#else
 extern const TCHAR *DXError(HRESULT hr);
-extern TCHAR *outGUID (const GUID *guid);
-#endif
+extern const TCHAR *outGUID (const GUID *guid);
 
 #endif

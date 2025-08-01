@@ -2280,6 +2280,12 @@ static void gfxbuffer_reset(int monid)
 	vidinfo->drawbuffer.unlockscr = dummy_unlock;
 }
 
+#ifdef FSUAE
+
+// Following code used by od-win32/screenshot.cpp (unused)
+
+#else
+
 void allocvidbuffer(int monid, struct vidbuffer *buf, int width, int height, int depth)
 {
 	memset(buf, 0, sizeof (struct vidbuffer));
@@ -2299,6 +2305,8 @@ void allocvidbuffer(int monid, struct vidbuffer *buf, int width, int height, int
 	buf->bufmem_allocated = buf->bufmem = buf->realbufmem + buf->rowbytes;
 	buf->bufmemend = buf->realbufmem + size - buf->rowbytes;
 }
+
+#endif
 
 void freevidbuffer(int monid, struct vidbuffer *buf)
 {

@@ -31,11 +31,11 @@ typedef uint16_t uae_u16;
 typedef int32_t uae_s32;
 typedef uint32_t uae_u32;
 
-typedef int64_t uae_s64;
-typedef uint64_t uae_u64;
+//typedef int64_t uae_s64;
+//typedef uint64_t uae_u64;
 
-//typedef long long int uae_s64;
-//typedef unsigned long long int uae_u64;
+typedef long long int uae_s64;
+typedef unsigned long long int uae_u64;
 
 #ifdef HAVE___UINT128_T
 #define HAVE_UAE_U128

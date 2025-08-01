@@ -6,11 +6,11 @@
 #include "events.h"
 #include "uae.h"
 
-// #ifdef _WIN32
-// #define USE_LEGACY_WIN32_TIME_FUNCTIONS 1
-// #else
+#ifdef WINUAE
+#define USE_LEGACY_WIN32_TIME_FUNCTIONS 1
+#else
 #define USE_GLIB_TIME_FUNCTIONS 1
-// #endif
+#endif
 
 #ifdef USE_GLIB_TIME_FUNCTIONS
 

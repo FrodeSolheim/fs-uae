@@ -109,7 +109,7 @@ void Depack_STIM ( void )
 {
   Uchar *Whatever;
   Uchar c1=0x00,c2=0x00,c3=0x00,c4=0x00;
-  Uchar poss[36][2];
+  Uchar poss[37][2];
   Uchar Max=0x00;
   Uchar Note,Smp,Fx,FxVal;
   short TracksAdd[4];

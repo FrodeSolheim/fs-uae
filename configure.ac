@@ -157,6 +157,18 @@ AX_CHECK_COMPILE_FLAG(-Wmissing-format-attribute,
 AM_CONDITIONAL([W_MISSING_FORMAT_ATTRIBUTE],
 [test x$w_missing_format_attribute = xyes])
 
+AX_CHECK_COMPILE_FLAG(-Wformat-overflow,
+[w_format_overflow=yes],
+[w_format_overflow=no])
+AM_CONDITIONAL([W_FORMAT_OVERFLOW],
+[test x$w_format_overflow = xyes])
+
+AX_CHECK_COMPILE_FLAG(-Wc++11-narrowing,
+[w_cpp11_narrowing=yes],
+[w_cpp11_narrowing=no])
+AM_CONDITIONAL([W_CPP11_NARROWING],
+[test x$w_cpp11_narrowing = xyes])
+
 AX_CHECK_COMPILE_FLAG(-fno-pie,
 [fno_pie=yes],
 [fno_pie=no])
@@ -264,30 +276,6 @@ PKG_CHECK_MODULES([MIR], [mirclient], [
 	AC_SUBST([MIR_CFLAGS])
 ])
 
-# AC_ARG_WITH(openal, AS_HELP_STRING(
-#     [--without-openal], [Disable OpenAL audio usage]))
-# AS_IF([test "x$with_openal" != xno], [
-#     # AC_SUBST([USE_OPENAL], [1])
-#     AC_DEFINE([WITH_OPENAL], [1], [Define to 1 to use OpenAL])
-#     PKG_CHECK_MODULES([OPENAL], [openal], [
-#     ], [
-#           AS_CASE([$host_os],
-#           [darwin*], [
-#                   AC_MSG_NOTICE([Using OpenAL.framework])
-#                   OPENAL_LIBS="-framework OpenAL"
-#           ],
-#           [
-#                   AC_CHECK_LIB([openal], [alcOpenDevice], [
-#                           OPENAL_LIBS="-lopenal"
-#                   ], [
-#                           AC_MSG_FAILURE([OpenAL not found])
-#                   ])
-#           ])
-#           AC_SUBST([OPENAL_CFLAGS])
-#           AC_SUBST([OPENAL_LIBS])
-#     ])
-# ])
-
 # AC_SUBST([USE_OPENGL], [1])
 AC_DEFINE([USE_OPENGL], [1], [Define to 1 to use OpenGL])
 PKG_CHECK_MODULES([OPENGL], [gl], [
@@ -321,13 +309,6 @@ AS_IF([test "x$with_midi" != xno], [
         AC_SUBST([MIDI_LIBS])
         AC_DEFINE([WITH_MIDI], [1], [Define to 1 to use midi])
     ])
-])
-
-AC_ARG_WITH(qt, AS_HELP_STRING(
-    [--with-qt], [use QT]))
-AS_IF([test "x$with_qt" = xyes], [
-    AC_DEFINE([WITH_QT], [1], [Define to 1 to use QT])
-    PKG_CHECK_MODULES([QT], [Qt5Gui])
 ])
 
 AC_DEFINE([USE_SDL3], [1], [Define to 1 to use SDL3])

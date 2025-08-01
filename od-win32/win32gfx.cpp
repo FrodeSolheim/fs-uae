@@ -1,5 +1,4 @@
 ﻿/*
-/*
 * UAE - The Un*x Amiga Emulator
 *
 * Win32 Drawing and DirectX interface
@@ -4287,19 +4286,18 @@ void updatewinfsmode(int monid, struct uae_prefs *p)
 
 bool toggle_3d_debug(void)
 {
-#ifdef FSUAE
-	UAE_LOG_STUB("");
-#else
 	if (isvsync_chipset() < 0) {
 		beamracer_debug = !beamracer_debug;
+#ifdef FSUAE
+#else
 		if (D3D_debug) {
 			D3D_debug(0, beamracer_debug);
 		}
+#endif
 		reset_drawing();
 		return true;
 	}
 	return false;
-#endif
 }
 
 int rtg_index = -1;

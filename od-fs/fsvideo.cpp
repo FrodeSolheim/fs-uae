@@ -5,8 +5,23 @@
 
 static bool xD3D_alloctexture (int monid, int w, int h)
 {
-    UAE_LOG_STUB("");
-    return false;
+	UAE_LOG_STUB("monid=%d w=%d h=%d", monid, w, h);
+
+	if (w == 0 || h == 0) {
+		return false;
+	}
+	if (w < 0 || h < 0) {
+#ifdef FSUAE
+        return true;
+#else
+		if (d3d->m_bitmapWidth == -w && d3d->m_bitmapHeight == -h && d3d->texture2d) {
+		    return true;
+		}
+		return false;
+#endif
+	}
+
+	return true;
 }
 
 bool (*D3D_alloctexture)(int, int, int) = xD3D_alloctexture;
@@ -15,6 +30,9 @@ static uae_u8 *video_memory = NULL;
 
 static uae_u8 *xD3D11_locktexture(int monid, int *pitch, int *width, int *height, int fullupdate)
 {
+#if 0
+    printf("locktexture monid=%d");
+#endif
     // FIXME: Temporary hack
     if (video_memory == NULL) {
         video_memory = (uae_u8 *) malloc(2048 * 2048 * 4);
@@ -89,7 +107,8 @@ void D3D_getpixelformat (int *rb, int *gb, int *bb, int *rs, int *gs, int *bs, i
 
 static int xD3D11_isenabled(int monid)
 {
-	return 2;
+	// In WinUAE, D3D11_isenabled returns false (at least to begin with).
+	return 0;
 }
 
 int (*D3D_isenabled)(int monid) = xD3D11_isenabled;

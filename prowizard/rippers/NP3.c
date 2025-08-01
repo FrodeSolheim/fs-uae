@@ -214,7 +214,7 @@ void Depack_Noisepacker3 ( void )
   Uchar c1=0x00,c2=0x00,c3=0x00,c4=0x00;
   Uchar Nbr_Pos;
   Uchar Nbr_Smp;
-  Uchar poss[36][2];
+  Uchar poss[37][2];
   Uchar Pat_Max=0x00;
   long Where=PW_Start_Address;
   long WholeSampleSize=0;

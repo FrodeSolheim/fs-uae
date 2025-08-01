@@ -6,6 +6,11 @@ WARNINGS =
 
 CM_CFLAGS =
 
+AM_CFLAGS =
+AM_CPPFLAGS =
+AM_CXXFLAGS =
+AM_LDFLAGS =
+
 # FIXME: DEBUG BUILDS ONLY
 # CM_CFLAGS += -DDEBUG
 
@@ -13,14 +18,11 @@ CM_CFLAGS += @ALSA_CFLAGS@
 CM_CFLAGS += @FREETYPE_CFLAGS@
 CM_CFLAGS += @GLEW_CFLAGS@
 CM_CFLAGS += @GLIB_CFLAGS@
-# CM_CFLAGS += @GTK3_CFLAGS@
 CM_CFLAGS += @MIR_CFLAGS@
-# CM_CFLAGS += @OPENAL_CFLAGS@
 CM_CFLAGS += @OPENGL_CFLAGS@
 # CM_CFLAGS += @OS_CFLAGS@
 CM_CFLAGS += @PNG_CFLAGS@
 CM_CFLAGS += @PYTHON3_CFLAGS@
-CM_CFLAGS += @QT_CFLAGS@
 CM_CFLAGS += @SDL3_CFLAGS@
 CM_CFLAGS += @SDL3_IMAGE_CFLAGS@
 CM_CFLAGS += @SDL3_TTF_CFLAGS@
@@ -36,47 +38,15 @@ if F_NO_STRICT_ALIASING
 CM_CFLAGS += -fno-strict-aliasing
 endif
 
-if W_NO_FORMAT_TRUNCATION
-if MACOS
-# For some reason clang on mac at least passes the configure test for
-# -Wno-format-truncation but annoyingly warns about unknown option. So
-# don't try to use this on macOS for now.
-else
-CM_CFLAGS += -Wno-format-truncation
-endif
-endif
-
-if W_ADDRESS
-CM_CFLAGS += -Waddress
-endif
-
-#if W_MISSING_FORMAT_ATTRIBUTE
-#CM_CFLAGS += -Wmissing-format-attribute
-#endif
-
-# if W_MISSING_DECLARATIONS
-# CM_CFLAGS += -Wmissing-declarations
-# endif
-
-if W_ERROR_MISSING_DECLARATIONS
-# FIXME: Re-add for C code!
-# CM_CFLAGS += -Werror=missing-declarations
-endif
-
-if W_POINTER_ARITH
-CM_CFLAGS += -Wpointer-arith
-endif
-
 CM_CFLAGS += -fvisibility=hidden
 
-AM_CFLAGS =
-AM_CFLAGS += $(CM_CFLAGS) -std=gnu11
+AM_CFLAGS += $(CM_CFLAGS)
+AM_CFLAGS += -std=gnu11
 
-AM_CXXFLAGS =
 AM_CXXFLAGS += $(CM_CFLAGS)
-AM_CXXFLAGS += -Wno-c++11-narrowing
 
-AM_CPPFLAGS =
+# Pre-processor ---------------------------------------------------------------
+
 AM_CPPFLAGS += @OS_CPPFLAGS@
 AM_CPPFLAGS += -DUAE -DFSUAE -DFSEMU
 
@@ -84,32 +54,6 @@ AM_CPPFLAGS += -DUAE -DFSUAE -DFSEMU
 if IS_64BIT
 AM_CPPFLAGS += -DPTR64
 endif
-
-
-LIBS += @ALSA_LIBS@
-LIBS += @CARBON_LIBS@
-LIBS += @FREETYPE_LIBS@
-LIBS += @GLEW_LIBS@
-LIBS += @GLIB_LIBS@
-# LIBS += @GTK3_LIBS@
-LIBS += @IOKIT_LIBS@
-# LIBS += @MIR_LIBS@
-# LIBS += @OPENAL_LIBS@
-LIBS += @OPENGL_LIBS@
-# LIBS += @OS_LIBS@
-LIBS += @PNG_LIBS@
-LIBS += @QT_LIBS@
-LIBS += @MIDI_LIBS@
-LIBS += @PYTHON3_LIBS@
-LIBS += @SDL3_LIBS@
-LIBS += @SDL3_IMAGE_LIBS@
-LIBS += @SDL3_TTF_LIBS@
-LIBS += @X11_LIBS@
-LIBS += @ZLIB_LIBS@
-
-AM_LDFLAGS =
-# AM_LDFLAGS += -rdynamic
-AM_LDFLAGS += @OS_LDFLAGS@
 
 if JIT
 if FNO_PIE
@@ -127,15 +71,73 @@ endif
 # endif
 endif
 
-if STATIC_BUILD
-AM_LDFLAGS += -static
-AM_CPPFLAGS += -DGLEW_STATIC
-AM_CPPFLAGS += -DAL_LIBTYPE_STATIC
-# Hack for OpenAL static missing libcommon.a
-# LIBS += ../openal-soft/libcommon.a
-# One or more .pc files are missing -liconv
-LIBS += -liconv
-endif
+# Warnings --------------------------------------------------------------------
+
+AM_CFLAGS += -Wall
+# AM_CFLAGS += -Werror=missing-declarations
+
+AM_CXXFLAGS += -Wall
+AM_CXXFLAGS += -Wno-unused-function
+AM_CXXFLAGS += -Wno-unused-variable
+AM_CXXFLAGS += -Wno-unused-but-set-variable
+AM_CXXFLAGS += -Wno-sign-compare
+
+# if W_CPP11_NARROWING
+# AM_CXXFLAGS += -Wno-c++11-narrowing
+# endif
+
+# if W_FORMAT_OVERFLOW
+# AM_CXXFLAGS += -Wno-format-overflow
+# endif
+
+# if W_NO_FORMAT_TRUNCATION
+# if MACOS
+# # For some reason clang on mac at least passes the configure test for
+# # -Wno-format-truncation but annoyingly warns about unknown option. So
+# # don't try to use this on macOS for now.
+# else
+# CM_CFLAGS += -Wno-format-truncation
+# endif
+# endif
+
+# if W_ADDRESS
+# CM_CFLAGS += -Waddress
+# endif
+
+# if W_MISSING_FORMAT_ATTRIBUTE
+# CM_CFLAGS += -Wmissing-format-attribute
+# endif
+
+# if W_MISSING_DECLARATIONS
+# CM_CFLAGS += -Wmissing-declarations
+# endif
+
+# if W_POINTER_ARITH
+# CM_CFLAGS += -Wpointer-arith
+# endif
+
+# -----------------------------------------------------------------------------
+
+LIBS += @ALSA_LIBS@
+LIBS += @CARBON_LIBS@
+LIBS += @FREETYPE_LIBS@
+LIBS += @GLEW_LIBS@
+LIBS += @GLIB_LIBS@
+LIBS += @IOKIT_LIBS@
+# LIBS += @MIR_LIBS@
+LIBS += @OPENGL_LIBS@
+# LIBS += @OS_LIBS@
+LIBS += @PNG_LIBS@
+LIBS += @MIDI_LIBS@
+LIBS += @PYTHON3_LIBS@
+LIBS += @SDL3_LIBS@
+LIBS += @SDL3_IMAGE_LIBS@
+LIBS += @SDL3_TTF_LIBS@
+LIBS += @X11_LIBS@
+LIBS += @ZLIB_LIBS@
+
+# AM_LDFLAGS += -rdynamic
+AM_LDFLAGS += @OS_LDFLAGS@
 
 MSGFMT = @MSGFMT@
 ZIP = @ZIP@
@@ -571,7 +573,6 @@ libuae_a_SOURCES = \
 	od-fs/machdep/x86/maccess.h \
 	od-fs/midi.cpp \
 	od-fs/midi.h \
-	od-fs/mman.cpp \
 	od-fs/mouse.cpp \
 	od-fs/mp3decoder.h \
 	od-fs/parser.cpp \
@@ -608,6 +609,7 @@ libuae_a_SOURCES = \
 	od-win32/dxwrap.h \
 	od-win32/md-fpp.h \
 	od-win32/midi.h \
+	od-win32/mman.cpp \
 	od-win32/parser.h \
 	od-win32/picasso96_win.cpp \
 	od-win32/picasso96_win.h \
@@ -1325,6 +1327,9 @@ noinst_LIBRARIES += libprowizard.a
 AM_CPPFLAGS += -I$(s)/prowizard/include
 fs_uae_LDADD += libprowizard.a
 fs_uae_SOURCES += moduleripper.cpp
+libprowizard_a_CFLAGS = $(AM_CFLAGS)
+libprowizard_a_CFLAGS += -Wno-unused-variable
+libprowizard_a_CFLAGS += -Wno-unused-but-set-variable
 libprowizard_a_SOURCES = \
 	prowizard/include/extern.h \
 	prowizard/include/globals.h \
@@ -1573,7 +1578,6 @@ EXTRA_DIST = $(TESTS) $(EXTRA_TESTS) \
 	src/mame/tm34010/34010ops.c \
 	src/mame/tm34010/34010ops.h \
 	src/mame/tm34010/34010gfx.c \
-	src/od-win32/mman.cpp \
 	src/p96_blit.cpp \
 	src/sinctable.cpp \
 	src/table68k \

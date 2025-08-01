@@ -351,7 +351,10 @@ static void fp_getman(fpdata *a, fpdata *b)
 }
 static void fp_mod(fpdata *a, fpdata *b, uae_u64 *q, uae_u8 *s)
 {
-	a->fpx = floatx80_mod(a->fpx, b->fpx, q, s, &fs);
+	// FIXME: cast is only "necessary" because of long long int vs long int
+	// FIXME: Consider making uae_u64 typedef to uint64_t instead, but this
+	// will cause issues for a lot of #lld debugging calls.
+	a->fpx = floatx80_mod(a->fpx, b->fpx, (uint64_t *)q, s, &fs);
 }
 static void fp_sgldiv(fpdata *a, fpdata *b)
 {
@@ -363,7 +366,8 @@ static void fp_sglmul(fpdata *a, fpdata *b)
 }
 static void fp_rem(fpdata *a, fpdata *b, uae_u64 *q, uae_u8 *s)
 {
-	a->fpx = floatx80_rem(a->fpx, b->fpx, q, s, &fs);
+	// FIXME: cast is only "necessary" because of long long int vs long int
+	a->fpx = floatx80_rem(a->fpx, b->fpx, (uint64_t *) q, s, &fs);
 }
 static void fp_scale(fpdata *a, fpdata *b)
 {

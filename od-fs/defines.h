@@ -1,29 +1,11 @@
 #ifndef EXTRA_DEFINES_H
 #define EXTRA_DEFINES_H
 
-/*
-#ifdef WINDOWS
-#include <Windows.h>
-#undef _WIN32
-#undef WIN32
-#undef WCHAR
-#endif
-*/
-
-// #include "tchar.h"
 // rename init_audio to make init_audio available
 
 #define init_audio uae_init_audio
 
 #include "uae/log.h"
-
-// we are using our own main function, not the one from UAE...
-
-#define NO_MAIN_IN_MAIN_C
-
-#ifndef WINDOWS
-#define CAN_PRINTF_LONG_LONG
-#endif
 
 // UAE code must use this instead of RAND_MAX, and use uaerand for all
 // random number generation
@@ -51,19 +33,6 @@ extern FILE *g_fs_uae_sync_debug_file;
 
 // needed to include functions in include/debug.h, which in turn
 // is needed by code
-
-#define ECS_DENISE
-// #define ENFORCER
-#define GFXFILTER
-#define MMU
-#define MMUEMU /* Aranym 68040 MMU */
-// #define MULTIDISPLAY 1
-#define NATMEM_OFFSET natmem_offset
-#define FULLMMU /* Aranym 68040 MMU */
-#define SUPPORT_THREADS
-#define UAE_FILESYS_THREADS
-#define WITH_SPECIALMONITORS
-#define WITH_SNDBOARD
 
 // #define UAE_FILESYS_ASYNCHRONOUS
 // #define USE_SDL

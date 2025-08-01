@@ -1,22 +1,22 @@
 #ifndef UAE_OD_FS_TARGET_H
 #define UAE_OD_FS_TARGET_H
 
-#define TARGET_NAME "fsuae"
+ /*
+  * UAE - The Un*x Amiga Emulator
+  *
+  * Target specific stuff, FS-UAE
+  *
+  * Copyright Frode Solheim
+  */
 
-#define TARGET_ROM_PATH         "~/"
-#define TARGET_FLOPPY_PATH      "~/"
-#define TARGET_HARDFILE_PATH    "~/"
-#define TARGET_SAVESTATE_PATH   "~/"
+#define TARGET_NAME _T("fsuae")
 
-#ifndef OPTIONSFILENAME
-#define OPTIONSFILENAME "unused.uaerc"
-#endif
+#define NO_MAIN_IN_MAIN_C
+
+#define OPTIONSFILENAME _T("default.uae")
 
 // Don't define this - will cause home dir to be prepended to config paths.
 // #define OPTIONS_IN_HOME
-
-#define DEFPRTNAME "lpr"
-#define DEFSERNAME "/dev/ttyS1"
 
 void filesys_host_init();
 int filesys_get_unit_with_package();

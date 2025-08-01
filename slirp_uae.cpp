@@ -7,6 +7,12 @@
 
 #ifdef WITH_SLIRP
 
+#include "options.h"
+#include "uae/slirp.h"
+#include "uae.h"
+
+#ifdef FSUAE
+
 #include "uae/likely.h"
 #include "threaddep/thread.h"
 
@@ -21,9 +27,6 @@
 
 static int uae_slirp_log_level = UAE_LOG_INFO;
 
-// #define uae_slirp_log(format, ...)             \
-//     uae_log("[SLIRP] " format, ##__VA_ARGS__);
-
 #define uae_slirp_log(format, ...)           \
     if (uae_likely(uae_slirp_log_level >= UAE_LOG_INFO)) { \
         uae_log(_T("[SLIRP] ") format, ##__VA_ARGS__);           \
@@ -34,11 +37,9 @@ static int uae_slirp_log_level = UAE_LOG_INFO;
         uae_log(_T("[SLIRP] ") format, ##__VA_ARGS__);              \
     }
 
-#include "options.h"
-#include "uae/slirp.h"
-#include "uae.h"
-
 #define WITH_NEW_SLIRP
+
+#endif
 
 #ifdef WITH_NEW_SLIRP
 
@@ -638,8 +639,8 @@ bool uae_slirp_start (void)
 
 void uae_slirp_end(void)
 {
-	uae_slirp_log(_T("Slirp end\n"));
 #ifdef WITH_NEW_SLIRP
+	uae_slirp_log(_T("Slirp end\n"));
 	if (slirp_thread_active > 0) {
 		slirp_thread_active = 0;
 		while (slirp_thread_active == 0) {

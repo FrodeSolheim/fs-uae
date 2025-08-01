@@ -1,5 +1,12 @@
 #ifdef FSUAE
 
+#include "sysconfig.h"
+#include "sysdeps.h"
+
+#include "options.h"
+#include "savestate.h"
+#include "zfile.h"
+
 #else
 
 /*==========================================================================
@@ -2211,8 +2218,13 @@ static bool cfgfile_can_write(HWND hDlg, const TCHAR *path)
 	return false;
 }
 
+#endif
+
 int target_cfgfile_load (struct uae_prefs *p, const TCHAR *filename, int type, int isdefault)
 {
+#ifdef FSUAE
+	write_log(_T("target_cfgfile_load"));
+#endif
 	int v, i, type2;
 	int ct, ct2, size;
 	TCHAR tmp1[MAX_DPATH], tmp2[MAX_DPATH];
@@ -2221,9 +2233,14 @@ int target_cfgfile_load (struct uae_prefs *p, const TCHAR *filename, int type, i
 	if (isdefault) {
 		path_statefile[0] = 0;
 	}
+#ifdef FSUAE
+#else
 	error_log(NULL);
+#endif
 	_tcscpy (fname, filename);
 	cname[0] = 0;
+#ifdef FSUAE
+#else
 	if (!zfile_exists (fname)) {
 		fetch_configurationpath (fname, sizeof (fname) / sizeof (TCHAR));
 		if (_tcsncmp (fname, filename, _tcslen (fname)))
@@ -2235,6 +2252,7 @@ int target_cfgfile_load (struct uae_prefs *p, const TCHAR *filename, int type, i
 
 	if (!isdefault)
 		qs_override = 1;
+#endif
 	if (type < 0) {
 		type = 0;
 		cfgfile_get_description(NULL, fname, NULL, NULL, NULL, NULL, NULL, &type);
@@ -2262,12 +2280,17 @@ int target_cfgfile_load (struct uae_prefs *p, const TCHAR *filename, int type, i
 #endif
 	}
 	ct2 = 0;
+#ifdef FSUAE
+#else
 	regqueryint (NULL, _T("ConfigFile_NoAuto"), &ct2);
+#endif
 	v = cfgfile_load (p, fname, &type2, ct2, isdefault ? 0 : 1);
 	if (!v)
 		return v;
 	if (type > 0)
 		return v;
+#ifdef FSUAE
+#else
 	if (cname[0])
 		_tcscpy(config_filename, cname);
 	box_art_check(p, fname);
@@ -2287,9 +2310,13 @@ int target_cfgfile_load (struct uae_prefs *p, const TCHAR *filename, int type, i
 		}
 	}
 	cfgfile_get_shader_config(p, 0);
+#endif
 	v = 1;
 	return v;
 }
+
+#ifdef FSUAE
+#else
 
 static int gui_width, gui_height;
 int gui_fullscreen, gui_darkmode;

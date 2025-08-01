@@ -534,7 +534,6 @@ libuae_a_SOURCES = \
 	od-fs/cdimage_stubs.cpp \
 	od-fs/charset.cpp \
 	od-fs/clock.cpp \
-	od-fs/config-fs.cpp \
 	od-fs/defines.h \
 	od-fs/driveclick.cpp \
 	od-fs/filesys_host.cpp \

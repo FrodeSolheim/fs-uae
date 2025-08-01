@@ -262,7 +262,7 @@ void systray (HWND hwnd, int remove)
 }
 
 #include "uae/compat/windows2.h"
-#include "od-win32/registry.h"
+#include "registry.h"
 
 int regsetint(UAEREG *root, const TCHAR *name, int val)
 {

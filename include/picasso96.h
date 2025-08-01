@@ -13,7 +13,7 @@ uae_u32 picasso_demux (uae_u32 arg, TrapContext *ctx);
 
 #elif defined FSUAE
 
-#include "od-win32/picasso96_win.h"
+#include "picasso96_win.h"
 
 #else
 

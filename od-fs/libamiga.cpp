@@ -25,7 +25,7 @@
 #include "uae/time.h"
 #include "xwin.h"
 
-#include "od-win32/win32gfx.h"
+#include "win32gfx.h"
 
 static struct {
     // GMutex *mutex;

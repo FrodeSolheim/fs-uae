@@ -236,6 +236,7 @@ AM_CPPFLAGS += -I$(s)/jit
 AM_CPPFLAGS += -I$(s)/od-fs
 AM_CPPFLAGS += -I$(s)/od-fs/include
 AM_CPPFLAGS += -I$(s)/od-fs/flac/include
+AM_CPPFLAGS += -I$(s)/od-win32
 fs_uae_LDADD += libuae.a
 # libuae_a_CXXFLAGS = $(CM_CFLAGS) -fpermissive
 libuae_a_SOURCES = \
@@ -526,10 +527,6 @@ libuae_a_SOURCES = \
 	ncr9x_scsi.cpp \
 	newcpu_common.cpp \
 	newcpu.cpp \
-	od-fs/ahi_winuae.cpp \
-	od-fs/ahidsound_new.cpp \
-	od-fs/ahidsound_new.h \
-	od-fs/ahidsound.h \
 	od-fs/blkdev-linux.cpp \
 	od-fs/bridge.cpp \
 	od-fs/bsdsocket_posix.cpp \

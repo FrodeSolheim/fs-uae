@@ -1,3 +1,13 @@
+#ifdef FSUAE
+
+#include "uae/compat/windows.h"
+#include "uae/types.h"
+
+#endif
+
+#ifndef UAE_SOUNDDEP_SOUND_H
+#define UAE_SOUNDDEP_SOUND_H
+
 /*
 * UAE - The Un*x Amiga Emulator
 *
@@ -91,3 +101,5 @@ extern int sounddrivermask;
 #define SOUNDDRIVER_OPENAL 4
 #define SOUNDDRIVER_PORTAUDIO 8
 #define SOUNDDRIVER_XAUDIO2 16
+
+#endif /* UAE_SOUNDDEP_SOUND_H */

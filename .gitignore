@@ -12,6 +12,10 @@
 /configure
 /Makefile
 /Makefile.in
+configuration.backup
+configuration.cache
+winuaebootlog.txt
+winuaelog.txt
 
 # Temporary ignores
 

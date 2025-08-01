@@ -560,7 +560,6 @@ extern void xfree (const void*);
 #define NOWARN_UNUSED(x) x
 #endif
 
-#include "uae/inline.h"
 #include "uae/io.h"
 #include "uae/types.h"
 #include "uae/likely.h"

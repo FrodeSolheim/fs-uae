@@ -446,7 +446,6 @@ libuae_a_SOURCES = \
 	include/uae/attributes.h \
 	include/uae/byteswap.h \
 	include/uae/cdrom.h \
-	include/uae/cycleunit.h \
 	include/uae/debuginfo.h \
 	include/uae/dlopen.h \
 	include/uae/endian.h \

@@ -80,6 +80,12 @@ AM_CPPFLAGS =
 AM_CPPFLAGS += @OS_CPPFLAGS@
 AM_CPPFLAGS += -DUAE -DFSUAE -DFSEMU
 
+# WinUAE/CHD code checks for PTR64 in a header
+if IS_64BIT
+AM_CPPFLAGS += -DPTR64
+endif
+
+
 LIBS += @ALSA_LIBS@
 LIBS += @CARBON_LIBS@
 LIBS += @FREETYPE_LIBS@
@@ -108,9 +114,10 @@ AM_LDFLAGS += @OS_LDFLAGS@
 if JIT
 if FNO_PIE
 AM_CPPFLAGS += -fno-pie
-endif
+else
 if FNO_PIE_CAP
 AM_CPPFLAGS += -fno-PIE
+endif
 endif
 if NO_PIE
 AM_LDFLAGS += -no-pie
@@ -1042,19 +1049,27 @@ if WITH_CHD
 noinst_LIBRARIES += libchd.a
 fs_uae_LDADD +=  libchd.a
 libchd_a_SOURCES = \
+	archivers/chd/astring.cpp \
 	archivers/chd/astring.h \
 	archivers/chd/bitstream.h \
+	archivers/chd/chd.cpp \
 	archivers/chd/chd.h \
-	archivers/chd/chdcd.cpp \
-	archivers/chd/chdcd.h \
 	archivers/chd/chdcdrom.cpp \
 	archivers/chd/chdcdrom.h \
+	archivers/chd/chdcodec.cpp \
 	archivers/chd/chdcodec.h \
+	archivers/chd/chdglue.cpp \
 	archivers/chd/chdtypes.h \
+	archivers/chd/corealloc.cpp \
+	archivers/chd/corealloc.h \
 	archivers/chd/corefile.h \
 	archivers/chd/coretmpl.h \
+	archivers/chd/flac.cpp \
 	archivers/chd/flac.h \
+	archivers/chd/harddisk.cpp \
+	archivers/chd/harddisk.h \
 	archivers/chd/hashing.h \
+	archivers/chd/huffman.cpp \
 	archivers/chd/huffman.h \
 	archivers/chd/md5.h \
 	archivers/chd/osdcore.h \

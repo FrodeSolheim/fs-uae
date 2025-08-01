@@ -6,6 +6,10 @@
 #ifndef USE_ZFILE
 #include "sysconfig.h"
 #include "sysdeps.h"
+#ifdef FSUAE
+#include "uae/attributes.h"
+#include "uae/types.h"
+#endif
 #include "zfile.h"
 #endif
 
@@ -28,7 +32,11 @@
 
 #define ARRAY_LENGTH(x)		(sizeof(x) / sizeof(x[0]))
 
+#ifdef FSUAE
+#define CLIB_DECL uae_cdecl
+#else
 #define CLIB_DECL __cdecl
+#endif
 #define FLAC_API_EXPORTS
 
 /* Macros for normalizing data into big or little endian formats */

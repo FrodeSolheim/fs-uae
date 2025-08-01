@@ -10,7 +10,7 @@ m4_define([fsbuild_version_revision], [0])
 m4_define([fsbuild_commit], [])
 
 AC_INIT([FS-UAE],[fsbuild_version],[frode@fs-uae.net],[fs-uae],[https://fs-uae.net])
-AC_CONFIG_AUX_DIR([od-fs/build/aux])
+AC_CONFIG_AUX_DIR([od-fs/build-aux])
 AC_CANONICAL_HOST
 AC_CONFIG_SRCDIR([./main.cpp])
 AC_CONFIG_HEADERS([od-fs/config.h])
@@ -703,6 +703,13 @@ AC_LINK_IFELSE([AC_LANG_PROGRAM([[
 	AC_MSG_RESULT(no)
 ])
 
+AC_CHECK_SIZEOF([void *])
+AS_IF([test "$ac_cv_sizeof_void_p" -eq 8], [
+    # AC_DEFINE([IS_64BIT], [1], [Define to 1 if the target is 64-bit])
+], [
+    # AC_DEFINE([IS_32BIT], [1], [Define to 1 if the target is 32-bit])
+])
+AM_CONDITIONAL([IS_64BIT], [test "$ac_cv_sizeof_void_p" -eq 8])
 
 # More feature macros. Many of these are generally always enabled, and
 # compiling without them may not work (without further changes to

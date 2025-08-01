@@ -1,3 +1,161 @@
+#ifdef FSUAE
+
+#include "sysconfig.h"
+#include "sysdeps.h"
+
+#include "uae/vm.h"
+#include "uae/fs.h"
+
+#ifdef CPU_64_BIT
+static int os_64bit = 1;
+#else
+static int os_64bit = 0;
+#endif
+
+#ifndef _WIN32
+
+#ifdef HAVE_SYS_PARAM_H
+#include <sys/param.h>
+#endif
+#if defined(__APPLE__)
+#include <sys/sysctl.h>
+#endif
+#include <sys/mman.h>
+
+#define MEM_COMMIT       0x00001000
+#define MEM_RESERVE      0x00002000
+#define MEM_DECOMMIT         0x4000
+#define MEM_RELEASE          0x8000
+#define MEM_WRITE_WATCH  0x00200000
+#define MEM_TOP_DOWN     0x00100000
+
+#define PAGE_EXECUTE_READWRITE 0x40
+#define PAGE_NOACCESS          0x01
+#define PAGE_READONLY          0x02
+#define PAGE_READWRITE         0x04
+
+typedef void * LPVOID;
+typedef size_t SIZE_T;
+
+typedef struct {
+	int dwPageSize;
+} SYSTEM_INFO;
+
+static void GetSystemInfo(SYSTEM_INFO *si)
+{
+	si->dwPageSize = sysconf(_SC_PAGESIZE);
+}
+
+#define USE_MMAP
+
+#ifdef USE_MMAP
+#ifdef MACOSX
+#define MAP_ANONYMOUS MAP_ANON
+#endif
+#endif
+
+static void *VirtualAlloc(void *lpAddress, size_t dwSize, int flAllocationType, int flProtect)
+{
+	write_log("- VirtualAlloc addr=%p size=%zu type=%d prot=%d\n",
+			  lpAddress, dwSize, flAllocationType, flProtect);
+	if (flAllocationType & MEM_RESERVE) {
+		write_log("  MEM_RESERVE\n");
+	}
+	if (flAllocationType & MEM_COMMIT) {
+		write_log("  MEM_COMMIT\n");
+	}
+
+	int prot = 0;
+	if (flProtect == PAGE_READWRITE) {
+		write_log("  PAGE_READWRITE\n");
+		prot = UAE_VM_READ_WRITE;
+	} else if (flProtect == PAGE_READONLY) {
+		write_log("  PAGE_READONLY\n");
+		prot = UAE_VM_READ;
+	} else if (flProtect == PAGE_EXECUTE_READWRITE) {
+		write_log("  PAGE_EXECUTE_READWRITE\n");
+		prot = UAE_VM_READ_WRITE_EXECUTE;
+	} else if (flProtect == PAGE_NOACCESS) {
+		write_log("  PAGE_NOACCESS\n");
+		prot = UAE_VM_NO_ACCESS;
+	} else {
+		write_log("  WARNING: unknown protection\n");
+	}
+
+	void *address = NULL;
+
+	if (flAllocationType == MEM_COMMIT && lpAddress == NULL) {
+		write_log("NATMEM: Allocated non-reserved memory size %zu\n", dwSize);
+		void *memory = uae_vm_alloc(dwSize, 0, UAE_VM_READ_WRITE);
+		if (memory == NULL) {
+			write_log("memory allocated failed errno %d\n", errno);
+		}
+		return memory;
+	}
+
+	if (flAllocationType & MEM_RESERVE) {
+		address = uae_vm_reserve(dwSize, 0);
+	} else {
+		address = lpAddress;
+	}
+
+	if (flAllocationType & MEM_COMMIT) {
+		write_log("commit prot=%d\n", prot);
+		uae_vm_commit(address, dwSize, prot);
+	}
+
+	return address;
+}
+
+static int VirtualProtect(void *lpAddress, int dwSize, int flNewProtect, unsigned int *lpflOldProtect)
+{
+	write_log("- VirtualProtect addr=%p size=%d prot=%d\n",
+			  lpAddress, dwSize, flNewProtect);
+	int prot = 0;
+	if (flNewProtect == PAGE_READWRITE) {
+		write_log("  PAGE_READWRITE\n");
+		prot = UAE_VM_READ_WRITE;
+	} else if (flNewProtect == PAGE_READONLY) {
+		write_log("  PAGE_READONLY\n");
+		prot = UAE_VM_READ;
+	} else {
+		write_log("  -- unknown protection --\n");
+	}
+	if (uae_vm_protect(lpAddress, dwSize, prot) == 0) {
+		write_log("mprotect failed errno %d\n", errno);
+		return 0;
+	}
+	return 1;
+}
+
+static bool VirtualFree(void *lpAddress, size_t dwSize, int dwFreeType)
+{
+	int result = 0;
+	if (dwFreeType == MEM_DECOMMIT) {
+		return uae_vm_decommit(lpAddress, dwSize);
+	}
+	else if (dwFreeType == MEM_RELEASE) {
+		return uae_vm_free(lpAddress, dwSize);
+	}
+	return 0;
+}
+
+static int GetLastError()
+{
+	return errno;
+}
+
+static int my_getpagesize(void)
+{
+	return uae_vm_page_size();
+}
+
+#define getpagesize my_getpagesize
+
+#endif // !WIN32
+
+#endif // FSUAE
+
 // Implement mprotect() for Win32
 // Copyright (C) 2000, Brian King
 // GNU Public License
@@ -18,10 +176,6 @@
 #include "gui.h"
 #ifdef WINUAE
 #include "win32.h"
-#endif
-
-#ifdef FSUAE
-#include "uae/fs.h"
 #endif
 
 #if defined(NATMEM_OFFSET)
@@ -1159,7 +1313,7 @@ int uae_shmget (uae_key_t key, addrbank *ab, int shmflg)
 	int result = -1;
 
 	if ((key == UAE_IPC_PRIVATE) || ((shmflg & UAE_IPC_CREAT) && (find_shmkey (key) == -1))) {
-		write_log (_T("shmget of size %zd (%zdk) for %s (%s)\n"), ab->reserved_size, ab->reserved_size >> 10, ab->label, ab->name);
+		write_log (_T("shmget of size %d (%dk) for %s (%s)\n"), ab->reserved_size, ab->reserved_size >> 10, ab->label, ab->name);
 		if ((result = get_next_shmkey ()) != -1) {
 			shmids[result].size = ab->reserved_size;
 			_tcscpy (shmids[result].name, ab->label);
@@ -1197,10 +1351,9 @@ int uae_shmctl (int shmid, int cmd, struct uae_shmid_ds *buf)
 
 #endif
 
-#ifdef FSUAE
-/* The function isinf is provided by libc. */
-/* FIXME: Replace with HAVE_ISINF? */
-// Also exits on Windows/MSVC, so not sure why this is here...
+#ifdef HAVE_ISINF
+// The function isinf is provided by libc.
+// Also exists on Windows/MSVC, so not sure why this is here...
 #else
 int isinf (double x)
 {

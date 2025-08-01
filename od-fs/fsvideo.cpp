@@ -170,7 +170,6 @@ typedef bool BOOL;
 
 #ifdef PICASSO96
 #include "picasso96.h"
-#include "od-win32/picasso96_win.h"
 #endif
 
 // #include <fs/emu/video.h>

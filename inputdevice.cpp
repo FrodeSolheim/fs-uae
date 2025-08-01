@@ -72,6 +72,10 @@
 #include "native2amiga_api.h"
 #include "videograb.h"
 
+#ifdef FSUAE
+#include "uae/fs.h"
+#endif // FSUAE
+
 #if SIZEOF_TCHAR != 1
 /* FIXME: replace strcasecmp with _tcsicmp in source code instead */
 #undef strcasecmp
@@ -1629,6 +1633,9 @@ static const struct inputevent *readevent (const TCHAR *name, TCHAR **customp)
 
 void read_inputdevice_config (struct uae_prefs *pr, const TCHAR *option, TCHAR *value)
 {
+#ifdef FSUAE
+	// printf("%s = %s\n", option, value);
+#else
 	struct uae_input_device *id = NULL;
 	const struct inputevent *ie;
 	int devnum, num, button, joystick, subnum, idnum, keynum, devtype;
@@ -2024,6 +2031,7 @@ void read_inputdevice_config (struct uae_prefs *pr, const TCHAR *option, TCHAR *
 	if (joystick < 0 && !oldcustommapping)
 		tid->kbreventcnt[devnum]++;
 	xfree (custom);
+#endif
 }
 
 static void generate_jport_custom_item(struct uae_input_device *uid, int num, int port, int devtype, TCHAR *out)
@@ -8138,6 +8146,84 @@ void inputdevice_updateconfig_internal (struct uae_prefs *srcprefs, struct uae_p
 	}
 }
 
+#ifdef FSUAE
+
+static void amiga_set_joystick_port_mode_3 (int port, int mode)
+{
+    const int *ip = NULL;
+#if 0
+    parport_joystick_enabled = 0;
+#endif
+    if (port == 0 || port == 1) {
+        mouse_port[port] = 0;
+        cd32_pad_enabled[port] = 0;
+        for (int j = 0; j < 2; j++) {
+            digital_port[port][j] = 0;
+            analog_port[port][j] = 0;
+            joydirpot[port][j] = 128 / (312 * 100
+                    / currprefs.input_analog_joystick_mult)
+                    + (128 * currprefs.input_analog_joystick_mult / 100)
+                    + currprefs.input_analog_joystick_offset;
+        }
+    }
+
+    if (port == 0) {
+        if (mode == AMIGA_JOYPORT_MOUSE) {
+            ip = ip_mouse1;
+        }
+        else if (mode == AMIGA_JOYPORT_CD32JOY) {
+            ip = ip_joycd321;
+        }
+        else {
+            ip = ip_joy1;
+        }
+    }
+    else if (port == 1) {
+        if (mode == AMIGA_JOYPORT_MOUSE) {
+            ip = ip_mouse2;
+        }
+        else if (mode == AMIGA_JOYPORT_CD32JOY) {
+            ip = ip_joycd322;
+        }
+        else {
+            ip = ip_joy2;
+        }
+    }
+    else if (port == 2) {
+        if (mode == AMIGA_JOYPORT_DJOY) {
+            ip = ip_parjoy1;
+        }
+    }
+    else if (port == 3) {
+        if (mode == AMIGA_JOYPORT_DJOY) {
+            ip = ip_parjoy2;
+        }
+    }
+
+    if (ip) {
+        while (*ip != -1) {
+            iscd32 (*ip);
+            isparport (*ip);
+            ismouse (*ip);
+            isanalog (*ip);
+            isdigitalbutton (*ip);
+            ip++;
+        }
+    }
+
+	// FIXME: We might to plug in this event even lower level, to account for
+	// changes outside of FS-UAE's control.
+	uae_main_post_event(UAE_EVENT_PORT0MODE + port, NULL, mode);
+
+#if 0
+    changed_prefs.jports[port].mode = mode;
+    config_changed = 1;
+    inputdevice_updateconfig(&currprefs);
+#endif
+}
+
+#endif // FSUAE
+
 void inputdevice_updateconfig (struct uae_prefs *srcprefs, struct uae_prefs *dstprefs)
 {
 	inputdevice_updateconfig_internal (srcprefs, dstprefs);
@@ -8155,6 +8241,16 @@ void inputdevice_updateconfig (struct uae_prefs *srcprefs, struct uae_prefs *dst
 	rp_input_change (3);
 	for (int i = 0; i < MAX_JPORTS; i++)
 		rp_update_gameport (i, -1, 0);
+#endif
+#ifdef FSUAE
+	amiga_set_joystick_port_mode_3(0, AMIGA_JOYPORT_MOUSE);
+#if 0
+	printf("inputdevice_updateconfig\n");
+	// uae_main_post_event(UAE_EVENT_FLOPPY0PATH + unitnum, strdup(name));
+	for (int i = 0; i < MAX_JPORTS; i++) {
+		uae_main_post_event(UAE_EVENT_PORT0MODE + i, NULL, srcprefs->jports[i].mode);
+	}
+#endif
 #endif
 }
 

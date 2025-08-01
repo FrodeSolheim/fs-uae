@@ -534,8 +534,8 @@ libuae_a_SOURCES = \
 	od-fs/bridge.cpp \
 	od-fs/bsdsocket_posix.cpp \
 	od-fs/callbacks.h \
-	od-fs/cda_play.cpp \
-	od-fs/cda_play.h \
+	od-win32/cda_play.cpp \
+	od-win32/cda_play.h \
 	od-fs/cdimage_stubs.cpp \
 	od-fs/charset.cpp \
 	od-fs/clock.cpp \

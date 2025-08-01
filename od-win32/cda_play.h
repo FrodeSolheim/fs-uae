@@ -1,3 +1,9 @@
+#ifdef FSUAE
+#ifdef _WIN32
+#else
+typedef void * HWAVEOUT;
+#endif
+#endif
 
 #ifdef _WIN32
 #include <dsound.h>
@@ -34,10 +40,7 @@ struct cda_play
 {
 	int unitnum;
 	int cdda_volume[2];
-#ifdef FSUAE
-#else
 	HWAVEOUT cdda_wavehandle;
-#endif
 	int cd_last_pos;
 	int cdda_play;
 	int cdda_play_finished;

@@ -10,8 +10,9 @@
 int uae_sem_init (uae_sem_t * event, int manual_reset, int initial_state)
 {
 #warning uae_sem is not completely compatible (?) with WinUAE version...
-#if 0
 	if(*event) {
+		write_log(_T("WARNING: uae_sem_init used with existing event (?)\n"));
+#if 0
 		if (initial_state)
 			SetEvent (*event);
 		else
@@ -19,10 +20,14 @@ int uae_sem_init (uae_sem_t * event, int manual_reset, int initial_state)
 	} else {
 		// *event = CreateEvent (NULL, manual_reset, initial_state, NULL);
 		SDL_Semaphore *sem = SDL_CreateSemaphore(initial_state);
-	}
 #endif
+	}
+	if (manual_reset) {
+		write_log(_T("WARNING: uae_sem_init used with manual_reset\n"));
+	}
 	SDL_Semaphore *sem = SDL_CreateSemaphore(initial_state);
 	*event = sem;
+	return (sem == NULL);
 }
 
 void uae_sem_wait (uae_sem_t * event)
@@ -32,7 +37,7 @@ void uae_sem_wait (uae_sem_t * event)
 
 void uae_sem_unpost (uae_sem_t * event)
 {
-	write_log("WARNING: uae_sem_unpost used\n");
+	write_log(_T("WARNING: uae_sem_unpost used\n"));
 	// ResetEvent(*event);
 }
 

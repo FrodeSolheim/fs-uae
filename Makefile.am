@@ -537,7 +537,6 @@ libuae_a_SOURCES = \
 	od-fs/filesys_host.cpp \
 	od-fs/fsdb_host.cpp \
 	od-fs/fsdb_host.h \
-	od-fs/fsvideo.cpp \
 	od-fs/gui.cpp \
 	od-fs/hardfile_host.cpp \
 	od-fs/include/direct3d.h \
@@ -546,11 +545,11 @@ libuae_a_SOURCES = \
 	od-fs/include/uae/uae_inputevents_def.h \
 	od-fs/include/uae/uae.h \
 	od-fs/include/win32gui.h \
-	od-fs/input.cpp \
+	od-fs/input-fs.cpp \
 	od-fs/inputrecord.cpp \
 	od-fs/ioport.cpp \
 	od-fs/ioport.h \
-	od-fs/joystick.cpp \
+	od-fs/joystick-fs.cpp \
 	od-fs/keyboard-fs.cpp \
 	od-fs/libamiga.cpp \
 	od-fs/libuae.cpp \
@@ -565,7 +564,7 @@ libuae_a_SOURCES = \
 	od-fs/machdep/x86/maccess.h \
 	od-fs/midi.cpp \
 	od-fs/midi.h \
-	od-fs/mouse.cpp \
+	od-fs/mouse-fs.cpp \
 	od-fs/mp3decoder.h \
 	od-fs/parser.cpp \
 	od-fs/paths.cpp \
@@ -584,6 +583,7 @@ libuae_a_SOURCES = \
 	od-fs/threading-fs.cpp \
 	od-fs/uae_host.cpp \
 	od-fs/uaemisc.cpp \
+	od-fs/video-fs.cpp \
 	od-fs/videograb-fs.cpp \
 	od-fs/vpar.cpp \
 	od-fs/vpar.h \

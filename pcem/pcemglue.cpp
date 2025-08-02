@@ -831,6 +831,7 @@ thread_t *thread_create(void (*thread_rout)(void *param), void *param)
 	uae_thread_id tid;
 	uae_start_thread(_T("PCem helper"), thread_rout, param, &tid);
 #ifdef FSUAE
+	// FIXME: Ideally split uae_thread_id / uae_thread_t instead.
 	return (thread_t *) tid;
 #else
 	return tid;
@@ -864,6 +865,8 @@ void thread_set_event(event_t *event)
 void thread_reset_event(event_t *_event)
 {
 #ifdef FSUAE
+	// FIXME: Check PCem source code how reset event is supposed to work, and
+	// how it is used on Linux ???
 	#warning uae_sem_init being used to "reset" a semaphore here
 #endif
 	uae_sem_init((uae_sem_t*)&_event, 1, 0);

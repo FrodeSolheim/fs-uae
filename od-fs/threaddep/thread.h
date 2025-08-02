@@ -1,6 +1,12 @@
 #ifndef THREADDEP_THREAD_H
 #define THREADDEP_THREAD_H
 
+#include "uae/tchar.h"
+
+#include <stdint.h>
+
+#if 0
+
 #include "uae/log.h"
 
 #include "fsemu-semaphore.h"
@@ -54,29 +60,64 @@ static inline int uae_sem_trywait_delay(uae_sem_t *sem, int millis)
     return -3;
 }
 
-#include <fs/thread.h>
-
 // FIXME: Possibly only safe for 64-bit systems now
 // SDL3: typedef Uint64 SDL_ThreadID;
 // Maybe better to use uint64_t also here...
-typedef fs_thread *uae_thread_id;
+// typedef fs_thread *uae_thread_id;
+// typedef void *uae_thread_id;
+
+// #include <SDL3/SDL_thread.h>
+// typedef SDL_Thread *uae_thread_id;
+
+#include <stdint.h>
 
 // #define BAD_THREAD NULL
 #define BAD_THREAD 0
 
+#endif
+
+#if 0
 #define uae_set_thread_priority(thread_id, pri)
 
 // typedef int (*uae_thread_function) (void *);
 // typedef fs_thread_function uae_thread_function;
 typedef void (*uae_thread_function)(void *);
-
 int uae_start_thread(const char *name,
                      uae_thread_function fn,
                      void *arg,
                      uae_thread_id *tid);
 extern int uae_start_thread_fast(void (*f)(void *), void *arg, uae_thread_id *thread);
-int uae_wait_thread(uae_thread_id thread);
 void uae_end_thread(uae_thread_id *thread);
+uae_thread_id uae_thread_get_id(void);
+#endif
+
+typedef void *uae_sem_t;
+
+// Because uae_thread is misused, we define this (always) to a 64-bit type,
+// also on 32-bit OSes, to avoid truncating the actual thread IDs, which are
+// 64-bit in SDL3.
+typedef uint64_t uae_thread_id;
+
+extern void uae_sem_destroy(uae_sem_t*);
+extern int uae_sem_trywait(uae_sem_t*);
+extern int uae_sem_trywait_delay(uae_sem_t*, int);
+extern void uae_sem_post(uae_sem_t*);
+extern void uae_sem_unpost(uae_sem_t*);
+extern void uae_sem_wait(uae_sem_t*t);
+// extern void uae_sem_init(uae_sem_t*, int manual_reset, int initial_state);
+int uae_sem_init(uae_sem_t*, int manual_reset, int initial_state);
+
+extern int uae_start_thread(const TCHAR *name, void (*f)(void *), void *arg, uae_thread_id *thread);
+extern int uae_start_thread_fast(void (*f)(void *), void *arg, uae_thread_id *thread);
+extern void uae_end_thread(uae_thread_id *thread);
+extern void uae_set_thread_priority(uae_thread_id *, int);
+extern uae_thread_id uae_thread_get_id(void);
+
+#include "commpipe.h"
+
+#define BAD_THREAD 0
+
+void uae_wait_thread(uae_thread_id tid);
 
 void uae_register_main_thread(void);
 bool uae_is_main_thread(void);
@@ -84,13 +125,4 @@ bool uae_is_main_thread(void);
 void uae_register_emulation_thread(void);
 bool uae_is_emulation_thread(void);
 
-uae_thread_id uae_thread_get_id(void);
-
-/* Do nothing; thread exits if thread function returns.  */
-#define UAE_THREAD_EXIT \
-    do {                \
-    } while (0)
-
-#include "commpipe.h"
-
-#endif // THREADDEP_THREAD_H
+#endif /* THREADDEP_THREAD_H */

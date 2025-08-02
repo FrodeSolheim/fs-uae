@@ -830,7 +830,11 @@ thread_t *thread_create(void (*thread_rout)(void *param), void *param)
 {
 	uae_thread_id tid;
 	uae_start_thread(_T("PCem helper"), thread_rout, param, &tid);
+#ifdef FSUAE
+	return (thread_t *) tid;
+#else
 	return tid;
+#endif
 }
 void thread_kill(thread_t *handle)
 {

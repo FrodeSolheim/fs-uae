@@ -589,7 +589,7 @@ libuae_a_SOURCES = \
 	od-fs/vpar.cpp \
 	od-fs/vpar.h \
 	od-fs/winuae_compat.h \
-	od-fs/writelog_fs.cpp \
+	od-fs/writelog-fs.cpp \
 	od-win32/bsdsock.cpp \
 	od-win32/caps/caps_win32.cpp \
 	od-win32/caps/caps_win32.h \

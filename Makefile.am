@@ -529,8 +529,6 @@ libuae_a_SOURCES = \
 	od-fs/bridge.cpp \
 	od-fs/bsdsocket_posix.cpp \
 	od-fs/callbacks.h \
-	od-win32/cda_play.cpp \
-	od-win32/cda_play.h \
 	od-fs/cdimage_stubs.cpp \
 	od-fs/charset.cpp \
 	od-fs/clock.cpp \
@@ -597,6 +595,8 @@ libuae_a_SOURCES = \
 	od-win32/caps/caps_win32.h \
 	od-win32/caps/CapsAPI.h \
 	od-win32/caps/Comtype.h \
+	od-win32/cda_play.cpp \
+	od-win32/cda_play.h \
 	od-win32/clipboard_win32.cpp \
 	od-win32/clipboard_win32.h \
 	od-win32/debug_win32.h \

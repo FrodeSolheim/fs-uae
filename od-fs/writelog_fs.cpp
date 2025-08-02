@@ -22,68 +22,68 @@
 
 void gui_message (const char *format,...)
 {
-    va_list args;
-    va_start(args, format);
-    char *buffer = g_strdup_vprintf(format, args);
+	va_list args;
+	va_start(args, format);
+	char *buffer = g_strdup_vprintf(format, args);
 	// Remove trailing newline, if any
 	int len = strlen(buffer);
 	if (len > 0 && buffer[len - 1] == '\n') {
 		buffer[len - 1] = '\0';
 	}
-    va_end(args);
-    if (libuae_cb_gui_message) {
-        libuae_cb_gui_message(buffer);
-    } else {
-        printf("gui_message: '%s'\n", buffer);
-    }
-    g_free(buffer);
+	va_end(args);
+	if (libuae_cb_gui_message) {
+		libuae_cb_gui_message(buffer);
+	} else {
+		printf("gui_message: '%s'\n", buffer);
+	}
+	g_free(buffer);
 }
 
 static const char *get_message(int msg)
 {
-    if (msg == NUMSG_NOCAPS) {
-        return "IPF support plugin (capsimg) is not installed";
-    } else if (msg == NUMSG_ROMNEED) {
-        return "One of the following system ROMs is required: %s";
-    } else if (msg == NUMSG_EXPROMNEED) {
-        return "One of the following expansion boot ROMs is required: %s";
-    } else if (msg == NUMSG_KS68020) {
-        return "The selected system ROM requires a 68020 with 32-bit "
-               "addressing or 68030 or higher CPU";
-    } else if (msg == NUMSG_KS68030) {
-        return "The selected system ROM requires a 68030 CPU";
-    } else if (msg == NUMSG_MODRIP_NOTFOUND) {
-        return "Module ripper: No music modules or packed data found";
-    } else if (msg == NUMSG_MODRIP_FINISHED) {
-        return "Module ripper: Scan finished";
-    } else if (msg == NUMSG_NO_PPC) {
-        return "PPC CPU was started but qemu-uae plugin was not found";
-    } else if (msg == NUMSG_UAEBOOTROM_PPC) {
-        return "UAE boot ROM cannot be used with PPC native OS";
-    }
+	if (msg == NUMSG_NOCAPS) {
+		return "IPF support plugin (capsimg) is not installed";
+	} else if (msg == NUMSG_ROMNEED) {
+		return "One of the following system ROMs is required: %s";
+	} else if (msg == NUMSG_EXPROMNEED) {
+		return "One of the following expansion boot ROMs is required: %s";
+	} else if (msg == NUMSG_KS68020) {
+		return "The selected system ROM requires a 68020 with 32-bit "
+			   "addressing or 68030 or higher CPU";
+	} else if (msg == NUMSG_KS68030) {
+		return "The selected system ROM requires a 68030 CPU";
+	} else if (msg == NUMSG_MODRIP_NOTFOUND) {
+		return "Module ripper: No music modules or packed data found";
+	} else if (msg == NUMSG_MODRIP_FINISHED) {
+		return "Module ripper: Scan finished";
+	} else if (msg == NUMSG_NO_PPC) {
+		return "PPC CPU was started but qemu-uae plugin was not found";
+	} else if (msg == NUMSG_UAEBOOTROM_PPC) {
+		return "UAE boot ROM cannot be used with PPC native OS";
+	}
 
-    return NULL;
+	return NULL;
 }
 
 void notify_user (int msg)
 {
 	const char *message = get_message(msg);
-    if (message) {
-        gui_message(message);
-    } else {
-        gui_message (_T("notify_user msg #%d"), msg);
-    }
+	if (message) {
+		gui_message(message);
+	} else {
+		gui_message (_T("notify_user msg #%d"), msg);
+	}
 }
 
 int translate_message (int msg, TCHAR *out)
 {
-    const char *message = get_message(msg);
-    if (message) {
-        snprintf(out, MAX_DPATH, "%s", message);
-    } else {
-        snprintf(out, MAX_DPATH, "translate_message #%d\n", msg);
-    }
-    return 1;
+	const char *message = get_message(msg);
+	if (message) {
+		snprintf(out, MAX_DPATH, "%s", message);
+	} else {
+		snprintf(out, MAX_DPATH, "translate_message #%d\n", msg);
+	}
+	return 1;
 }
 
 void notify_user_parms (int msg, const TCHAR *parms, ...)
@@ -501,10 +501,10 @@ void console_out_f (const TCHAR *format,...)
 	if (bigbuf)
 		xfree(bigbuf);
 #else
-    va_list arg_ptr;
-    va_start(arg_ptr, format);
-    vprintf(format, arg_ptr);
-    va_end(arg_ptr);
+	va_list arg_ptr;
+	va_start(arg_ptr, format);
+	vprintf(format, arg_ptr);
+	va_end(arg_ptr);
 
 #endif
 }
@@ -651,8 +651,8 @@ TCHAR *write_log_get_ts(void)
 	p = out;
 	*p = 0;
 #if 0
-    _stprintf (p, _T("XX-XXX"));
-    p += _tcslen (p);
+	_stprintf (p, _T("XX-XXX"));
+	p += _tcslen (p);
 #else
 	if (_tcsncmp (curts, lastts, _tcslen (curts) - 3)) { // "xx\n"
 		_tcscat (p, curts);
@@ -672,7 +672,7 @@ TCHAR *write_log_get_ts(void)
 
 void write_logx(const char *format, ...)
 {
-    // FIXME
+	// FIXME
 }
 
 #include <glib/gprintf.h>
@@ -692,9 +692,9 @@ void write_log (const TCHAR *format, ...)
 
 	fsemu_mutex_lock(mutex);
 
-    va_list args;
-    va_start(args, format);
-    // char *buffer = g_strdup_vprintf(format, args);
+	va_list args;
+	va_start(args, format);
+	// char *buffer = g_strdup_vprintf(format, args);
 
 	static char buffer[MAX_LINE];
 	static int partial;
@@ -710,7 +710,7 @@ void write_log (const TCHAR *format, ...)
 	}
 
 	int result = g_vsnprintf(buffer + partial, MAX_LINE - partial, format, args);
-    va_end(args);
+	va_end(args);
 
 	// FIXME: Take a closer look at this code
 	int len = strlen(buffer + partial);
@@ -729,31 +729,31 @@ void write_log (const TCHAR *format, ...)
 	// Remove trailing newline
 	buffer[partial + len - 1] = '\0';
 
-    char *buffer2 = NULL;
+	char *buffer2 = NULL;
 #if 0
-    TCHAR *ts = write_log_get_ts();
-    // printf("%s\n", ts ? ts : "");
-    if (ts) {
-        buffer2 = g_strdup_printf("%s%s", ts, buffer);
-    }
+	TCHAR *ts = write_log_get_ts();
+	// printf("%s\n", ts ? ts : "");
+	if (ts) {
+		buffer2 = g_strdup_printf("%s%s", ts, buffer);
+	}
 #endif
 
-    // log_function function = g_libamiga_callbacks.log;
+	// log_function function = g_libamiga_callbacks.log;
 	// FIXME
 	// function = NULL;
-    if (libuae_cb_write_log) {
-        if (buffer2) {
-            libuae_cb_write_log(buffer2);
-        } else {
-            libuae_cb_write_log(buffer);
-        }
-    } else {
-        printf("write_log: '%s'\n", buffer);
-    }
-    // free(buffer);
-    if (buffer2) {
-        free(buffer2);
-    }
+	if (libuae_cb_write_log) {
+		if (buffer2) {
+			libuae_cb_write_log(buffer2);
+		} else {
+			libuae_cb_write_log(buffer);
+		}
+	} else {
+		printf("write_log: '%s'\n", buffer);
+	}
+	// free(buffer);
+	if (buffer2) {
+		free(buffer2);
+	}
 
 	partial = 0;
 	fsemu_mutex_unlock(mutex);
@@ -762,26 +762,26 @@ void write_log (const TCHAR *format, ...)
 void jit_abort (const TCHAR *format,...)
 {
 
-    va_list args;
-    va_start(args, format);
-    char *buffer = g_strdup_vprintf(format, args);
-    va_end(args);
-    log_function function = g_libamiga_callbacks.log;
-    if (function) {
-        function(buffer);
-    } else {
-        printf("%s", buffer);
-    }
+	va_list args;
+	va_start(args, format);
+	char *buffer = g_strdup_vprintf(format, args);
+	va_end(args);
+	log_function function = g_libamiga_callbacks.log;
+	if (function) {
+		function(buffer);
+	} else {
+		printf("%s", buffer);
+	}
 #if 1
-    fprintf(stderr, "JIT: %s\n", buffer);
-    abort();
+	fprintf(stderr, "JIT: %s\n", buffer);
+	abort();
 #else
-    static int happened;
-    //int count;
-    if (!happened)
-        gui_message (_T("JIT: Serious error:\n%s"), buffer);
-    happened = 1;
-    uae_reset(1, 1);
+	static int happened;
+	//int count;
+	if (!happened)
+		gui_message (_T("JIT: Serious error:\n%s"), buffer);
+	happened = 1;
+	uae_reset(1, 1);
 #endif
-    g_free(buffer);
+	g_free(buffer);
 }

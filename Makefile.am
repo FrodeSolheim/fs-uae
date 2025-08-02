@@ -572,20 +572,19 @@ libuae_a_SOURCES = \
 	od-fs/random.cpp \
 	od-fs/roms.cpp \
 	od-fs/sleep.h \
-	od-fs/sound_fs.cpp \
-	od-fs/sounddep/sound.h \
+	od-fs/sound-fs.cpp \
 	od-fs/spin.cpp \
-	od-fs/statusline.cpp \
+	od-fs/statusline-fs.cpp \
 	od-fs/stubs.cpp \
 	od-fs/support.cpp \
 	od-fs/sysconfig.h \
 	od-fs/target.h \
 	od-fs/threaddep/sem.h \
 	od-fs/threaddep/thread.h \
-	od-fs/threading.cpp \
+	od-fs/threading-fs.cpp \
 	od-fs/uae_host.cpp \
 	od-fs/uaemisc.cpp \
-	od-fs/videograb_fs.cpp \
+	od-fs/videograb-fs.cpp \
 	od-fs/vpar.cpp \
 	od-fs/vpar.h \
 	od-fs/winuae_compat.h \

@@ -1,5 +1,0 @@
-
-- Hide absolute input (always convert to relative internally?)
-- Look for FIXMEs.
-
-/* end of TODO ... */

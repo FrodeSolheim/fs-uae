@@ -94,7 +94,7 @@ Dependencies:
 If you've download the git repository, you need to bootstrap the project
 (autoconf/automake and friends are needed for this step) by running:
 
-    build/bootstrap
+    od-fs/bootstrap
 
 Then you can go ahead and configure and build the project like this:
 
@@ -110,7 +110,7 @@ You can then run fs-uae directly from the source directory by running:
 There is no dedicated configure flag for enabling a debug build. Instead, you
 can run the following command with environment flags:
 
-    ./configure CFLAGS="-g -O0" CXXFLAGS="-g -O0"
+    ./configure CPPFLAGS="-DDEBUG" CFLAGS="-g -O0" CXXFLAGS="-g -O0"
 
 ## Installation instructions
 

@@ -1,37 +1,23 @@
 # FS-UAE
 
+__pycache__/
+.~*
 .deps/
 .dirstamp
 *.a
 *~
-/fs-uae
-/fs-uae.exe
 /aclocal.m4
 /autom4te.cache/
 /config.status
 /configure
+/fs-uae
+/fs-uae.exe
 /Makefile
 /Makefile.in
 configuration.backup
 configuration.cache
 winuaebootlog.txt
 winuaelog.txt
-
-# Temporary ignores
-
-/.vscode/launch.json
-/Configurations
-/Data
-/Floppies
-/Games
-/od-fs/fsapp
-/od-fs/fsemu
-/od-fs/fsgui
-/od-fs/fslib
-/od-fs/fsuae
-/od-fs/libuae
-/od-fs/python
-/System
 
 # WinUAE
 

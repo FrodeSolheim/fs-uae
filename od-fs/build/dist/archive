@@ -1,0 +1,42 @@
+#!/bin/sh
+
+# set -e
+
+# . PACKAGE.FS
+
+# ARCHIVE=fs-uae.tar.xz
+
+# mkdir -p build/dist/_dist
+# cd build/dist/_bundle
+# tar cfvJ "../_dist/$ARCHIVE" *
+# echo "Wrote build/dist/_dist/$ARCHIVE"
+
+
+
+set -e
+
+. ./PACKAGE.FS
+. build/scripts/system.sh
+
+OS=$SYSTEM_OS_DIST
+ARCH=$SYSTEM_ARCH_DIST
+
+rm -Rf build/dist/_dist
+mkdir -p build/dist/_dist
+
+cd build/dist/_bundle
+
+if [ "$SYSTEM_OS" = "Windows" ]; then
+ARCHIVE=${PACKAGE_NAME_PRETTY}_${PACKAGE_VERSION}_${OS}_${ARCH}.zip
+zip -r ../_dist/$ARCHIVE *
+fi
+ARCHIVE=${PACKAGE_NAME_PRETTY}_${PACKAGE_VERSION}_${OS}_${ARCH}.tar.xz
+tar cfJv ../_dist/$ARCHIVE *
+
+cd ../../..
+
+echo ""
+du -h build/dist/_dist/
+echo -------------------------------------------------------------------------\
+-------
+echo "[FSBUILD] Archived build/dist/_dist/$ARCHIVE"

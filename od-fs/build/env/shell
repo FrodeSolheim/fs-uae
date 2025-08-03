@@ -1,0 +1,16 @@
+#!/bin/sh
+
+set -e
+
+BUILD_ENV_DIR="$(cd "$(dirname "$0")" && pwd)"
+echo "BUILD_ENV_DIR=$BUILD_ENV_DIR"
+
+. "$BUILD_ENV_DIR/scripts/env.sh"
+
+COMMAND=$1
+if [ -z "$COMMAND" ]; then
+    exec bash --rcfile "$BUILD_ENV_DIR/scripts/bashrc"
+else
+    shift
+    "$COMMAND" "$@"
+fi

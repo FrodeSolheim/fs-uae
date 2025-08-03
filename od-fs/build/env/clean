@@ -1,0 +1,11 @@
+#!/bin/sh
+
+set -e
+
+export BUILD_ENV_DIR="$(cd "$(dirname "$0")" && pwd)"
+echo "BUILD_ENV_DIR=$BUILD_ENV_DIR"
+
+. "$BUILD_ENV_DIR/scripts/env.sh"
+
+rm -Rf $FSENV_PREFIX
+echo "Deleted $FSENV_PREFIX"

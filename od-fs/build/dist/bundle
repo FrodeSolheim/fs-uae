@@ -1,0 +1,68 @@
+#!/bin/sh
+
+set -e
+
+. build/scripts/system.sh
+
+BUNDLE_DIR="build/dist/_bundle"
+
+mkdir -p "$BUNDLE_DIR"
+rm -Rf "$BUNDLE_DIR"/*
+
+# mkdir -p build/_dist
+# rm -Rf build/_dist/*
+
+# DIST_DIR="build/_dist"
+
+DATA_DIR="$BUNDLE_DIR/Data"
+SYSTEM_DIR="$BUNDLE_DIR/System"
+
+EXE_DIR="$SYSTEM_DIR/FS-UAE/$SYSTEM_OS/$SYSTEM_ARCH"
+PYTHON_DIR="$SYSTEM_DIR/FS-UAE/Python"
+DATA_DST="$SYSTEM_DIR/FS-UAE/Data"
+
+DATA_SRC="System/FS-UAE/Data"
+
+# FIXME: Content
+touch "$BUNDLE_DIR/ReadMe.txt"
+
+mkdir -p "$EXE_DIR"
+cp -a fs-uae "$EXE_DIR"
+
+mkdir -p "$DATA_DST"
+cp -a "$DATA_SRC/"* "$DATA_DST"
+
+# FIXME: Not working on macOS...
+mkdir -p "$PYTHON_DIR"
+rsync -av --exclude __pycache__ python/ "$PYTHON_DIR"/
+
+mkdir -p "$DATA_DIR"
+
+# FIXME: Content
+touch "$DATA_DIR/ReadMe.txt"
+
+mkdir -p "$DATA_DIR/ROM"
+
+# FIXME: Content
+touch "$DATA_DIR/ROM/ReadMe.txt"
+
+mkdir -p "$DATA_DIR/ROM/Kickstart"
+
+# So Windows notepad can read these properly (maybe no longer needed)
+unix2dos "$BUNDLE_DIR/ReadMe.txt"
+unix2dos "$DATA_DIR/ReadMe.txt"
+unix2dos "$DATA_DIR/ROM/ReadMe.txt"
+
+if [ "$SYSTEM_OS" = "macOS" ]; then
+sh build/scripts/appify.sh \
+"$BUNDLE_DIR" \
+"FS-UAE" \
+"System/FS-UAE/$SYSTEM_OS/$SYSTEM_ARCH/fs-uae" \
+"no.fengestad.fs-uae"
+mv "$BUNDLE_DIR/FS-UAE.app" "$EXE_DIR/"
+fi
+
+# Standalone
+python3 build/scripts/standalone.py "$EXE_DIR"
+
+# FIXME: "Launcher"... ?

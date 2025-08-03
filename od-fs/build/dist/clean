@@ -1,0 +1,6 @@
+#!/bin/sh
+
+set -e
+
+rm -Rf build/dist/_bundle
+echo "Deleted build/dist/_bundle"

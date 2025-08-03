@@ -1,3 +1,9 @@
+#ifdef FSUAE
+
+#include <SDL3/SDL.h>
+
+#endif
+
 /*
  * compiler/compemu.h - Public interface and definitions
  *
@@ -572,6 +578,9 @@ void jit_abort(const char *format,...) __attribute__((format(printf, 1, 2))) __a
 #ifdef CPU_64_BIT
 static inline uae_u32 check_uae_p32(uintptr address, const char *file, int line)
 {
+#ifdef FSUAE
+	SDL_assert_release(address <= (uintptr_t) 0xffffffff);
+#endif
 	if (address > (uintptr_t) 0xffffffff) {
 		jit_abort("JIT: 64-bit pointer (0x%llx) at %s:%d (fatal)",
 			(unsigned long long)address, file, line);

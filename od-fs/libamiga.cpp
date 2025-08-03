@@ -27,6 +27,8 @@
 
 #include "win32gfx.h"
 
+#include <SDL3/SDL.h>
+
 static struct {
     // GMutex *mutex;
     GAsyncQueue *main_queue;
@@ -39,7 +41,7 @@ amiga_media_function g_amiga_media_function = NULL;
 
 int g_uae_deterministic_mode = 0;
 int g_amiga_paused = 0;
-bool g_fs_uae_jit_compiler;
+bool g_fs_uae_jit_compiler = 1;
 int g_amiga_savestate_docompress = 1;
 
 #ifdef DEBUG_SYNC
@@ -368,6 +370,8 @@ void amiga_main(void)
     max_uae_width = 8192;
     max_uae_height = 8192;
 
+    bool preinit_shm_success = preinit_shm();
+    SDL_assert_release(preinit_shm_success);
 
     write_log (_T("Enumerating display devices.. \n"));
     enumeratedisplays();

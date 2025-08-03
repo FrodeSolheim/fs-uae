@@ -293,12 +293,12 @@ bool preinit_shm (void)
 	uae_u32 max_allowed_mman;
 
 	if (natmem_reserved)
+#ifdef FSUAE
+		uae_vm_free(natmem_reserved, natmem_reserved_size);
+#else
 #ifdef _WIN32
 		VirtualFree (natmem_reserved, 0, MEM_RELEASE);
 #else
-#ifdef FSUAE
-		// free (natmem_reserved);
-		uae_vm_free(natmem_reserved, natmem_reserved_size);
 #endif
 #endif
 	natmem_reserved = NULL;
@@ -308,10 +308,6 @@ bool preinit_shm (void)
 #ifdef _WIN32
 		VirtualFree (p96mem_offset, 0, MEM_RELEASE);
 #else
-#ifdef FSUAE
-		/* Don't free p96mem_offset - it is freed as part of natmem_offset */
-		// free (p96mem_offset);
-#endif
 #endif
 	}
 	p96mem_offset = NULL;
@@ -411,15 +407,6 @@ bool preinit_shm (void)
 				  totalphys64 >> 20, total64 >> 20);
 	write_log(_T("MMAN: Attempting to reserve: %u MB\n"), natmem_size >> 20);
 
-#ifdef FSUAE
-	int vm_flags = UAE_VM_32BIT | UAE_VM_WRITE_WATCH;
-	//write_log("NATMEM: jit compiler %d\n", g_fs_uae_jit_compiler);
-	if (!g_fs_uae_jit_compiler) {
-		/* Not using the JIT compiler, so we do not need "32-bit memory". */
-		vm_flags &= ~UAE_VM_32BIT;
-	}
-	natmem_reserved = (uae_u8 *) uae_vm_reserve(natmem_size, vm_flags);
-#else
 #if 1
 	natmem_reserved = (uae_u8 *) uae_vm_reserve(natmem_size, UAE_VM_32BIT | UAE_VM_WRITE_WATCH);
 #else
@@ -427,17 +414,28 @@ bool preinit_shm (void)
 	natmem_reserved = (uae_u8 *) uae_vm_reserve_fixed(
 		(void *) 0x90000000, natmem_size, UAE_VM_32BIT | UAE_VM_WRITE_WATCH);
 #endif
-#endif
 
+#ifdef FSUAE
+	int vm_flags = UAE_VM_32BIT | UAE_VM_WRITE_WATCH;
+#if 0
+	//write_log("NATMEM: jit compiler %d\n", g_fs_uae_jit_compiler);
+	if (!g_fs_uae_jit_compiler) {
+		/* Not using the JIT compiler, so we do not need "32-bit memory". */
+		vm_flags &= ~UAE_VM_32BIT;
+	}
+	natmem_reserved = (uae_u8 *) uae_vm_reserve(natmem_size, vm_flags);
+#endif
+	if (!natmem_reserved && natmem_size > 2048 * 1024 * 1024U) {
+		// Try limiting to a 2 GB contigugous area
+		natmem_size = 2048 * 1024 * 1024U;
+		natmem_reserved = (uae_u8 *) uae_vm_reserve(natmem_size, vm_flags);
+	}
+#else
 	if (!natmem_reserved) {
 		if (natmem_size <= 768 * 1024 * 1024) {
 			uae_u32 p = 0x78000000 - natmem_size;
 			for (;;) {
-#ifdef FSUAE
-				natmem_reserved = (uae_u8 *) uae_vm_reserve(natmem_size, vm_flags);
-#else
 				natmem_reserved = (uae_u8*) VirtualAlloc((void*)(intptr_t)p, natmem_size, MEM_RESERVE | MEM_WRITE_WATCH, PAGE_READWRITE);
-#endif
 				if (natmem_reserved)
 					break;
 				p -= 128 * 1024 * 1024;
@@ -446,6 +444,7 @@ bool preinit_shm (void)
 			}
 		}
 	}
+#endif
 	if (!natmem_reserved) {
 		DWORD vaflags = MEM_RESERVE | MEM_WRITE_WATCH;
 #ifdef _WIN32
@@ -661,7 +660,7 @@ static int doinit_shm (void)
 		}
 #ifdef _WIN64
 #ifdef FSUAE
-		/* FIXME: Check for FS-UAE. */
+		// FIXME: Check for FS-UAE. - Should be check for 64-bit CPU instead?
 #endif
 		// 64-bit can't do natmem_offset..
 		notify_user(NUMSG_NOMEMORY);

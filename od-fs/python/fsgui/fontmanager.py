@@ -81,12 +81,18 @@ class FontManager:
         elif weight == FontWeight.BOLD:
             weight_name = "Bold"
 
-        font_file_path = os.path.join(
-            fsapp.data_dir, "Fonts", f"{name}-{weight_name}.ttf"
-        )
-        print(font_file_path)
+        font_file_name = f"{name}-{weight_name}.ttf"
+        for fonts_dir in fsapp.fonts_dirs:
+            font_path = os.path.join(
+                fonts_dir, font_file_name
+            )
+            print(font_path)
+            if os.path.exists(font_path):
+                break
+        else:
+            raise FileNotFoundError(font_file_name)
 
-        font = fsgui_font.load(font_file_path, size)
+        font = fsgui_font.load(font_path, size)  # type: ignore
         self._font_cache[cache_key] = font
         return self._font_cache[cache_key]
 

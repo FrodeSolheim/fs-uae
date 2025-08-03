@@ -7,15 +7,17 @@ from fsapp2 import fsapp
 class Image:
     @classmethod
     def from_resource(cls, name: str) -> "Image":
-        # FIXME
-        path = os.path.join(fsapp.data_dir, name)
+        for images_dir in fsapp.images_dirs:
+            image_path = os.path.join(
+                images_dir, name
+            )
+            print(image_path)
+            if os.path.exists(image_path):
+                break
+        else:
+            raise FileNotFoundError(name)
 
-        # import fsapp
-
-        # image._fsgui_image = fsgui_image.load(path)
-        # image.width, image.height = fsgui_image.get_size(image._fsgui_image)
-
-        image = Image(fsgui_image.load(path))
+        image = Image(fsgui_image.load(image_path))
         return image
 
     def __init__(self, _image):

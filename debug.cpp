@@ -1066,7 +1066,7 @@ static size_t next_string (TCHAR **c, TCHAR *out, int max, int forceupper)
 			ignore_ws (c);
 			break;
 		}
-		*p = next_char (c);
+		*p = next_char2(c);
 		if (forceupper)
 			*p = _totupper(*p);
 		*++p = 0;
@@ -4014,6 +4014,7 @@ static int memwatch_func (uaecptr addr, int rwi, int size, uae_u32 *valp, uae_u3
 		uae_u32 oldval = 0;
 		int isoldval = 0;
 		int brk = 0;
+		uae_u32 newval = 0;
 
 		if (m->size == 0)
 			continue;
@@ -4041,12 +4042,16 @@ static int memwatch_func (uaecptr addr, int rwi, int size, uae_u32 *valp, uae_u3
 
 		if (mem_banks[addr >> 16]->check (addr, size)) {
 			uae_u8 *p = mem_banks[addr >> 16]->xlateaddr (addr);
-			if (size == 1)
+			if (size == 1) {
 				oldval = p[0];
-			else if (size == 2)
+				newval = (*valp) & 0xff;
+			} else if (size == 2) {
 				oldval = (p[0] << 8) | p[1];
-			else
+				newval = (*valp) & 0xffff;
+			} else {
 				oldval = (p[0] << 24) | (p[1] << 16) | (p[2] << 8) | (p[3] << 0);
+				newval = *valp;
+			}
 			isoldval = 1;
 		}
 
@@ -4084,7 +4089,7 @@ static int memwatch_func (uaecptr addr, int rwi, int size, uae_u32 *valp, uae_u3
 		}
 
 		if (m->mustchange && rwi == 2 && isoldval) {
-			if (oldval == *valp)
+			if (oldval == newval)
 				continue;
 		}
 
@@ -5993,20 +5998,12 @@ static void saveloadmem (TCHAR **cc, bool save)
 	uae_u8 b;
 	uae_u32 src, src2;
 	int len, len2;
-	TCHAR *name;
+	TCHAR name[MAX_PATH];
 	FILE *fp;
 
 	if (!more_params (cc))
 		goto S_argh;
-
-	name = *cc;
-	while (**cc != '\0' && !isspace (**cc))
-		(*cc)++;
-	if (!isspace (**cc))
-		goto S_argh;
-
-	**cc = '\0';
-	(*cc)++;
+	next_string(cc, name, sizeof(name) / sizeof(TCHAR), 0);
 	if (!more_params (cc))
 		goto S_argh;
 	src2 = src = readhex(cc, NULL);

@@ -9338,7 +9338,7 @@ static int bip_a1200 (struct uae_prefs *p, int config, int compa, int romcheck)
 	roms[1] = 15;
 	roms[2] = 31;
 	roms[3] = -1;
-#ifdef FSUAE
+#ifdef FSUAE_XXX
 	roms[1] = -1;
 #endif
 	roms_bliz[0] = -1;
@@ -9802,17 +9802,13 @@ static bool has_expansion_with_rtc(struct uae_prefs* p, int chiplimit)
 	return false;
 }
 
-#ifdef FSUAE
-/**
- * This function will be called (twice) by fixup_prefs after custom uae_
- * options have been applied, and may reset some (chipset) options overriden
- * by the user unless also uae_chipset_compatible has been set to -.
- */
-#endif
 int built_in_chipset_prefs (struct uae_prefs *p)
 {
 #ifdef FSUAE
-	write_log("built_in_chipset_prefs %d, ignore = %d\n", p->cs_compatible, !p->cs_compatible);
+	 //This function will be called (twice) by fixup_prefs after custom uae_
+	 // options have been applied, and may reset some (chipset) options overriden
+	 // by the user unless also uae_chipset_compatible has been set to -.
+write_log("built_in_chipset_prefs %d, ignore = %d\n", p->cs_compatible, !p->cs_compatible);
 #endif
 	if (!p->cs_compatible)
 		return 1;

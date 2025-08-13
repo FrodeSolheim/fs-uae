@@ -177,7 +177,11 @@ static int mySockStartup(void)
 		lasterror = WSAGetLastError();
 		if(lasterror == WSAVERNOTSUPPORTED) {
 			TCHAR szMessage[MAX_DPATH];
+#ifdef FSUAE
+			strcpy(szMessage, "IDS_WSOCK2NEEDED");
+#else
 			WIN32GUI_LoadUIString(IDS_WSOCK2NEEDED, szMessage, MAX_DPATH);
+#endif
 			gui_message(szMessage);
 		} else
 			write_log (_T("BSDSOCK: ERROR - Unable to initialize Windows socket layer! Error code: %d\n"), lasterror);

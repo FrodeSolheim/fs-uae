@@ -408,7 +408,16 @@ bool preinit_shm (void)
 	write_log(_T("MMAN: Attempting to reserve: %u MB\n"), natmem_size >> 20);
 
 #if 1
+#ifdef FSUAE
+#ifdef JIT
+	int vm_flags = UAE_VM_32BIT | UAE_VM_WRITE_WATCH;
+#else
+	int vm_flags = UAE_VM_WRITE_WATCH;
+#endif
+	natmem_reserved = (uae_u8 *) uae_vm_reserve(natmem_size, vm_flags);
+#else
 	natmem_reserved = (uae_u8 *) uae_vm_reserve(natmem_size, UAE_VM_32BIT | UAE_VM_WRITE_WATCH);
+#endif
 #else
 	natmem_size = 0x20000000;
 	natmem_reserved = (uae_u8 *) uae_vm_reserve_fixed(
@@ -416,7 +425,6 @@ bool preinit_shm (void)
 #endif
 
 #ifdef FSUAE
-	int vm_flags = UAE_VM_32BIT | UAE_VM_WRITE_WATCH;
 #if 0
 	//write_log("NATMEM: jit compiler %d\n", g_fs_uae_jit_compiler);
 	if (!g_fs_uae_jit_compiler) {

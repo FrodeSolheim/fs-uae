@@ -33,7 +33,17 @@
 #include "rommgr.h"
 
 #ifdef WITH_CHD
+#ifdef FSUAE
+
+#include "zarchive.h"
+
+#define chd_error std::error_condition
+#define CHDERR_NONE std::error_condition()
+#define CHDERR_FILE_NOT_WRITEABLE chd_file::error::FILE_NOT_WRITEABLE
+
+#else
 #include "archivers/chd/chdtypes.h"
+#endif
 #include "archivers/chd/chd.h"
 #include "archivers/chd/harddisk.h"
 #endif
@@ -663,14 +673,27 @@ int hdf_open (struct hardfiledata *hfd, const TCHAR *pname)
 			zf = zfile_fopen (nametmp, _T("rb"));
 		}
 		if (zf) {
+#ifdef FSUAE
+			std::error_condition err;
+#else
 			int err = CHDERR_FILE_NOT_WRITEABLE;
+#endif
 			hard_disk_file *chdf;
 			chd_file *cf = new chd_file();
 			if (!chd_readonly)
+#ifdef FSUAE
+				err = cf->open(zf->name, true, NULL);
+			if (err == chd_file::error::FILE_NOT_WRITEABLE) {
+#else
 				err = cf->open(*zf, true, NULL);
 			if (err == CHDERR_FILE_NOT_WRITEABLE) {
+#endif
 				chd_readonly = true;
+#ifdef FSUAE
+				err = cf->open(zf->name, false, NULL);
+#else
 				err = cf->open(*zf, false, NULL);
+#endif
 			}
 			if (err != CHDERR_NONE) {
 				zfile_fclose (zf);

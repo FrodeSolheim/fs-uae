@@ -90,11 +90,7 @@
 // 128 = potgo write
 // 256 = cia buttons write
 
-#ifdef FSUAE
-int inputdevice_logging = 1;
-#else
 int inputdevice_logging = 0;
-#endif
 extern int tablet_log;
 
 #define COMPA_RESERVED_FLAGS (ID_FLAG_INVERT)
@@ -6692,6 +6688,10 @@ static void check_enable(int ei)
 
 static void scanevents (struct uae_prefs *p)
 {
+#ifdef FSUAE
+	UAE_LOG_STUB_MAX(1, "");
+	return;
+#endif
 	int i, j, k, ei;
 	const struct inputevent *e;
 	int n_joy = idev[IDTYPE_JOYSTICK].get_num ();
@@ -7468,6 +7468,10 @@ static void setautofires (struct uae_prefs *prefs, int port, int sub, int af, bo
 // merge gameport settings with current input configuration
 static void compatibility_copy (struct uae_prefs *prefs, bool gameports)
 {
+#ifdef FSUAE
+	UAE_LOG_STUB_MAX(1, "");
+	return;
+#endif
 	int used[MAX_INPUT_DEVICES] = { 0 };
 	int joy;
 
@@ -8148,12 +8152,16 @@ void inputdevice_updateconfig_internal (struct uae_prefs *srcprefs, struct uae_p
 
 #ifdef FSUAE
 
+#include <SDL3/SDL.h>
+
 static void amiga_set_joystick_port_mode_3 (int port, int mode)
 {
     const int *ip = NULL;
 #if 0
     parport_joystick_enabled = 0;
 #endif
+	SDL_assert(currprefs.input_analog_joystick_mult != 0);
+
     if (port == 0 || port == 1) {
         mouse_port[port] = 0;
         cd32_pad_enabled[port] = 0;
@@ -10711,6 +10719,8 @@ static void amiga_set_joystick_port_mode_2 (int port, int mode)
 #if 0
     parport_joystick_enabled = 0;
 #endif
+	SDL_assert(currprefs.input_analog_joystick_mult != 0);
+
     if (port == 0 || port == 1) {
         mouse_port[port] = 0;
         cd32_pad_enabled[port] = 0;

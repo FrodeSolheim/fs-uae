@@ -9,10 +9,10 @@
 #define WIN32GUI_H
 // #define __WIN32GFX_H__
 
-#ifdef _WIN32
-// Already define
-#else
 #include "uae/compat/windows2.h"
+
+#ifdef _WIN32
+#else
 
 typedef void* ICONINFO;
 

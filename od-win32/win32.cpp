@@ -5,6 +5,10 @@
 
 #include "uae/compat/windows2.h"
 
+#ifdef _WIN32
+#include <dbghelp.h>
+#endif
+
 #include "options.h"
 #include "savestate.h"
 #include "uae.h"

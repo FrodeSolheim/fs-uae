@@ -1541,7 +1541,7 @@ int lockscr(struct vidbuffer *vb, bool fullupdate, bool skip)
 	}
 	gfx_unlock();
 	return ret;
- }
+}
 
 void unlockscr(struct vidbuffer *vb, int y_start, int y_end)
 {

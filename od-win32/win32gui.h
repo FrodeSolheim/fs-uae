@@ -1,3 +1,7 @@
+#ifdef FSUAE
+
+#else
+
 #ifndef WIN32GUI_H
 #define WIN32GUI_H
 
@@ -176,3 +180,5 @@ void regsetfont(UAEREG *reg, const TCHAR *prefix, const TCHAR *name, const TCHAR
 bool regqueryfont(UAEREG *reg, const TCHAR *prefix, const TCHAR *name, TCHAR *fontname, int *pfontsize, int *pfontstyle, int *pfontweight);
 
 #endif // WIN32GUI_H
+
+#endif // !FSUAE

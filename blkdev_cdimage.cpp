@@ -38,11 +38,19 @@
 #else
 #define FLAC__NO_DLL
 #endif
-
 #include "FLAC/stream_decoder.h"
 
 #ifdef WITH_CHD
+#ifdef FSUAE
+
+#include "zarchive.h"
+
+#define chd_error std::error_condition
+#define CHDERR_NONE std::error_condition()
+
+#else
 #include "archivers/chd/chdtypes.h"
+#endif
 #include "archivers/chd/chd.h"
 #include "archivers/chd/chdcd.h"
 #endif
@@ -1450,7 +1458,12 @@ static int parsechd (struct cdunit *cdu, struct zfile *zcue, const TCHAR *img, c
 	if (!f)
 		return 0;
 	chd_file *cf = new chd_file();
+#ifdef FSUAE
+	// FIXME: Check if "WinUAE version" does something else other than looking up the name
+	err = cf->open(f->name, false, NULL);
+#else
 	err = cf->open(*f, false, NULL);
+#endif
 	if (err != CHDERR_NONE) {
 		write_log (_T("CHD '%s' err=%d\n"), zfile_getname (zcue), err);
 		zfile_fclose (f);

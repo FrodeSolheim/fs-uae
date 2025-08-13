@@ -22,11 +22,11 @@
 		</dict>
 	</array>
 	<key>CFBundleExecutable</key>
-	<string>fs-uae</string>
+	<string>FS-UAE</string>
 	<key>CFBundleIconFile</key>
-	<string>fs-uae.icns</string>
+	<string>FS-UAE.icns</string>
 	<key>CFBundleIdentifier</key>
-	<string>no.fengestad.fs-uae</string>
+	<string>net.fs-uae.FS-UAE</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
@@ -42,11 +42,11 @@
 	<key>LSHasLocalizedDisplayName</key>
 	<true/>
 	<key>LSMinimumSystemVersion</key>
-	<string>10.9.0</string>
+	<string>10.13.0</string>
 	<key>NSAppleScriptEnabled</key>
 	<false/>
 	<key>NSHumanReadableCopyright</key>
-	<string>Copyright 2011-2021 Frode Solheim</string>
+	<string>Copyright 2011-2025 Frode Solheim</string>
 	<key>NSMainNibFile</key>
 	<string></string>
 	<key>NSPrincipalClass</key>

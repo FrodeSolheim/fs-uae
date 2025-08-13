@@ -26,4 +26,4 @@ Code:
     elif c.uae_gfxcard_size == "0":
         value = "0"
     else:
-        value = int(c.uae_gfxcard_size) * 1024
+        value = str(int(c.uae_gfxcard_size) * 1024)

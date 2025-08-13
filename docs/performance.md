@@ -1,5 +1,7 @@
 # Performance
 
+In order to get good performance, you need two consider two things:
+
 1. Your device must be powerful enough to run the emulation.
 2. The emulator must be allowed to run sufficiently often on the CPU.
 

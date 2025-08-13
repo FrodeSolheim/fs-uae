@@ -7,27 +7,11 @@ FS-UAE print log output to stdout with:
 
     fs-uae --stdout
 
-## Environment variables
+## Environment variables for more detailed logging
 
-Some environment variables can be set to aid with debugging problems:
-
-    export FS_DEBUG_INPUT=1
-
-This will cause FS-UAE to log more information about input events to the log
-file.
-
-    export FS_DEBUG_FILESYS=1
-
-This will cause FS-UAE to log all file system operations (for mounted
-directories) to the log file.
-
-    export FS_DEBUG_EVENTS=1
-
-FIXME:
-
-    export FS_DEBUG_FLUSH=1
-
-FIXME:
+There is a separate page about
+[environment variables](environment-variables.md), some of which can be used to
+control the amount of logging.
 
 ## Compiling a debug version
 

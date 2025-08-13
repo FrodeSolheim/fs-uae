@@ -1,5 +1,24 @@
 # Compiling FS-UAE
 
+## FIXME
+
+# cd od-fs/build
+# ../../configure
+# make
+
+cd od-fs
+./bootstrap
+./configure
+make
+
+## FIXME: New dependencies:
+
+libsdl3-dev
+libsdl3-image-dev
+libsdl3-ttf-dev
+
+
+
 These instructions are for you if you want to build your own version of FS-UAE
 for any reason.
 

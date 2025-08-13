@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-import os
 import html
+import os
 import shutil
 import sys
 
@@ -129,6 +129,10 @@ with open(os.path.join(out_dir, "options.html"), "w") as f:
             continue
         f.write(
             '<a href="options/{}">{}</a><br>\n'.format(
-                option_name.replace("_", "-",), option_name
+                option_name.replace(
+                    "_",
+                    "-",
+                ),
+                option_name,
             )
         )

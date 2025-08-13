@@ -106,9 +106,9 @@ def handle_option_data(name, data, option):
                 in_test = 2
             elif key == "value":
                 if " - " in value:
-                    value, summary = value.split(" - ", 1)
+                    value, _summary = value.split(" - ", 1)
                 else:
-                    summary = ""
+                    _summary = ""
                 try:
                     n, desc = value.split("(", 1)
                 except ValueError:
@@ -131,7 +131,7 @@ def handle_option_data(name, data, option):
     # text.append("\n<h2 id=\"{hname}\">"
     #             "{hname}<a name=\"{name}\"></a></h2>\n".format(
     #                 name=name, hname=h_name))
-    text.append("<h1>{hname}</h1>\n".format(name=name, hname=h_name))
+    text.append("<h1>{hname}</h1>\n".format(hname=h_name))
     if since:
         text.append("<p>")
         text.append("<i>Since {since}</i>.".format(since=since))
@@ -153,11 +153,7 @@ def handle_option_data(name, data, option):
         text.append("</p>\n")
 
     if example2:
-        text.append(
-            "<pre>Example: {hname} = {value}</pre>\n".format(
-                name=name, hname=h_name, value=example2
-            )
-        )
+        text.append("<pre>Example: {hname} = {value}</pre>\n".format(hname=h_name, value=example2))
 
     in_list = False
     # in_para = False
@@ -237,9 +233,7 @@ def handle_option_data(name, data, option):
         else:
             f.write("\n\nSimilar options: ")
         f.write(
-            '<a name="{name}"></a><a name="{hname}"></a>{hname}'.format(
-                name=name, hname=h_name
-            )
+            '<a name="{name}"></a><a name="{hname}"></a>{hname}'.format(name=name, hname=h_name)
         )
         last_main_option_added = True
     else:
@@ -360,7 +354,9 @@ def main():
         f.close()
 
     with open(
-        "../fs-uae-launcher-private/fsgamesys/options/constants.py", "w", encoding="UTF-8"
+        "../fs-uae-launcher-private/fsgamesys/options/constants.py",
+        "w",
+        encoding="UTF-8",
     ) as f:
         f.write(
             """\
@@ -372,10 +368,14 @@ def main():
         for key in sorted(option_data_all.keys()):
             # Strip leading __ because that will invoke Python's
             # name mangling feature
-            f.write('{} = "{}"\n'.format(key.upper().strip("__"), key))
+            if key.startswith("__"):
+                key = key[2:]
+            f.write('{} = "{}"\n'.format(key.upper(), key))
 
     with open(
-        "../fs-uae-launcher-private/fsgamesys/options/option.py", "w", encoding="UTF-8"
+        "../fs-uae-launcher-private/fsgamesys/options/option.py",
+        "w",
+        encoding="UTF-8",
     ) as f:
         f.write(
             """\
@@ -391,14 +391,16 @@ class Option(object):
         for key in sorted(option_data_all.keys()):
             # Strip leading __ because that will invoke Python's
             # name mangling feature
-            f.write('    {} = "{}"\n'.format(key.upper().strip("__"), key))
+            if key.startswith("__"):
+                key = key[2:]
+            f.write('    {} = "{}"\n'.format(key.upper(), key))
 
-    with open(
-        "../fs-uae-launcher-private/launcher/option.py", "w", encoding="UTF-8"
-    ) as f:
+    with open("../fs-uae-launcher-private/launcher/option.py", "w", encoding="UTF-8") as f:
         f.write(
             """\
 # Automatically generated - do not edit by hand
+
+from typing import Any
 
 from fsgamesys.options.option import Option as BaseOption
 
@@ -406,12 +408,12 @@ from fsgamesys.options.option import Option as BaseOption
 # noinspection PyClassHasNoInit
 class Option(BaseOption):
     @staticmethod
-    def get(name):
+    def get(name: str) -> Any:  # FIXME: Remove Any
         return options[name]
 
 
 # noinspection PyPep8Naming
-def N_(x):
+def N_(x: str) -> str:  # noqa: 802
     return x
 
 
@@ -487,66 +489,85 @@ def write_option(f, option):
 
 
 def update_codes():
-    for option, code in codes.items():
+    for _option, code in codes.items():
         update_code_dependencies(code)
     with open("doc/options2.py", "w") as f:
         f.write("# Automatically generated - do not edit by hand\n")
         f.write("\n")
-        for option in sorted(codes.keys()):
-            code = codes[option]
-            f.write(
-                "\n# noinspection PyUnusedLocal,"
-                "SpellCheckingInspection,PyUnresolvedReferences\n"
-            )
-            f.write("def _{0}(c, f):\n".format(option))
-            if option.startswith("int_"):
-                f.write("    # noinspection PyUnresolvedReferences\n")
-                f.write("    if c.{0}.explicit:\n".format(option))
-                f.write(
-                    '        f.fail("{0} was set explicitly")\n'.format(option)
-                )
-            uses_value = False
-            for line in code.lines:
-                if not line.strip():
-                    continue
-                if "value = " in line:
-                    uses_value = True
-                f.write("    {0}\n".format(line))
-                if line.strip().startswith("f.fail("):
-                    f.write(line.split("f.fail(")[0])
-                    f.write('    raise Exception("Failed")\n')
-            if uses_value:
-                f.write("    c.{0} = value\n".format(option))
-            f.write("\n")
+        f.write("from typing import Any, List, Union\n")
+        f.write("\n")
+        f.write("from launcher.ui.config.model import ImplicitConfig\n")
+        # f.write("\n")
+
         f.write(
             """\
 
 class AbstractExpandFunctions:
 
     @staticmethod
-    def matches(a, b):
-        pass
+    def matches(a: str, b: Union[str, List[str]]) -> bool:
+        raise NotImplementedError()
 
     @staticmethod
-    def fail(message):
-        pass
+    def fail(message: str) -> None:
+        raise NotImplementedError()
 
     @staticmethod
-    def warning(message):
-        pass
+    def warning(message: str) -> None:
+        raise NotImplementedError()
 
     @staticmethod
-    def lower(s):
-        pass
+    def lower(s: str) -> str:
+        raise NotImplementedError()
 
+
+# TC = ImplicitConfig
+TC = Any
+TF = AbstractExpandFunctions
 """
         )
-        f.write("\ndef expand_config(c, f):\n")
-        f.write("    assert isinstance(f, AbstractExpandFunctions)\n")
+
+        # f.write("TC = ImplicitConfig\n")
+        f.write("\n")
+        for option in sorted(codes.keys()):
+            code = codes[option]
+            f.write(
+                "\n# noinspection PyUnusedLocal," "SpellCheckingInspection,PyUnresolvedReferences\n"
+            )
+            f.write("def _{0}(c: TC, f: TF) -> None:\n".format(option))
+            # f.write("    value: str\n")
+            if option.startswith("int_"):
+                f.write("    # noinspection PyUnresolvedReferences\n")
+                f.write("    if c.{0}.explicit:\n".format(option))
+                f.write('        f.fail("{0} was set explicitly")\n'.format(option))
+            uses_value = False
+            lines = []
+            for line in code.lines:
+                if not line.strip():
+                    continue
+                if "value = " in line:
+                    if not uses_value:
+                        # line = line.replace("value = ", "value: str = ")
+                        uses_value = True
+                lines.append("    {0}\n".format(line))
+                if line.strip().startswith("f.fail("):
+                    lines.append(line.split("f.fail(")[0])
+                    lines.append('    raise Exception("Failed")\n')
+            if uses_value:
+                f.write("    value: str\n")
+            for line in lines:
+                f.write(line)
+            if uses_value:
+                f.write("    c.{0} = value\n".format(option))
+            f.write("\n")
+
+        f.write("\ndef expand_config(c: ImplicitConfig, f: AbstractExpandFunctions):\n")
+        # f.write("    assert isinstance(f, AbstractExpandFunctions)\n")
         for option in sorted(codes.keys()):
             write_option(f, option)
     shutil.move(
-        "doc/options2.py", "../fs-uae-launcher-private/launcher/ui/config/expand.py"
+        "doc/options2.py",
+        "../fs-uae-launcher-private/launcher/ui/config/expand.py",
     )
 
 

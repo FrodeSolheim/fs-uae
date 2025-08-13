@@ -19,8 +19,8 @@ observe the following limitations:
 
 ## CyberStorm PPC
 
-IF you are using CyberStorm PPC - which is the default if you use the A4000/OS4
-Amiga model in FS-UAE, then please make sure you have the requirements for
+If you are using CyberStorm PPC - which is the default if you use the A4000/OS4
+Amiga model in FS-UAE, then please make sure you meet the requirements for
 [CyberStorm PPC emulation](cyberstorm-ppc.md).
 
 ## See also

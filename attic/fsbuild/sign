@@ -19,7 +19,7 @@ def main():
             "--options",
             "runtime",
             "--sign",
-            "Developer ID Application",
+            "Developer ID Application: Frode Solheim",
             "--digest-algorithm=sha1,sha256",
         ]
         if os.path.exists("fsbuild/Entitlements.plist"):

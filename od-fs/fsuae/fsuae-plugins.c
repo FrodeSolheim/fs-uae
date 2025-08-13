@@ -5,15 +5,15 @@
 #include "config.h"
 #endif
 
+#include <SDL3/SDL.h>
 #include <fs/base.h>
-#include <fs/log.h>
 #include <glib.h>
 #include <stdlib.h>
 #include <string.h>
 #include <uae/uae.h>
 
 #include "fsemu-module.h"
-#include "fslib-data.h"
+#include "fslib-path.h"
 #include "fsuae-path.h"
 
 #define NEW_PLUGINS 1
@@ -41,8 +41,7 @@ static gchar* g_plugin_ver_dirs[MAX_PLUGINS];
 static int g_plugin_count;
 
 #ifndef NEW_PLUGINS
-static const char* os_arch_name()
-{
+static const char* os_arch_name() {
     static const char* name = NULL;
     if (name == NULL) {
 #ifdef LINUX
@@ -60,16 +59,16 @@ static const char* os_arch_name()
 }
 #endif
 
-static const char* lookup_plugin(const char* name)
-{
+static const char* lookup_plugin(const char* name) {
     SDL_Log("[PLUGINS] Looking up \"%s\"\n", name);
     gchar* module_name = g_strconcat(name, LT_MODULE_EXT, NULL);
     char executable_dir[FS_PATH_MAX];
-    fs_get_application_exe_dir(executable_dir, FS_PATH_MAX);
+    // fs_get_application_exe_dir(executable_dir, FS_PATH_MAX);
+    fslib_path_application_dir(executable_dir, FS_PATH_MAX);
     gchar* path;
 
     // Check side-by-side development directory
-    if (fslib_data_development_mode()) {
+    if (fsapp_development_mode) {
         path = g_build_filename(executable_dir, "..", name, module_name, NULL);
         SDL_Log("[PLUGINS] Checking \"%s\"\n", path);
         if (g_file_test(path, G_FILE_TEST_EXISTS)) {
@@ -95,11 +94,9 @@ static const char* lookup_plugin(const char* name)
     // First check for framework
     gchar* framework_name = g_strconcat(name, ".framework", NULL);
     for (int i = 0; i < g_plugin_count; i++) {
-        path = g_build_filename(
-            g_plugin_ver_dirs[i], OS_NAME_3, ARCH_NAME, framework_name, name,
-            NULL
-        );
-        fs_log("[PLUGINS] Checking \"%s\"\n", path);
+        path = g_build_filename(g_plugin_ver_dirs[i], OS_NAME_3, ARCH_NAME, framework_name, name,
+                                NULL);
+        SDL_Log("[PLUGINS] Checking \"%s\"", path);
         if (g_file_test(path, G_FILE_TEST_EXISTS)) {
             g_free(module_name);
             g_free(framework_name);
@@ -114,13 +111,9 @@ static const char* lookup_plugin(const char* name)
     // First check within plugin os/arch directories
     for (int i = 0; i < g_plugin_count; i++) {
 #ifdef NEW_PLUGINS
-        path = g_build_filename(
-            g_plugin_ver_dirs[i], OS_NAME_3, ARCH_NAME, module_name, NULL
-        );
+        path = g_build_filename(g_plugin_ver_dirs[i], OS_NAME_3, ARCH_NAME, module_name, NULL);
 #else
-        path = g_build_filename(
-            g_plugin_ver_dirs[i], os_arch_name(), module_name, NULL
-        );
+        path = g_build_filename(g_plugin_ver_dirs[i], os_arch_name(), module_name, NULL);
 #endif
         SDL_Log("[PLUGINS] Checking \"%s\"\n", path);
         if (g_file_test(path, G_FILE_TEST_EXISTS)) {
@@ -153,6 +146,17 @@ static const char* lookup_plugin(const char* name)
     // }
     // g_free(path);
 
+    // Directly in (System)/Plugins/ (FIXME)
+    path = g_build_filename(executable_dir, "Plugins", module_name, NULL);
+    SDL_Log("[PLUGINS] Checking \"%s\"\n", path);
+    if (g_file_test(path, G_FILE_TEST_EXISTS)) {
+        g_free(module_name);
+        // FIXME: resource leak if called more than once for the same
+        // plugin, should cache the path
+        return (const char*)path;
+    }
+    g_free(path);
+
     // Sideloaded with executable
     path = g_build_filename(executable_dir, module_name, NULL);
     SDL_Log("[PLUGINS] Checking \"%s\"\n", path);
@@ -169,15 +173,12 @@ static const char* lookup_plugin(const char* name)
 }
 
 #ifndef NEW_PLUGINS
-static void load_plugin_provides(
-    const char* path, GKeyFile* key_file, const char* group_name, int scan
-)
-{
+static void load_plugin_provides(const char* path, GKeyFile* key_file, const char* group_name,
+                                 int scan) {
     gchar** keys = g_key_file_get_keys(key_file, group_name, NULL, NULL);
     if (keys) {
         for (gchar* key = *keys; *key; key++) {
-            gchar* value
-                = g_key_file_get_string(key_file, group_name, key, NULL);
+            gchar* value = g_key_file_get_string(key_file, group_name, key, NULL);
             if (value == NULL) {
                 continue;
             }
@@ -206,21 +207,17 @@ static void load_plugin_provides(
 }
 #endif
 
-static void load_plugin(const char* path, const char* ini_path)
-{
+static void load_plugin(const char* path, const char* ini_path) {
     SDL_Log("[PLUGINS] Loading %s\n", path);
 #if NEW_PLUGINS
     gchar* version_path = g_build_filename(path, NULL);
 #else
     GKeyFile* key_file = g_key_file_new();
-    if (!g_key_file_load_from_file(
-            key_file, ini_path, G_KEY_FILE_NONE, NULL
-        )) {
+    if (!g_key_file_load_from_file(key_file, ini_path, G_KEY_FILE_NONE, NULL)) {
         SDL_Log("[PLUGINS] Could not load plugin.ini\n");
         return;
     }
-    gchar* version
-        = g_key_file_get_string(key_file, "plugin", "version", NULL);
+    gchar* version = g_key_file_get_string(key_file, "plugin", "version", NULL);
     if (version == NULL) {
         SDL_Log("[PLUGINS] Could not read plugin version\n");
         return;
@@ -243,8 +240,7 @@ static void load_plugin(const char* path, const char* ini_path)
 #endif
 }
 
-static void load_plugins_from_dir(const char* plugins_dir)
-{
+static void load_plugins_from_dir(const char* plugins_dir) {
     SDL_Log("[PLUGINS] Loading plugins from %s\n", plugins_dir);
     GDir* dir = g_dir_open(plugins_dir, 0, NULL);
     if (!dir) {
@@ -274,13 +270,11 @@ static struct {
     bool initialized;
 } module;
 
-static void fsuae_plugins_quit(void)
-{
+static void fsuae_plugins_quit(void) {
     g_hash_table_destroy(provides);
 }
 
-void fsuae_plugins_init()
-{
+void fsuae_plugins_init() {
     if (module.initialized) {
         return;
     }
@@ -300,7 +294,8 @@ void fsuae_plugins_init()
     // Then load side-by-side plugins
     gchar* path;
     char executable_dir[FS_PATH_MAX];
-    fs_get_application_exe_dir(executable_dir, FS_PATH_MAX);
+    // fs_get_application_exe_dir(executable_dir, FS_PATH_MAX);
+    fslib_path_application_dir(executable_dir, FS_PATH_MAX);
 #if 0
     path = g_build_filename(
         executable_dir, "..", "lib", "fs-uae", "plugins", NULL);
@@ -310,9 +305,7 @@ void fsuae_plugins_init()
     g_free(path);
 #endif
 #ifdef MACOSX
-    path = g_build_filename(
-        executable_dir, "..", "..", "..", "..", "..", "Plugin.ini", NULL
-    );
+    path = g_build_filename(executable_dir, "..", "..", "..", "..", "..", "Plugin.ini", NULL);
 #else
     path = g_build_filename(executable_dir, "..", "..", "Plugin.ini", NULL);
 #endif
@@ -322,9 +315,7 @@ void fsuae_plugins_init()
     SDL_Log("[PLUGINS] Is plugin: %d\n", is_plugin);
     if (is_plugin) {
 #ifdef MACOSX
-        path = g_build_filename(
-            executable_dir, "..", "..", "..", "..", "..", "..", NULL
-        );
+        path = g_build_filename(executable_dir, "..", "..", "..", "..", "..", "..", NULL);
 #else
         path = g_build_filename(executable_dir, "..", "..", "..", NULL);
 #endif

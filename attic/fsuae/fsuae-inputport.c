@@ -249,10 +249,10 @@ void fsuae_inputport_init(void)
     fsuae_inputport.joystick_port_0 = fsemu_inputport_new();
     configure_joystick_port(fsuae_inputport.joystick_port_0, 0);
 
-    fsemu_inputport_set_mode_index(fsuae_inputport.joystick_port_1,
+    fsemu_inputport_set_mode_by_index(fsuae_inputport.joystick_port_1,
                                    FSUAE_JOYSTICK_PORT_MODE_JOYSTICK);
 
-    fsemu_inputport_set_mode_index(fsuae_inputport.joystick_port_0,
+    fsemu_inputport_set_mode_by_index(fsuae_inputport.joystick_port_0,
                                    FSUAE_JOYSTICK_PORT_MODE_MOUSE);
 
     // int action = INPUTEVENT_AMIGA_JOYPORT_MODE_0_NONE + modes * i +

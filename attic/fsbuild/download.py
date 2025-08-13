@@ -30,9 +30,9 @@ def main():
         raise Exception("Unknown hash function")
 
     archive = url.split("/")[-1]
-    if not os.path.exists("fsbuild/_sources"):
-        os.makedirs("fsbuild/_sources")
-    archive = os.path.join("fsbuild/_sources", archive)
+    if not os.path.exists("build/env/_sources"):
+        os.makedirs("build/env/_sources")
+    archive = os.path.join("build/env/_sources", archive)
 
     if os.path.exists(archive):
         if verify(archive, h, checksum):
@@ -41,7 +41,7 @@ def main():
         os.remove(archive)
 
     # FIXME: Replace use of wget, just use python instead
-    if os.system(f'cd fsbuild/_sources && wget "{url}"') != 0:
+    if os.system(f'cd build/env/_sources && wget "{url}"') != 0:
         print("Failed to download")
         sys.exit(1)
 

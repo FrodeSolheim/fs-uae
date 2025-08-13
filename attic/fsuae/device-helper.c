@@ -104,7 +104,7 @@ static void get_joystick_info(SDL_Joystick *joystick,
                               int *balls,
                               int *buttons,
                               int *hats,
-                              int *instanceId,
+                              int *instance_id,
                               const char **sdl_name,
                               char guid_string[])
 {
@@ -112,7 +112,7 @@ static void get_joystick_info(SDL_Joystick *joystick,
     *balls = 0;
     *buttons = 0;
     *hats = 0;
-    *instanceId = -1;
+    *instance_id = -1;
     SDL_JoystickGUID sdl_guid = {};
     if (joystick == NULL) {
         // Observed this case with an 8BitDo controller in Switch
@@ -120,11 +120,11 @@ static void get_joystick_info(SDL_Joystick *joystick,
         printf("WARNING: Could not open added joystick\n");
         sdl_guid = SDL_JoystickGetDeviceGUID(index);
         *sdl_name = SDL_JoystickNameForIndex(index);
-        *instanceId = SDL_JoystickGetDeviceInstanceID(index);
+        *instance_id = SDL_JoystickGetDeviceInstanceID(index);
     } else {
         sdl_guid = SDL_JoystickGetGUID(joystick);
         *sdl_name = SDL_JoystickName(joystick);
-        *instanceId = SDL_JoystickInstanceID(joystick);
+        *instance_id = SDL_JoystickInstanceID(joystick);
         *buttons = SDL_JoystickNumButtons(joystick);
         *axes = SDL_JoystickNumAxes(joystick);
         *hats = SDL_JoystickNumHats(joystick);
@@ -137,7 +137,7 @@ static void get_joystick_info(SDL_Joystick *joystick,
 int xx()
 {
     SDL_Joystick *joystick = SDL_JoystickOpen(index);
-    int axes, balls, buttons, hats, instanceId;
+    int axes, balls, buttons, hats, instance_id;
     const char *sdl_name;
     char guid_string[33];
     get_joystick_info(joystick,
@@ -146,7 +146,7 @@ int xx()
                       &balls,
                       &buttons,
                       &hats,
-                      &instanceId,
+                      &instance_id,
                       &sdl_name,
                       guid_string);
 }
@@ -215,7 +215,7 @@ static int list_joysticks(void)
     flush_stdout();
     for (int i = 0; i < SDL_NumJoysticks(); i++) {
         SDL_Joystick *joystick = SDL_JoystickOpen(i);
-        int axes, balls, buttons, hats, instanceId;
+        int axes, balls, buttons, hats, instance_id;
         const char *sdl_name;
         char guid_string[33];
         get_joystick_info(joystick,
@@ -224,7 +224,7 @@ static int list_joysticks(void)
                             &balls,
                             &buttons,
                             &hats,
-                            &instanceId,
+                            &instance_id,
                             &sdl_name,
                             guid_string);
         char *name =
@@ -313,6 +313,11 @@ static int print_events(void)
 
     int index;
     SDL_Event event;
+
+    // Push a user event to detect when the initial event queue is empty
+    event.type = SDL_USEREVENT;
+    SDL_PushEvent(&event);
+
     int do_quit = 0;
     while (do_quit == 0) {
         SDL_WaitEvent(&event);
@@ -321,9 +326,9 @@ static int print_events(void)
             case SDL_JOYBUTTONUP:
                 printf(
                     "{\"type\": \"%s\", \"device\": %d, "
-                    "\"sdlInstanceId\": %d, \"button\": %d, \"state\": %d}\n",
-                    event.type == SDL_JOYBUTTONDOWN ? "joy-button-down"
-                                                    : "joy-button-up",
+                    "\"sdl_instance_id\": %d, \"button\": %d, \"state\": %d}\n",
+                    event.type == SDL_JOYBUTTONDOWN ? "joy_button_down"
+                                                    : "joy_button_up",
                     event.jbutton.which,
                     event.jbutton.which,
                     event.jbutton.button,
@@ -331,8 +336,8 @@ static int print_events(void)
                 break;
             case SDL_JOYHATMOTION:
                 printf(
-                    "{\"type\": \"joy-hat-motion\", \"device\": %d, "
-                    "\"sdlInstanceId\": %d, \"hat\": %d, \"state\": %d}\n",
+                    "{\"type\": \"joy_hat_motion\", \"device\": %d, "
+                    "\"sdl_instance_id\": %d, \"hat\": %d, \"state\": %d}\n",
                     event.jbutton.which,
                     event.jbutton.which,
                     event.jhat.hat,
@@ -356,8 +361,8 @@ static int print_events(void)
             }
 #endif
                 printf(
-                    "{\"type\": \"joy-axis-motion\", \"device\": %d, "
-                    "\"sdlInstanceId\": %d, \"axis\": %d, \"state\": %d}\n",
+                    "{\"type\": \"joy_axis_motion\", \"device\": %d, "
+                    "\"sdl_instance_id\": %d, \"axis\": %d, \"state\": %d}\n",
                     event.jbutton.which,
                     event.jbutton.which,
                     event.jaxis.axis,
@@ -368,7 +373,7 @@ static int print_events(void)
                 printf("# Joystick device added (which/index=%d)\n",
                        index);
                 SDL_Joystick *joystick = SDL_JoystickOpen(index);
-                int axes, balls, buttons, hats, instanceId;
+                int axes, balls, buttons, hats, instance_id;
                 const char *sdl_name;
                 char guid_string[33];
                 get_joystick_info(joystick,
@@ -377,7 +382,7 @@ static int print_events(void)
                                   &balls,
                                   &buttons,
                                   &hats,
-                                  &instanceId,
+                                  &instance_id,
                                   &sdl_name,
                                   guid_string);
                 char *name = fs_ml_input_fix_joystick_name(sdl_name, 0);
@@ -408,30 +413,34 @@ static int print_events(void)
                     c++;
                 }
                 printf(
-                    "{\"type\": \"joy-device-added\", \"device\": %d, "
+                    "{\"type\": \"joy_device_added\", \"device\": %d, "
                     "\"name\": \"%s\", \"buttons\": %d, \"axes\": %d, "
-                    "\"hats\": %d, \"balls\": %d, \"sdlInstanceId\": %d, "
-                    "\"sdlGuid\": \"%s\", \"sdlName\": \"%s\"}\n",
+                    "\"hats\": %d, \"balls\": %d, \"sdl_instance_id\": %d, "
+                    "\"sdl_guid\": \"%s\", \"sdl_name\": \"%s\"}\n",
                     index,
                     name,
                     buttons,
                     axes,
                     hats,
                     balls,
-                    instanceId,
+                    instance_id,
                     guid_string,
                     name2);
                 free(name);
                 free(name2);
                 break;
             case SDL_JOYDEVICEREMOVED:
-                printf("# Joystick device removed (which/instanceId=%d)\n",
+                printf("# Joystick device removed (which/instance_id=%d)\n",
                        event.jdevice.which);
                 printf(
-                    "{\"type\": \"joy-device-removed\", \"device\": %d, "
-                    "\"sdlInstanceId\": %d}\n",
+                    "{\"type\": \"joy_device_removed\", \"device\": %d, "
+                    "\"sdl_instance_id\": %d}\n",
                     event.jdevice.which,
                     event.jdevice.which);
+                break;
+            case SDL_USEREVENT:
+                // Initial device scan done (hopefully)
+                printf("{\"type\": \"initial_scan_done\"}\n");
                 break;
             case SDL_QUIT:
                 printf("# Received quit signal\n");

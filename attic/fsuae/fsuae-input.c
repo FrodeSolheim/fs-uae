@@ -38,7 +38,7 @@ void fsuae_input_handle_uae_event(int event, void *data, int intdata)
                 return;
             }
             fsemu_inputport_t *port = fsemu_input_port_by_index(port_index);
-            fsemu_inputport_set_mode_index(port, mode_index);
+            fsemu_inputport_set_mode_by_index(port, mode_index);
             break;
     }
 }

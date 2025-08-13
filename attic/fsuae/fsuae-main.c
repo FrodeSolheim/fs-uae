@@ -617,7 +617,7 @@ static void event_handler(int line)
     // Move to custom.cpp after/when starting new frame?
     // EDIT: YES
     // double adjust = fsemu_audiobuffer_calculate_adjustment();
-    //amiga_set_audio_frequency_adjust(adjust);
+    // amiga_set_audio_frequency_adjust(adjust);
     // printf("[INPUT] g_fs_uae_frame = %d\n", g_fs_uae_frame);
 #else
     fs_emu_wait_for_frame(g_fs_uae_frame);
@@ -1153,7 +1153,7 @@ static void on_update_leds(void *data)
 #endif
     int floppy_state = 0;
     for (int i = 1; i <= 4; i++) {
-    // for (int i = 0; i <= 3; i++) {
+        // for (int i = 0; i <= 3; i++) {
         if (leds.led_states[i]) {
             floppy_state = 1;
         }
@@ -1674,7 +1674,9 @@ static void main_loop(void)
 #endif
 }
 
-int main(int argc, char *argv[])
+int unused_main(int argc, char *argv[]);
+
+int unused_main(int argc, char *argv[])
 {
     fs_uae_argc = argc;
     fs_uae_argv = argv;
@@ -1813,7 +1815,6 @@ int main(int argc, char *argv[])
     fsemu_thread_set_video();
 
     fsemu_option_init_from_argv(argc, argv);
-
 
     fsemu_log_setup();
     // fsemu_audio_init(0);

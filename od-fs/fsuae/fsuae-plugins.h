@@ -2,6 +2,7 @@
 #define FSUAE_PLUGINS_H
 
 #include "fsuae-config.h"
+#include "fsuae.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -13,4 +14,4 @@ void fsuae_plugins_init(void);
 }
 #endif
 
-#endif // FSUAE_PLUGINS_H
+#endif  // FSUAE_PLUGINS_H

@@ -36,7 +36,7 @@ char *uae_expand_path(const char *path);
 
 struct tm *uae_get_amiga_time();
 
-#include "../../od-fs/callbacks.h"
+#include "../callbacks.h"
 
 typedef struct _libamiga_callbacks {
     display_function display;

@@ -4,6 +4,10 @@
 
 #include "uae/compat/windows.h"
 
+#ifdef _WIN32
+
+#else
+
 typedef intptr_t INT_PTR;
 
 typedef uint64_t ULONGLONG;
@@ -16,7 +20,6 @@ typedef DWORD *LPDWORD;
 typedef HANDLE HDROP;
 typedef HANDLE HFONT;
 typedef HANDLE HMENU;
-typedef HANDLE HTHEME;
 
 typedef INT_PTR CALLBACK (*DLGPROC)(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
@@ -78,6 +81,11 @@ typedef enum _MINIDUMP_TYPE {
 typedef void *LPCDLGTEMPLATE;
 typedef void *LPCDLGTEMPLATEW;
 
+#endif
+
 typedef void *LPDIRECT3DSURFACE9;
+
+// Not defined by default in mingw by including Windows.h at least
+typedef HANDLE HTHEME;
 
 #endif // UAE_COMPAT_WINDOWS2_H

@@ -10,6 +10,13 @@
  * Copyright (c) 2025 Frode Solheim
  */
 
+#ifdef _WIN32
+
+#include <Windows.h>
+#include <tchar.h>
+
+#else
+
 #include "uae/byteswap.h"
 #include "uae/log.h"
 #include "uae/tchar.h"
@@ -165,5 +172,7 @@ MMRESULT timeSetEvent(
    DWORD_PTR      dwUser,
    UINT           fuEvent
 );
+
+#endif
 
 #endif // UAE_COMPAT_WINDOWS_H

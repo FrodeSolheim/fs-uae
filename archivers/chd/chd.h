@@ -1,3 +1,7 @@
+#ifdef FSUAE
+#include "../../mame/src/lib/util/chd.h"
+#else
+
 // license:BSD-3-Clause
 // copyright-holders:Aaron Giles
 /***************************************************************************
@@ -578,3 +582,5 @@ private:
 
 
 #endif // __CHD_H__
+
+#endif

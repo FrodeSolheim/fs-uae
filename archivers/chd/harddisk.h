@@ -1,3 +1,7 @@
+#ifdef FSUAE
+#include "../../mame/src/lib/util/harddisk.h"
+#else
+
 // license:BSD-3-Clause
 // copyright-holders:Aaron Giles
 /***************************************************************************
@@ -47,3 +51,5 @@ UINT32 hard_disk_read(hard_disk_file *file, UINT32 lbasector, void *buffer);
 UINT32 hard_disk_write(hard_disk_file *file, UINT32 lbasector, const void *buffer);
 
 #endif  /* __HARDDISK_H__ */
+
+#endif

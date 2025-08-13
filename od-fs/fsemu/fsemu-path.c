@@ -29,8 +29,6 @@
 
 #include <errno.h>
 #include <fcntl.h>
-// #include <fs/base.h>
-// #include <fs/log.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
@@ -66,10 +64,9 @@ typedef struct stat stat_type;
 
 #ifdef FSEMU_OS_WINDOWS
 
-static wchar_t *wide(const char *utf8)
-{
+static wchar_t* wide(const char* utf8) {
     if (utf8[0] == '\0') {
-        wchar_t *result = (wchar_t *) malloc(sizeof(wchar_t));
+        wchar_t* result = (wchar_t*)malloc(sizeof(wchar_t));
         result[0] = L'0';
         return result;
     }
@@ -88,18 +85,18 @@ static wchar_t *wide(const char *utf8)
     int chars = MultiByteToWideChar(CP_UTF8, flags, utf8, size, NULL, 0);
     if (chars == 0) {
         // error convering to wide string
-        wchar_t *result = (wchar_t *) malloc(sizeof(wchar_t));
+        wchar_t* result = (wchar_t*)malloc(sizeof(wchar_t));
         result[0] = L'0';
         return result;
     }
 
     // convert
 
-    wchar_t *wstr = (wchar_t *) (malloc(sizeof(wchar_t) * (chars + 1)));
+    wchar_t* wstr = (wchar_t*)(malloc(sizeof(wchar_t) * (chars + 1)));
     chars = MultiByteToWideChar(CP_UTF8, flags, utf8, size, wstr, chars + 1);
     if (chars == 0) {
         free(wstr);
-        wchar_t *result = (wchar_t *) malloc(sizeof(wchar_t));
+        wchar_t* result = (wchar_t*)malloc(sizeof(wchar_t));
         result[0] = L'0';
         return result;
     }
@@ -125,8 +122,7 @@ static void time_val_to_file_time(struct timeval *tv, FILETIME *ft)
 }
 #endif
 
-static void file_time_to_time_val(FILETIME *ft, struct timeval *tv)
-{
+static void file_time_to_time_val(FILETIME* ft, struct timeval* tv) {
 #if 0
     static int test = 1;
     if (test == 1) {
@@ -149,7 +145,7 @@ static void file_time_to_time_val(FILETIME *ft, struct timeval *tv)
     // Convert from 100s of nanoseconds since 1601-01-01
     // to Unix epoch. Yes, this is Y2038 unsafe.
 
-    uli.QuadPart -= ((int64_t) 116444736) * ((int64_t) 1000000000);
+    uli.QuadPart -= ((int64_t)116444736) * ((int64_t)1000000000);
     uli.QuadPart /= 10;
 
     tv->tv_sec = uli.QuadPart / 1000000;
@@ -164,10 +160,9 @@ static void file_time_to_time_val(FILETIME *ft, struct timeval *tv)
 // which causes _wstat to not be defined as _wstati64 (while stat is defined
 // as _stati64). This causes g_stat from glib to "fail" (garbage in stat
 // buffer due to mistmatch of stat struct).
-static int g_stat_reimpl(const char *filename, stat_type *buf)
-{
+static int g_stat_reimpl(const char* filename, stat_type* buf) {
 #if defined(FSEMU_GLIB) && defined(G_OS_WIN32)
-    wchar_t *wfilename = g_utf8_to_utf16(filename, -1, NULL, NULL, NULL);
+    wchar_t* wfilename = g_utf8_to_utf16(filename, -1, NULL, NULL, NULL);
     int retval;
     int save_errno;
     int len;
@@ -179,8 +174,7 @@ static int g_stat_reimpl(const char *filename, stat_type *buf)
 
     len = wcslen(wfilename);
     while (len > 0 && G_IS_DIR_SEPARATOR(wfilename[len - 1])) len--;
-    if (len > 0 && (!g_path_is_absolute(filename) ||
-                    len > g_path_skip_root(filename) - filename))
+    if (len > 0 && (!g_path_is_absolute(filename) || len > g_path_skip_root(filename) - filename))
         wfilename[len] = '\0';
 
     // use explicit stat function (see define further up) to work around bug
@@ -196,8 +190,7 @@ static int g_stat_reimpl(const char *filename, stat_type *buf)
 #endif
 }
 
-int fsemu_path_stat(const char *path, fsemu_path_stat_t *buf)
-{
+int fsemu_path_stat(const char* path, fsemu_path_stat_t* buf) {
     stat_type st;
 #ifdef FSEMU_GLIB
     // g_stat handles unicode file names on Windows
@@ -235,16 +228,14 @@ int fsemu_path_stat(const char *path, fsemu_path_stat_t *buf)
         DWORD attr;
         FILETIME t1, t2, t3;
 
-        wchar_t *upath = wide(path);
+        wchar_t* upath = wide(path);
         attr = GetFileAttributesW(upath);
         flags = FILE_ATTRIBUTE_NORMAL;
-        if (attr != INVALID_FILE_ATTRIBUTES &&
-            (attr & FILE_ATTRIBUTE_DIRECTORY)) {
+        if (attr != INVALID_FILE_ATTRIBUTES && (attr & FILE_ATTRIBUTE_DIRECTORY)) {
             // needed to obtain a handle to a directory
             flags = FILE_FLAG_BACKUP_SEMANTICS;
         }
-        h = CreateFileW(
-            upath, FILE_READ_ATTRIBUTES, 0, NULL, OPEN_EXISTING, flags, NULL);
+        h = CreateFileW(upath, FILE_READ_ATTRIBUTES, 0, NULL, OPEN_EXISTING, flags, NULL);
         if (h != INVALID_HANDLE_VALUE) {
             if (GetFileTime(h, &t1, &t2, &t3)) {
                 struct timeval tv;

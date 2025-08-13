@@ -1,5 +1,5 @@
-from .types import Borders, PaddingParam, SizeParam
-from .window import Window
+from fsgui.types import Borders, PaddingParam, SizeParam
+from fsgui.window import Window
 
 
 class BorderlessWindow(Window):

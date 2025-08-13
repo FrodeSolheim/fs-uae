@@ -9,4 +9,4 @@ extern "C" {
 }
 #endif
 
-#endif // FSAPP_CONFIG_H
+#endif  // FSAPP_CONFIG_H

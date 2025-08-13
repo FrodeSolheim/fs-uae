@@ -60,15 +60,16 @@ int driveclick_loadresource (struct drvsample *sp, int drivetype)
         }
         char *data = NULL;
         int size = 0;
-        if (fs_data_file_content(name, &data, &size) == 0) {
-            int len = (int) size;
-            struct drvsample* s = sp + type;
-            s->p = decodewav((uae_u8*) data, &len);
-            s->len = len;
-            free(data);
-        } else {
-            write_log("WARNING: Could not load %s\n", name);
-        }
+#warning Not loading drive click sounds right now
+        // if (fs_data_file_content(name, &data, &size) == 0) {
+        //     int len = (int) size;
+        //     struct drvsample* s = sp + type;
+        //     s->p = decodewav((uae_u8*) data, &len);
+        //     s->len = len;
+        //     free(data);
+        // } else {
+        //     write_log("WARNING: Could not load %s\n", name);
+        // }
     }
     return 1;
 }

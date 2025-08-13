@@ -29,16 +29,12 @@ int64_t fsemu_log_last_error_at(void);
 
 #define FSEMU_LOG_FLAG_NO_LAST_UPDATE (1 << 0)
 
-void fsemu_log_with_level_and_flags(int level,
-                                    int flags,
-                                    const char *format,
-                                    ...);
+void fsemu_log_with_level_and_flags(int level, int flags, const char* format, ...);
 
 #define fsemu_log_with_level(level, format, ...) \
     fsemu_log_with_level_and_flags(level, 0, format, ##__VA_ARGS__)
 
-#define fsemu_log(format, ...) \
-    fsemu_log_with_level(FSEMU_LOG_LEVEL_INFO, format, ##__VA_ARGS__)
+#define fsemu_log(format, ...) fsemu_log_with_level(FSEMU_LOG_LEVEL_INFO, format, ##__VA_ARGS__)
 
 #define fsemu_log_trace(format, ...) \
     fsemu_log_with_level(FSEMU_LOG_LEVEL_TRACE, format, ##__VA_ARGS__)

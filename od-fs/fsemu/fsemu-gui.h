@@ -36,29 +36,26 @@ void fsemu_gui_init(void);
 void fsemu_gui_lock(void);
 void fsemu_gui_unlock(void);
 
-fsemu_gui_item_t *fsemu_gui_create_item(void);
+fsemu_gui_item_t* fsemu_gui_create_item(void);
 // fsemu_gui_item_t *fsemu_gui_create_rectangle(
 //     int x, int y, int w, int h, int c);
 
-void fsemu_gui_item_set_visible(fsemu_gui_item_t *item, bool visible);
+void fsemu_gui_item_set_visible(fsemu_gui_item_t* item, bool visible);
 
-void fsemu_gui_rectangle(
-    fsemu_gui_item_t *item, int x, int y, int w, int h, uint32_t c);
-void fsemu_gui_image(
-    fsemu_gui_item_t *item, int x, int y, int w, int h, fsemu_image_t *image);
+void fsemu_gui_rectangle(fsemu_gui_item_t* item, int x, int y, int w, int h, uint32_t c);
+void fsemu_gui_image(fsemu_gui_item_t* item, int x, int y, int w, int h, fsemu_image_t* image);
 
-void fsemu_gui_add_item(fsemu_gui_item_t *item);
+void fsemu_gui_add_item(fsemu_gui_item_t* item);
 
 // FIXME: Naming? Do not acquire lock, assert the lock is already taken.
-void fsemu_gui_add_item_unlocked(fsemu_gui_item_t *item);
+void fsemu_gui_add_item_unlocked(fsemu_gui_item_t* item);
 
-fsemu_gui_item_t *fsemu_gui_snapshot(void);
-void fsemu_gui_free_snapshot(fsemu_gui_item_t *snapshot);
+fsemu_gui_item_t* fsemu_gui_snapshot(void);
+void fsemu_gui_free_snapshot(fsemu_gui_item_t* snapshot);
 
 #ifdef FSEMU_INTERNAL
 
-#define fsemu_gui_log(format, ...) \
-    fsemu_log("[FSE] [GUI] " format, ##__VA_ARGS__)
+#define fsemu_gui_log(format, ...) fsemu_log("[FSE] [GUI] " format, ##__VA_ARGS__)
 
 // void fsemu_gui_item_hide(fsemu_gui_item_t* item);
 
@@ -78,15 +75,15 @@ struct fsemu_gui_item_struct {
     int coordinates;
     bool translucent;
     uint32_t color;
-    fsemu_font_t *font;
-    fsemu_image_t *image;
+    fsemu_font_t* font;
+    fsemu_image_t* image;
     // bool image_owner;
     bool dirty;
     bool visible;
     uint32_t flags;
     int z_index;
 #ifdef FSEMU_SDL
-    SDL_Texture *texture;
+    SDL_Texture* texture;
 #endif
 
     fsemu_gui_coord_t left;
@@ -95,14 +92,14 @@ struct fsemu_gui_item_struct {
     fsemu_gui_coord_t bottom;
     fsemu_drect_t render_rect;
 
-    char *name;
-    fsemu_gui_item_t *parent;
-    fsemu_gui_item_t *next;
-    fsemu_gui_item_t *first_child;
-    fsemu_gui_item_t *last_child;
+    char* name;
+    fsemu_gui_item_t* parent;
+    fsemu_gui_item_t* next;
+    fsemu_gui_item_t* first_child;
+    fsemu_gui_item_t* last_child;
 
-    char *text;
-    fsemu_image_t *textimage;
+    char* text;
+    fsemu_image_t* textimage;
     // Default is 0.0 for left-aligned.
     float text_halign;
     // Default is 0.5 for centered vertically.
@@ -113,7 +110,7 @@ struct fsemu_gui_item_struct {
     // FIXME: text_color_cached, text_font_cached
     int font_size;
 
-    char *text_cached;
+    char* text_cached;
     fsemu_color_t text_color_cached;
 };
 

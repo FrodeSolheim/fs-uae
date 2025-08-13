@@ -19,17 +19,14 @@ void fsemu_module_on_quit(fsemu_module_on_quit_f function);
 // noted.
 void fsemu_module_quit(void);
 
-fsemu_error_t fsemu_module_init(const char *name,
-                                bool *init,
-                                fsemu_module_on_quit_f quit);
+fsemu_error_t fsemu_module_init(const char* name, bool* init, fsemu_module_on_quit_f quit);
 
 #define FSEMU_MODULE_INIT(name) \
     fsemu_module_init(#name, &fsemu_##name.initialized, fsemu_##name##_quit)
 
-#define FSEMU_MODULE_INIT_ONCE(name)                                \
-    if (!fsemu_##name.init) {                                       \
-        fsemu_module_init(                                          \
-            #name, &fsemu_##name.initialized, fsemu_##name##_quit); \
+#define FSEMU_MODULE_INIT_ONCE(name)                                              \
+    if (!fsemu_##name.init) {                                                     \
+        fsemu_module_init(#name, &fsemu_##name.initialized, fsemu_##name##_quit); \
     }
 
 #ifdef __cplusplus

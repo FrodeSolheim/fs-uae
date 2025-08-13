@@ -17,29 +17,28 @@
 static struct {
     bool initialized;
 
-    fsemu_widget_t *container_w;
-    fsemu_widget_t *sides_w[2];
+    fsemu_widget_t* container_w;
+    fsemu_widget_t* sides_w[2];
 
-    fsemu_led_t *leds[FSEMU_LEDS_MAX_LEDS];
+    fsemu_led_t* leds[FSEMU_LEDS_MAX_LEDS];
     int side[FSEMU_LEDS_MAX_LEDS];
-    fsemu_image_t *images[FSEMU_LEDS_MAX_LEDS][FSEMU_LED_MAX_STATES];
+    fsemu_image_t* images[FSEMU_LEDS_MAX_LEDS][FSEMU_LED_MAX_STATES];
     // LED container widget
-    fsemu_widget_t *led_w[FSEMU_LEDS_MAX_LEDS];
-    fsemu_widget_t *label_w[FSEMU_LEDS_MAX_LEDS];
-    fsemu_widget_t *base_w[FSEMU_LEDS_MAX_LEDS];
-    fsemu_widget_t *overlay_w[FSEMU_LEDS_MAX_LEDS];
+    fsemu_widget_t* led_w[FSEMU_LEDS_MAX_LEDS];
+    fsemu_widget_t* label_w[FSEMU_LEDS_MAX_LEDS];
+    fsemu_widget_t* base_w[FSEMU_LEDS_MAX_LEDS];
+    fsemu_widget_t* overlay_w[FSEMU_LEDS_MAX_LEDS];
     int num_leds;
     int num_leds_side[2];
     // Built-in LEDs
-    fsemu_led_t *vsync_led;
-    fsemu_led_t *mlock_led;
-    fsemu_led_t *klock_led;
+    fsemu_led_t* vsync_led;
+    fsemu_led_t* mlock_led;
+    fsemu_led_t* klock_led;
 } fsemu_leds;
 
-static void fsemu_leds_init_led(int index)
-{
-    fsemu_widget_t *w;
-    fsemu_led_t *led = fsemu_leds.leds[index];
+static void fsemu_leds_init_led(int index) {
+    fsemu_widget_t* w;
+    fsemu_led_t* led = fsemu_leds.leds[index];
     int side = fsemu_leds.side[index];
 
     w = fsemu_leds.led_w[index] = fsemu_widget_new_with_name("led-container");
@@ -68,8 +67,8 @@ static void fsemu_leds_init_led(int index)
     fsemu_widget_add_child(fsemu_leds.led_w[index], w);
 
     // fsemu_image_t *image = fsemu_image_load_png
-    char *image_name = g_strdup_printf("%s.png", fsemu_led_id(led));
-    fsemu_image_t *image = fsemu_image_load(image_name);
+    char* image_name = g_strdup_printf("%s.png", fsemu_led_id(led));
+    fsemu_image_t* image = fsemu_image_load(image_name);
     free(image_name);
     if (image == NULL) {
         image = fsemu_image_load("Led.png");
@@ -103,8 +102,7 @@ static void fsemu_leds_init_led(int index)
     }
     fsemu_leds.images[index][2] = image;
 
-    w = fsemu_leds.overlay_w[index] =
-        fsemu_widget_new_with_name("led-overlay");
+    w = fsemu_leds.overlay_w[index] = fsemu_widget_new_with_name("led-overlay");
     // fsemu_widget_set_font_name()
     // fsemu_widget_set_text_color(w, FSEMU_COLOR_RGB(0xCCCCCC));
     // fsemu_widget_set_font_size(w, 24);
@@ -123,10 +121,9 @@ static void fsemu_leds_init_led(int index)
     fsemu_widget_add_child(fsemu_leds.led_w[index], w);
 }
 
-static void fsemu_leds_update_led(int index)
-{
-    fsemu_widget_t *w;
-    fsemu_led_t *led = fsemu_leds.leds[index];
+static void fsemu_leds_update_led(int index) {
+    fsemu_widget_t* w;
+    fsemu_led_t* led = fsemu_leds.leds[index];
     if (fsemu_leds.led_w[index] == NULL) {
         fsemu_leds_init_led(index);
     }
@@ -144,19 +141,16 @@ static void fsemu_leds_update_led(int index)
     }
 
     // fsemu_widget_set_opacity(w, fsemu_led_brightness(led));
-    fsemu_widget_set_color(
-        w, FSEMU_COLOR_RGB_A(0xFFFFFF, 255 * fsemu_led_brightness(led) / 100));
+    fsemu_widget_set_color(w, FSEMU_COLOR_RGB_A(0xFFFFFF, 255 * fsemu_led_brightness(led) / 100));
 }
 
 // ----------------------------------------------------------------------------
 
-fsemu_error_t fsemu_leds_add_led_to_side(fsemu_led_t *led, int side)
-{
+fsemu_error_t fsemu_leds_add_led_to_side(fsemu_led_t* led, int side) {
     if (fsemu_leds.num_leds == FSEMU_LEDS_MAX_LEDS) {
         return -1;
     }
-    fsemu_assert(side == FSEMU_LEDS_SIDE_LEFT ||
-                 side == FSEMU_LEDS_SIDE_RIGHT);
+    fsemu_assert(side == FSEMU_LEDS_SIDE_LEFT || side == FSEMU_LEDS_SIDE_RIGHT);
     int led_index = fsemu_leds.num_leds;
     fsemu_leds.leds[led_index] = led;
     fsemu_leds.side[led_index] = side;
@@ -167,15 +161,13 @@ fsemu_error_t fsemu_leds_add_led_to_side(fsemu_led_t *led, int side)
     return 0;
 }
 
-fsemu_error_t fsemu_leds_add_led(fsemu_led_t *led)
-{
+fsemu_error_t fsemu_leds_add_led(fsemu_led_t* led) {
     return fsemu_leds_add_led_to_side(led, FSEMU_LEDS_SIDE_RIGHT);
 }
 
 // ----------------------------------------------------------------------------
 
-void fsemu_leds_update(void)
-{
+void fsemu_leds_update(void) {
     // Update the state of default lets
 
     if (fsemu_led_state(fsemu_leds.vsync_led) == 1) {
@@ -186,8 +178,7 @@ void fsemu_leds_update(void)
 
     fsemu_led_set_state(fsemu_leds.mlock_led, fsemu_mouse_captured());
     // FIXME: Replace fsemu_sdlwindow_full_keyboard_emulation()
-    fsemu_led_set_state(fsemu_leds.klock_led,
-                        fsemu_sdlwindow_full_keyboard_emulation());
+    fsemu_led_set_state(fsemu_leds.klock_led, fsemu_sdlwindow_full_keyboard_emulation());
 
     // double left = 1920 - 200;
     // FIXME: There is some bug with calculating image position relative to
@@ -202,7 +193,7 @@ void fsemu_leds_update(void)
     top[1] = (1080 - height[1]) / 2;
 
     for (int i = 0; i < fsemu_leds.num_leds; i++) {
-        fsemu_led_t *led = fsemu_leds.leds[i];
+        fsemu_led_t* led = fsemu_leds.leds[i];
         if (fsemu_led_check_and_reset_changed(led)) {
             fsemu_leds_update_led(i);
         }
@@ -226,17 +217,15 @@ void fsemu_leds_update(void)
 
 // ----------------------------------------------------------------------------
 
-static void fsemu_leds_quit(void)
-{
+static void fsemu_leds_quit(void) {
 }
 
 // ----------------------------------------------------------------------------
 
 #define FSEMU_OPTION_PERFORMANCE_GUI_DEFAULT 0
 
-void fsemu_leds_init(void)
-{
-    fsemu_widget_t *w;
+void fsemu_leds_init(void) {
+    fsemu_widget_t* w;
 
     if (FSEMU_MODULE_INIT(leds)) {
         return;

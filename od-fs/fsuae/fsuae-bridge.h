@@ -13,4 +13,4 @@ void fsuae_bridge_configure_libuae(void);
 }
 #endif
 
-#endif // FSUAE_BRIDGE_H
+#endif  // FSUAE_BRIDGE_H

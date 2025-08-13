@@ -5,7 +5,6 @@
 #define USE_SDL 1
 
 #include <fs/base.h>
-#include <fs/log.h>
 #include <fs/thread.h>
 #include <stdlib.h>
 #ifdef USE_GLIB
@@ -340,7 +339,7 @@ int fs_semaphore_wait_timeout_ms(fs_semaphore* semaphore, int timeout)
     } else {
         return FS_SEMAPHORE_TIMEOUT;
     }
-    fs_log("WARNING: uae_sem_trywait_delay failed\n");
+    // fs_log("WARNING: uae_sem_trywait_delay failed\n");
     return -3;
 #else
 #error no thread support

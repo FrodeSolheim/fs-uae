@@ -10,14 +10,14 @@ extern "C" {
 
 void fsemu_leds_init(void);
 
-fsemu_error_t fsemu_leds_add_led(fsemu_led_t *led);
+fsemu_error_t fsemu_leds_add_led(fsemu_led_t* led);
 
 enum {
     FSEMU_LEDS_SIDE_LEFT,
     FSEMU_LEDS_SIDE_RIGHT,
 };
 
-fsemu_error_t fsemu_leds_add_led_to_side(fsemu_led_t *led, int side);
+fsemu_error_t fsemu_leds_add_led_to_side(fsemu_led_t* led, int side);
 
 void fsemu_leds_update(void);
 

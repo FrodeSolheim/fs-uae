@@ -5,6 +5,8 @@
 #include "FLAC/stream_decoder.h"
 #include "cda_play.h"
 
+#if 0
+
 FLAC_API FLAC__StreamDecoder *FLAC__stream_decoder_new(void) {
     return NULL;
 }
@@ -44,6 +46,10 @@ FLAC_API FLAC__bool FLAC__stream_decoder_process_until_end_of_stream(FLAC__Strea
 FLAC_API void FLAC__stream_decoder_delete(FLAC__StreamDecoder *decoder) {
 }
 
+#endif
+
+#if 0
+
 mp3decoder::~mp3decoder() {
 }
 
@@ -57,3 +63,5 @@ uae_u8 *mp3decoder::get (struct zfile *zf, uae_u8 *outbuf, int maxsize) {
 uae_u32 mp3decoder::getsize (struct zfile *zf) {
     return 0;
 }
+
+#endif

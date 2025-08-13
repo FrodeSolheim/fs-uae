@@ -31,21 +31,19 @@ static struct {
     bool initialized;
     int bytes_for_frame;
 #ifdef FSEMU_SAMPLERATE
-    SRC_STATE *src_state;
+    SRC_STATE* src_state;
     double adjustment;
     float src_in[8192];   // FIXME: suitable size?
     float src_out[8192];  // FIXME: suitable size?
 #endif
 } fsemu_audiobuffer_extra;
 
-void fsemu_audiobuffer_init(void)
-{
+void fsemu_audiobuffer_init(void) {
     fsemu_audiobuffer_extra.initialized = true;
 #ifdef FSEMU_SAMPLERATE
     int channels = 2;
     int err;
-    fsemu_audiobuffer_extra.src_state =
-        src_new(SRC_SINC_BEST_QUALITY, channels, &err);
+    fsemu_audiobuffer_extra.src_state = src_new(SRC_SINC_BEST_QUALITY, channels, &err);
 #endif
 
     // 1 second ring buffer (2 channels, 2 bytes per sample)
@@ -55,7 +53,7 @@ void fsemu_audiobuffer_init(void)
     // Make audio buffer_size a multiple of 512, 1024, etc.
     // Between 0.5 and 1 second ring buffer...
     fsemu_audiobuffer.size = 2 << 16;
-    fsemu_audiobuffer.data = (uint8_t *) malloc(fsemu_audiobuffer.size);
+    fsemu_audiobuffer.data = (uint8_t*)malloc(fsemu_audiobuffer.size);
     fsemu_audiobuffer.end = fsemu_audiobuffer.data + fsemu_audiobuffer.size;
     fsemu_audiobuffer.read = fsemu_audiobuffer.data;
     fsemu_audiobuffer.write = fsemu_audiobuffer.data;
@@ -63,36 +61,32 @@ void fsemu_audiobuffer_init(void)
     fsemu_audiobuffer_clear();
 }
 
-void fsemu_audiobuffer_clear(void)
-{
+void fsemu_audiobuffer_clear(void) {
     fsemu_assert(fsemu_audiobuffer_extra.initialized);
 #if 1
     for (int i = 0; i < fsemu_audiobuffer.size; i++) {
         fsemu_audiobuffer.data[i] = 0;
     }
 #else
-    memset((void *) fsemu_audiobuffer.data, 0, fsemu_audiobuffer.size);
+    memset((void*)fsemu_audiobuffer.data, 0, fsemu_audiobuffer.size);
 #endif
 }
 
-int fsemu_audiobuffer_fill(void)
-{
-    uint8_t volatile *read = fsemu_audiobuffer.read;
-    uint8_t volatile *write = fsemu_audiobuffer.write;
+int fsemu_audiobuffer_fill(void) {
+    uint8_t volatile* read = fsemu_audiobuffer.read;
+    uint8_t volatile* write = fsemu_audiobuffer.write;
     if (write >= read) {
         return write - read;
     }
     return (fsemu_audiobuffer.end - read) + (write - fsemu_audiobuffer.data);
 }
 
-int fsemu_audiobuffer_fill_ms(void)
-{
+int fsemu_audiobuffer_fill_ms(void) {
     int frames = fsemu_audiobuffer_fill() / 4;
     return frames * 1000 / fsemu_audio_frequency();
 }
 
-int64_t fsemu_audiobuffer_fill_us(void)
-{
+int64_t fsemu_audiobuffer_fill_us(void) {
     int frames = fsemu_audiobuffer_fill() / 4;
     return frames * 1000000LL / fsemu_audio_frequency();
 }
@@ -128,12 +122,11 @@ static void fsemu_audiobuffer_update_2(const void *data, int size)
 }
 #endif
 
-void fsemu_audiobuffer_update(const void *void_data, int size)
-{
+void fsemu_audiobuffer_update(const void* void_data, int size) {
     // printf("fsemu_audiobuffer_update data=%p size=%d\n", void_data, size);
     fsemu_assert(fsemu_audiobuffer_extra.initialized);
     // Casting to char pointer to be able to do byte pointer arithmetic.
-    const uint8_t *data = (const uint8_t *) void_data;
+    const uint8_t* data = (const uint8_t*)void_data;
 
     fsemu_audiobuffer_extra.bytes_for_frame += size;
 
@@ -153,14 +146,14 @@ void fsemu_audiobuffer_update(const void *void_data, int size)
         int frames = samples / 2;
         // int16_t *intdata = data;
         // int16_t *intdata_p = intdata;
-        float *floatdata = fsemu_audiobuffer_extra.src_in;
+        float* floatdata = fsemu_audiobuffer_extra.src_in;
         // float *floatdata_p = floatdata;
         /*
         for (int i = 0; i < samples; i++) {
             *floatdata_p = *intdata_p / 32
         }
         */
-        src_short_to_float_array((const short *) data, floatdata, samples);
+        src_short_to_float_array((const short*)data, floatdata, samples);
 
         SRC_DATA src_data;
         // data_in       : A pointer to the input data samples.
@@ -187,13 +180,12 @@ void fsemu_audiobuffer_update(const void *void_data, int size)
         if (available < size_out) {
 #if 1
             for (int i = 0; i < available / 2; i++) {
-                int16_t value = (int16_t) (floatdata[i] * 32767);
+                int16_t value = (int16_t)(floatdata[i] * 32767);
                 fsemu_audiobuffer.write[i * 2] = value & 0xff;
                 fsemu_audiobuffer.write[i * 2 + 1] = (value >> 8) & 0xff;
             }
 #else
-            src_float_to_short_array(
-                floatdata, (short *) fsemu_audiobuffer.write, available / 2);
+            src_float_to_short_array(floatdata, (short*)fsemu_audiobuffer.write, available / 2);
 #endif
             fsemu_audiobuffer.write = fsemu_audiobuffer.data;
             data += available;
@@ -204,13 +196,12 @@ void fsemu_audiobuffer_update(const void *void_data, int size)
         if (size_out) {
 #if 1
             for (int i = 0; i < size_out / 2; i++) {
-                int16_t value = (int16_t) (floatdata[i] * 32767);
+                int16_t value = (int16_t)(floatdata[i] * 32767);
                 fsemu_audiobuffer.write[i * 2] = value & 0xff;
                 fsemu_audiobuffer.write[i * 2 + 1] = (value >> 8) & 0xff;
             }
 #else
-            src_float_to_short_array(
-                floatdata, (short *) fsemu_audiobuffer.write, size_out / 2);
+            src_float_to_short_array(floatdata, (short*)fsemu_audiobuffer.write, size_out / 2);
 #endif
             fsemu_audiobuffer.write += size_out;
         }
@@ -219,14 +210,15 @@ void fsemu_audiobuffer_update(const void *void_data, int size)
 #endif
 
     ptrdiff_t available = fsemu_audiobuffer.end - fsemu_audiobuffer.write;
-    // printf("end %p - write %p = available %ld\n", fsemu_audiobuffer.end, fsemu_audiobuffer.write, available);
+    // printf("end %p - write %p = available %ld\n", fsemu_audiobuffer.end, fsemu_audiobuffer.write,
+    // available);
     if (available < size) {
 #if 1
         for (int i = 0; i < available; i++) {
             fsemu_audiobuffer.write[i] = data[i];
         }
 #else
-        memcpy((void *) fsemu_audiobuffer.write, data, available);
+        memcpy((void*)fsemu_audiobuffer.write, data, available);
 #endif
         fsemu_audiobuffer.write = fsemu_audiobuffer.data;
         data += available;
@@ -238,23 +230,20 @@ void fsemu_audiobuffer_update(const void *void_data, int size)
             fsemu_audiobuffer.write[i] = data[i];
         }
 #else
-        memcpy((void *) fsemu_audiobuffer.write, data, size);
+        memcpy((void*)fsemu_audiobuffer.write, data, size);
 #endif
         fsemu_audiobuffer.write += size;
     }
 }
 
-void fsemu_audiobuffer_frame_done(void)
-{
+void fsemu_audiobuffer_frame_done(void) {
     int samples = fsemu_audiobuffer_extra.bytes_for_frame / 2;
     int frames = samples / 2;
-    fsemu_frame_log_epoch(
-        "Audio done for frame: %d samples / 2 = %d frames\n", samples, frames);
+    fsemu_frame_log_epoch("Audio done for frame: %d samples / 2 = %d frames\n", samples, frames);
     fsemu_audiobuffer_extra.bytes_for_frame = 0;
 }
 
-void fsemu_audiobuffer_write_silence(int size)
-{
+void fsemu_audiobuffer_write_silence(int size) {
     // FIXME: Use a static array instead and avoid malloc?
     // Can write repeatedly from the same buffer;
     /*
@@ -272,30 +261,25 @@ void fsemu_audiobuffer_write_silence(int size)
     }
 }
 
-void fsemu_audiobuffer_write_silence_ms(int ms)
-{
+void fsemu_audiobuffer_write_silence_ms(int ms) {
     int bytes = 4 * ms * fsemu_audio_frequency() / 1000;
     fsemu_audiobuffer_write_silence(bytes);
 }
 
 #ifdef FSEMU_SAMPLERATE
 
-double fsemu_audiobuffer_adjustment(void)
-{
+double fsemu_audiobuffer_adjustment(void) {
     return fsemu_audiobuffer_extra.adjustment;
 }
 
-void fsemu_audiobuffer_set_adjustment(double adjustment)
-{
-    fsemu_frame_log_epoch(
-        "Audio %s%0.5f\n", adjustment >= 0 ? "+" : "", adjustment);
+void fsemu_audiobuffer_set_adjustment(double adjustment) {
+    fsemu_frame_log_epoch("Audio %s%0.5f\n", adjustment >= 0 ? "+" : "", adjustment);
     fsemu_audiobuffer_extra.adjustment = adjustment;
 }
 
 #endif
 
-int fsemu_audiobuffer_calculate_target(void)
-{
+int fsemu_audiobuffer_calculate_target(void) {
     // FIXME: We can do better. We don't need 20 ms of buffer at the *end*
     // of a frame if the frame was done generating after 2ms from frame
     // begin; then we really only need a few ms of buffer, since we will
@@ -330,18 +314,14 @@ int fsemu_audiobuffer_calculate_target(void)
 #define KI 0.000000001
 #define KD 0.000000000
 
-static double pid_controller_step(int *error_out,
-                                  int *error_sum_out,
-                                  int *latency_out)
-{
+static double pid_controller_step(int* error_out, int* error_sum_out, int* latency_out) {
 #if 1
     int latency = fsemu_audio_latency_us();
 
     static fsemu_mavgi_t latency_mavg;
 #define PID_LATENCY_VALUES 64
     static int latency_values[PID_LATENCY_VALUES];
-    int latency_avg_2 = fsemu_mavgi(
-        &latency_mavg, latency_values, PID_LATENCY_VALUES, latency);
+    int latency_avg_2 = fsemu_mavgi(&latency_mavg, latency_values, PID_LATENCY_VALUES, latency);
     if (latency_out) {
         *latency_out = latency;
     }
@@ -405,8 +385,7 @@ static double pid_controller_step(int *error_out,
     return MAX(-0.5, MIN(0.5, output));
 }
 
-double fsemu_audiobuffer_calculate_adjustment(void)
-{
+double fsemu_audiobuffer_calculate_adjustment(void) {
     double frame_rate_adjust = 0.0;
     // frame_rate_adjust = fsemu_frame_rate_multiplier();
     // frame_rate_adjust = 60 / 50.0;
@@ -427,13 +406,8 @@ double fsemu_audiobuffer_calculate_adjustment(void)
            error,
            error_sum);
 #endif
-    fsemu_audio_log_trace(
-        "%0.1f Adjust %0.5f (%0.5f + PID %0.5f) Err %d sum %d\n",
-        latency / 1000.0,
-        adjust,
-        frame_rate_adjust,
-        pid_adjust,
-        error,
-        error_sum);
+    fsemu_audio_log_trace("%0.1f Adjust %0.5f (%0.5f + PID %0.5f) Err %d sum %d\n",
+                          latency / 1000.0, adjust, frame_rate_adjust, pid_adjust, error,
+                          error_sum);
     return adjust;
 }

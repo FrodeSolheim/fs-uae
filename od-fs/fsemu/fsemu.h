@@ -13,10 +13,10 @@ extern "C" {
 
 // ----------------------------------------------------------------------------
 
-void fsemu_boot_log(const char *msg);
+void fsemu_boot_log(const char* msg);
 
 // Call this before fsemu_init to have the desired effect.
-void fsemu_set_emulator_name(const char *name);
+void fsemu_set_emulator_name(const char* name);
 
 #define FSEMU_VIDEO_FORMAT_FLAG_RGBA (1 << FSEMU_VIDEO_FORMAT_RGBA)
 #define FSEMU_VIDEO_FORMAT_FLAG_BGRA (1 << FSEMU_VIDEO_FORMAT_BGRA)
@@ -24,7 +24,7 @@ void fsemu_set_emulator_name(const char *name);
 
 void fsemu_set_video_format_flags(int flags);
 
-void fsemu_set_config_file_extension(const char *extension);
+void fsemu_set_config_file_extension(const char* extension);
 
 // void fsemu_init(void);
 
@@ -50,7 +50,7 @@ void fsemu_end(void);
 
 int fsemu_video_format_flags(void);
 
-const char *fsemu_emulator_name(void);
+const char* fsemu_emulator_name(void);
 
 #ifdef __cplusplus
 }

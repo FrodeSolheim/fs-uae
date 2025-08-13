@@ -29,9 +29,5 @@ class DisplayWindow(Window):
         VerticalLayout(gap=24)
 
         Label("Centering:")
-        UaeConfigCheckBox(
-            "Horizontal", config.gfx_center_horizontal, "smart", "none"
-        )
-        UaeConfigCheckBox(
-            "Vertical", config.gfx_center_vertical, "smart", "none"
-        )
+        UaeConfigCheckBox("Horizontal", config.gfx_center_horizontal, "smart", "none")
+        UaeConfigCheckBox("Vertical", config.gfx_center_vertical, "smart", "none")

@@ -15,16 +15,16 @@ typedef enum {
 } fsemu_window_driver_t;
 
 /** This can be called before fsemu_window_init. */
-void fsemu_window_set_title(const char *title);
+void fsemu_window_set_title(const char* title);
 void fsemu_window_set_fullscreen(bool fullscreen);
 
 void fsemu_window_init(void);
 void fsemu_window_work(int timeout);
 
-void fsemu_window_initial_rect(fsemu_rect_t *rect, double ui_scale);
-void fsemu_window_initial_fullscreen_rect(fsemu_rect_t *rect);
+void fsemu_window_initial_rect(fsemu_rect_t* rect, double ui_scale);
+void fsemu_window_initial_fullscreen_rect(fsemu_rect_t* rect);
 
-const char *fsemu_window_title(void);
+const char* fsemu_window_title(void);
 
 bool fsemu_window_fullscreen(void);
 void fsemu_window_toggle_fullscreen(void);
@@ -33,8 +33,8 @@ void fsemu_assert_window(void);
 
 bool fsemu_window_active(void);
 
-void fsemu_window_size(fsemu_size_t *size);
-void fsemu_window_set_size(fsemu_size_t *size);
+void fsemu_window_size(fsemu_size_t* size);
+void fsemu_window_set_size(fsemu_size_t* size);
 void fsemu_window_set_size_2(int width, int height);
 
 double fsemu_window_ui_scale(void);

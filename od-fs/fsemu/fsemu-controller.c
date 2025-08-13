@@ -30,11 +30,10 @@
 static struct {
     bool initialized;
     fsemu_controller_t controllers[FSEMU_CONTROLLER_MAX_COUNT];
-    SDL_Gamepad *sdl_controllers[FSEMU_CONTROLLER_MAX_COUNT];
+    SDL_Gamepad* sdl_controllers[FSEMU_CONTROLLER_MAX_COUNT];
 } fsemu_controller;
 
-void fsemu_controller_init(void)
-{
+void fsemu_controller_init(void) {
     return;
 
     if (fsemu_controller.initialized) {
@@ -46,18 +45,15 @@ void fsemu_controller_init(void)
     // FIXME: Test quality code
     for (int i = 0; i < FSEMU_CONTROLLER_MAX_COUNT; i++) {
         printf("Opening SDL game controller %d\n", i);
-        SDL_Gamepad *sdl_controller = SDL_OpenGamepad(i);
+        SDL_Gamepad* sdl_controller = SDL_OpenGamepad(i);
         if (sdl_controller) {
-            printf(
-                "Opening SDL game controller %d -> %p\n", i, sdl_controller);
+            printf("Opening SDL game controller %d -> %p\n", i, sdl_controller);
             fsemu_controller.sdl_controllers[i] = sdl_controller;
         }
     }
 }
 
-static void fsemu_controller_manual_controller_update(
-    int index, SDL_Gamepad *sdl_controller)
-{
+static void fsemu_controller_manual_controller_update(int index, SDL_Gamepad* sdl_controller) {
     int slot = 0;
     int16_t state = 0;
     for (int button = 0; button < SDL_GAMEPAD_BUTTON_COUNT; button++) {
@@ -66,28 +62,24 @@ static void fsemu_controller_manual_controller_update(
         slot = FSEMU_CONTROLLER_BEFORE_FIRST_BUTTON + 1 + button;
 
         if (fsemu_controller.controllers[index].last_state[slot] != state) {
-            printf("state change slot %d: %d -> %d\n",
-                   slot,
-                   fsemu_controller.controllers[index].last_state[slot],
-                   state);
+            printf("state change slot %d: %d -> %d\n", slot,
+                   fsemu_controller.controllers[index].last_state[slot], state);
             fsemu_controller.controllers[index].last_state[slot] = state;
             // FIXME: trigger something...
         }
     }
 }
 
-static void fsemu_controller_manual_update(void)
-{
+static void fsemu_controller_manual_update(void) {
     for (int i = 0; i < FSEMU_CONTROLLER_MAX_COUNT; i++) {
-        SDL_Gamepad *sdl_controller = fsemu_controller.sdl_controllers[i];
+        SDL_Gamepad* sdl_controller = fsemu_controller.sdl_controllers[i];
         if (sdl_controller) {
             fsemu_controller_manual_controller_update(i, sdl_controller);
         }
     }
 }
 
-void fsemu_controller_update(void)
-{
+void fsemu_controller_update(void) {
     return;
 
     fsemu_controller_manual_update();

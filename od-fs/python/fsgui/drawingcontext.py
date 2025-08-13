@@ -33,9 +33,7 @@ class DrawingContext:
 
         # FIXME: draw_filled_rectangle_with_outline
 
-    def draw_filled_rectangle_with_outline(
-        self, position: Position, size: Size
-    ) -> None:
+    def draw_filled_rectangle_with_outline(self, position: Position, size: Size) -> None:
         # FIXME: Replace with optimized C function
 
         x1, y1 = position
@@ -55,9 +53,7 @@ class DrawingContext:
         p = self.origin[0] + position[0], self.origin[1] + position[1]
         fsgui_image.draw(image._image, self.surface, p)
 
-    def draw_image_stretched(
-        self, image: Image, position: Position, size: Size
-    ) -> None:
+    def draw_image_stretched(self, image: Image, position: Position, size: Size) -> None:
         p = self.origin[0] + position[0], self.origin[1] + position[1]
         fsgui_image.draw_stretched(image._image, self.surface, p, size)
 
@@ -73,9 +69,7 @@ class DrawingContext:
         p2 = self.origin[0] + point_b[0], self.origin[1] + point_b[1]
         fsgui_surface.draw_line(self.surface, p1, p2, color)
 
-    def draw_point(
-        self, point_a: Position, color: TColour | None = None
-    ) -> None:
+    def draw_point(self, point_a: Position, color: TColour | None = None) -> None:
         if color is None:
             color = self.pen_colour
         p1 = self.origin[0] + point_a[0], self.origin[1] + point_a[1]
@@ -92,18 +86,12 @@ class DrawingContext:
         # FIXME: For later - we also need to send a bounding box... for clipping!
         p = self.origin[0] + position[0], self.origin[1] + position[1] + dy
 
-        fsgui_font.draw_text(
-            self._font._font, self.surface, text, p, self.text_colour
-        )
+        fsgui_font.draw_text(self._font._font, self.surface, text, p, self.text_colour)
 
-    def draw_text_wrapped(
-        self, text, position: Position, wrap_width: int
-    ) -> None:
+    def draw_text_wrapped(self, text, position: Position, wrap_width: int) -> None:
         # FIXME: For later - we also need to send a bounding box... for clipping!
         p = self.origin[0] + position[0], self.origin[1] + position[1]
-        fsgui_font.draw_text_wrapped(
-            self._font.font, self.surface, text, p, wrap_width
-        )
+        fsgui_font.draw_text_wrapped(self._font.font, self.surface, text, p, wrap_width)
 
     def get_bold_ui_font(self) -> Font:
         return FontManager.get().get_bold_ui_font()

@@ -30,15 +30,11 @@
 #include "fsemu-window.h"
 
 static struct {
-    fsemu_gui_item_t *gui;
+    fsemu_gui_item_t* gui;
 } fsemu_helper;
 
-void fsemu_helper_init_emulator(const char *emulator_name,
-                                bool external_events,
-                                int renderer,
-                                int fullscreen,
-                                int vsync)
-{
+void fsemu_helper_init_emulator(const char* emulator_name, bool external_events, int renderer,
+                                int fullscreen, int vsync) {
     fsemu_boot_log("fsemu_init_with_args");
     fsemu_log("[FSE] [HLP] Init emulator vsync=%d\n", vsync);
 
@@ -46,8 +42,7 @@ void fsemu_helper_init_emulator(const char *emulator_name,
     // displaying via an async queue.
     fsemu_hud_init_early();
 
-    fsemu_warning_2("Early development preview",
-                    "Some features are not fully developed");
+    fsemu_warning_2("Early development preview", "Some features are not fully developed");
 
     fsemu_boot_log("before fsemu_thread_init");
     // This call will also register the main thread
@@ -62,7 +57,7 @@ void fsemu_helper_init_emulator(const char *emulator_name,
     fsemu_option_init();
 
     // fsemu_set_emulator_name(emulator_name);
-    const char *env_title = fsemu_read_env_option("WINDOW_TITLE");
+    const char* env_title = fsemu_read_env_option("WINDOW_TITLE");
     // printf("%s\n", env_title);
     // exit(1);
     if (env_title && env_title[0]) {
@@ -140,8 +135,7 @@ void fsemu_helper_init_emulator(const char *emulator_name,
     fsemu_controller_init();
 }
 
-static void fsemu_helper_startup_update(void)
-{
+static void fsemu_helper_startup_update(void) {
     // fsemu_perfgui_update();
     // fsemu_startupinfo_update();
     // fsemu_hud_update();
@@ -152,8 +146,7 @@ static void fsemu_helper_startup_update(void)
     // fsemu_fade_update();
 }
 
-static void fsemu_helper_poll_and_sleep(void)
-{
+static void fsemu_helper_poll_and_sleep(void) {
     fsemu_window_work(0);
 
     SDL_Event event;
@@ -167,8 +160,7 @@ static void fsemu_helper_poll_and_sleep(void)
     // fsemu_sleep_us(1000 * 1000);
 }
 
-void fsemu_helper_startup_loop(void)
-{
+void fsemu_helper_startup_loop(void) {
     int64_t t0;
     int64_t duration_us;
 
@@ -277,18 +269,15 @@ void fsemu_helper_startup_loop(void)
 }
 
 // FIXME: Remove: deprecated
-fsemu_gui_item_t *fsemu_helper_startup_gui(void)
-{
+fsemu_gui_item_t* fsemu_helper_startup_gui(void) {
     return fsemu_helper.gui;
 }
 
-fsemu_gui_item_t *fsemu_helper_gui(void)
-{
+fsemu_gui_item_t* fsemu_helper_gui(void) {
     return fsemu_helper.gui;
 }
 
-void fsemu_helper_set_gui(fsemu_gui_item_t *gui)
-{
+void fsemu_helper_set_gui(fsemu_gui_item_t* gui) {
 #if 0
     if (fsemu_helper.gui) {
         free
@@ -297,8 +286,7 @@ void fsemu_helper_set_gui(fsemu_gui_item_t *gui)
     fsemu_helper.gui = gui;
 }
 
-void fsemu_helper_sleep_display_end_start(double hz)
-{
+void fsemu_helper_sleep_display_end_start(double hz) {
     int64_t now = fsemu_time_wait_until_us(fsemu_frame_end_at);
     fsemu_frame_add_sleep_time(now);
 
@@ -320,8 +308,7 @@ void fsemu_helper_sleep_display_end_start(double hz)
     fsemu_frame_log_epoch("Frame begin\n");
 }
 
-void fsemu_helper_render_sleep_display_end_start(double hz)
-{
+void fsemu_helper_render_sleep_display_end_start(double hz) {
     // printf("fsemu_helper_render_sleep_display_end_start\n");
 
     SDL_assert(false);  // render disabled
@@ -345,8 +332,7 @@ void fsemu_helper_render_sleep_display_end_start(double hz)
     fsemu_helper_sleep_display_end_start(hz);
 }
 
-void fsemu_helper_update(void)
-{
+void fsemu_helper_update(void) {
     fsemu_frame_log_epoch("Update (helper)\n");
     fsemu_fade_update();
     fsemu_hud_update();
@@ -363,16 +349,14 @@ void fsemu_helper_update(void)
     fsemu_frame_add_gui_time(0);
 }
 
-void fsemu_helper_update_render_early(void)
-{
+void fsemu_helper_update_render_early(void) {
     fsemu_helper_update();
 
     fsemu_video_render_gui_early(fsemu_helper_gui());
     fsemu_frame_add_render_time(0);
 }
 
-void fsemu_helper_framewait(void)
-{
+void fsemu_helper_framewait(void) {
     int64_t now = fsemu_time_us();
     int dt = fsemu_frame_begin_at - now;
     fsemu_frame_log_epoch("Wait %d us until emulation begins\n", dt);

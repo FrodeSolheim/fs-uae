@@ -15,7 +15,7 @@ void fsemu_mainmenu_init(void);
 
 void fsemu_mainmenu_update(void);
 
-fsemu_menu_t *fsemu_mainmenu_get_menu(void);
+fsemu_menu_t* fsemu_mainmenu_get_menu(void);
 
 // typedef void (*fsemu_mainmenu_reset_function_t)(void);
 
@@ -42,8 +42,7 @@ void fsemu_osmenu_navigate(int navigate, fsemu_action_state_t state);
 
 extern int fsemu_mainmenu_log_level;
 
-#define fsemu_mainmenu_log(format, ...) \
-    FSEMU_LOG(mainmenu, "[FSE] [MMU]", format, ##__VA_ARGS__)
+#define fsemu_mainmenu_log(format, ...) FSEMU_LOG(mainmenu, "[FSE] [MMU]", format, ##__VA_ARGS__)
 
 #define fsemu_mainmenu_log_debug(format, ...) \
     FSEMU_LOG_DEBUG(mainmenu, "[FSE] [MMU]", format, ##__VA_ARGS__)

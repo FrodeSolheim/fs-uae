@@ -20,16 +20,16 @@ typedef struct fsemu_inputdevice fsemu_inputdevice_t;
 #define FSEMU_INPUTDEVICE_TYPE_MOUSE 'm'
 #define FSEMU_INPUTDEVICE_TYPE_JOYSTICK 'j'
 
-fsemu_inputdevice_t *fsemu_inputdevice_new(void);
+fsemu_inputdevice_t* fsemu_inputdevice_new(void);
 
-void fsemu_inputdevice_ref(fsemu_inputdevice_t *device);
-void fsemu_inputdevice_unref(fsemu_inputdevice_t *device);
+void fsemu_inputdevice_ref(fsemu_inputdevice_t* device);
+void fsemu_inputdevice_unref(fsemu_inputdevice_t* device);
 
-int fsemu_inputdevice_type(fsemu_inputdevice_t *device);
-void fsemu_inputdevice_set_type(fsemu_inputdevice_t *device, int type);
+int fsemu_inputdevice_type(fsemu_inputdevice_t* device);
+void fsemu_inputdevice_set_type(fsemu_inputdevice_t* device, int type);
 
-const char *fsemu_inputdevice_name(fsemu_inputdevice_t *device);
-void fsemu_inputdevice_set_name(fsemu_inputdevice_t *device, const char *name);
+const char* fsemu_inputdevice_name(fsemu_inputdevice_t* device);
+void fsemu_inputdevice_set_name(fsemu_inputdevice_t* device, const char* name);
 
 void fsemu_inputdevice_init_module(void);
 
@@ -294,8 +294,7 @@ enum {
     // FSEMU_NUM_SCANCODES_3__ = FSEMU_INPUTDEVICE_NUM_KEYS * 3,
 
     FSEMU_INPUTDEVICE_CONTROLLER_OFFSET = 512 * 3 - 1,
-    FSEMU_INPUTDEVICE_BEFORE_FIRST_BUTTON =
-        FSEMU_INPUTDEVICE_CONTROLLER_OFFSET,
+    FSEMU_INPUTDEVICE_BEFORE_FIRST_BUTTON = FSEMU_INPUTDEVICE_CONTROLLER_OFFSET,
     // Buttons in the same order as SDL2 gamecontroller
     FSEMU_INPUTDEVICE_BUTTON_A,  // FSEMU_INPUTDEVICE_SOUTH,  //
                                  // FSEMU_INPUTDEVICE_A,
@@ -481,7 +480,7 @@ struct fsemu_inputdevice {
     int index;
     int port_index;
     int type;
-    char *name;
+    char* name;
 };
 
 #endif  // FSEMU_INTERNAL

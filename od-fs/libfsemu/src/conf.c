@@ -3,11 +3,9 @@
 #endif
 
 #include <fs/base.h>
-#include <fs/conf.h>
 #include <fs/filesys.h>
 #include <fs/glib.h>
 #include <fs/inifile.h>
-#include <fs/log.h>
 #include <stdlib.h>
 #include <string.h>
 #include <strings.h>
@@ -106,12 +104,12 @@ static void process_key_value(const char* key, char* value, int force)
      * g_hash_table_lookup, since that also checks for empty strings, which
      * should be treated as non-existing keys. */
     if (!force && fs_config_get_const_string(key_lower)) {
-        fs_log("%s = %s (ignored)\n", key_lower, value);
+        // fs_log("%s = %s (ignored)\n", key_lower, value);
         g_free(key_lower);
         g_free(value);
     } else {
         g_strstrip(value);
-        fs_log("%s = %s\n", key_lower, value);
+        // fs_log("%s = %s\n", key_lower, value);
         /* Hash table now owns both key_lower and value. */
         g_hash_table_insert(g_hash_table, key_lower, value);
     }
@@ -164,25 +162,25 @@ int fs_config_read_file(const char* path, int force)
     if (!g_initialized) {
         initialize();
     }
-    fs_log("\n");
-    fs_log(LOG_LINE);
-    fs_log("config (%s)\n", path);
-    fs_log(LOG_LINE);
-    fs_log("\n");
+    //fs_log("\n");
+    //fs_log(LOG_LINE);
+    //fs_log("config (%s)\n", path);
+    //fs_log(LOG_LINE);
+    //fs_log("\n");
 
     if (!force && fs_config_get_boolean("end_config") == 1) {
-        fs_log("end_config is set, ignoring this config file\n");
+        //fs_log("end_config is set, ignoring this config file\n");
         return 1;
     }
     if (!fs_path_is_file(path)) {
-        fs_log("config file %s does not exist\n", path);
+        //fs_log("config file %s does not exist\n", path);
         return 0;
     }
 
 #ifdef USE_INIFILE
     fs_ini_file* ini_file = fs_ini_file_open(path);
     if (ini_file == NULL) {
-        fs_log("error loading config file\n");
+        //fs_log("error loading config file\n");
         return 0;
     }
     fs_config_parse_ini_file(ini_file, force);
@@ -211,11 +209,11 @@ int fs_config_get_int_clamped(const char* key, int min, int max)
         return value;
     }
     if (value < min) {
-        fs_log("clamping value %d for key %s to %d\n", value, key, min);
+        //fs_log("clamping value %d for key %s to %d\n", value, key, min);
         return min;
     }
     if (value > max) {
-        fs_log("clamping value %d for key %s to %d\n", value, key, max);
+        //fs_log("clamping value %d for key %s to %d\n", value, key, max);
         return max;
     }
     return value;
@@ -237,11 +235,11 @@ double fs_config_get_double_clamped(const char* key, double min, double max)
         return value;
     }
     if (value < min) {
-        fs_log("clamping value %d for key %s to %d\n", value, key, min);
+        //fs_log("clamping value %d for key %s to %d\n", value, key, min);
         return min;
     }
     if (value > max) {
-        fs_log("clamping value %d for key %s to %d\n", value, key, max);
+        //fs_log("clamping value %d for key %s to %d\n", value, key, max);
         return max;
     }
     return value;
@@ -275,11 +273,11 @@ void fs_config_parse_options(int argc, char** argv)
         }
 
         if (first) {
-            fs_log("\n");
-            fs_log(LOG_LINE);
-            fs_log("config (command line arguments)\n");
-            fs_log(LOG_LINE);
-            fs_log("\n");
+            //fs_log("\n");
+            //fs_log(LOG_LINE);
+            //fs_log("config (command line arguments)\n");
+            //fs_log(LOG_LINE);
+            //fs_log("\n");
             first = 0;
         }
         process_key_value(k, v, 0);

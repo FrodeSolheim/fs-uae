@@ -17,6 +17,8 @@
 
 #include "uae/compat/windows.h"
 
+#include <SDL3/SDL.h>
+
 //int log_scsi = 0;
 //int log_net = 0;
 
@@ -729,6 +731,8 @@ void write_log (const TCHAR *format, ...)
 	// Remove trailing newline
 	buffer[partial + len - 1] = '\0';
 
+	SDL_Log("[UAE] %s", buffer);
+#if 0
 	char *buffer2 = NULL;
 #if 0
 	TCHAR *ts = write_log_get_ts();
@@ -754,6 +758,7 @@ void write_log (const TCHAR *format, ...)
 	if (buffer2) {
 		free(buffer2);
 	}
+#endif
 
 	partial = 0;
 	fsemu_mutex_unlock(mutex);

@@ -14,4 +14,4 @@ extern "C" {
 }
 #endif
 
-#endif // FSGUI_CONFIG_H
+#endif  // FSGUI_CONFIG_H

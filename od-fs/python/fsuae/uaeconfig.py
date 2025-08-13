@@ -64,9 +64,7 @@ class FilteredStateVar(StateVar):
 
 
 class UaeBool(IntStateVar):
-    def __init__(
-        self, config: "UAEConfig", name: str, value: bool = False
-    ) -> None:
+    def __init__(self, config: "UAEConfig", name: str, value: bool = False) -> None:
         super().__init__()
         self.config = config
         self.name = name
@@ -96,15 +94,14 @@ class UaeInt(IntStateVar):
 
 
 class UaeString(StrStateVar):
-    def __init__(
-        self, config: "UAEConfig", name: str, value: str = ""
-    ) -> None:
+    def __init__(self, config: "UAEConfig", name: str, value: str = "") -> None:
         super().__init__()
         self.config = config
         self.name = name
         self.value = value
 
     def set(self, value: str) -> None:
+        print("SET VALUE", self.name, self.value)
         if value == self.value:
             return
         super().set(value)

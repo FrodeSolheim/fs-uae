@@ -12,4 +12,4 @@ extern "C" {
 }
 #endif
 
-#endif // FSLIB_CONFIG_H
+#endif  // FSLIB_CONFIG_H

@@ -11,15 +11,15 @@
 typedef struct fsemu_image {
     FSLIB_REFABLE;
     int error;
-    uint8_t *data;
+    uint8_t* data;
     int width;
     int height;
     int depth;
     int bpp;
     int stride;
     int format;
-    void (*free_function)(void *data);
-    void *free_param;
+    void (*free_function)(void* data);
+    void* free_param;
 } fsemu_image_t;
 
 #ifdef __cplusplus
@@ -28,32 +28,27 @@ extern "C" {
 
 void fsemu_image_module_init(void);
 
-fsemu_image_t *fsemu_image_new(void);
+fsemu_image_t* fsemu_image_new(void);
 
-static inline void fsemu_image_ref(fsemu_image_t *image)
-{
+static inline void fsemu_image_ref(fsemu_image_t* image) {
     return fslib_refable_ref(image);
 }
 
-static inline void fsemu_image_unref(fsemu_image_t *image)
-{
+static inline void fsemu_image_unref(fsemu_image_t* image) {
     return fslib_refable_unref(image);
 }
 
-fsemu_image_t *fsemu_image_load(const char *name);
-fsemu_image_t *fsemu_image_load_png_file(const char *path);
-fsemu_image_t *fsemu_image_load_png_from_data(void *data, int data_size);
+fsemu_image_t* fsemu_image_load(const char* name);
+fsemu_image_t* fsemu_image_load_png_file(const char* path);
+fsemu_image_t* fsemu_image_load_png_from_data(void* data, int data_size);
 
-fsemu_image_t *fsemu_image_from_stream(fsemu_stream_t *stream, bool owner);
-fsemu_image_t *fsemu_image_from_size(int width, int height);
+fsemu_image_t* fsemu_image_from_stream(fsemu_stream_t* stream, bool owner);
+fsemu_image_t* fsemu_image_from_size(int width, int height);
 
-int fsemu_image_save_png_file_from_data(
-    const char *path, void *buffer, int width, int height, int bpp);
+int fsemu_image_save_png_file_from_data(const char* path, void* buffer, int width, int height,
+                                        int bpp);
 
-int fsemu_image_save_png_file_from_rgba_data(const char *path,
-                                             void *buffer,
-                                             int width,
-                                             int height);
+int fsemu_image_save_png_file_from_rgba_data(const char* path, void* buffer, int width, int height);
 
 extern int fsemu_image_log_level;
 

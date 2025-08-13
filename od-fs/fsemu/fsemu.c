@@ -12,14 +12,13 @@
 static struct {
     int64_t startup_time;
     int64_t startup_position_time;
-    fsemu_thread_t *emulation_thread;
-    char *emulator_name;
+    fsemu_thread_t* emulation_thread;
+    char* emulator_name;
     int video_format_flags;
-    char *config_file_extension;
+    char* config_file_extension;
 } fsemu;
 
-void fsemu_boot_log(const char *msg)
-{
+void fsemu_boot_log(const char* msg) {
     int64_t t = fsemu_time_us();
     if (fsemu.startup_position_time == 0) {
         fsemu.startup_position_time = t;
@@ -38,16 +37,14 @@ void fsemu_set_startup_time(void)
 }
 #endif
 
-const char *fsemu_emulator_name(void)
-{
+const char* fsemu_emulator_name(void) {
     if (fsemu.emulator_name == NULL) {
         return "FSEMU";
     }
     return fsemu.emulator_name;
 }
 
-void fsemu_set_emulator_name(const char *name)
-{
+void fsemu_set_emulator_name(const char* name) {
     fsemu_assert(name != NULL);
     if (fsemu.emulator_name != NULL) {
         free(fsemu.emulator_name);
@@ -55,18 +52,15 @@ void fsemu_set_emulator_name(const char *name)
     fsemu.emulator_name = strdup(name);
 }
 
-int fsemu_video_format_flags(void)
-{
+int fsemu_video_format_flags(void) {
     return fsemu.video_format_flags;
 }
 
-void fsemu_set_video_format_flags(int flags)
-{
+void fsemu_set_video_format_flags(int flags) {
     fsemu.video_format_flags = flags;
 }
 
-void fsemu_set_config_file_extension(const char *extension)
-{
+void fsemu_set_config_file_extension(const char* extension) {
     fsemu_assert(extension);
     fsemu.config_file_extension = strdup(extension);
 }
@@ -96,13 +90,11 @@ void fsemu_init(void)
 //     fsemu_init();
 // }
 
-void fsemu_begin(void)
-{
+void fsemu_begin(void) {
     fsemu_helper_startup_loop();
 }
 
-static void *fsemu_emulation_thread_function(void *data)
-{
+static void* fsemu_emulation_thread_function(void* data) {
     fsemu_assert_release(data != NULL);
 
     fsemu_log("Emulation thread started\n");
@@ -115,10 +107,9 @@ static void *fsemu_emulation_thread_function(void *data)
     return NULL;
 }
 
-void fsemu_run(void (*function)(void))
-{
-    fsemu.emulation_thread = fsemu_thread_create(
-        "emulation", fsemu_emulation_thread_function, function);
+void fsemu_run(void (*function)(void)) {
+    fsemu.emulation_thread =
+        fsemu_thread_create("emulation", fsemu_emulation_thread_function, function);
     if (fsemu.emulation_thread == NULL) {
         fsemu_log_error("Error starting emulation thread\n");
         // FIXME: ERROR MESSAGE HERE
@@ -143,8 +134,7 @@ void fsemu_handle_events(void)
 }
 #endif
 
-void fsemu_end(void)
-{
+void fsemu_end(void) {
     fprintf(stderr, "FIXME: Implement fsemu_end\n");
     if (fsemu.emulation_thread) {
         // FIXME

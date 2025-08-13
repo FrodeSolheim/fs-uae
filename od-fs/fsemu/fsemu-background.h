@@ -11,8 +11,7 @@ extern "C" {
 
 void fsemu_background_init(void);
 
-#define fsemu_background_log(format, ...) \
-    fsemu_log("[FSE] [BCK] " format, ##__VA_ARGS__)
+#define fsemu_background_log(format, ...) fsemu_log("[FSE] [BCK] " format, ##__VA_ARGS__)
 
 #ifdef __cplusplus
 }

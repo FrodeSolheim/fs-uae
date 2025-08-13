@@ -1,17 +1,15 @@
 #include "fsuae-events.h"
 
+#include <glib.h>
+#include <uae/uae.h>
+
 #include "fsemu-input.h"
 #include "fsemu-media.h"
 #include "fsemu-util.h"
 
-#include <glib.h>
-
-#include <uae/uae.h>
-
 #define fsuae_log SDL_Log
 
-static void fsuae_handle_media_action(int drive_index, int media_index)
-{
+static void fsuae_handle_media_action(int drive_index, int media_index) {
     if (drive_index >= fsemu_media_drive_count()) {
         return;
     }
@@ -26,11 +24,8 @@ static void fsuae_handle_media_action(int drive_index, int media_index)
         if (media_index < 0) {
             amiga_send_input_event(INPUTEVENT_SPC_EFLOPPY0 + type_index, 1);
         } else if (media_index < 20) {
-            amiga_send_input_event(
-                INPUTEVENT_SPC_DISKSWAPPER_0_0 + drive_index * 20
-                    + media_index,
-                1
-            );
+            amiga_send_input_event(INPUTEVENT_SPC_DISKSWAPPER_0_0 + drive_index * 20 + media_index,
+                                   1);
         } else {
             fsemu_warning("Cannot deal with media index >= 20\n");
         }
@@ -68,8 +63,7 @@ static void fsuae_handle_media_action(int drive_index, int media_index)
     }
 }
 
-static void fsuae_handle_port_action(int port_index, int mode_index)
-{
+static void fsuae_handle_port_action(int port_index, int mode_index) {
     // The first two parts are switched in FS-UAE, so the joystick port is
     // listed first.
     if (port_index < 2) {
@@ -78,9 +72,7 @@ static void fsuae_handle_port_action(int port_index, int mode_index)
     amiga_set_joystick_port_mode(port_index, mode_index);
 }
 
-static void
-fsuae_events_process_input_event(int line, int action, int state, int playback)
-{
+static void fsuae_events_process_input_event(int line, int action, int state, int playback) {
     // printf("... action %d %d\n", action, FSEMU_ACTION_DRIVE0EJECT);
     static int first_time = 1;
 #if 0
@@ -115,32 +107,24 @@ fsuae_events_process_input_event(int line, int action, int state, int playback)
         amiga_send_input_event(INPUTEVENT_SPC_HARDRESET, 1);
     }
 #endif
-    else if (action >= FSEMU_ACTION_DRIVE0EJECT
-             && action <= FSEMU_ACTION_DRIVE7EJECT) {
+    else if (action >= FSEMU_ACTION_DRIVE0EJECT && action <= FSEMU_ACTION_DRIVE7EJECT) {
         int drive_index = action - FSEMU_ACTION_DRIVE0EJECT;
         fsuae_log("Got drive eject event drive_index=%d\n", drive_index);
         fsuae_handle_media_action(drive_index, -1);
-    } else if (action >= FSEMU_ACTION_DRIVE0INSERT0
-               && action <= FSEMU_ACTION_DRIVE7INSERT255) {
+    } else if (action >= FSEMU_ACTION_DRIVE0INSERT0 && action <= FSEMU_ACTION_DRIVE7INSERT255) {
         int offset = action - FSEMU_ACTION_DRIVE0INSERT0;
-        int drive_index = offset / 256; // FSEMU_MEDIA_MAX_FILE_COUNT;
-        int media_index = offset % 256; // FSEMU_MEDIA_MAX_FILE_COUNT;
-        fsuae_log(
-            "Got drive insert event drive_index=%d media_index=%d",
-            drive_index, media_index
-        );
+        int drive_index = offset / 256;  // FSEMU_MEDIA_MAX_FILE_COUNT;
+        int media_index = offset % 256;  // FSEMU_MEDIA_MAX_FILE_COUNT;
+        fsuae_log("Got drive insert event drive_index=%d media_index=%d", drive_index, media_index);
         fsuae_handle_media_action(drive_index, media_index);
     }
 
-    else if (action >= FSEMU_ACTION_PORT0TYPE0
-             && action < FSEMU_ACTION_PORT3TYPE255) {
+    else if (action >= FSEMU_ACTION_PORT0TYPE0 && action < FSEMU_ACTION_PORT3TYPE255) {
         int offset = action - FSEMU_ACTION_PORT0TYPE0;
-        int port_index = offset / 256; // FSEMU_INPUTPORT_MAX_MODES;
-        int mode_index = offset % 256; // FSEMU_INPUTPORT_MAX_MODES;
-        fsuae_log(
-            "[INPUT] Got port change event port_index=%d mode_index=%d\n",
-            port_index, mode_index
-        );
+        int port_index = offset / 256;  // FSEMU_INPUTPORT_MAX_MODES;
+        int mode_index = offset % 256;  // FSEMU_INPUTPORT_MAX_MODES;
+        fsuae_log("[INPUT] Got port change event port_index=%d mode_index=%d\n", port_index,
+                  mode_index);
         fsuae_handle_port_action(port_index, mode_index);
     }
 
@@ -188,14 +172,12 @@ fsuae_events_process_input_event(int line, int action, int state, int playback)
 #if FSUAE_LEGACY
     int load_state = 0;
     int save_state = 0;
-    if (action >= INPUTEVENT_SPC_STATESAVE1
-        && action <= INPUTEVENT_SPC_STATESAVE9) {
+    if (action >= INPUTEVENT_SPC_STATESAVE1 && action <= INPUTEVENT_SPC_STATESAVE9) {
         save_state = action - INPUTEVENT_SPC_STATESAVE1 + 1;
         g_fs_uae_state_number = save_state;
     }
 
-    if (action >= INPUTEVENT_SPC_STATERESTORE1
-        && action <= INPUTEVENT_SPC_STATERESTORE9) {
+    if (action >= INPUTEVENT_SPC_STATERESTORE1 && action <= INPUTEVENT_SPC_STATERESTORE9) {
         load_state = action - INPUTEVENT_SPC_STATERESTORE1 + 1;
         g_fs_uae_state_number = load_state;
     }
@@ -239,8 +221,7 @@ fsuae_events_process_input_event(int line, int action, int state, int playback)
 
 static int g_fs_uae_frame = 0;
 
-static int fsuae_events_input_handler_loop(int line)
-{
+static int fsuae_events_input_handler_loop(int line) {
     static int last_frame = -1;
     if (g_fs_uae_frame != last_frame) {
         // only run this for the first input handler loop per frame
@@ -256,7 +237,6 @@ static int fsuae_events_input_handler_loop(int line)
         uint16_t action;
         int16_t state;
         while (fsemu_input_next_action(&action, &state)) {
-
             // g_fs_uae_last_input_event = action;
             // g_fs_uae_last_input_event_state = state;
 
@@ -268,9 +248,7 @@ static int fsuae_events_input_handler_loop(int line)
         // int reconfigure_input = 0;
         while ((action = fs_emu_get_input_event()) != 0) {
             if (fsemu) {
-                printf(
-                    "event_handler_loop received input action %d\n", action
-                );
+                printf("event_handler_loop received input action %d\n", action);
             }
 
             int istate = (action & 0x00ff0000) >> 16;
@@ -288,10 +266,8 @@ static int fsuae_events_input_handler_loop(int line)
             // handler can modify input event
             // action = g_fs_uae_last_input_event;
             // state = g_fs_uae_last_input_event_state;
-            fs_uae_process_input_event(
-                line, g_fs_uae_last_input_event,
-                g_fs_uae_last_input_event_state, 0
-            );
+            fs_uae_process_input_event(line, g_fs_uae_last_input_event,
+                                       g_fs_uae_last_input_event_state, 0);
         }
     }
 #endif
@@ -351,8 +327,7 @@ static int fsuae_events_input_handler_loop(int line)
     return 1;
 }
 
-void fsuae_events_event_handler(int line)
-{
+void fsuae_events_event_handler(int line) {
 #if 0
     if (fsemu) {
         if (line <= 1) {
@@ -460,6 +435,6 @@ void fsuae_events_event_handler(int line)
             break;
         }
     }
-#endif // FSUAE_LEGACY
+#endif  // FSUAE_LEGACY
     // last_time = fs_emu_monotonic_time();
 }

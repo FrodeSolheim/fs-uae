@@ -36,20 +36,18 @@ static struct {
 
     // int height;
     // int width;
-    char *emulator_name;
-    char *fork_info;
+    char* emulator_name;
+    char* fork_info;
 } fsemu_startupinfo;
 
-void fsemu_startupinfo_set_emulator_name(const char *emulator_name)
-{
+void fsemu_startupinfo_set_emulator_name(const char* emulator_name) {
     if (fsemu_startupinfo.emulator_name) {
         free(fsemu_startupinfo.emulator_name);
     }
     fsemu_startupinfo.emulator_name = strdup(emulator_name);
 }
 
-void fsemu_startupinfo_set_emulator_fork_info(const char *fork_info)
-{
+void fsemu_startupinfo_set_emulator_fork_info(const char* fork_info) {
     if (fsemu_startupinfo.fork_info) {
         free(fsemu_startupinfo.fork_info);
     }
@@ -58,8 +56,7 @@ void fsemu_startupinfo_set_emulator_fork_info(const char *fork_info)
 
 // ----------------------------------------------------------------------------
 
-void fsemu_startupinfo_init(void)
-{
+void fsemu_startupinfo_init(void) {
     fsemu_return_if_already_initialized();
     fsemu_font_init();
     fsemu_gui_init();
@@ -71,9 +68,9 @@ void fsemu_startupinfo_init(void)
     int height = 180;
     int y = 1080 - height;
 #endif
-    fsemu_image_t *image = fsemu_image_load("InfoBackgroundGradient.png");
+    fsemu_image_t* image = fsemu_image_load("InfoBackgroundGradient.png");
 
-    fsemu_gui_item_t *item;
+    fsemu_gui_item_t* item;
     item = &fsemu_startupinfo.background;
     // fsemu_gui_rectangle(item, 0, y, 1920, height, FSEMU_RGBA(0x000000c0));
     // fsemu_gui_rectangle(item, 0, y, 1920, height, FSEMU_RGBA(0x101010c0));
@@ -84,16 +81,16 @@ void fsemu_startupinfo_init(void)
 
     // FIXME: May not need to cache these. Maybe use and throw away instead?
     // Need to fint which font/sizes are reused throughout the app.
-    fsemu_font_t *font = fsemu_fontcache_font("SairaCondensed-Bold.ttf", 56);
-    fsemu_font_t *font_2 = fsemu_fontcache_font("SairaCondensed-Bold.ttf", 32);
-    fsemu_font_t *font_3 = fsemu_fontcache_font("SairaCondensed-Bold.ttf", 24);
+    fsemu_font_t* font = fsemu_fontcache_font("SairaCondensed-Bold.ttf", 56);
+    fsemu_font_t* font_2 = fsemu_fontcache_font("SairaCondensed-Bold.ttf", 32);
+    fsemu_font_t* font_3 = fsemu_fontcache_font("SairaCondensed-Bold.ttf", 24);
 #if 0
     fsemu_font_t *font_4 =
         fsemu_fontcache_font("SairaCondensed-Regular.ttf", 24);
 #endif
 
     int x = 240;
-    const char *string;
+    const char* string;
     // fsemu_image_t *image;
     uint32_t white = FSEMU_RGB(0xffffff);
     uint32_t white_2 = FSEMU_RGBA(0xffffffd0);
@@ -145,22 +142,17 @@ void fsemu_startupinfo_init(void)
 
     if (fsemu_option_read_const_string(FSEMU_OPTION_GAME_PLATFORM, &string)) {
         item = &fsemu_startupinfo.platform_item;
-        gchar *string_2 = g_utf8_strup(string, -1);
+        gchar* string_2 = g_utf8_strup(string, -1);
         image = fsemu_font_render_text_to_image(font_2, string_2, white);
         g_free(string_2);
-        fsemu_gui_image(item,
-                        60 + 30,
-                        (60 - image->height) / 2,
-                        image->width,
-                        image->height,
+        fsemu_gui_image(item, 60 + 30, (60 - image->height) / 2, image->width, image->height,
                         image);
         item->coordinates = FSEMU_COORD_1080P_LEFT;
         item->z_index = 5002;
         fsemu_gui_add_item(item);
 
         item = &fsemu_startupinfo.platform_bg_item;
-        fsemu_gui_rectangle(
-            item, 60, 0, image->width + 2 * 30, 60, FSEMU_COLOR_RGB(0x662266));
+        fsemu_gui_rectangle(item, 60, 0, image->width + 2 * 30, 60, FSEMU_COLOR_RGB(0x662266));
         item->coordinates = FSEMU_COORD_1080P_LEFT;
         item->z_index = 5001;
         fsemu_gui_add_item(item);
@@ -173,12 +165,7 @@ void fsemu_startupinfo_init(void)
         image = fsemu_font_render_text_to_image(font_2, string, white);
         // fsemu_gui_image(item, x2, y + 93, image->width, image->height,
         // image);
-        fsemu_gui_image(item,
-                        x2,
-                        (60 - image->height) / 2,
-                        image->width,
-                        image->height,
-                        image);
+        fsemu_gui_image(item, x2, (60 - image->height) / 2, image->width, image->height, image);
         item->coordinates = FSEMU_COORD_1080P_LEFT;
         item->z_index = 5001;
         fsemu_gui_add_item(item);
@@ -188,17 +175,12 @@ void fsemu_startupinfo_init(void)
 
     if (fsemu_option_read_const_string(FSEMU_OPTION_GAME_COMPANIES, &string)) {
         item = &fsemu_startupinfo.companies_item;
-        gchar *string_2 = g_utf8_strup(string, -1);
+        gchar* string_2 = g_utf8_strup(string, -1);
         image = fsemu_font_render_text_to_image(font_2, string_2, white);
         g_free(string_2);
         // fsemu_gui_image(item, x2, y + 93, image->width, image->height,
         // image);
-        fsemu_gui_image(item,
-                        x2,
-                        (60 - image->height) / 2,
-                        image->width,
-                        image->height,
-                        image);
+        fsemu_gui_image(item, x2, (60 - image->height) / 2, image->width, image->height, image);
         item->coordinates = FSEMU_COORD_1080P_LEFT;
         item->z_index = 5001;
         fsemu_gui_add_item(item);
@@ -206,22 +188,18 @@ void fsemu_startupinfo_init(void)
 
     if ((string = fsemu_startupinfo.emulator_name)) {
         item = &fsemu_startupinfo.emulator_item;
-        gchar *string_2 = g_utf8_strup(string, -1);
+        gchar* string_2 = g_utf8_strup(string, -1);
         // gchar *string_3 = g_strdup_printf(
         //     "%s%s EMULATOR", string_2, fsemu_startupinfo.fork_info ? "*" :
         //     "");
-        gchar *string_3 = g_strdup_printf("%s", string_2);
+        gchar* string_3 = g_strdup_printf("%s", string_2);
         g_free(string_2);
         image = fsemu_font_render_text_to_image(font_3, string_3, white_2);
         g_free(string_3);
-        fsemu_gui_image(item,
-                        1920 - 30 - image->width,
+        fsemu_gui_image(item, 1920 - 30 - image->width,
                         // 1920 - 3 * 60 - 30 - image->width,
                         // 1080 - 60 + (60 - image->height) / 2,
-                        (60 - image->height) / 2,
-                        image->width,
-                        image->height,
-                        image);
+                        (60 - image->height) / 2, image->width, image->height, image);
         item->coordinates = FSEMU_COORD_1080P_RIGHT;
         item->z_index = 5001;
         fsemu_gui_add_item(item);
@@ -267,11 +245,7 @@ void fsemu_startupinfo_init(void)
 
     item = &fsemu_startupinfo.menu_shortcut_text_item;
     image = fsemu_font_render_text_to_image(font_3, "MENU KEY:", white_3);
-    fsemu_gui_image(item,
-                    x,
-                    1080 - 60 + (60 - image->height) / 2,
-                    image->width,
-                    image->height,
+    fsemu_gui_image(item, x, 1080 - 60 + (60 - image->height) / 2, image->width, image->height,
                     image);
     item->coordinates = FSEMU_COORD_1080P_LEFT;
     item->z_index = 5001;
@@ -288,8 +262,7 @@ void fsemu_startupinfo_init(void)
     fsemu_gui_add_item(item);
 }
 
-static void fsemu_startupinfo_set_visible(bool visible)
-{
+static void fsemu_startupinfo_set_visible(bool visible) {
 #if 1
     // FIXME: Temporarily disabled
     visible = false;
@@ -309,10 +282,8 @@ static void fsemu_startupinfo_set_visible(bool visible)
     fsemu_gui_item_set_visible(&fsemu_startupinfo.fork_item, visible);
     fsemu_gui_item_set_visible(&fsemu_startupinfo.fork_2_item, visible);
 #endif
-    fsemu_gui_item_set_visible(&fsemu_startupinfo.menu_shortcut_key_item,
-                               visible);
-    fsemu_gui_item_set_visible(&fsemu_startupinfo.menu_shortcut_text_item,
-                               visible);
+    fsemu_gui_item_set_visible(&fsemu_startupinfo.menu_shortcut_key_item, visible);
+    fsemu_gui_item_set_visible(&fsemu_startupinfo.menu_shortcut_text_item, visible);
 }
 
 // ----------------------------------------------------------------------------
@@ -325,13 +296,11 @@ static void fsemu_startupinfo_remove(void)
 */
 // ----------------------------------------------------------------------------
 
-static bool fsemu_startupinfo_visible(void)
-{
+static bool fsemu_startupinfo_visible(void) {
     return !fsemu_startupinfo.done || fsemu_startupinfo.enabled;
 }
 
-void fsemu_startupinfo_update(void)
-{
+void fsemu_startupinfo_update(void) {
     /*
     if (fsemu_startupinfo.done) {
         return;
@@ -355,8 +324,7 @@ void fsemu_startupinfo_update(void)
     fsemu_startupinfo_set_visible(fsemu_startupinfo_visible());
 }
 
-void fsemu_startupinfo_toggle(void)
-{
+void fsemu_startupinfo_toggle(void) {
     if (!fsemu_startupinfo.done) {
         fsemu_startupinfo.done = true;
         return;

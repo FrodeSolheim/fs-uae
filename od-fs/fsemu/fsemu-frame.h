@@ -24,8 +24,8 @@ double fsemu_frame_rate_multiplier(void);
 bool fsemu_frame_paused(void);
 bool fsemu_frame_warping(void);
 
-bool fsemu_frame_check_load_state(int *slot);
-bool fsemu_frame_check_save_state(int *slot);
+bool fsemu_frame_check_load_state(int* slot);
+bool fsemu_frame_check_save_state(int* slot);
 
 // Affects when the frame starts emulating.
 // FIXME: In use?
@@ -123,11 +123,10 @@ extern int fsemu_frame_log_level;
         fsemu_log("[FSE] [FRM] " format, ##__VA_ARGS__);  \
     }
 
-#define fsemu_frame_log_epoch(format, ...)                        \
-    if (fsemu_frame_log_level >= FSEMU_LOG_LEVEL_TRACE) {         \
-        fsemu_log("[FSE] [%5d] " format,                          \
-                  (int) (fsemu_time_us() - fsemu_frame_epoch_at), \
-                  ##__VA_ARGS__);                                 \
+#define fsemu_frame_log_epoch(format, ...)                                              \
+    if (fsemu_frame_log_level >= FSEMU_LOG_LEVEL_TRACE) {                               \
+        fsemu_log("[FSE] [%5d] " format, (int)(fsemu_time_us() - fsemu_frame_epoch_at), \
+                  ##__VA_ARGS__);                                                       \
     }
 
 #ifdef __cplusplus

@@ -10,10 +10,6 @@
 #include "fsemu-time.h"
 #include "fsemu-util.h"
 
-// #include <fs/base.h>
-// #include <fs/log.h>
-// #include <fs/thread.h>
-
 #ifdef FSEMU_SDL
 #ifndef USE_SDL2
 #define USE_SDL2
@@ -57,7 +53,7 @@ struct fsemu_thread {
     pthread_t thread;
     pthread_attr_t attr;
 #elif defined(USE_GLIB)
-    GThread *thread;
+    GThread* thread;
 #endif
 };
 
@@ -77,7 +73,7 @@ struct fs_condition {
 #elif defined(USE_GLIB)
     GCond condition;
 #elif defined(USE_SDL)
-    SDL_cond *condition;
+    SDL_cond* condition;
 #endif
 };
 
@@ -88,47 +84,39 @@ fsemu_thread_id_t fsemu_thread_emu_thread_id;
 fsemu_thread_id_t fsemu_thread_main_thread_id;
 fsemu_thread_id_t fsemu_thread_video_thread_id;
 
-void fsemu_thread_init(void)
-{
+void fsemu_thread_init(void) {
     fsemu_return_if_already_initialized();
     fsemu_time_init();
 
     fsemu_thread_set_main();
 }
 
-void fsemu_thread_set_emu(void)
-{
+void fsemu_thread_set_emu(void) {
     fsemu_thread_emu_thread_id = fsemu_thread_id();
 }
 
-void fsemu_thread_set_main(void)
-{
+void fsemu_thread_set_main(void) {
     fsemu_thread_main_thread_id = fsemu_thread_id();
 }
 
-void fsemu_thread_set_video(void)
-{
+void fsemu_thread_set_video(void) {
     fsemu_thread_video_thread_id = fsemu_thread_id();
 }
 
-fsemu_thread_id_t fsemu_thread_id(void)
-{
+fsemu_thread_id_t fsemu_thread_id(void) {
     fsemu_thread_id_t thread_id = 0;
 #if defined(USE_PTHREADS)
 #error pthreads support must be updated
 #elif defined(FSEMU_GLIB)
-    thread_id = (uintptr_t) (void *) g_thread_self();
+    thread_id = (uintptr_t)(void*)g_thread_self();
 #else
 #error no thread support
 #endif
     return thread_id;
 }
 
-fsemu_thread_t *fsemu_thread_create(const char *name,
-                                    fsemu_thread_function_t fn,
-                                    void *data)
-{
-    fsemu_thread_t *thread = FSEMU_UTIL_MALLOC0(fsemu_thread_t);
+fsemu_thread_t* fsemu_thread_create(const char* name, fsemu_thread_function_t fn, void* data) {
+    fsemu_thread_t* thread = FSEMU_UTIL_MALLOC0(fsemu_thread_t);
 #if defined(USE_PTHREADS)
     pthread_attr_init(&thread->attr);
     pthread_attr_setdetachstate(&thread->attr, PTHREAD_CREATE_JOINABLE);
@@ -250,8 +238,7 @@ void fs_thread_free(fs_thread *thread)
 #include <sys/time.h>
 #endif
 
-void fsemu_thread_set_priority(void)
-{
+void fsemu_thread_set_priority(void) {
 #ifdef FSEMU_OS_WINDOWS
 #ifndef TIMERR_NOERROR
 #define TIMERR_NOERROR 0
@@ -277,9 +264,7 @@ void fsemu_thread_set_priority(void)
 #ifdef FSEMU_OS_LINUX
     struct rlimit rlim;
     getrlimit(RLIMIT_RTPRIO, &rlim);
-    fsemu_log("[FSE] Thread priority current %d max %d\n",
-              (int) rlim.rlim_cur,
-              (int) rlim.rlim_max);
+    fsemu_log("[FSE] Thread priority current %d max %d\n", (int)rlim.rlim_cur, (int)rlim.rlim_max);
     // rlim.rlim_cur = 10;
     // rlim.rlim_max = 10;
     // setrlimit(RLIMIT_RTPRIO, &rlim);
@@ -297,8 +282,7 @@ void fsemu_thread_set_priority(void)
     if (result == 0) {
         fsemu_log("[FSE] Has set real time priority\n");
     } else {
-        fsemu_log("[FSE] Could not set real time priority, errno = %d\n",
-                  errno);
+        fsemu_log("[FSE] Could not set real time priority, errno = %d\n", errno);
     }
 #endif
 }

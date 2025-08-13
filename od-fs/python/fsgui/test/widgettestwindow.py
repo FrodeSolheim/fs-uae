@@ -46,7 +46,5 @@ class WidgetTestWindow(Window):
             Label("Label").disable()
             CheckBox("Check box").disable()
             DiscreteSlider(10).disable()
-            Choice(
-                ["Choice Item i", "Choice item 2", "Choice item 3"]
-            ).disable()
+            Choice(["Choice Item i", "Choice item 2", "Choice item 3"]).disable()
             TextField("Text field").disable().fill()

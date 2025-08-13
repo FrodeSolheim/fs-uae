@@ -22,4 +22,4 @@ fsgui_font_t* fsgui_font_load(const char* name, int size);
 }
 #endif
 
-#endif // FSGUI_FONT_H
+#endif  // FSGUI_FONT_H

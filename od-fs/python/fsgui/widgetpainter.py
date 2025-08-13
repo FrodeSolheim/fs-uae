@@ -23,20 +23,12 @@ class WidgetPainter:
             return
         cls._initialized = True
         cls._menu_arrow = Image.from_resource("widgets/choice-arrow.png")
-        cls._menu_arrow_disabled = Image.from_resource(
-            "widgets/choice-arrow-disabled.png"
-        )
+        cls._menu_arrow_disabled = Image.from_resource("widgets/choice-arrow-disabled.png")
         cls._button = Image.from_resource("widgets/button.9p.png")
-        cls._button_disabled = Image.from_resource(
-            "widgets/button_disabled.9p.png"
-        )
-        cls._button_pressed = Image.from_resource(
-            "widgets/button-pressed.9p.png"
-        )
+        cls._button_disabled = Image.from_resource("widgets/button_disabled.9p.png")
+        cls._button_pressed = Image.from_resource("widgets/button-pressed.9p.png")
 
-    def __init__(
-        self, widget: Widget | None, dc: DrawingContext | None = None
-    ) -> None:
+    def __init__(self, widget: Widget | None, dc: DrawingContext | None = None) -> None:
         self.initialize_class()
 
         if dc is not None:

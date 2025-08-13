@@ -1,29 +1,32 @@
+#include "fsuae-extras.h"
+
+#include <SDL3/SDL.h>
+#include <stdio.h>
+
+#define DUMMY_KEEP_INCLUDE_ORDER
 #include "sysconfig.h"
 #include "sysdeps.h"
+#undef DUMMY_KEEP_INCLUDE_ORDER
 
 #include "inputdevice.h"
 #include "options.h"
 #include "savestate.h"
+#include "uae/fs.h"
+#include "uae/uae.h"
 #include "win32gfx.h"
 
-#include "uae/fs.h"
+// #define UAE_FS_H
 
-#define UAE_FS_H
-#include "uae/uae.h"
-
-#include <stdio.h>
-
-static void save_config(struct uae_prefs* prefs, const char *name)
-{
+static void save_config(struct uae_prefs* prefs, const char* name) {
     char path[PATH_MAX];
-    strlcpy(path, "od-fs/python/uae/configurations/", PATH_MAX);
-    strlcat(path, name, PATH_MAX);
-    strlcat(path, ".py", PATH_MAX);
+    SDL_strlcpy(path, "od-fs/python/uae/configurations/", PATH_MAX);
+    SDL_strlcat(path, name, PATH_MAX);
+    SDL_strlcat(path, ".py", PATH_MAX);
 
     // python/uae/configurations/a500.uae
     size_t len;
-	char *s = (char *) save_configuration (&len, true);
-    FILE *f = fopen(path, "wb");
+    char* s = (char*)save_configuration(&len, true);
+    FILE* f = fopen(path, "wb");
     if (f == NULL) {
         printf("Could not open file %s\n", path);
         exit(1);
@@ -34,8 +37,7 @@ static void save_config(struct uae_prefs* prefs, const char *name)
     fclose(f);
 }
 
-static void load_prefs(int model, int config, int compa)
-{
+static void load_prefs(int model, int config, int compa) {
     // FIXME: Investigate a bit more? Get different results when clearing
     // memory vs not doing it. Seems built_in_prefs does not reset everything?
     // memset(&currprefs, 0x00, sizeof(currprefs));
@@ -49,8 +51,7 @@ static void load_prefs(int model, int config, int compa)
     built_in_prefs(&currprefs, model, config, compa, false);
 }
 
-static void dump_quickstarts(void)
-{
+static void dump_quickstarts(void) {
     printf("dump_quickstarts\n");
 
     keyboard_settrans();
@@ -71,7 +72,7 @@ static void dump_quickstarts(void)
 
     load_prefs(3, 0, 0);
     save_config(&currprefs, "a1000");
-    
+
     load_prefs(4, 0, 0);
     save_config(&currprefs, "a1200");
 
@@ -102,13 +103,12 @@ static void dump_quickstarts(void)
 extern "C" {
 #endif
 
-void fsuae_extras(int argc, char* argv[])
-{
+void fsuae_extras(int argc, char* argv[]) {
     if (argc > 1) {
         if (strcasecmp(argv[1], "spc:dump-quickstarts") == 0) {
             dump_quickstarts();
         }
-    }    
+    }
 }
 
 #ifdef __cplusplus

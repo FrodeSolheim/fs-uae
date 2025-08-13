@@ -32,9 +32,7 @@ class InputDeviceService:
         self.device_added = Signal()
         self.device_removed = Signal()
 
-        self.event_service.add_listener(
-            self.__inputdevice_added, "FSEMU_INPUTDEVICE_ADDED"
-        )
+        self.event_service.add_listener(self.__inputdevice_added, "FSEMU_INPUTDEVICE_ADDED")
 
     def _add_device(self, device: InputDevice) -> None:
         self._devices.append(device)

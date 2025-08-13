@@ -1,0 +1,9 @@
+#!/bin/sh
+
+set -e
+
+PROJECT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+
+mkdir -p "$PROJECT_DIR/od-fs/_build"
+cd "$PROJECT_DIR/od-fs/_build"
+"$PROJECT_DIR/configure" "$@"

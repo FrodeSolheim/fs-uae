@@ -1,8 +1,11 @@
 # FS-UAE
 
-See [od-fs/README.md].
+See [od-fs/README.md](od-fs/README.md) for the full FS-UAE README file.
 
-# WinUAE
+The FS-UAE repository is now a superset of the
+[WinUAE](https://github.com/tonioni/WinUAE) repository. This makes it easier to
+merge/compare code, and also build both FS-UAE and WinUAE test builds from the
+same shared code base.
 
 The original README.md from the WinUAE repository follows:
 

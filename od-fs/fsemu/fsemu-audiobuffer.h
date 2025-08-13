@@ -16,7 +16,7 @@ int fsemu_audiobuffer_fill(void);
 int fsemu_audiobuffer_fill_ms(void);
 int64_t fsemu_audiobuffer_fill_us(void);
 
-void fsemu_audiobuffer_update(const void *data, int size);
+void fsemu_audiobuffer_update(const void* data, int size);
 
 void fsemu_audiobuffer_frame_done(void);
 
@@ -41,11 +41,11 @@ extern volatile uint8_t *volatile fsemu_audiobuffer.write;
 */
 
 typedef struct {
-    volatile uint8_t *data;
+    volatile uint8_t* data;
     int size;
-    uint8_t volatile *end;
-    uint8_t volatile *volatile read;
-    uint8_t volatile *volatile write;
+    uint8_t volatile* end;
+    uint8_t volatile* volatile read;
+    uint8_t volatile* volatile write;
     int volatile underrun;
     int volatile add_silence;
 } fsemu_audiobuffer_t;

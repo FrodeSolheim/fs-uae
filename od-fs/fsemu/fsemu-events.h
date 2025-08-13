@@ -8,7 +8,7 @@
 extern "C" {
 #endif
 
-bool fsemu_handle_sdl_event(SDL_Event *event);
+bool fsemu_handle_sdl_event(SDL_Event* event);
 
 #ifdef __cplusplus
 }

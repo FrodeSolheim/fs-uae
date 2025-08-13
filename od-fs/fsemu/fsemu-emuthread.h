@@ -26,9 +26,9 @@ bool fsemu_emuthread_paused(void);
 // Alias for fsemu_thread_set_emu.
 void fsemu_emuthread_set_from_current(void);
 
-void fsemu_emuthread_check_load_state(int *slot);
+void fsemu_emuthread_check_load_state(int* slot);
 
-void fsemu_emuthread_check_save_state(int *slot);
+void fsemu_emuthread_check_save_state(int* slot);
 
 // FIXME: fsemu_emuthread_(next_)action
 

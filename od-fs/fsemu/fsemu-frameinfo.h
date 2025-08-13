@@ -48,8 +48,7 @@ typedef struct {
 
 extern fsemu_frameinfo_t fsemu_frameinfo[FSEMU_FRAMEINFO_COUNT];
 
-#define FSEMU_FRAMEINFO(frame) \
-    (fsemu_frameinfo[(frame) % FSEMU_FRAMEINFO_COUNT])
+#define FSEMU_FRAMEINFO(frame) (fsemu_frameinfo[(frame) % FSEMU_FRAMEINFO_COUNT])
 
 #ifdef __cplusplus
 }

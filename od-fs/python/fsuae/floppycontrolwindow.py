@@ -245,7 +245,7 @@ class FloppyDriveSoundChoice(Choice):
 
 
 class FloppyDriveWidget(Widget):
-    def __init__(self, config, drive_index: int) -> None:
+    def __init__(self, config: UAEConfig, drive_index: int) -> None:
         super().__init__()
         self.config = config
 

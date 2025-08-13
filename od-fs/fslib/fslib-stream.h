@@ -1,10 +1,9 @@
 #ifndef FSLIB_STREAM_H
 #define FSLIB_STREAM_H
 
-#include "fslib-config.h"
-
 #include "fsemu-common.h"
 #include "fsemu-sdl.h"
+#include "fslib-config.h"
 #include "fslib-refable.h"
 
 #ifdef __cplusplus
@@ -42,4 +41,4 @@ size_t fslib_stream_read(fslib_stream_t* stream, void* ptr, size_t size);
 }
 #endif
 
-#endif // FSLIB_STREAM_H
+#endif  // FSLIB_STREAM_H

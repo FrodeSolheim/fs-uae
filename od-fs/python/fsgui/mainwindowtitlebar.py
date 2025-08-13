@@ -1,4 +1,5 @@
-import fsapp  # type: ignore
+import _fsapp
+
 from fsgui.borderlesswindow import BorderlessWindow
 from fsgui.button import CustomButton
 from fsgui.font import Font
@@ -9,13 +10,19 @@ from fsgui.widget import Widget
 # ignored - so basically for all interactive child widgets.
 
 
-class MainTitleBar(BorderlessWindow):
-    def __init__(self, title, size):
+class MainWindowTitleBar(BorderlessWindow):
+    def __init__(self, title, size, extra_title=""):
         super().__init__("", size=size)
         # self.style.background_color = (56, 56, 56, 255)
-        self.style.background_color = (255, 255, 255, 255)
+        # self.style.background_color = (255, 255, 255, 255)
 
-        self.menu_button = MenuButton(self)
+        # grey_level = 0xFF
+        grey_level = 0xF4
+        # grey_level = 0x1C
+        self.style.background_color = (grey_level, grey_level, grey_level, 255)
+
+        # self.menu_button = MenuButton(self)
+
         self.minimize_button = MinimizeButton(self)
         self.maximize_button = MaximizeButton(self)
         self.close_button = CloseButton(self)
@@ -25,6 +32,7 @@ class MainTitleBar(BorderlessWindow):
         # button.set_size((60, 28))
 
         self._title = title
+        self.extra_title = extra_title
         self.font = Font(weight=Font.BOLD)
 
         self.on_resize()
@@ -36,30 +44,31 @@ class MainTitleBar(BorderlessWindow):
         dc.draw_filled_rectangle((0, 0), self.get_size())
 
         tw, th = dc.measure_text(self._title)
-        tx = 42
-        ty = (self.height - th) // 2
+        # tx = 42
+        title_x = 12
+        title_y = (self.height - th) // 2
+        dc.draw_text(self._title, (title_x, title_y))
 
-        dc.draw_text(self._title, (tx, ty))
+        if self.extra_title:
+            tw, th = dc.measure_text(self.extra_title)
+            title_x = (self.width - tw) // 2
+            dc.draw_text(self.extra_title, (title_x, title_y))
 
-        tx = tx + tw + 12
-        sub_title = "V5 PREVIEW"
-
-        dc.set_text_colour((0xBB, 0xBB, 0xBB, 0xFF))
-        dc.draw_text(sub_title, (tx, ty))
+        # tx = tx + tw + 12
+        # sub_title = "V5 PREVIEW"
+        # dc.set_text_colour((0xBB, 0xBB, 0xBB, 0xFF))
+        # dc.draw_text(sub_title, (tx, ty))
 
     def on_resize(self):
         width, height = self.get_size()
 
-        left_margin = 4
-        right_margin = 4
+        # left_margin = 4
+        # self.menu_button.set_position((left_margin, 0))
 
-        self.menu_button.set_position((left_margin, 0))
-        self.minimize_button.set_position(
-            (width - height * 3 - right_margin, 0)
-        )
-        self.maximize_button.set_position(
-            (width - height * 2 - right_margin, 0)
-        )
+        right_margin = 0
+
+        self.minimize_button.set_position((width - height * 3 - right_margin, 0))
+        self.maximize_button.set_position((width - height * 2 - right_margin, 0))
         self.close_button.set_position((width - height - right_margin, 0))
 
     # def draw(self):
@@ -132,7 +141,7 @@ class MinimizeButton(MainTitleBarButton):
         # self.style.background_color = (255, 255, 0, 255)
 
     def _on_activate(self):
-        fsapp.minimize_window()
+        _fsapp.minimize_window()
 
 
 class MaximizeButton(MainTitleBarButton):
@@ -140,13 +149,16 @@ class MaximizeButton(MainTitleBarButton):
         super().__init__(parent, "maximize")
         # self.style.background_color = (0, 255, 0, 255)
 
-    def _on_activate(self):
+    def _on_activate(self) -> None:
         from fsgui.mainwindow import MainWindow
 
-        if MainWindow.get().is_maximized():
-            fsapp.restore_window()
+        main_window = MainWindow.get()
+        if main_window.fullscreen:
+            _fsapp.set_fullscreen(False)
+        elif main_window.is_maximized():
+            _fsapp.restore_window()
         else:
-            fsapp.maximize_window()
+            _fsapp.maximize_window()
 
 
 class CloseButton(MainTitleBarButton):
@@ -154,5 +166,5 @@ class CloseButton(MainTitleBarButton):
         super().__init__(parent, "close")
         # self.style.background_color = (255, 0, 0, 255)
 
-    def _on_activate(self):
-        fsapp.close_window()
+    def _on_activate(self) -> None:
+        _fsapp.close_window()

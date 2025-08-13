@@ -15,12 +15,11 @@ struct fsemu_semaphore_t {
 #if defined(FSEMU_PSEM)
     sem_t semaphore;
 #elif defined(FSEMU_SDL)
-    SDL_Semaphore *semaphore;
+    SDL_Semaphore* semaphore;
 #endif
 };
 
-void fsemu_semaphore_init(fsemu_semaphore_t *semaphore, int value)
-{
+void fsemu_semaphore_init(fsemu_semaphore_t* semaphore, int value) {
 #if defined(FSEMU_PSEM)
     sem_init(&semaphore->semaphore, 1, value);
 #elif defined(FSEMU_SDL)
@@ -30,15 +29,13 @@ void fsemu_semaphore_init(fsemu_semaphore_t *semaphore, int value)
 #endif
 }
 
-fsemu_semaphore_t *fsemu_semaphore_create(int value)
-{
-    fsemu_semaphore_t *semaphore = FSEMU_UTIL_MALLOC(fsemu_semaphore_t);
+fsemu_semaphore_t* fsemu_semaphore_create(int value) {
+    fsemu_semaphore_t* semaphore = FSEMU_UTIL_MALLOC(fsemu_semaphore_t);
     fsemu_semaphore_init(semaphore, value);
     return semaphore;
 }
 
-void fsemu_semaphore_destroy(fsemu_semaphore_t *semaphore)
-{
+void fsemu_semaphore_destroy(fsemu_semaphore_t* semaphore) {
 #if defined(FSEMU_PSEM)
     sem_destroy(&semaphore->semaphore);
 #elif defined(FSEMU_SDL)
@@ -49,8 +46,7 @@ void fsemu_semaphore_destroy(fsemu_semaphore_t *semaphore)
     free(semaphore);
 }
 
-int fsemu_semaphore_post(fsemu_semaphore_t *semaphore)
-{
+int fsemu_semaphore_post(fsemu_semaphore_t* semaphore) {
 #if defined(FSEMU_PSEM)
     return sem_post(&semaphore->semaphore);
 #elif defined(FSEMU_SDL)
@@ -61,8 +57,7 @@ int fsemu_semaphore_post(fsemu_semaphore_t *semaphore)
 #endif
 }
 
-int fsemu_semaphore_wait(fsemu_semaphore_t *semaphore)
-{
+int fsemu_semaphore_wait(fsemu_semaphore_t* semaphore) {
 #if defined(FSEMU_PSEM)
     return sem_wait(&semaphore->semaphore);
 #elif defined(FSEMU_SDL)
@@ -73,8 +68,7 @@ int fsemu_semaphore_wait(fsemu_semaphore_t *semaphore)
 #endif
 }
 
-int fsemu_semaphore_try_wait(fsemu_semaphore_t *semaphore)
-{
+int fsemu_semaphore_try_wait(fsemu_semaphore_t* semaphore) {
     // FIXME: Check return values here, the semantics don't look the same
 #if defined(FSEMU_PSEM)
     return sem_trywait(&semaphore->semaphore);
@@ -85,9 +79,7 @@ int fsemu_semaphore_try_wait(fsemu_semaphore_t *semaphore)
 #endif
 }
 
-int fsemu_semaphore_wait_timeout_ms(fsemu_semaphore_t *semaphore,
-                                    int timeout_ms)
-{
+int fsemu_semaphore_wait_timeout_ms(fsemu_semaphore_t* semaphore, int timeout_ms) {
 #if defined(FSEMU_PSEM)
 #error not implemented
 #elif defined(FSEMU_SDL)

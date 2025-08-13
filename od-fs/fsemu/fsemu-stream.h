@@ -15,27 +15,27 @@ extern "C" {
 
 typedef struct fsemu_stream {
     FSLIB_REFABLE;
-    SDL_IOStream *rwops;
+    SDL_IOStream* rwops;
 } fsemu_stream_t;
 
-fsemu_stream_t *fsemu_stream_null(void);
+fsemu_stream_t* fsemu_stream_null(void);
 
-fsemu_stream_t *fsemu_stream_new(void);
+fsemu_stream_t* fsemu_stream_new(void);
 
-void fsemu_stream_unref(fsemu_stream_t *stream);
+void fsemu_stream_unref(fsemu_stream_t* stream);
 
-fsemu_stream_t *fsemu_stream_from_const_data(const void *mem, int size);
+fsemu_stream_t* fsemu_stream_from_const_data(const void* mem, int size);
 
-fsemu_stream_t *fsemu_stream_from_file(FILE *fp, bool autoclose);
+fsemu_stream_t* fsemu_stream_from_file(FILE* fp, bool autoclose);
 
-fsemu_stream_t *fsemu_stream_from_path(const char *file, const char *mode);
+fsemu_stream_t* fsemu_stream_from_path(const char* file, const char* mode);
 
-fsemu_stream_t *fsemu_stream_from_data(void *mem, int size);
+fsemu_stream_t* fsemu_stream_from_data(void* mem, int size);
 
-int fsemu_stream_close(fsemu_stream_t *stream);
+int fsemu_stream_close(fsemu_stream_t* stream);
 
-int64_t fsemu_stream_size(fsemu_stream_t *stream);
-size_t fsemu_stream_read(fsemu_stream_t *stream, void *ptr, size_t size);
+int64_t fsemu_stream_size(fsemu_stream_t* stream);
+size_t fsemu_stream_read(fsemu_stream_t* stream, void* ptr, size_t size);
 
 #ifdef __cplusplus
 }

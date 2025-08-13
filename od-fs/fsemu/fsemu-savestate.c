@@ -22,28 +22,23 @@ static struct {
     bool initialized;
     fsuae_savestate_path_function_t path_function;
     bool has_state[FSEMU_SAVESTATE_MAX_SLOT + 1];
-    char *descriptions[FSEMU_SAVESTATE_MAX_SLOT + 1];
+    char* descriptions[FSEMU_SAVESTATE_MAX_SLOT + 1];
 
 } fsemu_savestate;
 
-void fsemu_savestate_set_path_function(
-    fsuae_savestate_path_function_t function)
-{
+void fsemu_savestate_set_path_function(fsuae_savestate_path_function_t function) {
     fsemu_savestate.path_function = function;
 }
 
-bool fsemu_savestate_available(void)
-{
+bool fsemu_savestate_available(void) {
     return fsemu_savestate.path_function != NULL;
 }
 
-uintptr_t fsemu_savestate_on_load_finished(void *data)
-{
-    int slot = (int) (intptr_t) data;
-    fsemu_savestate_log_debug("fsemu_savestate_on_load_finished slot=%d\n",
-                              slot);
+uintptr_t fsemu_savestate_on_load_finished(void* data) {
+    int slot = (int)(intptr_t)data;
+    fsemu_savestate_log_debug("fsemu_savestate_on_load_finished slot=%d\n", slot);
 
-    const char *path;
+    const char* path;
     if (fsemu_savestate.path_function) {
         path = fsemu_savestate.path_function(slot);
     } else {
@@ -54,13 +49,11 @@ uintptr_t fsemu_savestate_on_load_finished(void *data)
     return 0;
 }
 
-uintptr_t fsemu_savestate_on_save_finished(void *data)
-{
-    int slot = (int) (intptr_t) data;
-    fsemu_savestate_log_debug("fsemu_savestate_on_save_finished slot=%d\n",
-                              slot);
+uintptr_t fsemu_savestate_on_save_finished(void* data) {
+    int slot = (int)(intptr_t)data;
+    fsemu_savestate_log_debug("fsemu_savestate_on_save_finished slot=%d\n", slot);
 
-    const char *path;
+    const char* path;
     if (fsemu_savestate.path_function) {
         path = fsemu_savestate.path_function(slot);
     } else {
@@ -71,17 +64,15 @@ uintptr_t fsemu_savestate_on_save_finished(void *data)
     return 0;
 }
 
-bool fsemu_savestate_has_state(int slot)
-{
+bool fsemu_savestate_has_state(int slot) {
     fsemu_thread_assert_main();
 
     return fsemu_savestate.has_state[slot];
 }
 
-void fsemu_savestate_update_slot(int slot)
-{
-    char *path = NULL;
-    char *description = NULL;
+void fsemu_savestate_update_slot(int slot) {
+    char* path = NULL;
+    char* description = NULL;
     if (fsemu_savestate.path_function) {
         path = fsemu_savestate.path_function(slot);
     }
@@ -128,9 +119,8 @@ void fsemu_savestate_update_slot(int slot)
 
 // FIXME: Consider changing this to return a const string instead, and let
 // users of this function copy the string if desired, for better efficiency.
-char *fsemu_savestate_description(int slot)
-{
-    char *description = fsemu_savestate.descriptions[slot];
+char* fsemu_savestate_description(int slot) {
+    char* description = fsemu_savestate.descriptions[slot];
     if (description) {
         return g_strdup(description);
     } else {
@@ -138,15 +128,13 @@ char *fsemu_savestate_description(int slot)
     }
 }
 
-int fsemu_savestate_slots(void)
-{
+int fsemu_savestate_slots(void) {
     fsemu_thread_assert_main();
 
     return FSEMU_SAVESTATE_SLOTS;
 }
 
-void fsemu_savestate_load(int slot)
-{
+void fsemu_savestate_load(int slot) {
     fsemu_thread_assert_main();
     fsemu_assert(slot >= 0 && slot <= FSEMU_SAVESTATE_MAX_SLOT);
 
@@ -159,8 +147,7 @@ void fsemu_savestate_load(int slot)
     }
 }
 
-void fsemu_savestate_save(int slot)
-{
+void fsemu_savestate_save(int slot) {
     fsemu_thread_assert_main();
     fsemu_assert(slot >= 0 && slot <= FSEMU_SAVESTATE_MAX_SLOT);
 
@@ -192,8 +179,7 @@ void fsemu_savestate_handle_action(int action)
 }
 #endif
 
-void fsemu_savestate_init(void)
-{
+void fsemu_savestate_init(void) {
     if (fsemu_savestate.initialized) {
         return;
     }

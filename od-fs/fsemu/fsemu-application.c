@@ -12,13 +12,12 @@ int fsemu_application_log_level = FSEMU_LOG_LEVEL_INFO;
 
 static struct {
     bool initialized;
-    char *name;
-    char *base_dir_name;
-    char *base_dir;
+    char* name;
+    char* base_dir_name;
+    char* base_dir;
 } fsemu_application;
 
-void fsemu_application_set_name(const char *name)
-{
+void fsemu_application_set_name(const char* name) {
     fsemu_assert_release(name != NULL);
     if (fsemu_application.name) {
         fsemu_application_log("Changing name might not work in practice\n");
@@ -27,21 +26,18 @@ void fsemu_application_set_name(const char *name)
     fsemu_application.name = strdup(name);
 }
 
-const char *fsemu_application_name(void)
-{
+const char* fsemu_application_name(void) {
     fsemu_assert_release(fsemu_application.name != NULL);
     return fsemu_application.name;
 }
 
-void fsemu_application_set_base_dir(const char *dir_path)
-{
+void fsemu_application_set_base_dir(const char* dir_path) {
     fsemu_assert(dir_path == NULL);
     fsemu_assert(fsemu_application.base_dir == NULL);
     fsemu_application.base_dir = strdup(dir_path);
 }
 
-void fsemu_application_set_base_dir_name(const char *dir_name)
-{
+void fsemu_application_set_base_dir_name(const char* dir_name) {
     fsemu_assert_release(dir_name != NULL);
     fsemu_assert(fsemu_application.base_dir_name == NULL);
 #if 0
@@ -56,14 +52,13 @@ void fsemu_application_set_base_dir_name(const char *dir_name)
 
 // ----------------------------------------------------------------------------
 
-const char *fsemu_application_base_dir(void)
-{
+const char* fsemu_application_base_dir(void) {
     fsemu_assert_release(fsemu_application.initialized);
     // fsemu_assert_release(fsemu_application.base_dir_name != NULL);
 
     if (fsemu_application.base_dir == NULL) {
-        const char *home_dir = g_get_home_dir();
-        const char *name = fsemu_application.base_dir_name;
+        const char* home_dir = g_get_home_dir();
+        const char* name = fsemu_application.base_dir_name;
         if (name == NULL) {
             name = fsemu_application.name;
         }
@@ -75,9 +70,8 @@ const char *fsemu_application_base_dir(void)
         } else {
             int error = g_mkdir_with_parents(fsemu_application.base_dir, 0755);
             if (error) {
-                fsemu_application_log_error(
-                    "Could not create base directory %s\n",
-                    fsemu_application.base_dir);
+                fsemu_application_log_error("Could not create base directory %s\n",
+                                            fsemu_application.base_dir);
             }
         }
     }
@@ -88,14 +82,12 @@ const char *fsemu_application_base_dir(void)
 
 // ----------------------------------------------------------------------------
 
-static void fsemu_application_quit(void)
-{
+static void fsemu_application_quit(void) {
 }
 
 // ----------------------------------------------------------------------------
 
-void fsemu_application_init(void)
-{
+void fsemu_application_init(void) {
     if (FSEMU_MODULE_INIT(application)) {
         return;
     }

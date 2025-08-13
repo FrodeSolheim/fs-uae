@@ -12,7 +12,7 @@ class WindowManager:
     _instance: Self | None = None
 
     @classmethod
-    def get(cls):
+    def get(cls) -> "WindowManager":
         if cls._instance is None:
             cls._instance = WindowManager()
         return cls._instance
@@ -192,18 +192,14 @@ class WindowManager:
         self._windows_by_layer[window.layer].remove(window)
         self._windows.remove(window)
 
-    def transfer_mouse_tracking(
-        self, from_widget: Widget, to_widget: Widget
-    ) -> None:
+    def transfer_mouse_tracking(self, from_widget: Widget, to_widget: Widget) -> None:
         if self._left_pressed_widget != from_widget:
             logger.warning("transfer_mouse_tracking on incorrect widget?")
             return
 
         self._left_pressed_widget = to_widget
 
-    def _change_window_layer(
-        self, window: Window, old_layer: int, new_layer: int
-    ) -> None:
+    def _change_window_layer(self, window: Window, old_layer: int, new_layer: int) -> None:
         self._windows_by_layer[old_layer].remove(window)
         self._windows_by_layer.setdefault(new_layer, []).append(window)
         self._update_window_list()

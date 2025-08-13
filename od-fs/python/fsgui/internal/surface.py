@@ -18,6 +18,7 @@ class Surface:
         self._position = 0, 0
         self._surface = fsgui_surface.create(size, special)
         self._size = size
+        self._z_index = 0
 
         # self._image = Image.frombuffer(
         #     "RGBA", size, self._buffer.getbuffer(), "raw", "RGBA", 0, 1
@@ -25,6 +26,10 @@ class Surface:
         # # self.id = id(self)
         # # print(self.id)
         self.id = get_next_id()
+
+    def destroy(self) -> None:
+        fsgui_surface.destroy(self._surface)
+        self._surface = None
 
     # def update(self):
     #     im = self._image
@@ -58,3 +63,13 @@ class Surface:
     def set_position(self, position: Tuple[int, int]):
         self._position = position
         # fsapp.set_surface_position(self._surface, position)
+        fsgui_surface.set_position(self._surface, position)
+
+    def set_visible(self, visible: bool) -> None:
+        fsgui_surface.set_visible(self._surface, visible)
+
+    def set_z_index(self, z_index: float) -> None:
+        if z_index != self._z_index:
+            # print(z_index, "vs", self._z_index)
+            fsgui_surface.set_z_index(self._surface, z_index)
+            self._z_index = z_index

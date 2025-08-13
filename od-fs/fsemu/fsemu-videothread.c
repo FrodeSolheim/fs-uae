@@ -18,7 +18,7 @@ struct fsemu_video_thread_data {
 
 static struct {
     // Mutex used to copy consistent data from UI thread over to video thread.
-    fsemu_mutex_t *ui_video_mutex;
+    fsemu_mutex_t* ui_video_mutex;
     // Data from UI thread
     struct fsemu_video_thread_data ui_thread_d;
     // Data (copy) for UI thread
@@ -27,24 +27,20 @@ static struct {
 
 // ----------------------------------------------------------------------------
 
-void fsemu_videothread_lock(void)
-{
+void fsemu_videothread_lock(void) {
     fsemu_mutex_lock(fsemu_videothread.ui_video_mutex);
 }
 
-void fsemu_videothread_unlock(void)
-{
+void fsemu_videothread_unlock(void) {
     fsemu_mutex_unlock(fsemu_videothread.ui_video_mutex);
 }
 
 // ----------------------------------------------------------------------------
 
-void fsemu_videothread_set_data_from_ui_thread(fsemu_size_t *window_size,
-                                               fsemu_size_t *drawable_size,
-                                               fsemu_rect_t *client_area,
-                                               fsemu_rect_t *video_area,
-                                               fsemu_rect_t *video_rect)
-{
+void fsemu_videothread_set_data_from_ui_thread(fsemu_size_t* window_size,
+                                               fsemu_size_t* drawable_size,
+                                               fsemu_rect_t* client_area, fsemu_rect_t* video_area,
+                                               fsemu_rect_t* video_rect) {
     // fsemu_mutex_lock(fsemu_videothread.ui_video_mutex);
 
     fsemu_videothread.ui_thread_d.window_size = *window_size;
@@ -56,8 +52,7 @@ void fsemu_videothread_set_data_from_ui_thread(fsemu_size_t *window_size,
     // fsemu_mutex_unlock(fsemu_videothread.ui_video_mutex);
 }
 
-void fsemu_videothread_copy_thread_data(void)
-{
+void fsemu_videothread_copy_thread_data(void) {
     fsemu_mutex_lock(fsemu_videothread.ui_video_mutex);
 
     fsemu_videothread.thread_d = fsemu_videothread.ui_thread_d;
@@ -73,23 +68,19 @@ void fsemu_videothread_window_size(fsemu_size_t *size)
 }
 #endif
 
-void fsemu_videothread_drawable_size(fsemu_size_t *size)
-{
+void fsemu_videothread_drawable_size(fsemu_size_t* size) {
     *size = fsemu_videothread.thread_d.drawable_size;
 }
 
-void fsemu_videothread_client_area(fsemu_rect_t *rect)
-{
+void fsemu_videothread_client_area(fsemu_rect_t* rect) {
     *rect = fsemu_videothread.thread_d.client_area;
 }
 
-void fsemu_videothread_video_area(fsemu_rect_t *rect)
-{
+void fsemu_videothread_video_area(fsemu_rect_t* rect) {
     *rect = fsemu_videothread.thread_d.video_area;
 }
 
-void fsemu_videothread_video_rect(fsemu_rect_t *rect)
-{
+void fsemu_videothread_video_rect(fsemu_rect_t* rect) {
     *rect = fsemu_videothread.thread_d.video_rect;
 }
 
@@ -98,8 +89,7 @@ void fsemu_videothread_video_rect(fsemu_rect_t *rect)
 // FIXME:
 #include "fsemu-quit.h"
 
-static void *fsemu_videothread_entry(void *data)
-{
+static void* fsemu_videothread_entry(void* data) {
     fsemu_video_log("Start of video thread function\n");
     fsemu_thread_set_video();
 
@@ -117,7 +107,7 @@ static void *fsemu_videothread_entry(void *data)
     fsemu_opengl_forget_state();
 
 #if 1
-    fsemu_gui_item_t *old_snapshot = NULL;
+    fsemu_gui_item_t* old_snapshot = NULL;
 #endif
     // int64_t t = fsemu_time_us();
 
@@ -135,7 +125,7 @@ static void *fsemu_videothread_entry(void *data)
         if (fsemu_video_ready()) {
             printf("videothread - ready\n");
 #if 1
-            fsemu_gui_item_t *snapshot = fsemu_video_get_gui_snapshot_vt();
+            fsemu_gui_item_t* snapshot = fsemu_video_get_gui_snapshot_vt();
             if (fsemu_likely(snapshot)) {
                 fsemu_gui_free_snapshot(old_snapshot);
                 old_snapshot = snapshot;
@@ -168,8 +158,7 @@ static void *fsemu_videothread_entry(void *data)
 
 // ----------------------------------------------------------------------------
 
-void fsemu_videothread_start(void)
-{
+void fsemu_videothread_start(void) {
     fsemu_video_log("Creating video thread\n");
     // FIXME:
     // fsemu_thread_t *video_thread =
@@ -178,8 +167,7 @@ void fsemu_videothread_start(void)
 
 // ----------------------------------------------------------------------------
 
-void fsemu_videothread_init(void)
-{
+void fsemu_videothread_init(void) {
     fsemu_return_if_already_initialized();
     fsemu_videothread.ui_video_mutex = fsemu_mutex_create();
 }

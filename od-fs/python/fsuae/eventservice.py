@@ -47,6 +47,4 @@ class EventService:
             try:
                 listener(event)
             except Exception:
-                logging.exception(
-                    f"Error broadcasting event {type} to listener {listener}"
-                )
+                logging.exception(f"Error broadcasting event {type} to listener {listener}")

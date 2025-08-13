@@ -27,34 +27,33 @@ typedef struct {
 } fsemu_input_configure_keyboard_t;
 
 typedef struct {
-    const char *name;
+    const char* name;
     uint16_t value;
     int flags;
 } fsemu_input_action_t;
 
-void fsemu_input_add_action(fsemu_input_action_t *action);
+void fsemu_input_add_action(fsemu_input_action_t* action);
 
 void fsemu_input_add_actions(fsemu_input_action_t actions[]);
 
-fsemu_error_t fsemu_input_add_device(fsemu_inputdevice_t *device);
+fsemu_error_t fsemu_input_add_device(fsemu_inputdevice_t* device);
 
-fsemu_inputdevice_t *fsemu_input_get_device(int index);
+fsemu_inputdevice_t* fsemu_input_get_device(int index);
 
-void fsemu_input_remove_device(fsemu_inputdevice_t *device);
+void fsemu_input_remove_device(fsemu_inputdevice_t* device);
 
 void fsemu_input_remove_device_by_index(int device_index);
 
-void fsemu_input_add_port(fsemu_inputport_t *port);
+void fsemu_input_add_port(fsemu_inputport_t* port);
 
 int fsemu_input_port_count(void);
 
-fsemu_inputport_t *fsemu_input_port_by_index(int index);
+fsemu_inputport_t* fsemu_input_port_by_index(int index);
 
 // FIXME: Possibly temporary function
 void fsemu_input_autofill_devices(void);
 
-void fsemu_input_configure_keyboard(
-    fsemu_input_configure_keyboard_t mapping[]);
+void fsemu_input_configure_keyboard(fsemu_input_configure_keyboard_t mapping[]);
 
 void fsemu_input_handle_controller(int device_index, int slot, int16_t state);
 void fsemu_input_handle_keyboard(fsemu_key_t scancode, bool pressed);
@@ -63,11 +62,10 @@ void fsemu_input_handle_mouse(int device_index, int slot, int16_t state);
 void fsemu_input_init(void);
 void fsemu_input_init_module(void);
 
-bool fsemu_input_next_action(uint16_t *action, int16_t *state);
-bool fsemu_input_next_command(uint16_t *action, int16_t *state);
+bool fsemu_input_next_action(uint16_t* action, int16_t* state);
+bool fsemu_input_next_command(uint16_t* action, int16_t* state);
 
-fsemu_action_and_state_t fsemu_input_pack_action_state(uint16_t action,
-                                                       int16_t state);
+fsemu_action_and_state_t fsemu_input_pack_action_state(uint16_t action, int16_t state);
 
 // Internal function used by fsemu_sdlinput.
 // Processes the action and decides whether to process further immediately on
@@ -78,9 +76,8 @@ void fsemu_input_process_action(uint16_t action, int16_t state);
 
 void fsemu_input_reconfigure(void);
 
-void fsemu_input_unpack_action_state(fsemu_action_and_state_t action_and_state,
-                                     uint16_t *action,
-                                     int16_t *state);
+void fsemu_input_unpack_action_state(fsemu_action_and_state_t action_and_state, uint16_t* action,
+                                     int16_t* state);
 
 void fsemu_input_work(int timeout);
 
@@ -90,8 +87,7 @@ void fsemu_input_work(int timeout);
 
 extern int fsemu_input_log_level;
 
-#define fsemu_input_log(format, ...) \
-    FSEMU_LOG(input, "[FSE] [INP]", format, ##__VA_ARGS__)
+#define fsemu_input_log(format, ...) FSEMU_LOG(input, "[FSE] [INP]", format, ##__VA_ARGS__)
 
 #define fsemu_input_log_debug(format, ...) \
     FSEMU_LOG_DEBUG(input, "[FSE] [INP]", format, ##__VA_ARGS__)

@@ -12,19 +12,18 @@ extern "C" {
 
 typedef struct fsemu_inputmode fsemu_inputmode_t;
 
-fsemu_inputmode_t *fsemu_inputmode_new(void);
+fsemu_inputmode_t* fsemu_inputmode_new(void);
 // fsemu_inputmode_t *fsemu_inputmode_alloc(void);
-void fsemu_inputmode_init(fsemu_inputmode_t *mode);
+void fsemu_inputmode_init(fsemu_inputmode_t* mode);
 
-const char *fsemu_inputmode_config_name(fsemu_inputmode_t *mode);
-void fsemu_inputmode_set_config_name(fsemu_inputmode_t *mode,
-                                     const char *name);
+const char* fsemu_inputmode_config_name(fsemu_inputmode_t* mode);
+void fsemu_inputmode_set_config_name(fsemu_inputmode_t* mode, const char* name);
 
-const char *fsemu_inputmode_name(fsemu_inputmode_t *mode);
-void fsemu_inputmode_set_name(fsemu_inputmode_t *mode, const char *name);
+const char* fsemu_inputmode_name(fsemu_inputmode_t* mode);
+void fsemu_inputmode_set_name(fsemu_inputmode_t* mode, const char* name);
 
-const char *fsemu_inputmode_title(fsemu_inputmode_t *mode);
-void fsemu_inputmode_set_title(fsemu_inputmode_t *mode, const char *title);
+const char* fsemu_inputmode_title(fsemu_inputmode_t* mode);
+void fsemu_inputmode_set_title(fsemu_inputmode_t* mode, const char* title);
 
 typedef struct fsemu_inputport_mapping {
     int device_type;   // keyboard, mouse, joystick or gamecontroller?
@@ -53,24 +52,24 @@ void fsemu_inputmode_add_mapping(fsemu_inputport_mode_t *mode);
 // fsemu_inputmode_map(
 //     mode, FSEMU_INPUT_CONTROLLER, FSEMU_CONTROLLER_A, C64_JOYSTICK2_FIRE)
 
-typedef void (*fsemu_inputmode_map_f)(fsemu_inputmode_t *, int, int, int);
+typedef void (*fsemu_inputmode_map_f)(fsemu_inputmode_t*, int, int, int);
 
 // void fsemu_inputmode_map(fsemu_inputmode_t *mode,
 //                          int device_type,
 //                          int device_input,
 //                          int action);
 
-void fsemu_inputmode_map_defaults(fsemu_inputmode_t *mode);
+void fsemu_inputmode_map_defaults(fsemu_inputmode_t* mode);
 
-bool fsemu_inputmode_map(fsemu_inputmode_t *mode, int input, int action);
+bool fsemu_inputmode_map(fsemu_inputmode_t* mode, int input, int action);
 
 #ifdef FSEMU_INTERNAL
 
 struct fsemu_inputmode {
-    char *name;
-    char *config_name;
+    char* name;
+    char* config_name;
     uint16_t mapping[FSEMU_INPUTDEVICE_MAX];
-    char *title;
+    char* title;
 };
 
 #endif  // FSEMU_INTERNAL

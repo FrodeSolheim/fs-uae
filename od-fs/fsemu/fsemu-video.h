@@ -23,7 +23,7 @@ struct fsemu_video_frame_t;
 
 typedef struct fsemu_video_frame_t {
     int layer;
-    uint8_t *buffer;
+    uint8_t* buffer;
     int stride;
     int depth;
     int width;
@@ -38,17 +38,14 @@ typedef struct fsemu_video_frame_t {
     // No actual frame data, used in pause mode
     bool dummy;
 
-    void (*finalize)(struct fsemu_video_frame_t *frame);
-    void *finalize_data;
+    void (*finalize)(struct fsemu_video_frame_t* frame);
+    void* finalize_data;
 } fsemu_video_frame_t;
 
 // FIXME: Move to fsemu-frame?
 #define FSEMU_FRAME_FLAG_TURBO (1 << 0)
 
-typedef enum {
-    FSEMU_VIDEO_DRIVER_NULL,
-    FSEMU_VIDEO_DRIVER_SDL
-} fsemu_video_driver_t;
+typedef enum { FSEMU_VIDEO_DRIVER_NULL, FSEMU_VIDEO_DRIVER_SDL } fsemu_video_driver_t;
 
 typedef enum {
     FSEMU_VIDEO_RENDERER_NULL,
@@ -106,7 +103,7 @@ bool fsemu_video_is_threaded(void);
 // rendering.
 void fsemu_video_set_startup_done_mt(void);
 
-void fsemu_video_set_gui_snapshot_mt(fsemu_gui_item_t *snapshot);
+void fsemu_video_set_gui_snapshot_mt(fsemu_gui_item_t* snapshot);
 
 // ----------------------------------------------------------------------------
 // Video thread functions
@@ -114,7 +111,7 @@ void fsemu_video_set_gui_snapshot_mt(fsemu_gui_item_t *snapshot);
 
 #ifdef FSEMU_INTERNAL
 
-fsemu_gui_item_t *fsemu_video_get_gui_snapshot_vt(void);
+fsemu_gui_item_t* fsemu_video_get_gui_snapshot_vt(void);
 
 #endif  // FSEMU_INTERNAL
 
@@ -124,9 +121,9 @@ fsemu_gui_item_t *fsemu_video_get_gui_snapshot_vt(void);
 
 // This is not for the renderer. The video thread has its own copy.
 
-void fsemu_video_drawable_size(fsemu_size_t *size);
+void fsemu_video_drawable_size(fsemu_size_t* size);
 
-void fsemu_video_set_drawable_size(fsemu_size_t *size);
+void fsemu_video_set_drawable_size(fsemu_size_t* size);
 
 // ----------------------------------------------------------------------------
 #if 0
@@ -165,17 +162,16 @@ int fsemu_video_vsync_frequency(void);
 
 void fsemu_video_work(int timeout_us);
 
-void fsemu_video_background_color_rgb(int *r, int *g, int *b);
+void fsemu_video_background_color_rgb(int* r, int* g, int* b);
 
 bool fsemu_video_ready(void);
 void fsemu_video_set_ready(bool ready);
 
 void fsemu_video_display(void);
 
-void fsemu_video_render_gui_early(fsemu_gui_item_t *items);
-void fsemu_video_render(
-    int window_width, int window_height, int x, int y, int w, int h);
-void fsemu_video_render_gui(fsemu_gui_item_t *items);
+void fsemu_video_render_gui_early(fsemu_gui_item_t* items);
+void fsemu_video_render(int window_width, int window_height, int x, int y, int w, int h);
+void fsemu_video_render_gui(fsemu_gui_item_t* items);
 
 // Returns the frame number of the latest rendered frame.
 // int fsemu_video_rendered_frame(void);
@@ -187,12 +183,11 @@ void fsemu_video_set_frame_vsync_at(int frame, int64_t vsync_at);
 
 // From main or video thread
 
-fsemu_video_frame_t *fsemu_video_get_frame(int timeout_us);
+fsemu_video_frame_t* fsemu_video_get_frame(int timeout_us);
 
 // These functions can be called from other threads (i.e. emulation threads)
 
-static inline fsemu_video_frame_t *fsemu_video_alloc_frame(void)
-{
+static inline fsemu_video_frame_t* fsemu_video_alloc_frame(void) {
     return FSEMU_UTIL_MALLOC0(fsemu_video_frame_t);
     // return (fsemu_video_frame_t *) malloc(sizeof(fsemu_video_frame_t));
 }
@@ -202,9 +197,9 @@ static inline fsemu_video_frame_t *fsemu_video_alloc_frame(void)
 //     free(frame);
 // }
 
-void fsemu_video_finalize_and_free_frame(fsemu_video_frame_t *frame);
+void fsemu_video_finalize_and_free_frame(fsemu_video_frame_t* frame);
 
-void fsemu_video_post_frame(fsemu_video_frame_t *frame);
+void fsemu_video_post_frame(fsemu_video_frame_t* frame);
 
 #ifdef FSEMU_INTERNAL
 
@@ -240,8 +235,7 @@ void fsemu_video_must_render_frame_until(int64_t until_us);
 
 extern int fsemu_video_log_level;
 
-#define fsemu_video_log(format, ...) \
-    FSEMU_LOG(video, "[FSE] [VID]", format, ##__VA_ARGS__)
+#define fsemu_video_log(format, ...) FSEMU_LOG(video, "[FSE] [VID]", format, ##__VA_ARGS__)
 
 #define fsemu_video_log_debug(format, ...) \
     FSEMU_LOG_DEBUG(video, "[FSE] [VID]", format, ##__VA_ARGS__)

@@ -19,18 +19,16 @@
 
 int fsemu_image_log_level = FSEMU_LOG_LEVEL_INFO;
 
-void fsemu_image_module_init(void)
-{
+void fsemu_image_module_init(void) {
     fsemu_return_if_already_initialized();
 
     fsemu_image_log("Initializing module\n");
 }
 
-fsemu_image_t *fsemu_image_load(const char *name)
-{
+fsemu_image_t* fsemu_image_load(const char* name) {
     fsemu_image_module_init();
 
-    void *data;
+    void* data;
     int data_size;
     fsemu_data_load(name, &data, &data_size);
     if (data == NULL) {
@@ -38,24 +36,20 @@ fsemu_image_t *fsemu_image_load(const char *name)
     }
 
     fsemu_image_log("Loaded image data %s size %d\n", name, data_size);
-    fsemu_image_t *image = fsemu_image_load_png_from_data(data, data_size);
+    fsemu_image_t* image = fsemu_image_load_png_from_data(data, data_size);
     free(data);
 
     return image;
 }
 
 typedef struct {
-    const unsigned char *buffer;
+    const unsigned char* buffer;
     png_uint_32 size;
     png_uint_32 position;
 } fsemu_image_read_state;
 
-static void fsemu_image_read_data_memory(png_structp png_ptr,
-                                         png_bytep data,
-                                         size_t length)
-{
-    fsemu_image_read_state *f =
-        (fsemu_image_read_state *) png_get_io_ptr(png_ptr);
+static void fsemu_image_read_data_memory(png_structp png_ptr, png_bytep data, size_t length) {
+    fsemu_image_read_state* f = (fsemu_image_read_state*)png_get_io_ptr(png_ptr);
     if (length > (f->size - f->position)) {
         png_error(png_ptr, "Read error in read_data_memory (loadpng)");
     }
@@ -63,10 +57,9 @@ static void fsemu_image_read_data_memory(png_structp png_ptr,
     f->position += length;
 }
 
-fsemu_image_t *fsemu_image_load_png_from_data(void *data, int data_size)
-{
+fsemu_image_t* fsemu_image_load_png_from_data(void* data, int data_size) {
 #ifdef FSEMU_PNG
-    fsemu_image_t *image = fsemu_image_new();
+    fsemu_image_t* image = fsemu_image_new();
     // FIXME: zero image struct?
 
     if (data_size < 8) {
@@ -81,17 +74,14 @@ fsemu_image_t *fsemu_image_load_png_from_data(void *data, int data_size)
     png_structp png_ptr;
     png_infop info_ptr;
     // int number_of_passes;
-    png_bytep *row_pointers;
-
-    // fs_image* image = fs_image_new();
+    png_bytep* row_pointers;
 
 #if PNG_LIBPNG_VER < 10500
-    if (png_sig_cmp((png_bytep) data, 0, 8)) {
+    if (png_sig_cmp((png_bytep)data, 0, 8)) {
 #else
-    if (png_sig_cmp((png_const_bytep) data, 0, 8)) {
+    if (png_sig_cmp((png_const_bytep)data, 0, 8)) {
 #endif
-        fsemu_image_log(
-            "File %p[%d] is not recognized as a PNG file\n", data, data_size);
+        fsemu_image_log("File %p[%d] is not recognized as a PNG file\n", data, data_size);
         free(image);
         // return image;
         return NULL;
@@ -118,12 +108,11 @@ fsemu_image_t *fsemu_image_load_png_from_data(void *data, int data_size)
     // FIXME: ERROR HANDLING
 
     fsemu_image_read_state memory_reader_state;
-    memory_reader_state.buffer = ((unsigned char *) data) + 8;
+    memory_reader_state.buffer = ((unsigned char*)data) + 8;
     memory_reader_state.size = data_size - 8;
     memory_reader_state.position = 0;
 
-    png_set_read_fn(
-        png_ptr, &memory_reader_state, fsemu_image_read_data_memory);
+    png_set_read_fn(png_ptr, &memory_reader_state, fsemu_image_read_data_memory);
 
     // png_init_io(png_ptr, fp);
 
@@ -183,9 +172,8 @@ fsemu_image_t *fsemu_image_load_png_from_data(void *data, int data_size)
     }
 #endif
 
-    unsigned char *image_data =
-        (unsigned char *) malloc(width * height * channels);
-    row_pointers = (png_bytep *) malloc(sizeof(png_bytep) * height);
+    unsigned char* image_data = (unsigned char*)malloc(width * height * channels);
+    row_pointers = (png_bytep*)malloc(sizeof(png_bytep) * height);
     for (y = 0; y < height; y++) {
         row_pointers[y] = image_data + width * y * channels;
     }
@@ -207,10 +195,9 @@ fsemu_image_t *fsemu_image_load_png_from_data(void *data, int data_size)
 #endif
 }
 
-fsemu_image_t *fsemu_image_load_png_file(const char *path)
-{
+fsemu_image_t* fsemu_image_load_png_file(const char* path) {
 #ifdef FSEMU_PNG
-    fsemu_image_t *image = fsemu_image_new();
+    fsemu_image_t* image = fsemu_image_new();
     // FIXME: zero image struct?
 
     int y;
@@ -221,12 +208,10 @@ fsemu_image_t *fsemu_image_load_png_file(const char *path)
     png_structp png_ptr;
     png_infop info_ptr;
     // int number_of_passes;
-    png_bytep *row_pointers;
+    png_bytep* row_pointers;
     unsigned char header[8];
 
-    // fs_image* image = fs_image_new();
-
-    FILE *fp = g_fopen(path, "rb");
+    FILE* fp = g_fopen(path, "rb");
     if (!fp) {
         fsemu_image_log("Could not open %s\n", path);
         free(image);
@@ -299,8 +284,8 @@ fsemu_image_t *fsemu_image_load_png_file(const char *path)
     bit_depth = png_get_bit_depth(png_ptr, info_ptr);
     int channels = png_get_channels(png_ptr, info_ptr);
 
-    unsigned char *data = (unsigned char *) malloc(width * height * channels);
-    row_pointers = (png_bytep *) malloc(sizeof(png_bytep) * height);
+    unsigned char* data = (unsigned char*)malloc(width * height * channels);
+    row_pointers = (png_bytep*)malloc(sizeof(png_bytep) * height);
     for (y = 0; y < height; y++) {
         row_pointers[y] = data + width * y * channels;
     }
@@ -330,10 +315,9 @@ static void fsemu_image_init(fsemu_image_t *image)
 }
 #endif
 
-static void fsemu_image_finalize(void *object)
-{
+static void fsemu_image_finalize(void* object) {
 #if 1
-    fsemu_image_t *image = (fsemu_image_t *) object;
+    fsemu_image_t* image = (fsemu_image_t*)object;
     fsemu_image_log_debug("Finalizing image %p\n", image);
     // FIXME
     // fflush(stdout);
@@ -346,17 +330,15 @@ static void fsemu_image_finalize(void *object)
 #endif
 }
 
-fsemu_image_t *fsemu_image_new(void)
-{
-    fsemu_image_t *image = FSEMU_UTIL_MALLOC0(fsemu_image_t);
+fsemu_image_t* fsemu_image_new(void) {
+    fsemu_image_t* image = FSEMU_UTIL_MALLOC0(fsemu_image_t);
     // fsemu_image_init(image);
     fslib_refable_init_with_finalizer(image, fsemu_image_finalize);
     return image;
 }
 
-fsemu_image_t *fsemu_image_from_size(int width, int height)
-{
-    fsemu_image_t *image = fsemu_image_new();
+fsemu_image_t* fsemu_image_from_size(int width, int height) {
+    fsemu_image_t* image = fsemu_image_new();
     image->bpp = 4;
     image->data = malloc(width * height * 4);
     image->depth = 32;
@@ -366,21 +348,16 @@ fsemu_image_t *fsemu_image_from_size(int width, int height)
     return image;
 }
 
-static int fsemu_image_set_error(fsemu_image_t *image, int error)
-{
+static int fsemu_image_set_error(fsemu_image_t* image, int error) {
     image->error = error;
     return error;
 }
 
 #ifdef FSEMU_PNG
 
-static void fsemu_image_png_read_fn(png_structp png_ptr,
-                                    png_bytep data,
-                                    size_t length)
-{
-    fsemu_stream_t *stream = (fsemu_stream_t *) png_get_io_ptr(png_ptr);
-    fsemu_image_log_debug(
-        "Read %d bytes from stream %p\n", (int) length, stream);
+static void fsemu_image_png_read_fn(png_structp png_ptr, png_bytep data, size_t length) {
+    fsemu_stream_t* stream = (fsemu_stream_t*)png_get_io_ptr(png_ptr);
+    fsemu_image_log_debug("Read %d bytes from stream %p\n", (int)length, stream);
     if (fsemu_stream_read(stream, data, length) != length) {
         png_error(png_ptr, "read error in fsemu_image_png_read_fn");
     }
@@ -388,11 +365,8 @@ static void fsemu_image_png_read_fn(png_structp png_ptr,
 
 #endif
 
-static int fsemu_image_load_png_stream(fsemu_image_t *image,
-                                       fsemu_stream_t *stream)
-{
-    fsemu_image_log_debug(
-        "fsemu_image_load_png_stream image=%p stream=%p\n", image, stream);
+static int fsemu_image_load_png_stream(fsemu_image_t* image, fsemu_stream_t* stream) {
+    fsemu_image_log_debug("fsemu_image_load_png_stream image=%p stream=%p\n", image, stream);
 #ifdef FSEMU_PNG
     // FIXME: zero image struct?
     // FIME: Assume zeroed and not already used image...
@@ -405,15 +379,13 @@ static int fsemu_image_load_png_stream(fsemu_image_t *image,
     png_structp png_ptr;
     png_infop info_ptr;
     // int number_of_passes;
-    png_bytep *row_pointers;
+    png_bytep* row_pointers;
     unsigned char header[8];
 
     // FIXME: maybe
     // image->valid = false;
     // or (store last error)
     image->error = -1;
-
-    // fs_image* image = fs_image_new();
 
     /*
     FILE *fp = g_fopen(path, "rb");
@@ -517,9 +489,8 @@ static int fsemu_image_load_png_stream(fsemu_image_t *image,
 
     // printf("c2\n");
 
-    unsigned char *image_data =
-        (unsigned char *) malloc(width * height * channels);
-    row_pointers = (png_bytep *) malloc(sizeof(png_bytep) * height);
+    unsigned char* image_data = (unsigned char*)malloc(width * height * channels);
+    row_pointers = (png_bytep*)malloc(sizeof(png_bytep) * height);
     for (y = 0; y < height; y++) {
         row_pointers[y] = image_data + width * y * channels;
     }
@@ -537,8 +508,7 @@ static int fsemu_image_load_png_stream(fsemu_image_t *image,
     image->bpp = 4;
     // image->format = FSEMU_IMAGE_RGBA;
 
-    fsemu_image_log(
-        "Loaded PNG image size %dx%d\n", image->width, image->height);
+    fsemu_image_log("Loaded PNG image size %dx%d\n", image->width, image->height);
 
     free(row_pointers);
     png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
@@ -549,11 +519,9 @@ static int fsemu_image_load_png_stream(fsemu_image_t *image,
 #endif  // FSEMU_PNG
 }
 
-fsemu_image_t *fsemu_image_from_stream(fsemu_stream_t *stream, bool owner)
-{
-    fsemu_image_log_debug(
-        "fsemu_image_from_stream stream=%p owner=%d\n", stream, owner);
-    fsemu_image_t *image = fsemu_image_new();
+fsemu_image_t* fsemu_image_from_stream(fsemu_stream_t* stream, bool owner) {
+    fsemu_image_log_debug("fsemu_image_from_stream stream=%p owner=%d\n", stream, owner);
+    fsemu_image_t* image = fsemu_image_new();
     // printf("a\n");
     fsemu_image_load_png_stream(image, stream);
     // printf("b\n");
@@ -565,15 +533,14 @@ fsemu_image_t *fsemu_image_from_stream(fsemu_stream_t *stream, bool owner)
 
 // ----------------------------------------------------------------------------
 
-int fsemu_image_save_png_file_from_data(
-    const char *path, void *buffer, int width, int height, int bpp)
-{
+int fsemu_image_save_png_file_from_data(const char* path, void* buffer, int width, int height,
+                                        int bpp) {
 #ifdef FSEMU_PNG
-    FILE *fp;
-    void *data;
+    FILE* fp;
+    void* data;
     png_structp png_ptr;
     png_infop info_ptr;
-    unsigned char **row_pointers = NULL;
+    unsigned char** row_pointers = NULL;
     int i;
     int bit_depth;
     int color_type;
@@ -610,7 +577,7 @@ int fsemu_image_save_png_file_from_data(
 
     info_ptr = png_create_info_struct(png_ptr);
     if (!info_ptr) {
-        png_destroy_write_struct(&png_ptr, (png_infopp) NULL);
+        png_destroy_write_struct(&png_ptr, (png_infopp)NULL);
         fclose(fp);
         fsemu_image_log("png_create_info_struct failed\n");
         return -6;
@@ -639,20 +606,13 @@ int fsemu_image_save_png_file_from_data(
         color_type = PNG_COLOR_TYPE_RGB_ALPHA;
         row_stride = width * 4;
     }
-    png_set_IHDR(png_ptr,
-                 info_ptr,
-                 width,
-                 height,
-                 bit_depth,
-                 color_type,
-                 interlace_type,
-                 compression_type,
-                 filter_method);
-    row_pointers = (unsigned char **) malloc(sizeof(unsigned char *) * height);
+    png_set_IHDR(png_ptr, info_ptr, width, height, bit_depth, color_type, interlace_type,
+                 compression_type, filter_method);
+    row_pointers = (unsigned char**)malloc(sizeof(unsigned char*) * height);
     data = buffer;
     for (i = 0; i < height; i++) {
-        row_pointers[i] = (unsigned char *) data;
-        data = (uint8_t *) data + row_stride;
+        row_pointers[i] = (unsigned char*)data;
+        data = (uint8_t*)data + row_stride;
     }
     png_set_rows(png_ptr, info_ptr, row_pointers);
     png_write_png(png_ptr, info_ptr, PNG_TRANSFORM_IDENTITY, NULL);
@@ -665,10 +625,7 @@ int fsemu_image_save_png_file_from_data(
 #endif
 }
 
-int fsemu_image_save_png_file_from_rgba_data(const char *path,
-                                             void *buffer,
-                                             int width,
-                                             int height)
-{
+int fsemu_image_save_png_file_from_rgba_data(const char* path, void* buffer, int width,
+                                             int height) {
     return fsemu_image_save_png_file_from_data(path, buffer, width, height, 4);
 }

@@ -1,7 +1,6 @@
 #ifndef FS_BASE_H
 #define FS_BASE_H
 
-#include <fs/malloc.h>
 #include <fs/defines.h>
 
 #ifdef __cplusplus

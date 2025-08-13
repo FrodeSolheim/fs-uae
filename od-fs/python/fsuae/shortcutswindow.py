@@ -38,9 +38,7 @@ class ShortcutsWindow(Window):
         # HorizontalLayout(gap=4)
         VerticalLayout(gap=8)
         # Label("Temp shortcuts:")
-        Button(
-            "About", on_activate=lambda: AboutWindow.instance().show()
-        ).fill()
+        Button("About", on_activate=lambda: AboutWindow.instance().show()).fill()
         Button(
             "Widgets",
             on_activate=lambda: WidgetTestWindow.instance().show(),

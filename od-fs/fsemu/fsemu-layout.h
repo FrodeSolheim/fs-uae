@@ -12,7 +12,7 @@ extern "C" {
 
 void fsemu_layout_init(void);
 
-void fsemu_layout_set_size(fsemu_size_t *size);
+void fsemu_layout_set_size(fsemu_size_t* size);
 void fsemu_layout_set_size_2(int width, int height);
 
 void fsemu_layout_set_client_margins(int margins[4]);
@@ -23,18 +23,15 @@ void fsemu_layout_set_pixel_aspect(double aspect);
 
 double fsemu_layout_pixel_aspect(void);
 
-void fsemu_layout_client_area(fsemu_rect_t *rect);
+void fsemu_layout_client_area(fsemu_rect_t* rect);
 
 // FIXME: Deprecated
 #define fsemu_layout_client_rect fsemu_layout_client_area
 
-void fsemu_layout_client_offset_scale(double *ox,
-                                      double *oy,
-                                      double *sx,
-                                      double *sy);
+void fsemu_layout_client_offset_scale(double* ox, double* oy, double* sx, double* sy);
 
-void fsemu_layout_video_area(fsemu_rect_t *rect);
-void fsemu_layout_video_rect(fsemu_rect_t *rect);
+void fsemu_layout_video_area(fsemu_rect_t* rect);
+void fsemu_layout_video_rect(fsemu_rect_t* rect);
 
 int fsemu_layout_stretch_mode(void);
 int fsemu_layout_cycle_stretch_mode(void);

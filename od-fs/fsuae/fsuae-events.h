@@ -13,4 +13,4 @@ void fsuae_events_event_handler(int line);
 }
 #endif
 
-#endif // FSUAE_EVENTS_H
+#endif  // FSUAE_EVENTS_H

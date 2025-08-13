@@ -1,18 +1,17 @@
 import atexit
 import sys
 
+import _fsuae_main  # type: ignore
 import fsapp_channel  # type: ignore
-from fsuae.f12window import F12Window
-import fsuae_main  # type: ignore
-
-from app.map_ports import map_ports
 from fsemu.inputdeviceservice import InputDeviceService
 from fsemu.inputportservice import InputPortService
 from fsgui.windowmanager import WindowManager
 from fsuae.eventservice import EventService
+from fsuae.f12window import F12Window
 from fsuae.fsuaemainwindow import FSUAEMainWindow
 from fsuae.messages import (
     FSUAE_MESSAGE_ADD_ROM,
+    FSUAE_MESSAGE_EARLY_STOP,
     FSUAE_MESSAGE_RESTART_WITH_CONFIG,
     post_fsuae_message,
     set_fsuae_channel,
@@ -25,12 +24,13 @@ from fsuae.uaeconfigservice import UAEConfigService
 from fsuae.workspace import init_fsuae_workspace
 from uae.optionblacklist import option_blacklist
 
+from app.map_ports import map_ports
+
 
 def on_exit():
-    import fsapp  # type: ignore
+    import _fsapp
 
-    fsapp_main = fsapp
-    fsapp_main.quit()
+    _fsapp.quit()  # type: ignore
 
 
 def app_init():
@@ -54,7 +54,7 @@ def app_init():
 
     channel = fsapp_channel.create()
     set_fsuae_channel(channel)
-    fsuae_main.init(channel)
+    _fsuae_main.init(channel)
 
     _window_manager = WindowManager.get()
 
@@ -73,9 +73,8 @@ def app_init():
     services.rom.scan_kickstarts_dir()
 
     for rom in services.rom.roms:
-        post_fsuae_message(
-            FSUAE_MESSAGE_ADD_ROM, f"{rom.crc32},{rom.sha1},{rom.path}"
-        )
+        post_fsuae_message(FSUAE_MESSAGE_ADD_ROM, f"{rom.crc32},{rom.sha1},{rom.path}")
+    post_fsuae_message(FSUAE_MESSAGE_EARLY_STOP)
 
     # process_fsuae_messages()
 
@@ -89,7 +88,7 @@ def app_init():
     # fsuae_roms.
 
     # FIXME: Maybe delay start even further?
-    fsuae_main.start()
+    _fsuae_main.start()
 
     map_ports(services)
 

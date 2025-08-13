@@ -23,12 +23,11 @@ struct fsemu_mutex {
 #elif defined(FSEMU_GLIB)
     GMutex mutex;
 #elif defined(FSEMU_SDL)
-    SDL_mutex *mutex;
+    SDL_mutex* mutex;
 #endif
 };
 
-void fsemu_mutex_init(fsemu_mutex_t *mutex)
-{
+void fsemu_mutex_init(fsemu_mutex_t* mutex) {
     SDL_assert(mutex != NULL);
 #if defined(FSEMU_PTHREADS)
     pthread_mutex_init(&mutex->mutex, NULL);
@@ -41,15 +40,13 @@ void fsemu_mutex_init(fsemu_mutex_t *mutex)
 #endif
 }
 
-fsemu_mutex_t *fsemu_mutex_create(void)
-{
-    fsemu_mutex_t *mutex = FSEMU_UTIL_MALLOC(fsemu_mutex_t);
+fsemu_mutex_t* fsemu_mutex_create(void) {
+    fsemu_mutex_t* mutex = FSEMU_UTIL_MALLOC(fsemu_mutex_t);
     fsemu_mutex_init(mutex);
     return mutex;
 }
 
-void fsemu_mutex_destroy(fsemu_mutex_t *mutex)
-{
+void fsemu_mutex_destroy(fsemu_mutex_t* mutex) {
     SDL_assert(mutex != NULL);
 #if defined(FSEMU_PTHREADS)
     pthread_mutex_destroy(&mutex->mutex);
@@ -63,8 +60,7 @@ void fsemu_mutex_destroy(fsemu_mutex_t *mutex)
     free(mutex);
 }
 
-int fsemu_mutex_lock(fsemu_mutex_t *mutex)
-{
+int fsemu_mutex_lock(fsemu_mutex_t* mutex) {
     SDL_assert(mutex != NULL);
 #if defined(FSEMU_PTHREADS)
     return pthread_mutex_lock(&mutex->mutex);
@@ -78,8 +74,7 @@ int fsemu_mutex_lock(fsemu_mutex_t *mutex)
 #endif
 }
 
-int fsemu_mutex_unlock(fsemu_mutex_t *mutex)
-{
+int fsemu_mutex_unlock(fsemu_mutex_t* mutex) {
     SDL_assert(mutex != NULL);
 #if defined(FSEMU_PTHREADS)
     return pthread_mutex_unlock(&mutex->mutex);

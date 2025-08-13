@@ -9,6 +9,7 @@ FSUAE_MESSAGE_RESTART_WITH_CONFIG = 10002
 
 # Example of "local" message that does not make sense to broadcast for net play
 FSUAE_MESSAGE_ADD_ROM = 10003
+FSUAE_MESSAGE_EARLY_STOP = 10004
 
 _channel = None
 

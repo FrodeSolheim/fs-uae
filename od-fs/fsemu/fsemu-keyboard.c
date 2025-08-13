@@ -24,10 +24,9 @@ static struct fsemu_mouse {
 #endif
 // ----------------------------------------------------------------------------
 
-static void fsemu_keyboard_add_system_device(void)
-{
+static void fsemu_keyboard_add_system_device(void) {
     fsemu_input_log("Adding system keyboard device\n");
-    fsemu_inputdevice_t *device = fsemu_inputdevice_new();
+    fsemu_inputdevice_t* device = fsemu_inputdevice_new();
     fsemu_inputdevice_set_type(device, FSEMU_INPUTDEVICE_TYPE_KEYBOARD);
     fsemu_inputdevice_set_name(device, "Keyboard");
     int error;
@@ -41,14 +40,12 @@ static void fsemu_keyboard_add_system_device(void)
 
 // ----------------------------------------------------------------------------
 
-void fsemu_keyboard_add_devices(void)
-{
+void fsemu_keyboard_add_devices(void) {
     fsemu_keyboard_add_system_device();
 }
 
 // ----------------------------------------------------------------------------
 
-void fsemu_keyboard_init_module(void)
-{
+void fsemu_keyboard_init_module(void) {
     //
 }

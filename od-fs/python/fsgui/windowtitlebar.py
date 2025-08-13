@@ -37,9 +37,7 @@ class WindowTitleBar(Widget):
 
         # print("Start dragging")
 
-        self._start_drag_mouse_position = (
-            WindowManager.get().get_mouse_position()
-        )
+        self._start_drag_mouse_position = WindowManager.get().get_mouse_position()
         self._start_drag_window_position = self.get_window().get_position()
 
         # print(self._start_drag_mouse_position, self._start_drag_window_position)
@@ -70,9 +68,11 @@ class WindowTitleBar(Widget):
         dc.draw_filled_rectangle((0, 0), self.get_size())
         # dc.draw_text(self._title, (16, 10))
 
+        title_x = 12
+
         dc.set_font(dc.get_bold_ui_font())
         _, th = dc.measure_text(self._title)
-        dc.draw_text(self._title, (16, (self.height - th) // 2))
+        dc.draw_text(self._title, (title_x, (self.height - th) // 2))
 
         # Must (currently) call draw to draw children (seems like a bad idea)
         # super().draw()
@@ -80,8 +80,12 @@ class WindowTitleBar(Widget):
     def on_resize(self):
         width, height = self.get_size()
 
+        # FIXME: Get these from WindowTitlebarParams or something like that
         # left_margin = 4
-        right_margin = 4
+        # right_margin = 4
+        # right_margin = 4 + 1 # 4 + self.outline
+        # right_margin =  # self.outline
+        right_margin = 0
 
         # self.menu_button.set_position((left_margin, 0))
         # self.minimize_button.set_position((width - height * 3 - right_margin, 0))
@@ -108,6 +112,8 @@ class WindowTitleBarButton(CustomButton):
 
         # print(parent, parent.get_size())
         title_bar_height = parent.get_size()[1]
+
+        # # FIXME: title_bar_height = 36
         self.set_size((title_bar_height, title_bar_height))
 
         # FIXME: REMOVE PATH

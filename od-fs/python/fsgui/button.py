@@ -31,7 +31,7 @@ class BaseButton(Widget):
     def is_pressed(self) -> bool:
         return self.is_mouse_pressed()
 
-    def on_activate(self, on_activate: Callable) -> Self:
+    def on_activate(self, on_activate: Callable[[], None]) -> Self:
         self._handlers.setdefault("on_activate", []).append(on_activate)
         return self
 
@@ -76,8 +76,6 @@ class Button(BaseButton):
         self.padding = (0, 16, 0, 16)
 
         self.text = text
-
-        # import fsapp
 
         # # FIXME: Only load image one time..! -Not for each button
         # # style manager / style service?

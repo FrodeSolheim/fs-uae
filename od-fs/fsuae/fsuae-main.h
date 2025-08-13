@@ -15,4 +15,4 @@ void fsuae_main_init(void);
 }
 #endif
 
-#endif // FSUAE_MAIN_H
+#endif  // FSUAE_MAIN_H

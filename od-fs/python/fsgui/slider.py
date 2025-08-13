@@ -79,9 +79,7 @@ class BaseSlider(Widget):
             elif x > self.width:
                 value = self.max
             else:
-                value = self.min + round(
-                    (self.max - self.min) * x / self.width
-                )
+                value = self.min + round((self.max - self.min) * x / self.width)
             # print(x, y, value)
             self.set_value(value)
 
@@ -216,13 +214,7 @@ class BaseSlider(Widget):
             x = 0
         else:
             x = int(
-                round(
-                    (
-                        (w - self.handle_width)
-                        * (self.value - self.min)
-                        / (self.max - self.min)
-                    )
-                )
+                round(((w - self.handle_width) * (self.value - self.min) / (self.max - self.min)))
             )
 
         self._handle_rect = (x, y, self.handle_width, self.handle_height)

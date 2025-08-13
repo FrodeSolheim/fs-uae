@@ -11,21 +11,18 @@ static struct {
     fsemu_gui_item_t startup_fade_item;
 } fsemu_fade;
 
-void fsemu_fade_init(void)
-{
+void fsemu_fade_init(void) {
     fsemu_thread_assert_main();
     fsemu_return_if_already_initialized();
 
-    fsemu_gui_rectangle(
-        &fsemu_fade.startup_fade_item, 0, 0, 1920, 1080, FSEMU_RGB(0x000000));
+    fsemu_gui_rectangle(&fsemu_fade.startup_fade_item, 0, 0, 1920, 1080, FSEMU_RGB(0x000000));
     fsemu_gui_item_set_visible(&fsemu_fade.startup_fade_item, true);
     fsemu_fade.startup_fade_item.coordinates = FSEMU_COORD_1080P;
     fsemu_fade.startup_fade_item.z_index = 8999;
     fsemu_gui_add_item(&fsemu_fade.startup_fade_item);
 }
 
-void fsemu_fade_set_color(uint32_t color)
-{
+void fsemu_fade_set_color(uint32_t color) {
     fsemu_fade.startup_fade_item.color = color;
 }
 
@@ -36,8 +33,7 @@ void fsemu_fade_force(bool force)
 }
 #endif
 
-void fsemu_fade_update(void)
-{
+void fsemu_fade_update(void) {
     if (fsemu_fade.force) {
         return;
     }

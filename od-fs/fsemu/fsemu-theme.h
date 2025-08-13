@@ -9,7 +9,7 @@ extern "C" {
 
 void fsemu_theme_module_init(void);
 
-void fsemu_theme_margins(int *top, int *right, int *bottom, int *left);
+void fsemu_theme_margins(int* top, int* right, int* bottom, int* left);
 
 void fsemu_theme_update(void);
 

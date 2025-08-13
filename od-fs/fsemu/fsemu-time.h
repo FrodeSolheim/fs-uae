@@ -33,8 +33,7 @@ typedef struct {
 
 void fsemu_time_init(void);
 
-static inline int64_t fsemu_time_us(void)
-{
+static inline int64_t fsemu_time_us(void) {
 #ifdef FSEMU_GLIB
     return g_get_monotonic_time();
 #else
@@ -42,32 +41,28 @@ static inline int64_t fsemu_time_us(void)
 #endif
 }
 
-static inline int64_t fsemu_time_ms(void)
-{
+static inline int64_t fsemu_time_ms(void) {
     return fsemu_time_us() / 1000;
 }
 
 // FIXME: Rename fsemu_time_sleep_us
-static inline void fsemu_sleep_us(int64_t sleep_us)
-{
+static inline void fsemu_sleep_us(int64_t sleep_us) {
     fsemu_assert(sleep_us > 0);
     // FIXME: Consider using nanosleep (or check if g_usleep is good enough).
     // Or even better: clock_nanosleep with CLOCK_MONOTONIC
 #ifdef FSEMU_GLIB
-    g_usleep((gulong) sleep_us);
+    g_usleep((gulong)sleep_us);
 #else
 #error Missing implementation of fsemu_sleep_us
 #endif
 }
 
-static inline void fsemu_time_sleep_ms(int sleep_ms)
-{
+static inline void fsemu_time_sleep_ms(int sleep_ms) {
     return fsemu_sleep_us(sleep_ms * 1000);
 }
 
 FSEMU_DEPRECATED
-static inline void fsemu_sleep_ms(int sleep_ms)
-{
+static inline void fsemu_sleep_ms(int sleep_ms) {
     return fsemu_sleep_us(sleep_ms * 1000);
 }
 
@@ -79,17 +74,16 @@ int64_t fsemu_time_sleep_until_us_2(int64_t until_us, int64_t now_us);
 int64_t fsemu_time_wait_until_us(int64_t until_us);
 int64_t fsemu_time_wait_until_us_2(int64_t until_us, int64_t now_us);
 
-struct tm *fsemu_time_localtime_r(const time_t *timep, struct tm *result);
-struct tm *fsemu_time_gmtime_r(const time_t *timep, struct tm *result);
-time_t fsemu_time_timegm(struct tm *tm);
+struct tm* fsemu_time_localtime_r(const time_t* timep, struct tm* result);
+struct tm* fsemu_time_gmtime_r(const time_t* timep, struct tm* result);
+time_t fsemu_time_timegm(struct tm* tm);
 int fsemu_time_local_offset(time_t time);
-void fsemu_time_current(fsemu_time_val_t *result);
+void fsemu_time_current(fsemu_time_val_t* result);
 int64_t fsemu_time_real(void);
 
 #ifdef __MACH__
 
-static inline int fsemu_time_clock_gettime_mach(int clk_id, struct timespec *t)
-{
+static inline int fsemu_time_clock_gettime_mach(int clk_id, struct timespec* t) {
     SDL_assert(clk_id == CLOCK_MONOTONIC);
     static mach_timebase_info_data_t timebase;
     if (timebase.denom == 0) {
@@ -98,10 +92,8 @@ static inline int fsemu_time_clock_gettime_mach(int clk_id, struct timespec *t)
     uint64_t time;
     time = mach_absolute_time();
     // FIXME: Get rid of the doubles?
-    double nseconds =
-        ((double) time * (double) timebase.numer) / ((double) timebase.denom);
-    double seconds = ((double) time * (double) timebase.numer) /
-                     ((double) timebase.denom * 1e9);
+    double nseconds = ((double)time * (double)timebase.numer) / ((double)timebase.denom);
+    double seconds = ((double)time * (double)timebase.numer) / ((double)timebase.denom * 1e9);
     t->tv_sec = seconds;
     t->tv_nsec = nseconds;
     return 0;

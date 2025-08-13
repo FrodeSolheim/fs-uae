@@ -1,16 +1,14 @@
 import os
 
 import fsgui_image  # type: ignore
-from fsapp2 import fsapp
+from fsapp import fsapp
 
 
 class Image:
     @classmethod
     def from_resource(cls, name: str) -> "Image":
         for images_dir in fsapp.images_dirs:
-            image_path = os.path.join(
-                images_dir, name
-            )
+            image_path = os.path.join(images_dir, name)
             print(image_path)
             if os.path.exists(image_path):
                 break

@@ -1,8 +1,8 @@
 import hashlib
 import logging
+import os
 import time
 import zlib
-from pathlib import Path
 
 from fsuae.pathservice import PathService
 from fsuae.roms.rom import ROM
@@ -22,11 +22,12 @@ class ROMService:
         # roms_by_crc32 ?
         # roms_by_... ?
 
-    def _scan_rom(self, rom_path: Path) -> None:
+    def _scan_rom(self, rom_path: str) -> None:
         # with rom_path.open("rb") as f:
         #     data = f.read(1024*1024)
 
-        data = rom_path.read_bytes()
+        with open(rom_path, "rb") as f:
+            data = f.read()
         crc32 = "{:08x}".format(zlib.crc32(data))
         sha1 = hashlib.sha1(data).hexdigest()
         print(crc32)
@@ -36,27 +37,50 @@ class ROMService:
         # FIXME: Check if path already exists in roms list?
         self.roms.append(rom)
 
-    def scan_kickstarts_dir(self):
-        logger.debug(
-            "scan_kickstarts_dir: %s", self.path_service.kickstart_dir
-        )
+    def scan_kickstarts_dir(self) -> None:
+        for dir_ in self.path_service.get_roms_dirs():
+            self.scan_roms_dir_2(dir_)
 
-        kickstart_dir = Path(self.path_service.kickstart_dir)
-        rom_extensions = [".rom"]
-        rom_extensions = [".rom", ".bin"]
+    def scan_roms_dir_2(self, roms_dir: str) -> None:
+        logger.debug("scan_kickstarts_dir: %s", roms_dir)
+
+        lowercased_rom_extensions = {
+            ".a1200",
+            ".a3000",
+            ".a4000",
+            ".a500",
+            ".a600",
+            ".bin",
+            ".rom",
+        }
+
+        whitelisted_names: set[str] = set()
+        # whitelisted_names = {
+        #     "kick33180.A500",
+        #     "kick33192.A500",  # Common typo? https://www.amigaforever.com/kb/15-120
+        #     "kick34005.A500",
+        #     "kick37175.A500",
+        #     "kick39106.A1200",
+        #     "kick40063.A600",
+        #     "kick40068.A1200",
+        #     "kick40068.A4000",
+        #     "kick40071.A4000",  # Requested by ztronzo
+        # }
 
         t1 = time.monotonic()
 
-        for root, _dirs, files in kickstart_dir.walk():
+        for root, _dirs, files in os.walk(roms_dir):
             # It is not important to sort the files, but doing it to make it
             # (a tiy bit) easier to look through logs.
             for file in sorted(files):
-                path = root / file
-                if path.suffix.lower() not in rom_extensions:
+                path = os.path.join(root, file)
+                _, ext = os.path.splitext(path)
+                ext = ext.lower()
+                if file not in whitelisted_names and ext not in lowercased_rom_extensions:
                     logger.debug("Ignoring %s (unknown extension)", path)
                     continue
 
-                if path.stat().st_size > 8 * 1024 * 1024:
+                if os.stat(path).st_size > 8 * 1024 * 1024:
                     logger.debug("Ignoring %s (large file > 8 MB)", path)
                     continue
 

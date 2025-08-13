@@ -11,7 +11,7 @@ extern "C" {
 void fsemu_sdlinput_init(void);
 void fsemu_sdlinput_work(void);
 
-bool fsemu_sdlinput_handle_event(SDL_Event *event);
+bool fsemu_sdlinput_handle_event(SDL_Event* event);
 
 #ifdef __cplusplus
 }

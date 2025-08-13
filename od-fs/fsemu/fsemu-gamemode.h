@@ -17,8 +17,7 @@ void fsemu_gamemode_check_linux_cpu_governor(void);
 
 extern int fsemu_gamemode_log_level;
 
-#define fsemu_gamemode_log(format, ...) \
-    FSEMU_LOG(gamemode, "[FSE] [GMD]", format, ##__VA_ARGS__)
+#define fsemu_gamemode_log(format, ...) FSEMU_LOG(gamemode, "[FSE] [GMD]", format, ##__VA_ARGS__)
 
 #define fsemu_gamemode_log_debug(format, ...) \
     FSEMU_LOG_DEBUG(gamemode, "[FSE] [GMD]", format, ##__VA_ARGS__)

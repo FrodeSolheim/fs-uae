@@ -62,11 +62,12 @@ static char* find_char_or_comment(const char* s, char c)
     return (char*)s;
 }
 
+#include <SDL3/SDL.h>
+
 /* Version of strncpy that ensures dest (size bytes) is null-terminated. */
 static char* strncpy0(char* dest, const char* src, size_t size)
 {
-    strncpy(dest, src, size);
-    dest[size - 1] = '\0';
+    SDL_strlcpy(dest, src, size);
     return dest;
 }
 

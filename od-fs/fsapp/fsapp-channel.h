@@ -14,13 +14,9 @@ void fsapp_channel_lock(fsapp_channel_t* channel);
 
 void fsapp_channel_unlock(fsapp_channel_t* channel);
 
-void fsapp_channel_add_message(
-    fsapp_channel_t* channel, int type, const char* data
-);
+void fsapp_channel_add_message(fsapp_channel_t* channel, int type, const char* data);
 
-bool fsapp_channel_next_message(
-    fsapp_channel_t* channel, int* type, const char** data
-);
+bool fsapp_channel_next_message(fsapp_channel_t* channel, int* type, const char** data);
 
 void fsapp_channel_init_module(void);
 
@@ -28,4 +24,4 @@ void fsapp_channel_init_module(void);
 }
 #endif
 
-#endif // FSAPP_CHANNEL_H
+#endif  // FSAPP_CHANNEL_H

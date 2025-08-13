@@ -32,8 +32,7 @@ void fsemu_control_set_soft_reset_allowed(bool allowed);
 bool fsemu_control_hard_reset_allowed(void);
 void fsemu_control_set_hard_reset_allowed(bool allowed);
 
-#define fsemu_control_log(format, ...) \
-    fsemu_log("[FSE] [CTL] " format, ##__VA_ARGS__)
+#define fsemu_control_log(format, ...) fsemu_log("[FSE] [CTL] " format, ##__VA_ARGS__)
 
 #ifdef FSEMU_INTERNAL
 

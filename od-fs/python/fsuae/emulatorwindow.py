@@ -8,7 +8,8 @@ class EmulatorWindow(Window):
         # size = (752, 572)
         # size = (800, 650)
 
-        position = (660, 90)
+        # UAE_RECT
+        # position = (660, 90)
         size = (692, 540)
 
         super().__init__("Amiga display", size=size)
@@ -16,12 +17,12 @@ class EmulatorWindow(Window):
         special = 0x554145  # "UAE"
         self.special_window = SpecialWindow(size=size, special=special)
         self.special_window.show()
-        self.set_position(position)
+        # self.set_position(position)
 
         # self.close()
-        self.move((2000, 2000))
-        self.special_window.set_size((int(692 * 1.5), int(540 * 1.5)))
-        self.special_window.set_position((328, 36))
+        # self.move((2000, 2000))
+        # self.special_window.set_size((int(692 * 1.5), int(540 * 1.5)))
+        # self.special_window.set_position((328, 36))
 
         # FIXME: Only when we're hiding the emulator window itself...
         self.special_window.set_layer(Window.LAYER_BELOW)

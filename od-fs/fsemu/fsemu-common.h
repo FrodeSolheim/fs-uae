@@ -14,7 +14,7 @@ typedef int fsemu_error_t;
 #define FSEMU_ERROR_NONE 0
 #define FSEMU_ERROR_GENERIC -1
 
-void fsemu_error_2(const char *msg, ...);
+void fsemu_error_2(const char* msg, ...);
 
 #define fsemu_error(msg, ...) fsemu_error_2("[FSE] [ERR] " msg, __VA_ARGS__)
 
@@ -24,8 +24,8 @@ void fsemu_error_2(const char *msg, ...);
 
 // const char *fsemu_emulator_name(void);
 
-void fsemu_warning(const char *message);
-void fsemu_warning_2(const char *message, const char *sub);
+void fsemu_warning(const char* message);
+void fsemu_warning_2(const char* message, const char* sub);
 
 #ifdef __cplusplus
 }

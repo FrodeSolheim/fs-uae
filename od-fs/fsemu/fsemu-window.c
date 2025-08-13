@@ -38,23 +38,17 @@ static struct fsemu_window {
 // static SDL_Window *fsemu_sdl_window;
 // static fsemu_rect fsemu_window_rect;
 
-static void fsemu_window_read_options(void)
-{
-    fsemu_option_read_bool_default(
-        FSEMU_OPTION_FULLSCREEN, &fsemu_window.fullscreen, false);
+static void fsemu_window_read_options(void) {
+    fsemu_option_read_bool_default(FSEMU_OPTION_FULLSCREEN, &fsemu_window.fullscreen, false);
 
-    fsemu_rect_t *rect = &fsemu_window.initial_rect;
+    fsemu_rect_t* rect = &fsemu_window.initial_rect;
     fsemu_option_read_int(FSEMU_OPTION_WINDOW_X, &rect->x);
     fsemu_option_read_int(FSEMU_OPTION_WINDOW_Y, &rect->y);
     fsemu_option_read_int(FSEMU_OPTION_WINDOW_W, &rect->w);
     fsemu_option_read_int(FSEMU_OPTION_WINDOW_H, &rect->h);
-    fsemu_window_log("Initial window rect: %d %d %d %d\n",
-                     rect->x,
-                     rect->y,
-                     rect->w,
-                     rect->h);
+    fsemu_window_log("Initial window rect: %d %d %d %d\n", rect->x, rect->y, rect->w, rect->h);
 
-    fsemu_point_t *point = &fsemu_window.initial_center;
+    fsemu_point_t* point = &fsemu_window.initial_center;
     fsemu_option_read_int(FSEMU_OPTION_WINDOW_CENTER_X, &point->x);
     fsemu_option_read_int(FSEMU_OPTION_WINDOW_CENTER_Y, &point->y);
     fsemu_window_log("Initial window center: %d %d\n", point->x, point->y);
@@ -67,17 +61,12 @@ static void fsemu_window_read_options(void)
     fsemu_option_read_int(FSEMU_OPTION_FULLSCREEN_Y, &rect->y);
     fsemu_option_read_int(FSEMU_OPTION_FULLSCREEN_W, &rect->w);
     fsemu_option_read_int(FSEMU_OPTION_FULLSCREEN_H, &rect->h);
-    fsemu_window_log("Initial fullscreen rect: %d %d %d %d\n",
-                     rect->x,
-                     rect->y,
-                     rect->w,
-                     rect->h);
+    fsemu_window_log("Initial fullscreen rect: %d %d %d %d\n", rect->x, rect->y, rect->w, rect->h);
 }
 
 // ----------------------------------------------------------------------------
 
-void fsemu_window_initial_rect(fsemu_rect_t *rect, double ui_scale)
-{
+void fsemu_window_initial_rect(fsemu_rect_t* rect, double ui_scale) {
     int initial_w = 960;
     int initial_h = 540;
 
@@ -98,12 +87,8 @@ void fsemu_window_initial_rect(fsemu_rect_t *rect, double ui_scale)
     initial_h = 720;
 
     *rect = fsemu_window.initial_rect;
-    fsemu_window_log("Initial window rect: %d %d %d %d (UI scale %0.1f)\n",
-                     rect->x,
-                     rect->y,
-                     rect->w,
-                     rect->h,
-                     ui_scale);
+    fsemu_window_log("Initial window rect: %d %d %d %d (UI scale %0.1f)\n", rect->x, rect->y,
+                     rect->w, rect->h, ui_scale);
     if (rect->w == 0 || rect->h == 0) {
         rect->x = -1;
         rect->y = -1;
@@ -124,16 +109,11 @@ void fsemu_window_initial_rect(fsemu_rect_t *rect, double ui_scale)
             rect->y -= titlebar_height;
         }
     }
-    fsemu_window_log(
-        "Initial window rect after correcting for centering: %d %d %d %d\n",
-        rect->x,
-        rect->y,
-        rect->w,
-        rect->h);
+    fsemu_window_log("Initial window rect after correcting for centering: %d %d %d %d\n", rect->x,
+                     rect->y, rect->w, rect->h);
 }
 
-void fsemu_window_initial_fullscreen_rect(fsemu_rect_t *rect)
-{
+void fsemu_window_initial_fullscreen_rect(fsemu_rect_t* rect) {
     *rect = fsemu_window.initial_fullscreen_rect;
     if (rect->w == 0 || rect->h == 0) {
 #if 0
@@ -148,55 +128,46 @@ void fsemu_window_initial_fullscreen_rect(fsemu_rect_t *rect)
 
 // ----------------------------------------------------------------------------
 
-double fsemu_window_ui_scale(void)
-{
+double fsemu_window_ui_scale(void) {
     return fsemu_window.ui_scale;
 }
 
-void fsemu_window_set_ui_scale(double ui_scale)
-{
+void fsemu_window_set_ui_scale(double ui_scale) {
     fsemu_window.ui_scale = ui_scale;
 }
 
-bool fsemu_window_active(void)
-{
+bool fsemu_window_active(void) {
     return fsemu_window.active;
 }
 
-void fsemu_window_set_active(bool active)
-{
+void fsemu_window_set_active(bool active) {
     fsemu_window.active = active;
 }
 
-void fsemu_window_size(fsemu_size_t *size)
-{
+void fsemu_window_size(fsemu_size_t* size) {
     size->w = fsemu_window.size.w;
     size->h = fsemu_window.size.h;
 }
 
-void fsemu_window_set_size(fsemu_size_t *size)
-{
+void fsemu_window_set_size(fsemu_size_t* size) {
     fsemu_window_set_size_2(size->w, size->h);
 }
 
-void fsemu_window_set_size_2(int width, int height)
-{
+void fsemu_window_set_size_2(int width, int height) {
     fsemu_window.size.w = width;
     fsemu_window.size.h = height;
 }
 
 // ----------------------------------------------------------------------------
 
-const char *fsemu_window_title(void)
-{
+const char* fsemu_window_title(void) {
     if (fsemu_window.title[0] == '\0') {
         return "FSEMU";
     }
     return fsemu_window.title;
 }
 
-void fsemu_window_set_title(const char *title)
-{
+void fsemu_window_set_title(const char* title) {
     // FIXME: Also set a window title dirty flag so that we can update
     // the window after it is created (in fsemu_window_work for example).
     strncpy(fsemu_window.title, title, FSEMU_WINDOW_TITLE_MAX);
@@ -204,8 +175,7 @@ void fsemu_window_set_title(const char *title)
 }
 
 // FIXME: Move/refactor
-static void fsemu_window_sync_data_to_video_thread(void)
-{
+static void fsemu_window_sync_data_to_video_thread(void) {
     // FIXME: ui / video sync point - not very elegantly put here, do it
     // elsewhere?
     fsemu_size_t window_size;
@@ -221,15 +191,14 @@ static void fsemu_window_sync_data_to_video_thread(void)
     fsemu_layout_video_rect(&video_rect);
 
     fsemu_videothread_lock();
-    fsemu_videothread_set_data_from_ui_thread(
-        &window_size, &drawable_size, &client_area, &video_area, &video_rect);
+    fsemu_videothread_set_data_from_ui_thread(&window_size, &drawable_size, &client_area,
+                                              &video_area, &video_rect);
     fsemu_videothread_unlock();
 }
 
 // ----------------------------------------------------------------------------
 
-void fsemu_window_work(int timeout)
-{
+void fsemu_window_work(int timeout) {
     if (fsemu_window.driver == FSEMU_WINDOW_DRIVER_SDL) {
         fsemu_sdlwindow_work(timeout);
         // Perform periodic updates, check if fullscreen should be toggled,
@@ -248,32 +217,27 @@ void fsemu_window_work(int timeout)
 
 // ----------------------------------------------------------------------------
 
-void fsemu_window_notify_frame_rendered_vt(void)
-{
+void fsemu_window_notify_frame_rendered_vt(void) {
     fsemu_thread_assert_video();
     fsemu_sdlwindow_notify_frame_rendered_vt();
 }
 
-void fsemu_window_notify_quit(void)
-{
+void fsemu_window_notify_quit(void) {
     // fsemu_thread_assert_main();
     fsemu_sdlwindow_notify_quit();
 }
 
 // ----------------------------------------------------------------------------
 
-bool fsemu_window_fullscreen(void)
-{
+bool fsemu_window_fullscreen(void) {
     return fsemu_window.fullscreen;
 }
 
-void fsemu_window_set_fullscreen(bool fullscreen)
-{
+void fsemu_window_set_fullscreen(bool fullscreen) {
     fsemu_window.fullscreen = fullscreen;
 }
 
-void fsemu_window_toggle_fullscreen(void)
-{
+void fsemu_window_toggle_fullscreen(void) {
     fsemu_window_set_fullscreen(!fsemu_window_fullscreen());
 }
 
@@ -403,8 +367,7 @@ static void read_initial_window_rect(fsemu_rect *rect)
 
 // ----------------------------------------------------------------------------
 
-void fsemu_window_init(void)
-{
+void fsemu_window_init(void) {
     fsemu_return_if_already_initialized();
 
     fsemu_video_decide_driver();

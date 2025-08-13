@@ -1,9 +1,43 @@
 [tool.black]
-line-length = 79
+line-length = 100
+exclude = "/(\\.git|\\.mypy_cache|\\.nox|\\.tox|\\.venv|_build|buck-out|build|dist)/"
 
 [tool.isort]
 profile = "black"
 multi_line_output = 3
+skip = [".git"]
 skip_gitignore = true
-line_length = 79
+line_length = 100
 case_sensitive = false
+follow_links = false
+
+[tool.mypy]
+#strict = true
+#follow_imports = "silent"
+# warn_unused = false
+
+[tool.ruff]
+target-version = "py313"
+exclude = [".venv", "attic", "od-fs/python/sdl3", "stuff", "util"]
+line-length = 100
+
+[tool.ruff.lint]
+# Enable Pyflakes (`F`) and a subset of the pycodestyle (`E`)  codes by default.
+# Unlike Flake8, Ruff doesn't enable pycodestyle warnings (`W`) or
+# McCabe complexity (`C901`) by default.
+select = [
+    # pycodestyle
+    #"E",
+    "E4", "E7", "E9",
+    # Pyflakes
+    "F",
+    # pyupgrade
+    #"UP",
+    # flake8-bugbear
+    "B",
+    # flake8-simplify
+    #"SIM",
+    # isort
+    "I",
+]
+ignore = []

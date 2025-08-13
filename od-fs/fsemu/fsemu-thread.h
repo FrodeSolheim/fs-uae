@@ -14,7 +14,7 @@ extern "C" {
 struct fsemu_thread;
 typedef struct fsemu_thread fsemu_thread_t;
 typedef uintptr_t fsemu_thread_id_t;
-typedef void *(*fsemu_thread_function_t)(void *);
+typedef void* (*fsemu_thread_function_t)(void*);
 
 // struct fsemu_mutex;
 // typedef struct fsemu_mutex fsemu_mutex_t;
@@ -22,9 +22,7 @@ typedef void *(*fsemu_thread_function_t)(void *);
 void fsemu_thread_init(void);
 
 fsemu_thread_id_t fsemu_thread_id(void);
-fsemu_thread_t *fsemu_thread_create(const char *name,
-                                    fsemu_thread_function_t fn,
-                                    void *data);
+fsemu_thread_t* fsemu_thread_create(const char* name, fsemu_thread_function_t fn, void* data);
 
 void fsemu_thread_set_priority(void);
 
@@ -40,20 +38,17 @@ extern fsemu_thread_id_t fsemu_thread_emu_thread_id;
 extern fsemu_thread_id_t fsemu_thread_main_thread_id;
 extern fsemu_thread_id_t fsemu_thread_video_thread_id;
 
-static inline bool fsemu_thread_is_emu(void)
-{
+static inline bool fsemu_thread_is_emu(void) {
     fsemu_assert(fsemu_thread_emu_thread_id);
     return fsemu_thread_id() == fsemu_thread_emu_thread_id;
 }
 
-static inline bool fsemu_thread_is_main(void)
-{
+static inline bool fsemu_thread_is_main(void) {
     fsemu_assert(fsemu_thread_main_thread_id);
     return fsemu_thread_id() == fsemu_thread_main_thread_id;
 }
 
-static inline bool fsemu_thread_is_video(void)
-{
+static inline bool fsemu_thread_is_video(void) {
     fsemu_assert(fsemu_thread_video_thread_id);
     return fsemu_thread_id() == fsemu_thread_video_thread_id;
 }

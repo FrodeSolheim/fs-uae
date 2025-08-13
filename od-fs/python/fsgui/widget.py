@@ -286,9 +286,7 @@ class Widget(WidgetOrLayout):
             ww, wh = widget.get_size()
             # print(x, y, wx, wy, ww, wh)
             if wx <= x < wx + ww and wy <= y < wy + wh:
-                return widget.find_widget_at_position(
-                    (position[0] - wx, position[1] - wy)
-                )
+                return widget.find_widget_at_position((position[0] - wx, position[1] - wy))
         # No children matched, check if self is within bounds
         ww, wh = self.get_size()
         if 0 <= x < ww and 0 <= y < wh:
@@ -460,6 +458,18 @@ class Widget(WidgetOrLayout):
 
     def set_width(self, width: int) -> Self:
         self.set_size((width, self.get_height()))
+        return self
+
+    def set_height(self, height: int) -> Self:
+        self.set_size((self.get_width(), height))
+        return self
+
+    def set_x(self, x: int) -> Self:
+        self.set_position((x, self.y))
+        return self
+
+    def set_y(self, y: int) -> Self:
+        self.set_position((self.x, y))
         return self
 
     def transfer_mouse_tracking(self, widget: "Widget") -> None:

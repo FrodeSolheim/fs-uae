@@ -1,0 +1,20 @@
+from enum import IntEnum
+
+
+class Message(IntEnum):
+    HARD_RESET = 10001
+    RESTART_WITH_CONFIG = 10002
+    # Example of "local" message that does not make sense to broadcast for net play
+    ADD_ROM = 10003
+    EARLY_STOP = 10004
+
+    QUICKSTART_A500 = 10005
+    QUICKSTART_A500P = 10006
+    QUICKSTART_A600 = 10007
+    QUICKSTART_A1000 = 10008
+    QUICKSTART_A1200 = 10009
+    QUICKSTART_A3000 = 10010
+    QUICKSTART_A4000 = 10011
+    QUICKSTART_A4000T = 10012
+    QUICKSTART_CD32 = 10013
+    QUICKSTART_CDTV = 10014

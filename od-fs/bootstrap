@@ -2,6 +2,10 @@
 
 set -e
 
+PROJECT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+
+cd $PROJECT_DIR
+
 echo "Boostrapping fs-uae..."
 
 # version number is cached in autom4te.cache

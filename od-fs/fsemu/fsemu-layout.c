@@ -42,16 +42,14 @@ enum {
     FSEMU_ZOOM_MODE_MAX,
 };
 
-static void fsemu_layout_read_options(void)
-{
+static void fsemu_layout_read_options(void) {
     int stretch_mode;
     if (fsemu_option_read_int(FSEMU_OPTION_STRETCH_MODE, &stretch_mode)) {
         fsemu_layout_set_stretch_mode(stretch_mode);
     }
 }
 
-void fsemu_layout_init(void)
-{
+void fsemu_layout_init(void) {
     fsemu_return_if_already_initialized();
     fsemu_theme_module_init();
 
@@ -60,26 +58,22 @@ void fsemu_layout_init(void)
     fsemu_layout_read_options();
 }
 
-void fsemu_layout_set_size(fsemu_size_t *size)
-{
+void fsemu_layout_set_size(fsemu_size_t* size) {
     fsemu_layout_set_size_2(size->w, size->h);
 }
 
-void fsemu_layout_set_size_2(int width, int height)
-{
+void fsemu_layout_set_size_2(int width, int height) {
     fsemu_layout.width = width;
     fsemu_layout.height = height;
 }
 
-void fsemu_layout_set_client_margins(int margins[4])
-{
+void fsemu_layout_set_client_margins(int margins[4]) {
     for (int i = 0; i < 4; i++) {
         fsemu_layout.client_margins[0] = margins[0];
     }
 }
 
-void fsemu_layout_set_video_size(int width, int height)
-{
+void fsemu_layout_set_video_size(int width, int height) {
     if (width == 0 || height == 0) {
         printf("WARNING: Zero layout video size %dx%d\n", width, height);
         width = 4;
@@ -92,13 +86,11 @@ void fsemu_layout_set_video_size(int width, int height)
     fsemu_layout.video_height = height;
 }
 
-int fsemu_layout_stretch_mode(void)
-{
+int fsemu_layout_stretch_mode(void) {
     return fsemu_layout.stretch_mode;
 }
 
-int fsemu_layout_cycle_stretch_mode(void)
-{
+int fsemu_layout_cycle_stretch_mode(void) {
     if (++fsemu_layout.stretch_mode == FSEMU_STRETCH_MODE_MAX) {
         fsemu_layout.stretch_mode = 0;
     }
@@ -123,8 +115,7 @@ int fsemu_layout_cycle_stretch_mode(void)
     return fsemu_layout.stretch_mode;
 }
 
-void fsemu_layout_set_stretch_mode(int stretch_mode)
-{
+void fsemu_layout_set_stretch_mode(int stretch_mode) {
     if (stretch_mode < 0 || stretch_mode >= FSEMU_STRETCH_MODE_MAX) {
         fsemu_log("WARNING: Invalid stretch mode\n");
         return;
@@ -132,13 +123,11 @@ void fsemu_layout_set_stretch_mode(int stretch_mode)
     fsemu_layout.stretch_mode = stretch_mode;
 }
 
-int fsemu_layout_zoom_mode(void)
-{
+int fsemu_layout_zoom_mode(void) {
     return fsemu_layout.zoom_mode;
 }
 
-int fsemu_layout_cycle_zoom_mode(void)
-{
+int fsemu_layout_cycle_zoom_mode(void) {
     if (++fsemu_layout.zoom_mode == FSEMU_ZOOM_MODE_MAX) {
         fsemu_layout.zoom_mode = 0;
     }
@@ -146,8 +135,7 @@ int fsemu_layout_cycle_zoom_mode(void)
     return fsemu_layout.zoom_mode;
 }
 
-void fsemu_layout_set_zoom_mode(int zoom_mode)
-{
+void fsemu_layout_set_zoom_mode(int zoom_mode) {
     if (zoom_mode < 0 || zoom_mode >= FSEMU_ZOOM_MODE_MAX) {
         fsemu_error("Invalid zoom mode in %s\n", __func__);
         return;
@@ -162,8 +150,7 @@ void fsemu_layout_set_video_aspect(double aspect)
 }
 #endif
 
-void fsemu_layout_set_pixel_aspect(double aspect)
-{
+void fsemu_layout_set_pixel_aspect(double aspect) {
     fsemu_layout.pixel_aspect = aspect;
     if (fabs(fsemu_layout.pixel_aspect - 1.0) > 0.01) {
         fsemu_layout.nonsquare_pixels = true;
@@ -172,16 +159,14 @@ void fsemu_layout_set_pixel_aspect(double aspect)
     }
 }
 
-double fsemu_layout_pixel_aspect(void)
-{
+double fsemu_layout_pixel_aspect(void) {
     if (fsemu_layout.pixel_aspect == 0) {
         return 1.0;
     }
     return fsemu_layout.pixel_aspect;
 }
 
-void fsemu_layout_client_area(fsemu_rect_t *rect)
-{
+void fsemu_layout_client_area(fsemu_rect_t* rect) {
     // fsemu_size size;
     // fsemu_window_size(&size);
     int titlebar = fsemu_titlebar_static_height();
@@ -194,23 +179,18 @@ void fsemu_layout_client_area(fsemu_rect_t *rect)
     // printf("%d %d (layout)\n", fsemu_layout.width, fsemu_layout.height);
 }
 
-void fsemu_layout_client_offset_scale(double *ox,
-                                      double *oy,
-                                      double *sx,
-                                      double *sy)
-{
+void fsemu_layout_client_offset_scale(double* ox, double* oy, double* sx, double* sy) {
     fsemu_rect_t rect;
     fsemu_layout_client_rect(&rect);
     // printf("client rect %d %d %d %d (%d %d)\n", rect.x, rect.y, rect.w,
     // rect.h, fsemu_layout.width, fsemu_layout.height);
-    *ox = (double) rect.x / fsemu_layout.width;
-    *oy = -(double) rect.y / fsemu_layout.height;
-    *sx = (double) rect.w / fsemu_layout.width;
-    *sy = (double) rect.h / fsemu_layout.height;
+    *ox = (double)rect.x / fsemu_layout.width;
+    *oy = -(double)rect.y / fsemu_layout.height;
+    *sx = (double)rect.w / fsemu_layout.width;
+    *sy = (double)rect.h / fsemu_layout.height;
 }
 
-void fsemu_layout_video_area(fsemu_rect_t *rect)
-{
+void fsemu_layout_video_area(fsemu_rect_t* rect) {
     // fsemu_rect_t video_area;
     fsemu_layout_client_area(rect);
 #if 0
@@ -285,11 +265,8 @@ void fsemu_layout_video_area(fsemu_rect_t *rect)
     //        temp_drect.h);
 }
 
-static void dst_rect_from_dst_crop(fsemu_rect_t *src_rect,
-                                   fsemu_rect_t *src_crop,
-                                   fsemu_rect_t *dst_crop,
-                                   fsemu_rect_t *dst_rect)
-{
+static void dst_rect_from_dst_crop(fsemu_rect_t* src_rect, fsemu_rect_t* src_crop,
+                                   fsemu_rect_t* dst_crop, fsemu_rect_t* dst_rect) {
     if (src_rect->w == 0 || src_rect->h == 0) {
         printf("src rect is 0\n");
         *dst_rect = *dst_crop;
@@ -301,12 +278,9 @@ static void dst_rect_from_dst_crop(fsemu_rect_t *src_rect,
         return;
     }
 
-    double scale_x = (double) src_rect->w / src_crop->w;
-    double scale_y = (double) src_rect->h / src_crop->h;
-    printf("src_rect->w %d / src_crop->w %d = scale_x %0.2f\n",
-           src_rect->w,
-           src_crop->w,
-           scale_x);
+    double scale_x = (double)src_rect->w / src_crop->w;
+    double scale_y = (double)src_rect->h / src_crop->h;
+    printf("src_rect->w %d / src_crop->w %d = scale_x %0.2f\n", src_rect->w, src_crop->w, scale_x);
     // printf("src_rect->h %d / src_crop->h %d = scale_y %0.2f\n",
     //        src_rect->h,
     //        src_crop->h,
@@ -322,8 +296,7 @@ static void dst_rect_from_dst_crop(fsemu_rect_t *src_rect,
     //     dst_crop->h, dst_rect->h);
 }
 
-void fsemu_layout_video_rect(fsemu_rect_t *rect)
-{
+void fsemu_layout_video_rect(fsemu_rect_t* rect) {
     fsemu_rect_t video_area;
     fsemu_layout_video_area(&video_area);
 
@@ -398,14 +371,14 @@ void fsemu_layout_video_rect(fsemu_rect_t *rect)
     // if (fsemu_likely(fsemu_layout.video_height)) {
     // video_a =
     //     (double) fsemu_layout.video_width / fsemu_layout.video_height;
-    video_a = (double) video_w / video_h;
+    video_a = (double)video_w / video_h;
     // printf("video_a = %0.2f\n", video_a);
     // } else {
     //     video_a = 1.0;
     // }
 
     if (fsemu_layout.zoom_mode >= 2) {
-        video_a = (double) src_crop.w / src_crop.h;
+        video_a = (double)src_crop.w / src_crop.h;
     }
 
     double scale_x = 1.0;
@@ -424,7 +397,7 @@ void fsemu_layout_video_rect(fsemu_rect_t *rect)
         }
         double initial_aspect;
         // if (fsemu_likely(video_area.h)) {
-        initial_aspect = (double) video_area.w / video_area.h;
+        initial_aspect = (double)video_area.w / video_area.h;
         // } else {
         //     initial_aspect = 1.0;
         // }
@@ -510,13 +483,11 @@ void fsemu_layout_video_rect(fsemu_rect_t *rect)
     // printf("2 --------------- %d\n", video_h);
 }
 
-int fsemu_scale_mode(void)
-{
+int fsemu_scale_mode(void) {
     return FSEMU_MAX_SCALING;
 }
 
-bool fsemu_custom_frame(void)
-{
+bool fsemu_custom_frame(void) {
     static bool custom_frame = false;
     static int initialized = 0;
     if (!initialized) {
@@ -529,7 +500,6 @@ bool fsemu_custom_frame(void)
     return custom_frame;
 }
 
-int fsemu_stretch_clamp(void)
-{
+int fsemu_stretch_clamp(void) {
     return 10;
 }

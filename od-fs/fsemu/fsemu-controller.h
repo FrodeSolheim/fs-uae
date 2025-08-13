@@ -72,7 +72,7 @@ enum {
 // } fsemu_action_t;
 
 struct fsemu_controller {
-    const char *name;
+    const char* name;
     int sdl_joystick_index;
     int sdl_instance_id;
 

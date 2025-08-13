@@ -5,7 +5,6 @@
 #define _GNU_SOURCE 1
 #include <fs/base.h>
 #include <fs/init.h>
-#include <fs/log.h>
 #include <fs/thread.h>
 #include <fs/time.h>
 #include <stdlib.h>
@@ -13,10 +12,26 @@
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
+#include <glib.h>
 
-static fs_mutex *g_mutex;
+void fs_get_current_time(fs_time_val *result)
+{
+    if (result == NULL) {
+        return;
+    }
+#ifdef USE_GLIB
+    GTimeVal result2;
+    g_get_current_time(&result2);
+    result->tv_sec = result2.tv_sec;
+    result->tv_usec = result2.tv_usec;
+#else
+#error not implemented
+#endif
+}
 
-struct tm *fs_localtime_r(const time_t *timep, struct tm *result)
+static fs_mutex* g_mutex;
+
+struct tm* fs_localtime_r(const time_t* timep, struct tm* result)
 {
 #ifdef HAVE_LOCALTIME_R
     return localtime_r(timep, result);
@@ -29,7 +44,7 @@ struct tm *fs_localtime_r(const time_t *timep, struct tm *result)
     }
     struct tm* tm = localtime(timep);
     if (tm == NULL) {
-        fs_log("WARNING: localtime - invalid time_t (%d)\n", *timep);
+        // fs_log("WARNING: localtime - invalid time_t (%d)\n", *timep);
     } else {
         *result = *tm;
     }
@@ -43,7 +58,7 @@ struct tm *fs_localtime_r(const time_t *timep, struct tm *result)
 #endif
 }
 
-struct tm *fs_gmtime_r(const time_t *timep, struct tm *result)
+struct tm* fs_gmtime_r(const time_t* timep, struct tm* result)
 {
 #ifdef HAVE_GMTIME_R
     return gmtime_r(timep, result);
@@ -56,7 +71,7 @@ struct tm *fs_gmtime_r(const time_t *timep, struct tm *result)
     }
     struct tm* tm = gmtime(timep);
     if (tm == NULL) {
-        fs_log("WARNING: gmtime - invalid time_t (%d)\n", *timep);
+        // fs_log("WARNING: gmtime - invalid time_t (%d)\n", *timep);
     } else {
         *result = *tm;
     }
@@ -70,14 +85,14 @@ struct tm *fs_gmtime_r(const time_t *timep, struct tm *result)
 #endif
 }
 
-time_t fs_timegm(struct tm *tm)
+time_t fs_timegm(struct tm* tm)
 {
     if (g_mutex) {
         fs_mutex_lock(g_mutex);
     }
     time_t ret;
     /* Code adapted from the man page of timegm */
-    char *tz;
+    char* tz;
 #ifdef WINDOWS
     tz = getenv("TZ");
     if (tz) {
@@ -116,9 +131,9 @@ int fs_get_local_time_offset(time_t time)
 {
     time_t t = time;
     struct tm lt;
-    void *result1 = fs_localtime_r(&t, &lt);
+    void* result1 = fs_localtime_r(&t, &lt);
     struct tm gt;
-    void *result2 = fs_gmtime_r(&t, &gt);
+    void* result2 = fs_gmtime_r(&t, &gt);
     gt.tm_isdst = lt.tm_isdst;
     if (result1 == NULL || result2 == NULL) {
         return 0;
@@ -141,13 +156,13 @@ void fs_init_time(void)
 #endif
 
     time_t t = time(NULL);
-    fs_log("current time() is: %d\n", (int) t);
+    // fs_log("current time() is: %d\n", (int) t);
     struct tm tm;
     fs_localtime_r(&t, &tm);
-    fs_log("localtime+timegm:  %d\n", fs_timegm(&tm));
-    fs_log("localtime+mktime:  %d\n", mktime(&tm));
+    // fs_log("localtime+timegm:  %d\n", fs_timegm(&tm));
+    // fs_log("localtime+mktime:  %d\n", mktime(&tm));
     fs_time_val tv;
     fs_get_current_time(&tv);
-    fs_log("time of day:       %d + (%d / 1000000)\n", tv.tv_sec, tv.tv_usec);
-    fs_log("localtime offset:  %d\n", fs_get_local_time_offset(t));
+    // fs_log("time of day:       %d + (%d / 1000000)\n", tv.tv_sec, tv.tv_usec);
+    // fs_log("localtime offset:  %d\n", fs_get_local_time_offset(t));
 }

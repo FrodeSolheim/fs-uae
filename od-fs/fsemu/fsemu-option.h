@@ -16,59 +16,50 @@ extern "C" {
 void fsemu_option_init(void);
 
 // Shortahnd for init + load_from_argv
-void fsemu_option_init_from_argv(int argc, char **argv);
+void fsemu_option_init_from_argv(int argc, char** argv);
 
-void fsemu_option_load_from_argv(int argc, char **argv);
+void fsemu_option_load_from_argv(int argc, char** argv);
 
-fsemu_error_t fsemu_option_read_config_file(const char *path);
+fsemu_error_t fsemu_option_read_config_file(const char* path);
 
-const char **fsemu_option_keys(void);
-void fsemu_option_keys_free(const char **keys);
+const char** fsemu_option_keys(void);
+void fsemu_option_keys_free(const char** keys);
 
-const char *fsemu_option_const_string(const char *name);
+const char* fsemu_option_const_string(const char* name);
 
 // This function is guaranteed to not return a NULL value unless you pass in
 // NULL as default_value.
-const char *fsemu_option_const_string_default(const char *name,
-                                              const char *default_value);
+const char* fsemu_option_const_string_default(const char* name, const char* default_value);
 
 // Returns int value of option, or FSEMU_OPTION_NO_INT if option is unset.
 // Invalid int will currently be returned as 0, though this might be changed
 // to FSEMU_OPTION_NO_INT in the future.
-int fsemu_option_int(const char *name);
+int fsemu_option_int(const char* name);
 
-int fsemu_option_int_default(const char *name, int default_value);
+int fsemu_option_int_default(const char* name, int default_value);
 
-int fsemu_option_int_clamped(const char *name, int min, int max);
+int fsemu_option_int_clamped(const char* name, int min, int max);
 
-int fsemu_option_int_clamped_default(const char *name,
-                                     int min,
-                                     int max,
-                                     int default_value);
+int fsemu_option_int_clamped_default(const char* name, int min, int max, int default_value);
 
-int fsemu_option_read_bool_default(const char *name,
-                                   bool *result,
-                                   bool default_value);
-int fsemu_option_read_int(const char *name, int *result);
+int fsemu_option_read_bool_default(const char* name, bool* result, bool default_value);
+int fsemu_option_read_int(const char* name, int* result);
 // int fsemu_option_read_string(const char *name, int *result, int max_len);
-int fsemu_option_read_const_string(const char *name, const char **result);
+int fsemu_option_read_const_string(const char* name, const char** result);
 
-static inline bool fsemu_option_enabled(const char *name)
-{
+static inline bool fsemu_option_enabled(const char* name) {
     bool result;
     fsemu_option_read_bool_default(name, &result, false);
     return result == true;
 }
 
-static inline bool fsemu_option_disabled(const char *name)
-{
+static inline bool fsemu_option_disabled(const char* name) {
     bool result;
     fsemu_option_read_bool_default(name, &result, true);
     return result == false;
 }
 
-static inline int fsemu_option_boolean(const char *name)
-{
+static inline int fsemu_option_boolean(const char* name) {
     return FSEMU_CONFIG_NONE;
 }
 
@@ -86,15 +77,12 @@ extern "C" {
 }
 #endif
 
-static inline int fsemu_config_boolean(const char *name)
-{
+static inline int fsemu_config_boolean(const char* name) {
     // return FSEMU_CONFIG_NONE;
     return fsemu_option_boolean(name);
 }
 
-int fsemu_config_read_bool_default(const char *name,
-                                   bool *result,
-                                   bool default_value);
+int fsemu_config_read_bool_default(const char* name, bool* result, bool default_value);
 
 // ----------------------------------------------------------------------------
 // FIXME: REMOVE END
@@ -106,8 +94,7 @@ int fsemu_config_read_bool_default(const char *name,
 
 extern int fsemu_option_log_level;
 
-#define fsemu_option_log(format, ...) \
-    FSEMU_LOG(option, "[FSE] [OPT]", format, ##__VA_ARGS__)
+#define fsemu_option_log(format, ...) FSEMU_LOG(option, "[FSE] [OPT]", format, ##__VA_ARGS__)
 
 #define fsemu_option_log_debug(format, ...) \
     FSEMU_LOG_DEBUG(option, "[FSE] [OPT]", format, ##__VA_ARGS__)

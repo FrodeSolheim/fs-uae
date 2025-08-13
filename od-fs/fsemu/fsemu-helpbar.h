@@ -15,30 +15,24 @@ typedef struct fsemu_helpbar_t fsemu_helpbar_t;
 struct fsemu_helpbar_command_t;
 typedef struct fsemu_helpbar_command_t fsemu_helpbar_command_t;
 
-fsemu_helpbar_t *fsemu_helpbar_create(void);
+fsemu_helpbar_t* fsemu_helpbar_create(void);
 
-fsemu_widget_t *fsemu_helpbar_widget(fsemu_helpbar_t *helpbar);
+fsemu_widget_t* fsemu_helpbar_widget(fsemu_helpbar_t* helpbar);
 
-void fsemu_helpbar_update_widget(fsemu_helpbar_t *helpbar);
+void fsemu_helpbar_update_widget(fsemu_helpbar_t* helpbar);
 
 // ----------------------------------------------------------------------------
 
-fsemu_helpbar_command_t *fsemu_helpbar_create_command(fsemu_helpbar_t *helpbar,
-                                                      const char *label,
-                                                      int modifiers,
-                                                      int key);
+fsemu_helpbar_command_t* fsemu_helpbar_create_command(fsemu_helpbar_t* helpbar, const char* label,
+                                                      int modifiers, int key);
 
 // ----------------------------------------------------------------------------
 
 // void fsemu_helpbar_command_set_label(fsemu_helpbar_command_t *command,
 //                                    const char *label);
 
-void fsemu_helpbar_command_add_key(fsemu_helpbar_command_t *command,
-                                   int modifiers,
-                                   int key);
-void fsemu_helpbar_command_add_button(fsemu_helpbar_command_t *command,
-                                      int modifiers,
-                                      int button);
+void fsemu_helpbar_command_add_key(fsemu_helpbar_command_t* command, int modifiers, int key);
+void fsemu_helpbar_command_add_button(fsemu_helpbar_command_t* command, int modifiers, int button);
 
 // ----------------------------------------------------------------------------
 

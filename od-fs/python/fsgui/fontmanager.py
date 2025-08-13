@@ -2,7 +2,7 @@ import os
 from typing import Optional
 
 import fsgui_font  # type: ignore
-from fsapp2 import fsapp
+from fsapp import fsapp
 
 from fsgui.font import Font, FontWeight
 
@@ -57,9 +57,7 @@ class FontManager:
     def bold_font_14(self):
         return Font("Roboto", 14, FontWeight.BOLD)
 
-    def get_with_cache(
-        self, name: str, size: int, weight: FontWeight = FontWeight.NORMAL
-    ):
+    def get_with_cache(self, name: str, size: int, weight: FontWeight = FontWeight.NORMAL):
         if name == "UI":
             name = "Roboto"
 
@@ -83,9 +81,7 @@ class FontManager:
 
         font_file_name = f"{name}-{weight_name}.ttf"
         for fonts_dir in fsapp.fonts_dirs:
-            font_path = os.path.join(
-                fonts_dir, font_file_name
-            )
+            font_path = os.path.join(fonts_dir, font_file_name)
             print(font_path)
             if os.path.exists(font_path):
                 break

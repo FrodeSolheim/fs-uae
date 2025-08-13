@@ -10,7 +10,9 @@ logger = logging.getLogger(__name__)
 # FIXME: Maybe inherit container instead, and have margins as a container
 # property?
 
-FOCUSED_BORDER_COLOR = (0x99, 0xBB, 0xEE, 0xFF)
+# FOCUSED_BORDER_COLOR = (0x99, 0xBB, 0xEE, 0xFF)
+# FOCUSED_BORDER_COLOR = (0xF4, 0xF4, 0xF4, 0xFF)
+FOCUSED_BORDER_COLOR = (0xFF, 0xFF, 0xFF, 0xFF)
 UNFOCUSED_BORDER_COLOR = (0xCC, 0xCC, 0xCC, 0xFF)
 
 
@@ -35,6 +37,19 @@ class Window(Widget):
         if size is None:
             size = (1, 1)
 
+        # FIXME: self.params (for outline, thickness, colors, etc)
+
+        # FIXME: Handle window offset internally and modify .surface x / y coordinates
+        # accordingly? Remove "origin" support from bridge/_frame? Maybe send mouse events to
+        # the surface, and then to the window, and handle any coordinate translation there?
+
+        # Could maybe rename borders to frame?  self.frame.xxx?
+        # FIXME: Some logic would also be easier if all windows have a sub-widget inside to
+        # contain widgets - would remove some origin-compensating code??
+
+        self.outline = 1
+        self.thickness = 0
+
         # Borders outside of the "normal" drawing area. Maybe only the Window
         # class has these? Or maybe they should be moved to the Widget class?
         if borders is not None:
@@ -47,10 +62,10 @@ class Window(Widget):
             # self._right_border = 5
             # self._bottom_border = 5
             # self._left_border = 5
-            self._top_border = 36
-            self._right_border = 4
-            self._bottom_border = 4
-            self._left_border = 4
+            self._top_border = 36 + self.outline
+            self._right_border = self.thickness + self.outline
+            self._bottom_border = self.thickness + self.outline
+            self._left_border = self.thickness + self.outline
 
         self._layer = 0
         self._visible = False
@@ -101,7 +116,7 @@ class Window(Widget):
             # FIXME: duplicate code in _update_window_size
             title_bar_size = (
                 size[0] + self._left_border + self._right_border,
-                self._top_border,
+                self._top_border - self.outline,
             )
             # title_bar_size = (
             #     size[0] + self._left_border + self._right_border - 2,
@@ -109,7 +124,7 @@ class Window(Widget):
             # )
             self._title_bar = WindowTitleBar(self, self._title, title_bar_size)
             self._title_bar.set_position(
-                (-self._left_border, -self._top_border)
+                (-self._left_border + self.outline, -self._top_border + self.outline)
             )
             # self._title_bar.set_position(
             #     (-self._left_border + 1, -self._top_border + 1)
@@ -144,11 +159,18 @@ class Window(Widget):
 
     def create_window_dc(self) -> "DrawingContext":
         dc = DrawingContext(self)
-        # FIXME: Hackish to set origin in DrawingConext constructor and then reset..
+        # FIXME: Hackish to set origin in DrawingContext constructor and then reset..
         dc.origin = (0, 0)
         return dc
 
     def destroy(self):
+        # Not strictly necessary to run destroy explicitly. It will be done implicitly when the
+        # surface is no longer referenced, but a good idea to free the surface buffers already now
+        # in case the reference is held somewhere.
+
+        if self.surface is not None:
+            self.surface.destroy()
+
         # Recursively destroy children
         # for child in self._children:
         #     child.destroy()
@@ -192,9 +214,7 @@ class Window(Widget):
             # print(x, y)
             if y < self._top_border and self._title_bar is not None:
                 # return self._title_bar
-                return self._title_bar.find_widget_at_position(
-                    (position[0], position[1])
-                )
+                return self._title_bar.find_widget_at_position((position[0], position[1]))
 
         # x, y = position
         # for widget in reversed(self._children):
@@ -261,9 +281,7 @@ class Window(Widget):
 
         dc = self.create_window_dc()
         dc.set_fill_colour(fill)
-        dc.draw_filled_rectangle(
-            (self._left_border, self._top_border), self.get_size()
-        )
+        dc.draw_filled_rectangle((self._left_border, self._top_border), self.get_size())
         # self.draw_border()
 
         # for child in self._children:
@@ -279,32 +297,45 @@ class Window(Widget):
         else:
             dc.set_fill_colour(UNFOCUSED_BORDER_COLOR)
 
-        window_size = self.get_window_size()
+        size = self.get_window_size()
 
         # The top "border" is drawn by the title bar widget
         # dc.draw_filled_rectangle((0, 0), (window_size[0], self._top_border))
 
+        dc.set_pen_colour((0x90, 0x90, 0x90, 0xFF))
+        # dc.set_pen_colour((0xFF, 0x00, 0xFF, 0xFF))
+
         # FIXME: Can skip outer 1 px... -Not anymore
+        if self._top_border:
+            if self.outline:
+                dc.draw_line((0, 0), (size[0] - 1, 0))
+
         if self._left_border:
+            if self.outline:
+                dc.draw_line((0, 1), (0, size[1] - 2))
             dc.draw_filled_rectangle(
-                (0, self._top_border),
+                (self.outline, self._top_border),
                 (
-                    self._left_border,
-                    window_size[1] - self._top_border - self._bottom_border,
+                    self._left_border - self.outline,
+                    size[1] - self._top_border - self._bottom_border,
                 ),
             )
         if self._right_border:
+            if self.outline:
+                dc.draw_line((size[0] - 1, 1), (size[0] - 1, size[1] - 2))
             dc.draw_filled_rectangle(
                 (self._window_size[0] - self._right_border, self._top_border),
                 (
-                    self._right_border,
-                    window_size[1] - self._top_border - self._bottom_border,
+                    self._right_border - self.outline,
+                    size[1] - self._top_border - self._bottom_border,
                 ),
             )
         if self._bottom_border:
+            if self.outline:
+                dc.draw_line((0, size[1] - 1), (size[0] - 1, size[1] - 1))
             dc.draw_filled_rectangle(
-                (0, window_size[1] - self._bottom_border),
-                (window_size[0], self._bottom_border),
+                (self.outline, size[1] - self._bottom_border),
+                (size[0] - 2 * self.outline, self._bottom_border - self.outline),
             )
 
         # if self._left_border:
@@ -333,13 +364,9 @@ class Window(Widget):
             return
 
         layout_min_width = self.layout.calculate_min_width()
-        width = max(
-            layout_min_width + self.padding[1] + self.padding[3], min_width
-        )
+        width = max(layout_min_width + self.padding[1] + self.padding[3], min_width)
         height = (
-            self.layout.calculate_min_height(
-                width - self.padding[1] - self.padding[3]
-            )
+            self.layout.calculate_min_height(width - self.padding[1] - self.padding[3])
             + self.padding[0]
             + self.padding[2]
         )
@@ -370,6 +397,9 @@ class Window(Widget):
         return self
 
     def update(self) -> None:
+        # FIXME: Consider also skipping layout_children if the window is not visible; then later,
+        # if the window becomes visible, make sure layout is run and dirty regions are redrawn.
+
         # if self.layout is not None:
         #     # Set position and size for layout first
         #     self.layout.x = 0
@@ -385,7 +415,8 @@ class Window(Widget):
             self._surface.resize(self.get_window_size())
 
         # self.draw_background()
-        self.draw()
+        if self.visible and self.width > 0 and self.height > 0:
+            self.draw()
 
         # im = self.surface._image
         # draw = ImageDraw.Draw(im)
@@ -407,7 +438,9 @@ class Window(Widget):
         window_x = position[0] - self._left_border
         window_y = position[1] - self._top_border
         self._window_position = (window_x, window_y)
-        self._surface.set_position(self._window_position)
+        # self._surface.
+        # Let fsgui._frame set the final position, after considering "origin"?
+        # self._surface.set_position(self._window_position)
 
     def _update_window_size(self, size: Size) -> None:
         window_width = size[0] + self._left_border + self._right_border
@@ -416,13 +449,16 @@ class Window(Widget):
 
         if self._title_bar is not None:
             title_bar_size = (
-                size[0] + self._left_border + self._right_border,
-                self._top_border,
+                size[0] + self._left_border + self._right_border - 2 * self.outline,
+                self._top_border - self.outline,
             )
             # title_bar_size = (
             #     size[0] + self._left_border + self._right_border - 2,
             #     self._top_border - 1,
             # )
+            self._title_bar.set_position(
+                (-self._left_border + self.outline, -self._top_border + self.outline)
+            )
             self._title_bar.set_size(title_bar_size)
 
     @property
@@ -447,6 +483,7 @@ class Window(Widget):
 
     def set_visible(self, visible: bool) -> None:
         self._visible = visible
+        self._surface.set_visible(visible)
 
 
 from fsgui.drawingcontext import DrawingContext  # noqa: E402

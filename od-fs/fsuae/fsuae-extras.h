@@ -13,4 +13,4 @@ void fsuae_extras(int argc, char* argv[]);
 }
 #endif
 
-#endif // FSUAE_EXTRAS_H
+#endif  // FSUAE_EXTRAS_H

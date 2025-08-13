@@ -32,27 +32,26 @@ void fsemu_videothread_window_size(fsemu_size_t *size);
 #endif
 
 // Copy of drawable size, safe to call from the video renderer/thread.
-void fsemu_videothread_drawable_size(fsemu_size_t *size);
+void fsemu_videothread_drawable_size(fsemu_size_t* size);
 
 // Copy of client area, safe to call from the video renderer/thread.
-void fsemu_videothread_client_area(fsemu_rect_t *rect);
+void fsemu_videothread_client_area(fsemu_rect_t* rect);
 
 // Copy of video area, safe to call from the video renderer/thread.
-void fsemu_videothread_video_area(fsemu_rect_t *rect);
+void fsemu_videothread_video_area(fsemu_rect_t* rect);
 
 // Copy of video rect, safe to call from the video renderer/thread. This is
 // the video output rectangle in window coordinates.
-void fsemu_videothread_video_rect(fsemu_rect_t *rect);
+void fsemu_videothread_video_rect(fsemu_rect_t* rect);
 
 // Internal function. Automatically acquires the videothread lock.
 void fsemu_videothread_copy_thread_data(void);
 
 // Internal function. Remember to acquire the videothread lock first.
-void fsemu_videothread_set_data_from_ui_thread(fsemu_size_t *window_size,
-                                               fsemu_size_t *drawable_size,
-                                               fsemu_rect_t *client_area,
-                                               fsemu_rect_t *video_area,
-                                               fsemu_rect_t *video_rect);
+void fsemu_videothread_set_data_from_ui_thread(fsemu_size_t* window_size,
+                                               fsemu_size_t* drawable_size,
+                                               fsemu_rect_t* client_area, fsemu_rect_t* video_area,
+                                               fsemu_rect_t* video_rect);
 
 #ifdef __cplusplus
 }

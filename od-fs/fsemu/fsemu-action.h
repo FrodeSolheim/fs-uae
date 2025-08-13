@@ -40,20 +40,18 @@ void fsemu_action_update(void);
 
 // ----------------------------------------------------------------------------
 
-void fsemu_action_register(const char *name, uint16_t action);
+void fsemu_action_register(const char* name, uint16_t action);
 
-uint16_t fsemu_action_from_name(const char *name);
+uint16_t fsemu_action_from_name(const char* name);
 
 // ----------------------------------------------------------------------------
 
 void fsemu_action_post_from_main(uint16_t action);
 void fsemu_action_post_from_main_with_state(uint16_t action, int16_t state);
 
-void fsemu_action_process_non_emu(fsemu_action_t action,
-                                  fsemu_action_state_t state);
+void fsemu_action_process_non_emu(fsemu_action_t action, fsemu_action_state_t state);
 
-void fsemu_action_process_command_in_main(fsemu_action_t action,
-                                          int16_t state);
+void fsemu_action_process_command_in_main(fsemu_action_t action, int16_t state);
 
 // ----------------------------------------------------------------------------
 
@@ -65,8 +63,7 @@ void fsemu_action_post_to_main(int action);
 
 extern int fsemu_action_log_level;
 
-#define fsemu_action_log(format, ...) \
-    FSEMU_LOG(action, "[FSE] [ACT]", format, ##__VA_ARGS__)
+#define fsemu_action_log(format, ...) FSEMU_LOG(action, "[FSE] [ACT]", format, ##__VA_ARGS__)
 
 #define fsemu_action_log_debug(format, ...) \
     FSEMU_LOG_DEBUG(action, "[FSE] [ACT]", format, ##__VA_ARGS__)

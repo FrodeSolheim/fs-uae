@@ -29,15 +29,11 @@ struct fsapp_events_event {
 
 // ----------------------------------------------------------------------------
 
-void fsapp_events_push(
-    const char* type, const char* strdata, const char* strdata2, int intdata,
-    int intdata2, float floatdata, float floatdata2
-)
-{
+void fsapp_events_push(const char* type, const char* strdata, const char* strdata2, int intdata,
+                       int intdata2, float floatdata, float floatdata2) {
     // FIXME: This will be called from the main thread...
 
-    fsapp_events_event_t* event
-        = (fsapp_events_event_t*)SDL_malloc(sizeof(fsapp_events_event_t));
+    fsapp_events_event_t* event = (fsapp_events_event_t*)SDL_malloc(sizeof(fsapp_events_event_t));
     event->type = type;
     if (strdata) {
         event->strdata = SDL_strdup(strdata);
@@ -62,24 +58,19 @@ void fsapp_events_push(
 
 // ----------------------------------------------------------------------------
 
-void fsapp_events_push_string(const char* type, const char* strdata)
-{
+void fsapp_events_push_string(const char* type, const char* strdata) {
     fsapp_events_push(type, strdata, NULL, 0, 0, 0.0f, 0.0f);
 }
 
 // ----------------------------------------------------------------------------
 
-void fsapp_events_push_string_int(
-    const char* type, const char* strdata, int intdata
-)
-{
+void fsapp_events_push_string_int(const char* type, const char* strdata, int intdata) {
     fsapp_events_push(type, strdata, NULL, intdata, 0, 0.0f, 0.0f);
 }
 
 // ----------------------------------------------------------------------------
 
-static PyObject* fsapp_events_python_get(PyObject* self, PyObject* args)
-{
+static PyObject* fsapp_events_python_get(PyObject* self, PyObject* args) {
     if (!PyArg_ParseTuple(args, ":get")) {
         return NULL;
     }
@@ -92,12 +83,10 @@ static PyObject* fsapp_events_python_get(PyObject* self, PyObject* args)
     while (item) {
         fsapp_events_event_t* event = (fsapp_events_event_t*)item->data;
         PyObject* dict = Py_BuildValue(
-            "{s:s,s:s,s:s:,s:i,s:i,s:f,s:f}", "type", event->type, "strdata",
-            event->strdata, "strdata2", event->strdata2, "intdata",
-            event->intdata, "intdata2", event->intdata2, "floatdata",
-            event->floatdata, "floatdata2", event->floatdata2
-        );
-        PyList_SetItem(list, k, dict); // or PyList_SET_ITEM(list, k, tuple);
+            "{s:s,s:s,s:s:,s:i,s:i,s:f,s:f}", "type", event->type, "strdata", event->strdata,
+            "strdata2", event->strdata2, "intdata", event->intdata, "intdata2", event->intdata2,
+            "floatdata", event->floatdata, "floatdata2", event->floatdata2);
+        PyList_SetItem(list, k, dict);  // or PyList_SET_ITEM(list, k, tuple);
         if (event->strdata) {
             SDL_free(event->strdata);
         }
@@ -116,29 +105,26 @@ static PyObject* fsapp_events_python_get(PyObject* self, PyObject* args)
 
 // ----------------------------------------------------------------------------
 
-static PyMethodDef fsapp_events_python_methods[]
-    = { { "get", fsapp_events_python_get, METH_VARARGS, "..." },
-        { NULL, NULL, 0, NULL } };
+static PyMethodDef fsapp_events_python_methods[] = {
+    {"get", fsapp_events_python_get, METH_VARARGS, "..."}, {NULL, NULL, 0, NULL}};
 
-static PyModuleDef fsapp_events_python_module = { PyModuleDef_HEAD_INIT,
-                                                  "fsapp_events",
-                                                  NULL,
-                                                  -1,
-                                                  fsapp_events_python_methods,
-                                                  NULL,
-                                                  NULL,
-                                                  NULL,
-                                                  NULL };
+static PyModuleDef fsapp_events_python_module = {PyModuleDef_HEAD_INIT,
+                                                 "fsapp_events",
+                                                 NULL,
+                                                 -1,
+                                                 fsapp_events_python_methods,
+                                                 NULL,
+                                                 NULL,
+                                                 NULL,
+                                                 NULL};
 
-static PyObject* fsapp_events_python_initfunc(void)
-{
+static PyObject* fsapp_events_python_initfunc(void) {
     return PyModule_Create(&fsapp_events_python_module);
 }
 
 // ----------------------------------------------------------------------------
 
-void fsapp_events_init_module(void)
-{
+void fsapp_events_init_module(void) {
     static bool initialized;
     if (initialized) {
         return;

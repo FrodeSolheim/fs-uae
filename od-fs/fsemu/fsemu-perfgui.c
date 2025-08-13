@@ -71,29 +71,28 @@ static struct {
 #endif
 } fsemu_perfgui;
 
-static void fsemu_perfgui_init_images(void)
-{
+static void fsemu_perfgui_init_images(void) {
     fsemu_perfgui.image.width = FSEMU_PERFGUI_IMAGE_WIDTH;
     fsemu_perfgui.image.height = FSEMU_PERFGUI_IMAGE_HEIGHT;
     fsemu_perfgui.image.depth = 32;
     fsemu_perfgui.image.bpp = 4;
     fsemu_perfgui.image.stride = FSEMU_PERFGUI_IMAGE_WIDTH * 4;
-    fsemu_perfgui.image.data = (uint8_t *) malloc(
-        fsemu_perfgui.image.width * fsemu_perfgui.image.height * 4);
+    fsemu_perfgui.image.data =
+        (uint8_t*)malloc(fsemu_perfgui.image.width * fsemu_perfgui.image.height * 4);
 
-    fsemu_perfgui.audio_image.data = (uint8_t *) malloc(4 * 128 * 512);
+    fsemu_perfgui.audio_image.data = (uint8_t*)malloc(4 * 128 * 512);
     fsemu_perfgui.audio_image.width = 128;
     fsemu_perfgui.audio_image.height = 512;
     fsemu_perfgui.audio_image.depth = 32;
     fsemu_perfgui.audio_image.stride = 4 * 128;
 
-    fsemu_perfgui.video_image.data = (uint8_t *) malloc(4 * 128 * 512);
+    fsemu_perfgui.video_image.data = (uint8_t*)malloc(4 * 128 * 512);
     fsemu_perfgui.video_image.width = 128;
     fsemu_perfgui.video_image.height = 512;
     fsemu_perfgui.video_image.depth = 32;
     fsemu_perfgui.video_image.stride = 4 * 128;
 
-    uint32_t *row = (uint32_t *) malloc(4 * 128);
+    uint32_t* row = (uint32_t*)malloc(4 * 128);
     for (int x = 0; x < 128; x++) {
 #if 1
         row[x] = FSEMU_RGBA(0x00000000);
@@ -106,8 +105,8 @@ static void fsemu_perfgui_init_images(void)
 #endif
     }
 
-    uint8_t *dst_a = fsemu_perfgui.audio_image.data;
-    uint8_t *dst_v = fsemu_perfgui.video_image.data;
+    uint8_t* dst_a = fsemu_perfgui.audio_image.data;
+    uint8_t* dst_v = fsemu_perfgui.video_image.data;
     for (int y = 0; y < 512; y++) {
         memcpy(dst_a, row, 4 * 128);
         memcpy(dst_v, row, 4 * 128);
@@ -117,7 +116,7 @@ static void fsemu_perfgui_init_images(void)
 
     free(row);
 
-    row = (uint32_t *) malloc(FSEMU_PERFGUI_IMAGE_WIDTH * 4);
+    row = (uint32_t*)malloc(FSEMU_PERFGUI_IMAGE_WIDTH * 4);
     for (int x = 0; x < FSEMU_PERFGUI_IMAGE_WIDTH; x++) {
 #if 1
         row[x] = FSEMU_RGBA(0x00000000);
@@ -130,7 +129,7 @@ static void fsemu_perfgui_init_images(void)
 #endif
     }
 
-    uint8_t *dst = fsemu_perfgui.image.data;
+    uint8_t* dst = fsemu_perfgui.image.data;
     for (int y = 0; y < 512; y++) {
         memcpy(dst, row, FSEMU_PERFGUI_IMAGE_WIDTH * 4);
         dst += FSEMU_PERFGUI_IMAGE_WIDTH * 4;
@@ -139,8 +138,7 @@ static void fsemu_perfgui_init_images(void)
     free(row);
 }
 
-static void fsemu_perfgui_init_items(void)
-{
+static void fsemu_perfgui_init_items(void) {
 #if 0
     fsemu_gui_item_t *item;
     item = &fsemu_perfgui.audio_item;
@@ -204,8 +202,7 @@ static void fsemu_perfgui_init_items(void)
 #endif
 }
 
-static void fsemu_perfgui_set_colors(int color_set)
-{
+static void fsemu_perfgui_set_colors(int color_set) {
     if (fsemu_perfgui.color_set == color_set) {
         return;
     }
@@ -302,16 +299,15 @@ static void fsemu_perfgui_set_colors(int color_set)
     fsemu_perfgui.refresh = true;
 }
 
-static void fsemu_perfgui_draw_line(uint8_t *row)
-{
+static void fsemu_perfgui_draw_line(uint8_t* row) {
     if (fsemu_perfgui.color_set == 1) {
 #if 1
         for (int x = 0; x < 128; x++) {
             // ((uint32_t *) row)[x] = FSEMU_RGB(0x000000);
-            ((uint32_t *) row)[x] = fsemu_perfgui.colors.video_bg;
+            ((uint32_t*)row)[x] = fsemu_perfgui.colors.video_bg;
         }
 #else
-        uint8_t *p = row + 116 * 4 - 1;
+        uint8_t* p = row + 116 * 4 - 1;
         uint8_t c = 0x0c;
         for (int x = 0; x < 116; x++) {
             *p-- = 255;
@@ -323,13 +319,12 @@ static void fsemu_perfgui_draw_line(uint8_t *row)
 #endif
     } else {
         for (int x = 0; x < 128; x++) {
-            ((uint32_t *) row)[x] = fsemu_perfgui.colors.line;
+            ((uint32_t*)row)[x] = fsemu_perfgui.colors.line;
         }
     }
 }
 
-static void fsemu_perfgui_update_audio(int frame)
-{
+static void fsemu_perfgui_update_audio(int frame) {
     fsemu_audio_frame_stats_t stats;
     fsemu_audio_frame_stats(frame, &stats);
 
@@ -393,7 +388,7 @@ static void fsemu_perfgui_update_audio(int frame)
     //     fsemu_perfgui.audio_image.data + y *
     //     fsemu_perfgui.audio_image.stride;
 
-    uint8_t *row = fsemu_perfgui.image.data + y * fsemu_perfgui.image.stride;
+    uint8_t* row = fsemu_perfgui.image.data + y * fsemu_perfgui.image.stride;
     // Draw on right half of the image.
     // row += FSEMU_PERFGUI_IMAGE_WIDTH / 2 * fsemu_perfgui.image.bpp;
     row += (FSEMU_PERFGUI_IMAGE_WIDTH - 1) * fsemu_perfgui.image.bpp;
@@ -401,32 +396,32 @@ static void fsemu_perfgui_update_audio(int frame)
     for (int i = 0; i < 2; i++) {
         for (int x = 0; x < 128; x++) {
             if (x == avg) {
-                ((uint32_t *) row)[-x] = fsemu_perfgui.colors.audio_avg;
+                ((uint32_t*)row)[-x] = fsemu_perfgui.colors.audio_avg;
             } else if (x == min_level) {
-                ((uint32_t *) row)[-x] = fsemu_perfgui.colors.audio_min;
+                ((uint32_t*)row)[-x] = fsemu_perfgui.colors.audio_min;
             } else if (x == target) {
-                ((uint32_t *) row)[-x] = fsemu_perfgui.colors.audio_target;
+                ((uint32_t*)row)[-x] = fsemu_perfgui.colors.audio_target;
             } else if (x == level3) {
-                ((uint32_t *) row)[-x] = fsemu_perfgui.colors.audio_0;
+                ((uint32_t*)row)[-x] = fsemu_perfgui.colors.audio_0;
             } else if (x < level1) {
-                ((uint32_t *) row)[-x] = level1_color;
+                ((uint32_t*)row)[-x] = level1_color;
             } else if (x < level2) {
-                ((uint32_t *) row)[-x] = fsemu_perfgui.colors.audio_2;
+                ((uint32_t*)row)[-x] = fsemu_perfgui.colors.audio_2;
             } else if (x < level3) {
-                ((uint32_t *) row)[-x] = fsemu_perfgui.colors.audio_3;
+                ((uint32_t*)row)[-x] = fsemu_perfgui.colors.audio_3;
             } else {
-                ((uint32_t *) row)[-x] = fsemu_perfgui.colors.audio_bg;
+                ((uint32_t*)row)[-x] = fsemu_perfgui.colors.audio_bg;
             }
         }
         if (stats.underruns) {
-            ((uint32_t *) row)[-0] = FSEMU_RGB(0xff0000);
-            ((uint32_t *) row)[-1] = FSEMU_RGB(0xff0000);
-            ((uint32_t *) row)[-2] = FSEMU_RGB(0xff0000);
-            ((uint32_t *) row)[-3] = FSEMU_RGB(0xff0000);
+            ((uint32_t*)row)[-0] = FSEMU_RGB(0xff0000);
+            ((uint32_t*)row)[-1] = FSEMU_RGB(0xff0000);
+            ((uint32_t*)row)[-2] = FSEMU_RGB(0xff0000);
+            ((uint32_t*)row)[-3] = FSEMU_RGB(0xff0000);
         }
 
         // Blank pixel at the end of the line
-        ((uint32_t *) row)[-127] = FSEMU_RGBA(0x00000000);
+        ((uint32_t*)row)[-127] = FSEMU_RGBA(0x00000000);
 
         // row += fsemu_perfgui.image.stride;
         row += fsemu_perfgui.image.stride;
@@ -449,21 +444,19 @@ static void fsemu_perfgui_update_audio(int frame)
         //     fsemu_perfgui.image.data + (y % 512) *
         //     fsemu_perfgui.image.stride + FSEMU_PERFGUI_IMAGE_WIDTH / 2 *
         //     fsemu_perfgui.image.bpp);
-        row = fsemu_perfgui.image.data +
-              (y % 512) * fsemu_perfgui.image.stride +
+        row = fsemu_perfgui.image.data + (y % 512) * fsemu_perfgui.image.stride +
               FSEMU_PERFGUI_IMAGE_WIDTH / 2 * fsemu_perfgui.image.bpp;
         fsemu_perfgui_draw_line(row);
         // Blank pixel at the end of the line
-        ((uint32_t *) row)[0] = FSEMU_RGBA(0x00000000);
+        ((uint32_t*)row)[0] = FSEMU_RGBA(0x00000000);
 
         y += 1;
     }
 #endif
 }
 
-static void fsemu_perfgui_update_video(int frame)
-{
-    fsemu_frameinfo_t *frameinfo = &FSEMU_FRAMEINFO(frame);
+static void fsemu_perfgui_update_video(int frame) {
+    fsemu_frameinfo_t* frameinfo = &FSEMU_FRAMEINFO(frame);
 
     // fsemu_video_frame_stats_t stats;
     // fsemu_video_frame_stats(frame, &stats);
@@ -524,10 +517,8 @@ static void fsemu_perfgui_update_video(int frame)
 
     // printf("%lld %lld %lld\n", (int64_t) stats.began_at, (int64_t)
     // stats.rendered_at, (int64_t) stats.swapped_at);
-    int rendered =
-        (frameinfo->rendered_at - frameinfo->origin_at) * 128 / scale_us;
-    int swapped =
-        (frameinfo->swapped_at - frameinfo->origin_at) * 128 / scale_us;
+    int rendered = (frameinfo->rendered_at - frameinfo->origin_at) * 128 / scale_us;
+    int swapped = (frameinfo->swapped_at - frameinfo->origin_at) * 128 / scale_us;
     int vsync = (frameinfo->vsync_at - frameinfo->origin_at) * 128 / scale_us;
 
     // printf("rendered_diff %lld - %lld = %lld -> %d\n",
@@ -546,7 +537,7 @@ static void fsemu_perfgui_update_video(int frame)
     //     fsemu_perfgui.video_image.data + y *
     //     fsemu_perfgui.video_image.stride;
 
-    uint8_t *row = fsemu_perfgui.image.data + y * fsemu_perfgui.image.stride;
+    uint8_t* row = fsemu_perfgui.image.data + y * fsemu_perfgui.image.stride;
 
     // FIXME: improve this check, also make dependent on hz
 
@@ -563,49 +554,49 @@ static void fsemu_perfgui_update_video(int frame)
     for (int i = 0; i < 2; i++) {
         for (int x = 0; x < 128; x++) {
             if (x == vsync) {
-                ((uint32_t *) row)[x] = fsemu_perfgui.colors.video_vsync_at;
+                ((uint32_t*)row)[x] = fsemu_perfgui.colors.video_vsync_at;
             } else if (x == swapped) {
-                ((uint32_t *) row)[x] = fsemu_perfgui.colors.video_swapped_at;
+                ((uint32_t*)row)[x] = fsemu_perfgui.colors.video_swapped_at;
             } else if (x == rendered) {
-                ((uint32_t *) row)[x] = fsemu_perfgui.colors.video_rendered_at;
+                ((uint32_t*)row)[x] = fsemu_perfgui.colors.video_rendered_at;
             } else if (x == actual) {
-                ((uint32_t *) row)[x] = fsemu_perfgui.colors.video_actual;
+                ((uint32_t*)row)[x] = fsemu_perfgui.colors.video_actual;
             } else if (x == target) {
-                ((uint32_t *) row)[x] = fsemu_perfgui.colors.video_target;
+                ((uint32_t*)row)[x] = fsemu_perfgui.colors.video_target;
             } else if (x < overshoot_level) {
-                ((uint32_t *) row)[x] = fsemu_perfgui.colors.video_overshoot;
+                ((uint32_t*)row)[x] = fsemu_perfgui.colors.video_overshoot;
             } else if (x < wait_level) {
-                ((uint32_t *) row)[x] = fsemu_perfgui.colors.video_wait;
+                ((uint32_t*)row)[x] = fsemu_perfgui.colors.video_wait;
             } else if (x < gui_level) {
-                ((uint32_t *) row)[x] = fsemu_perfgui.colors.video_gui;
+                ((uint32_t*)row)[x] = fsemu_perfgui.colors.video_gui;
             } else if (x < emu_level) {
-                ((uint32_t *) row)[x] = fsemu_perfgui.colors.video_emu;
+                ((uint32_t*)row)[x] = fsemu_perfgui.colors.video_emu;
             } else if (x < render_level) {
-                ((uint32_t *) row)[x] = fsemu_perfgui.colors.video_render;
+                ((uint32_t*)row)[x] = fsemu_perfgui.colors.video_render;
             } else if (x < extra_level) {
-                ((uint32_t *) row)[x] = fsemu_perfgui.colors.video_extra;
+                ((uint32_t*)row)[x] = fsemu_perfgui.colors.video_extra;
             } else if (x < sleep_level) {
-                ((uint32_t *) row)[x] = fsemu_perfgui.colors.video_sleep;
+                ((uint32_t*)row)[x] = fsemu_perfgui.colors.video_sleep;
             } else if (x < other_level) {
-                ((uint32_t *) row)[x] = fsemu_perfgui.colors.video_other;
+                ((uint32_t*)row)[x] = fsemu_perfgui.colors.video_other;
             } else {
-                ((uint32_t *) row)[x] = fsemu_perfgui.colors.video_bg;
+                ((uint32_t*)row)[x] = fsemu_perfgui.colors.video_bg;
             }
         }
         if (problem) {
-            ((uint32_t *) row)[0] = FSEMU_RGB(0xff0000);
-            ((uint32_t *) row)[1] = FSEMU_RGB(0xff0000);
-            ((uint32_t *) row)[2] = FSEMU_RGB(0xff0000);
-            ((uint32_t *) row)[3] = FSEMU_RGB(0xff0000);
+            ((uint32_t*)row)[0] = FSEMU_RGB(0xff0000);
+            ((uint32_t*)row)[1] = FSEMU_RGB(0xff0000);
+            ((uint32_t*)row)[2] = FSEMU_RGB(0xff0000);
+            ((uint32_t*)row)[3] = FSEMU_RGB(0xff0000);
         } else if (problem_2) {
-            ((uint32_t *) row)[0] = FSEMU_RGB(0xff00ff);
-            ((uint32_t *) row)[1] = FSEMU_RGB(0xff00ff);
-            ((uint32_t *) row)[2] = FSEMU_RGB(0xff00ff);
-            ((uint32_t *) row)[3] = FSEMU_RGB(0xff00ff);
+            ((uint32_t*)row)[0] = FSEMU_RGB(0xff00ff);
+            ((uint32_t*)row)[1] = FSEMU_RGB(0xff00ff);
+            ((uint32_t*)row)[2] = FSEMU_RGB(0xff00ff);
+            ((uint32_t*)row)[3] = FSEMU_RGB(0xff00ff);
         }
 
         // Blank pixel at the end of the line
-        ((uint32_t *) row)[127] = FSEMU_RGBA(0x00000000);
+        ((uint32_t*)row)[127] = FSEMU_RGBA(0x00000000);
 
         // row += fsemu_perfgui.video_image.stride;
         row += fsemu_perfgui.image.stride;
@@ -625,18 +616,16 @@ static void fsemu_perfgui_update_video(int frame)
         // fsemu_perfgui_draw_line(fsemu_perfgui.video_image.data +
         //                         (y % 512) *
         //                         fsemu_perfgui.video_image.stride);
-        row =
-            fsemu_perfgui.image.data + (y % 512) * fsemu_perfgui.image.stride;
+        row = fsemu_perfgui.image.data + (y % 512) * fsemu_perfgui.image.stride;
         fsemu_perfgui_draw_line(row);
         // Blank pixel at the end of the line
-        ((uint32_t *) row)[127] = FSEMU_RGBA(0x00000000);
+        ((uint32_t*)row)[127] = FSEMU_RGBA(0x00000000);
 
         y += 1;
     }
 }
 
-void fsemu_perfgui_update_image(void)
-{
+void fsemu_perfgui_update_image(void) {
     // Current frame.
     // int frame = fsemu_frame_number_rendering;
     // // However, we want to update the stats for the previous frame, which is
@@ -704,13 +693,11 @@ void fsemu_perfgui_update_image(void)
 #endif
 }
 
-fsemu_image_t *fsemu_perfgui_image(void)
-{
+fsemu_image_t* fsemu_perfgui_image(void) {
     return &fsemu_perfgui.image;
 }
 
-void fsemu_perfgui_update(void)
-{
+void fsemu_perfgui_update(void) {
 #if 0
     static int next_frame;
     int frame = fsemu_frame_counter();
@@ -758,8 +745,7 @@ void fsemu_perfgui_update(void)
 
 // ----------------------------------------------------------------------------
 
-int fsemu_perfgui_cycle_mode(void)
-{
+int fsemu_perfgui_cycle_mode(void) {
     if (--fsemu_perfgui.mode == -1) {
         fsemu_perfgui.mode = 2;
     }
@@ -770,15 +756,13 @@ int fsemu_perfgui_cycle_mode(void)
     return fsemu_perfgui.mode;
 }
 
-fsemu_perfgui_mode_t fsemu_perfgui_mode(void)
-{
+fsemu_perfgui_mode_t fsemu_perfgui_mode(void) {
     return fsemu_perfgui.mode;
 }
 
 // ----------------------------------------------------------------------------
 
-static void fsemu_perfgui_quit(void)
-{
+static void fsemu_perfgui_quit(void) {
 }
 
 // ----------------------------------------------------------------------------
@@ -787,8 +771,7 @@ static void fsemu_perfgui_quit(void)
 
 #define FSEMU_OPTION_PERFORMANCE_GUI_DEFAULT 0
 
-void fsemu_perfgui_init(void)
-{
+void fsemu_perfgui_init(void) {
     fsemu_gui_init();
     if (FSEMU_MODULE_INIT(perfgui)) {
         return;
@@ -796,11 +779,10 @@ void fsemu_perfgui_init(void)
     fsemu_perfgui_init_images();
     fsemu_perfgui_init_items();
 
-    fsemu_perfgui.mode = fsemu_option_int_default(
-        FSEMU_OPTION_PERFORMANCE_GUI, FSEMU_OPTION_PERFORMANCE_GUI_DEFAULT);
+    fsemu_perfgui.mode = fsemu_option_int_default(FSEMU_OPTION_PERFORMANCE_GUI,
+                                                  FSEMU_OPTION_PERFORMANCE_GUI_DEFAULT);
     if (fsemu_perfgui.mode < 0 || fsemu_perfgui.mode > 2) {
-        fsemu_log("WARNING: Invalid valid for " FSEMU_OPTION_PERFORMANCE_GUI
-                  "\n");
+        fsemu_log("WARNING: Invalid valid for " FSEMU_OPTION_PERFORMANCE_GUI "\n");
         fsemu_perfgui.mode = 0;
     }
 

@@ -33,35 +33,17 @@ class QuickStartWindow(Window):
         # uae_config = services.uae_config.uae_config
 
         with HorizontalLayout(gap=12):
-            Button("A500").on_activate(
-                lambda: fsemu.set("quickstart", "A500,0")
-            )
-            Button("A500+").on_activate(
-                lambda: fsemu.set("quickstart", "A500+,0")
-            )
-            Button("A600").on_activate(
-                lambda: fsemu.set("quickstart", "A600,0")
-            )
-            Button("A1200").on_activate(
-                lambda: fsemu.set("quickstart", "A1200,0")
-            )
-            Button("A3000").on_activate(
-                lambda: fsemu.set("quickstart", "A3000,0")
-            )
-            Button("A4000").on_activate(
-                lambda: fsemu.set("quickstart", "A4000,0")
-            )
-            Button("Reset").on_activate(
-                lambda: fsemu.post(InputEvent.SPC_HARDRESET)
-            )
+            Button("A500").on_activate(lambda: fsemu.set("quickstart", "A500,0"))
+            Button("A500+").on_activate(lambda: fsemu.set("quickstart", "A500+,0"))
+            Button("A600").on_activate(lambda: fsemu.set("quickstart", "A600,0"))
+            Button("A1200").on_activate(lambda: fsemu.set("quickstart", "A1200,0"))
+            Button("A3000").on_activate(lambda: fsemu.set("quickstart", "A3000,0"))
+            Button("A4000").on_activate(lambda: fsemu.set("quickstart", "A4000,0"))
+            Button("Reset").on_activate(lambda: fsemu.post(InputEvent.SPC_HARDRESET))
 
         with VerticalLayout(gap=12):
-            InputControlWidget(
-                services.input_ports, services.input_devices, 0
-            ).fill()
-            InputControlWidget(
-                services.input_ports, services.input_devices, 1
-            ).fill()
+            InputControlWidget(services.input_ports, services.input_devices, 0).fill()
+            InputControlWidget(services.input_ports, services.input_devices, 1).fill()
 
         FloppyDriveWidget(services.uae_config.uae_config, 0).fill()
 

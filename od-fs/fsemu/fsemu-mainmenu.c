@@ -18,7 +18,7 @@ int fsemu_mainmenu_log_level = FSEMU_LOG_LEVEL_INFO;
 static struct {
     bool initialized;
 
-    fsemu_menu_t *cached_menu;
+    fsemu_menu_t* cached_menu;
 
     // fsemu_mainmenu_reset_function_t soft_reset_function;
     // fsemu_mainmenu_reset_function_t hard_reset_function;
@@ -48,15 +48,13 @@ void fsemu_mainmenu_set_hard_reset_function(
 // Emulator control
 // ----------------------------------------------------------------------------
 
-static fsemu_menu_t *fsemu_mainmenu_on_pause(fsemu_menu_item_t *item)
-{
+static fsemu_menu_t* fsemu_mainmenu_on_pause(fsemu_menu_item_t* item) {
     // FIXME: Menu should update and menu item should be updated to "Resume".
     fsemu_control_toggle_paused();
     return NULL;
 }
 
-static fsemu_menu_t *fsemu_mainmenu_on_warp(fsemu_menu_item_t *item)
-{
+static fsemu_menu_t* fsemu_mainmenu_on_warp(fsemu_menu_item_t* item) {
     // FIXME: Menu should update and menu item should be updated to "Resume".
     fsemu_control_toggle_warp();
     return NULL;
@@ -66,8 +64,7 @@ static fsemu_menu_t *fsemu_mainmenu_on_warp(fsemu_menu_item_t *item)
 // Savestates
 // ----------------------------------------------------------------------------
 
-static fsemu_menu_t *fsemu_mainmenu_on_savestate_load(fsemu_menu_item_t *item)
-{
+static fsemu_menu_t* fsemu_mainmenu_on_savestate_load(fsemu_menu_item_t* item) {
     int slot = GPOINTER_TO_INT(fsemu_menu_item_data(item));
     // Probably don't need confirmation on load, since you need to navigate
     // down to reach the menu item.
@@ -77,26 +74,21 @@ static fsemu_menu_t *fsemu_mainmenu_on_savestate_load(fsemu_menu_item_t *item)
     return FSEMU_MENU_RESULT_CLOSE;
 }
 
-static fsemu_menu_t *fsemu_mainmenu_on_savestate_cancel_save(
-    fsemu_menu_item_t *item)
-{
+static fsemu_menu_t* fsemu_mainmenu_on_savestate_cancel_save(fsemu_menu_item_t* item) {
     // FIXME: Return to previous menu;
     // return -1 ??
     // or just call pop menu and return NULL?
     return FSEMU_MENU_RESULT_POP1;
 }
 
-static fsemu_menu_t *fsemu_mainmenu_on_savestate_confirm_save(
-    fsemu_menu_item_t *item)
-{
+static fsemu_menu_t* fsemu_mainmenu_on_savestate_confirm_save(fsemu_menu_item_t* item) {
     int slot = GPOINTER_TO_INT(fsemu_menu_item_data(item));
     fsemu_savestate_save(slot);
     // FIXME: Also pop one menu...
     return FSEMU_MENU_RESULT_POP1_CLOSE;
 }
 
-static fsemu_menu_t *fsemu_mainmenu_on_savestate_save(fsemu_menu_item_t *item)
-{
+static fsemu_menu_t* fsemu_mainmenu_on_savestate_save(fsemu_menu_item_t* item) {
     int slot = GPOINTER_TO_INT(fsemu_menu_item_data(item));
     if (!fsemu_savestate_has_state(slot)) {
         fsemu_savestate_save(slot);
@@ -106,52 +98,48 @@ static fsemu_menu_t *fsemu_mainmenu_on_savestate_save(fsemu_menu_item_t *item)
     // Save exists in slot, need confirmation. Especially since the save
     // entry is the initially selected one in the menu.
 
-    fsemu_menu_t *newmenu;
-    fsemu_menu_item_t *newitem;
+    fsemu_menu_t* newmenu;
+    fsemu_menu_item_t* newitem;
 
     newmenu = fsemu_menu_new();
 
-    char *title = g_strdup_printf(_("Overwrite savestate %d?"), slot);
+    char* title = g_strdup_printf(_("Overwrite savestate %d?"), slot);
     newitem = fsemu_menu_item_new_heading_with_title(title);
     free(title);
     fsemu_menu_add_item(newmenu, newitem);
 
     newitem = fsemu_menu_item_new_with_title("Confirm overwrite");
     fsemu_menu_item_set_data(newitem, GINT_TO_POINTER(slot));
-    fsemu_menu_item_on_activate(newitem,
-                                fsemu_mainmenu_on_savestate_confirm_save);
+    fsemu_menu_item_on_activate(newitem, fsemu_mainmenu_on_savestate_confirm_save);
     fsemu_menu_add_item(newmenu, newitem);
 
     newitem = fsemu_menu_item_new_with_title("Cancel");
     fsemu_menu_item_set_data(newitem, GINT_TO_POINTER(slot));
-    fsemu_menu_item_on_activate(newitem,
-                                fsemu_mainmenu_on_savestate_cancel_save);
+    fsemu_menu_item_on_activate(newitem, fsemu_mainmenu_on_savestate_cancel_save);
     fsemu_menu_add_item(newmenu, newitem);
 
     return newmenu;
 }
 
-static void fsemu_mainmenu_update_savestate(fsemu_menu_t *menu)
-{
+static void fsemu_mainmenu_update_savestate(fsemu_menu_t* menu) {
     // printf("----> UPDATE SAVESTATE MENU\n");
     int slot = GPOINTER_TO_INT(fsemu_menu_data(menu));
-    fsemu_menu_item_t *item = fsemu_menu_get_item(menu, 2);
+    fsemu_menu_item_t* item = fsemu_menu_get_item(menu, 2);
     fsemu_menu_item_set_enabled(item, fsemu_savestate_has_state(slot));
 }
 
-static fsemu_menu_t *fsemu_mainmenu_on_savestate(fsemu_menu_item_t *item)
-{
+static fsemu_menu_t* fsemu_mainmenu_on_savestate(fsemu_menu_item_t* item) {
     printf("on_savestate\n");
     int slot = GPOINTER_TO_INT(fsemu_menu_item_data(item));
 
-    fsemu_menu_t *newmenu;
-    fsemu_menu_item_t *newitem;
+    fsemu_menu_t* newmenu;
+    fsemu_menu_item_t* newitem;
 
     newmenu = fsemu_menu_new();
     fsemu_menu_set_update_function(newmenu, fsemu_mainmenu_update_savestate);
     fsemu_menu_set_data(newmenu, GINT_TO_POINTER(slot));
 
-    char *title = g_strdup_printf(_("Savestate %d"), slot);
+    char* title = g_strdup_printf(_("Savestate %d"), slot);
     newitem = fsemu_menu_item_new_heading_with_title(title);
     free(title);
     fsemu_menu_add_item(newmenu, newitem);
@@ -170,13 +158,12 @@ static fsemu_menu_t *fsemu_mainmenu_on_savestate(fsemu_menu_item_t *item)
     return newmenu;
 }
 
-static void fsemu_mainmenu_update_savestates(fsemu_menu_t *menu)
-{
+static void fsemu_mainmenu_update_savestates(fsemu_menu_t* menu) {
     // printf("UPDATE SAVESTATES MENU\n");
 
     for (int i = 1; i <= fsemu_savestate_slots(); i++) {
-        fsemu_menu_item_t *item = fsemu_menu_get_item(menu, i);
-        char *title = fsemu_savestate_description(i);
+        fsemu_menu_item_t* item = fsemu_menu_get_item(menu, i);
+        char* title = fsemu_savestate_description(i);
         fsemu_menu_item_set_title(item, title);
         free(title);
         // fsemu_menu_item_set_data(item, GINT_TO_POINTER(i));
@@ -185,11 +172,10 @@ static void fsemu_mainmenu_update_savestates(fsemu_menu_t *menu)
     }
 }
 
-static fsemu_menu_t *fsemu_mainmenu_on_savestates(fsemu_menu_item_t *item)
-{
+static fsemu_menu_t* fsemu_mainmenu_on_savestates(fsemu_menu_item_t* item) {
     printf("on_savestates\n");
-    fsemu_menu_t *newmenu;
-    fsemu_menu_item_t *newitem;
+    fsemu_menu_t* newmenu;
+    fsemu_menu_item_t* newitem;
 
     newmenu = fsemu_menu_new();
     fsemu_menu_set_update_function(newmenu, fsemu_mainmenu_update_savestates);
@@ -222,8 +208,7 @@ static fsemu_menu_t *fsemu_mainmenu_on_savestates(fsemu_menu_item_t *item)
 // Reset
 // ----------------------------------------------------------------------------
 
-static fsemu_menu_t *fsemu_mainmenu_on_soft_reset(fsemu_menu_item_t *item)
-{
+static fsemu_menu_t* fsemu_mainmenu_on_soft_reset(fsemu_menu_item_t* item) {
     // FIXME: Maybe use actions instead
     //  if (fsemu_mainmenu.soft_reset_function) {
     //     fsemu_mainmenu.soft_reset_function();
@@ -233,8 +218,7 @@ static fsemu_menu_t *fsemu_mainmenu_on_soft_reset(fsemu_menu_item_t *item)
     return FSEMU_MENU_RESULT_POP1_CLOSE;
 }
 
-static fsemu_menu_t *fsemu_mainmenu_on_hard_reset(fsemu_menu_item_t *item)
-{
+static fsemu_menu_t* fsemu_mainmenu_on_hard_reset(fsemu_menu_item_t* item) {
     // FIXME: Maybe use actions instead
     // if (fsemu_mainmenu.hard_reset_function) {
     //     fsemu_mainmenu.hard_reset_function();
@@ -244,11 +228,10 @@ static fsemu_menu_t *fsemu_mainmenu_on_hard_reset(fsemu_menu_item_t *item)
     return FSEMU_MENU_RESULT_POP1_CLOSE;
 }
 
-static fsemu_menu_t *fsemu_mainmenu_on_reset(fsemu_menu_item_t *item)
-{
+static fsemu_menu_t* fsemu_mainmenu_on_reset(fsemu_menu_item_t* item) {
     printf("on_reset\n");
-    fsemu_menu_t *newmenu;
-    fsemu_menu_item_t *newitem;
+    fsemu_menu_t* newmenu;
+    fsemu_menu_item_t* newitem;
 
     newmenu = fsemu_menu_new();
     // fsemu_menu_set_update_function(newmenu,
@@ -275,41 +258,35 @@ static fsemu_menu_t *fsemu_mainmenu_on_reset(fsemu_menu_item_t *item)
 // Media drives
 // ----------------------------------------------------------------------------
 
-static fsemu_menu_t *fsemu_mainmenu_on_drive_eject(fsemu_menu_item_t *item)
-{
-    fsemu_media_drive_t *drive = fsemu_menu_item_data(item);
+static fsemu_menu_t* fsemu_mainmenu_on_drive_eject(fsemu_menu_item_t* item) {
+    fsemu_media_drive_t* drive = fsemu_menu_item_data(item);
     fsemu_assert(drive);
 
     int drive_index = fsemu_media_drive_index(drive);
-    fsemu_assert(drive_index >= 0 &&
-                 drive_index < FSEMU_MEDIA_DRIVE_MAX_COUNT);
+    fsemu_assert(drive_index >= 0 && drive_index < FSEMU_MEDIA_DRIVE_MAX_COUNT);
 
     fsemu_action_post_from_main(FSEMU_ACTION_DRIVE0EJECT + drive_index);
 
     return NULL;
 }
 
-static fsemu_menu_t *fsemu_mainmenu_on_drive_insert(fsemu_menu_item_t *item)
-{
-    fsemu_media_drive_t *drive = fsemu_menu_item_data(item);
+static fsemu_menu_t* fsemu_mainmenu_on_drive_insert(fsemu_menu_item_t* item) {
+    fsemu_media_drive_t* drive = fsemu_menu_item_data(item);
     fsemu_assert(drive);
 
     int drive_index = fsemu_media_drive_index(drive);
-    fsemu_assert(drive_index >= 0 &&
-                 drive_index < FSEMU_MEDIA_DRIVE_MAX_COUNT);
+    fsemu_assert(drive_index >= 0 && drive_index < FSEMU_MEDIA_DRIVE_MAX_COUNT);
 
     int media_index = fsemu_menu_item_int(item);
     fsemu_assert(media_index >= 0 && media_index < FSEMU_MEDIA_MAX_FILE_COUNT);
 
     fsemu_action_post_from_main(FSEMU_ACTION_DRIVE0INSERT0 +
-                                drive_index * FSEMU_MEDIA_MAX_FILE_COUNT +
-                                media_index);
+                                drive_index * FSEMU_MEDIA_MAX_FILE_COUNT + media_index);
 
     return NULL;
 }
 
-static bool fsemu_mainmenu_compare_media(const char *a, const char *b)
-{
+static bool fsemu_mainmenu_compare_media(const char* a, const char* b) {
     // printf("compare %s %s\n", a, b);
     if (a == NULL && b == NULL) {
         return true;
@@ -323,16 +300,15 @@ static bool fsemu_mainmenu_compare_media(const char *a, const char *b)
     }
 }
 
-static void fsemu_mainmenu_update_drive(fsemu_menu_t *menu)
-{
-    fsemu_media_drive_t *drive = fsemu_menu_data(menu);
+static void fsemu_mainmenu_update_drive(fsemu_menu_t* menu) {
+    fsemu_media_drive_t* drive = fsemu_menu_data(menu);
     fsemu_assert(drive);
 
-    fsemu_menu_item_t *item = fsemu_menu_get_item(menu, 1);
+    fsemu_menu_item_t* item = fsemu_menu_get_item(menu, 1);
 
-    const char *label = fsemu_media_label(fsemu_media_drive_file(drive));
+    const char* label = fsemu_media_label(fsemu_media_drive_file(drive));
     if (label) {
-        const char *old_label = fsemu_menu_item_title(item);
+        const char* old_label = fsemu_menu_item_title(item);
         if (!old_label || strcmp(label, old_label) != 0) {
             fsemu_menu_item_set_title(item, label);
         }
@@ -340,8 +316,8 @@ static void fsemu_mainmenu_update_drive(fsemu_menu_t *menu)
         // FIXME: A bit inefficient to create a new name for each update.
         // Perhaps cache the empty status for the item somehow, so we can
         // check if the title needs to be updated.
-        const char *name = fsemu_media_drive_name(drive);
-        char *title = g_strdup_printf(_("%s: Empty"), name);
+        const char* name = fsemu_media_drive_name(drive);
+        char* title = g_strdup_printf(_("%s: Empty"), name);
         fsemu_menu_item_assign_title(item, title);
     }
 
@@ -351,28 +327,24 @@ static void fsemu_mainmenu_update_drive(fsemu_menu_t *menu)
         // const char *label = fsemu_media_label(fsemu_media_file(type, i));
         item = fsemu_menu_get_item(menu, 6 + i);
         fsemu_menu_item_set_enabled(
-            item,
-            fsemu_mainmenu_compare_media(fsemu_media_file(type, i),
-                                         fsemu_media_drive_file(drive)) ==
-                false);
+            item, fsemu_mainmenu_compare_media(fsemu_media_file(type, i),
+                                               fsemu_media_drive_file(drive)) == false);
     }
 }
 
-static fsemu_menu_t *fsemu_mainmenu_on_drive(fsemu_menu_item_t *item)
-{
+static fsemu_menu_t* fsemu_mainmenu_on_drive(fsemu_menu_item_t* item) {
     printf("on_drive\n");
-    fsemu_media_drive_t *drive = fsemu_menu_item_data(item);
+    fsemu_media_drive_t* drive = fsemu_menu_item_data(item);
     fsemu_assert(drive);
 
-    fsemu_menu_t *newmenu;
-    fsemu_menu_item_t *newitem;
+    fsemu_menu_t* newmenu;
+    fsemu_menu_item_t* newitem;
 
     newmenu = fsemu_menu_new();
     fsemu_menu_set_data(newmenu, drive);
     fsemu_menu_set_update_function(newmenu, fsemu_mainmenu_update_drive);
 
-    newitem =
-        fsemu_menu_item_new_heading_with_title(fsemu_media_drive_title(drive));
+    newitem = fsemu_menu_item_new_heading_with_title(fsemu_media_drive_title(drive));
     fsemu_menu_add_item(newmenu, newitem);
 
     // Index 1 - inserted media item
@@ -401,7 +373,7 @@ static fsemu_menu_t *fsemu_mainmenu_on_drive(fsemu_menu_item_t *item)
     int type = fsemu_media_drive_type(drive);
     int count = fsemu_media_count(type);
     for (int i = 0; i < count; i++) {
-        const char *label = fsemu_media_label(fsemu_media_file(type, i));
+        const char* label = fsemu_media_label(fsemu_media_file(type, i));
         newitem = fsemu_menu_item_new_with_title(label);
         fsemu_menu_item_on_activate(newitem, fsemu_mainmenu_on_drive_insert);
         fsemu_menu_item_set_data_with_int(newitem, drive, i);
@@ -416,9 +388,8 @@ static fsemu_menu_t *fsemu_mainmenu_on_drive(fsemu_menu_item_t *item)
 // Input ports
 // ----------------------------------------------------------------------------
 
-static fsemu_menu_t *fsemu_mainmenu_set_port_type(fsemu_menu_item_t *item)
-{
-    fsemu_inputport_t *port = fsemu_menu_item_data(item);
+static fsemu_menu_t* fsemu_mainmenu_set_port_type(fsemu_menu_item_t* item) {
+    fsemu_inputport_t* port = fsemu_menu_item_data(item);
     fsemu_assert(port);
 
     int port_index = fsemu_inputport_index(port);
@@ -427,39 +398,35 @@ static fsemu_menu_t *fsemu_mainmenu_set_port_type(fsemu_menu_item_t *item)
     int mode_index = fsemu_menu_item_int(item);
     fsemu_assert(mode_index >= 0 && mode_index < FSEMU_INPUTPORT_MAX_MODES);
 
-    fsemu_input_log("Sending action to change port %d -> mode %d\n",
-                    port_index,
-                    mode_index);
-    fsemu_action_post_from_main(FSEMU_ACTION_PORT0TYPE0 +
-                                port_index * FSEMU_INPUTPORT_MAX_MODES +
+    fsemu_input_log("Sending action to change port %d -> mode %d\n", port_index, mode_index);
+    fsemu_action_post_from_main(FSEMU_ACTION_PORT0TYPE0 + port_index * FSEMU_INPUTPORT_MAX_MODES +
                                 mode_index);
 
     return FSEMU_MENU_RESULT_POP1;
 }
 
-static fsemu_menu_t *fsemu_mainmenu_on_port_type(fsemu_menu_item_t *activated)
-{
-    fsemu_inputport_t *port = fsemu_menu_item_data(activated);
+static fsemu_menu_t* fsemu_mainmenu_on_port_type(fsemu_menu_item_t* activated) {
+    fsemu_inputport_t* port = fsemu_menu_item_data(activated);
     fsemu_assert(port);
 
     int port_index = fsemu_inputport_index(port);
     fsemu_assert(port_index >= 0 && port_index < FSEMU_INPUT_MAX_PORTS);
 
-    fsemu_menu_t *menu;
-    fsemu_menu_item_t *item;
+    fsemu_menu_t* menu;
+    fsemu_menu_item_t* item;
 
     menu = fsemu_menu_new();
     fsemu_menu_set_data(menu, port);
 
     // FIXME: type or mode?
-    char *title = g_strdup_printf("%s mode", fsemu_inputport_name(port));
+    char* title = g_strdup_printf("%s mode", fsemu_inputport_name(port));
     item = fsemu_menu_item_new_heading_with_title(title);
     free(title);
     fsemu_menu_add_item(menu, item);
 
     int count = fsemu_inputport_mode_count(port);
     for (int i = 0; i < count; i++) {
-        fsemu_inputmode_t *mode = fsemu_inputport_mode_by_index(port, i);
+        fsemu_inputmode_t* mode = fsemu_inputport_mode_by_index(port, i);
         item = fsemu_menu_item_new_with_title(fsemu_inputmode_title(mode));
         fsemu_menu_item_on_activate(item, fsemu_mainmenu_set_port_type);
         fsemu_menu_item_set_data_with_int(item, port, i);
@@ -478,9 +445,8 @@ static fsemu_menu_t *fsemu_mainmenu_on_port_type(fsemu_menu_item_t *activated)
     return menu;
 }
 
-static fsemu_menu_t *fsemu_mainmenu_set_port_device(fsemu_menu_item_t *item)
-{
-    fsemu_inputport_t *port = fsemu_menu_item_data(item);
+static fsemu_menu_t* fsemu_mainmenu_set_port_device(fsemu_menu_item_t* item) {
+    fsemu_inputport_t* port = fsemu_menu_item_data(item);
     fsemu_assert(port);
 
     int port_index = fsemu_inputport_index(port);
@@ -499,17 +465,16 @@ static fsemu_menu_t *fsemu_mainmenu_set_port_device(fsemu_menu_item_t *item)
     return FSEMU_MENU_RESULT_POP1;
 }
 
-static void fsemu_mainmenu_update_port_device(fsemu_menu_t *menu)
-{
-    fsemu_inputport_t *port = fsemu_menu_data(menu);
+static void fsemu_mainmenu_update_port_device(fsemu_menu_t* menu) {
+    fsemu_inputport_t* port = fsemu_menu_data(menu);
     fsemu_assert(port);
 
-    fsemu_menu_item_t *item;
+    fsemu_menu_item_t* item;
     item = fsemu_menu_get_item(menu, 1);
 
     for (int i = 0; i < FSEMU_INPUT_MAX_DEVICES; i++) {
         item = fsemu_menu_get_item(menu, 2 + i);
-        fsemu_inputdevice_t *device = fsemu_input_get_device(i);
+        fsemu_inputdevice_t* device = fsemu_input_get_device(i);
         // printf("%i %p\n", i, device);
         if (device) {
             fsemu_menu_item_set_title(item, fsemu_inputdevice_name(device));
@@ -523,23 +488,21 @@ static void fsemu_mainmenu_update_port_device(fsemu_menu_t *menu)
     // FIXME... complete..
 }
 
-static fsemu_menu_t *fsemu_mainmenu_on_port_device(
-    fsemu_menu_item_t *activated)
-{
-    fsemu_inputport_t *port = fsemu_menu_item_data(activated);
+static fsemu_menu_t* fsemu_mainmenu_on_port_device(fsemu_menu_item_t* activated) {
+    fsemu_inputport_t* port = fsemu_menu_item_data(activated);
     fsemu_assert(port);
 
     int port_index = fsemu_inputport_index(port);
     fsemu_assert(port_index >= 0 && port_index < FSEMU_INPUT_MAX_PORTS);
 
-    fsemu_menu_t *menu;
-    fsemu_menu_item_t *item;
+    fsemu_menu_t* menu;
+    fsemu_menu_item_t* item;
 
     menu = fsemu_menu_new();
     fsemu_menu_set_data(menu, port);
     fsemu_menu_set_update_function(menu, fsemu_mainmenu_update_port_device);
 
-    char *title = g_strdup_printf("%s device", fsemu_inputport_name(port));
+    char* title = g_strdup_printf("%s device", fsemu_inputport_name(port));
     item = fsemu_menu_item_new_heading_with_title(title);
     free(title);
     fsemu_menu_add_item(menu, item);
@@ -552,7 +515,7 @@ static fsemu_menu_t *fsemu_mainmenu_on_port_device(
     // fsemu_inputdevice
 
     for (int i = 0; i < FSEMU_INPUT_MAX_DEVICES; i++) {
-        fsemu_inputdevice_t *device = fsemu_input_get_device(i);
+        fsemu_inputdevice_t* device = fsemu_input_get_device(i);
         // Note; device can be NULL here. Holes are allowed in the device list.
 
         // if (device == NULL) {
@@ -601,16 +564,15 @@ static fsemu_menu_t *fsemu_mainmenu_on_port_device(
     return menu;
 }
 
-static void fsemu_mainmenu_update_port(fsemu_menu_t *menu)
-{
-    fsemu_inputport_t *port = fsemu_menu_data(menu);
+static void fsemu_mainmenu_update_port(fsemu_menu_t* menu) {
+    fsemu_inputport_t* port = fsemu_menu_data(menu);
     fsemu_assert(port);
 
-    fsemu_menu_item_t *item;
+    fsemu_menu_item_t* item;
 
     item = fsemu_menu_get_item(menu, 1);
 
-    fsemu_inputdevice_t *device = fsemu_inputport_device(port);
+    fsemu_inputdevice_t* device = fsemu_inputport_device(port);
     if (device) {
         fsemu_menu_item_set_title(item, fsemu_inputdevice_name(device));
     } else {
@@ -619,8 +581,7 @@ static void fsemu_mainmenu_update_port(fsemu_menu_t *menu)
 
     item = fsemu_menu_get_item(menu, 3);
 
-    fsemu_menu_item_set_title(
-        item, fsemu_inputmode_title(fsemu_inputport_mode(port)));
+    fsemu_menu_item_set_title(item, fsemu_inputmode_title(fsemu_inputport_mode(port)));
 
 #if 0
     // Disconnect item
@@ -645,14 +606,13 @@ static fsemu_menu_t *fsemu_mainmenu_on_port_disconnect(fsemu_menu_item_t *item)
 }
 #endif
 
-static fsemu_menu_t *fsemu_mainmenu_on_port(fsemu_menu_item_t *activated)
-{
+static fsemu_menu_t* fsemu_mainmenu_on_port(fsemu_menu_item_t* activated) {
     printf("on_port\n");
-    fsemu_inputport_t *port = fsemu_menu_item_data(activated);
+    fsemu_inputport_t* port = fsemu_menu_item_data(activated);
     fsemu_assert(port);
 
-    fsemu_menu_t *menu;
-    fsemu_menu_item_t *item;
+    fsemu_menu_t* menu;
+    fsemu_menu_item_t* item;
 
     menu = fsemu_menu_new();
     fsemu_menu_set_data(menu, port);
@@ -733,9 +693,8 @@ static fsemu_menu_t *fsemu_mainmenu_on_port(fsemu_menu_item_t *activated)
 // Main menu
 // ----------------------------------------------------------------------------
 
-static void fsemu_mainmenu_update_main(fsemu_menu_t *menu)
-{
-    fsemu_menu_item_t *item;
+static void fsemu_mainmenu_update_main(fsemu_menu_t* menu) {
+    fsemu_menu_item_t* item;
     bool paused = fsemu_control_paused();
     item = fsemu_menu_get_item(menu, 1);
     if (paused) {
@@ -755,10 +714,10 @@ static void fsemu_mainmenu_update_main(fsemu_menu_t *menu)
     int drive_count = fsemu_media_drive_count();
     for (int i = 0; i < drive_count; i++) {
         item = fsemu_menu_get_item(menu, item_index++);
-        fsemu_media_drive_t *drive = fsemu_media_drive_at_index(i);
-        const char *label = fsemu_media_label(fsemu_media_drive_file(drive));
+        fsemu_media_drive_t* drive = fsemu_media_drive_at_index(i);
+        const char* label = fsemu_media_label(fsemu_media_drive_file(drive));
         if (label) {
-            const char *old_label = fsemu_menu_item_title(item);
+            const char* old_label = fsemu_menu_item_title(item);
             if (!old_label || strcmp(label, old_label) != 0) {
                 fsemu_menu_item_set_title(item, label);
             }
@@ -766,8 +725,8 @@ static void fsemu_mainmenu_update_main(fsemu_menu_t *menu)
             // FIXME: A bit inefficient to create a new name for each update.
             // Perhaps cache the empty status for the item somehow, so we can
             // check if the title needs to be updated.
-            const char *name = fsemu_media_drive_name(drive);
-            char *title = g_strdup_printf(_("%s: Empty"), name);
+            const char* name = fsemu_media_drive_name(drive);
+            char* title = g_strdup_printf(_("%s: Empty"), name);
             fsemu_menu_item_assign_title(item, title);
         }
     }
@@ -777,12 +736,12 @@ static void fsemu_mainmenu_update_main(fsemu_menu_t *menu)
     for (int i = 0; i < port_count; i++) {
         item = fsemu_menu_get_item(menu, item_index++);
         SDL_assert(item);
-        fsemu_inputport_t *port = fsemu_input_port_by_index(i);
-        const char *mode_name = fsemu_inputport_mode_name(port);
+        fsemu_inputport_t* port = fsemu_input_port_by_index(i);
+        const char* mode_name = fsemu_inputport_mode_name(port);
         fsemu_assert_release(mode_name);
 
-        fsemu_inputdevice_t *device = fsemu_inputport_device(port);
-        const char *device_name = "";
+        fsemu_inputdevice_t* device = fsemu_inputport_device(port);
+        const char* device_name = "";
         if (device) {
             device_name = fsemu_inputdevice_name(device);
         }
@@ -803,7 +762,7 @@ static void fsemu_mainmenu_update_main(fsemu_menu_t *menu)
         }
         char *title = g_strdup_printf("%s%s", mode_desc, device_name);
 #endif
-        char *title = g_strdup_printf("[ %c ] %s", mode_name[0], device_name);
+        char* title = g_strdup_printf("[ %c ] %s", mode_name[0], device_name);
         if (item == NULL) {
             printf("ERROR: item is NULL (port count %d)\n", port_count);
             continue;
@@ -813,11 +772,10 @@ static void fsemu_mainmenu_update_main(fsemu_menu_t *menu)
     }
 }
 
-static fsemu_menu_t *fsemu_mainmenu_create_menu(void)
-{
+static fsemu_menu_t* fsemu_mainmenu_create_menu(void) {
     fsemu_mainmenu_log_debug("fsemu_mainmenu_create_menu\n");
-    fsemu_menu_t *newmenu;
-    fsemu_menu_item_t *newitem;
+    fsemu_menu_t* newmenu;
+    fsemu_menu_item_t* newitem;
 
     newmenu = fsemu_menu_new();
     fsemu_menu_set_update_function(newmenu, fsemu_mainmenu_update_main);
@@ -895,16 +853,14 @@ static fsemu_menu_t *fsemu_mainmenu_create_menu(void)
     fsemu_menu_add_item(newmenu, newitem);
     fsemu_menu_item_on_activate(newitem, fsemu_mainmenu_on_reset);
 
-    fsemu_menu_item_set_enabled(newitem,
-                                fsemu_control_soft_reset_allowed() ||
-                                    fsemu_control_hard_reset_allowed());
+    fsemu_menu_item_set_enabled(
+        newitem, fsemu_control_soft_reset_allowed() || fsemu_control_hard_reset_allowed());
 
     fsemu_menu_update(newmenu);
     return newmenu;
 }
 
-fsemu_menu_t *fsemu_mainmenu_get_menu(void)
-{
+fsemu_menu_t* fsemu_mainmenu_get_menu(void) {
     if (!fsemu_mainmenu.cached_menu) {
         fsemu_mainmenu.cached_menu = fsemu_mainmenu_create_menu();
     }
@@ -915,8 +871,7 @@ fsemu_menu_t *fsemu_mainmenu_get_menu(void)
 // Module
 // ----------------------------------------------------------------------------
 
-void fsemu_mainmenu_init(void)
-{
+void fsemu_mainmenu_init(void) {
     if (fsemu_mainmenu.initialized) {
         return;
     }

@@ -37,8 +37,8 @@ typedef struct fsemu_path_stat_t {
     int64_t blocks;
 } fsemu_path_stat_t;
 
-int fsemu_path_stat(const char *path, fsemu_path_stat_t *buf);
-int fsemu_path_fstat(int fd, fsemu_path_stat_t *buf);
+int fsemu_path_stat(const char* path, fsemu_path_stat_t* buf);
+int fsemu_path_fstat(int fd, fsemu_path_stat_t* buf);
 
 #if 0
 

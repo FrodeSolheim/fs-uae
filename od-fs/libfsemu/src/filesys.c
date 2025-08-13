@@ -25,7 +25,6 @@
 #include <sys/stat.h>
 
 #include <fs/base.h>
-#include <fs/log.h>
 
 #ifdef USE_GLIB
 #include <glib.h>

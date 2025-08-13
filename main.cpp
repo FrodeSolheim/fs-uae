@@ -852,11 +852,26 @@ void uae_quit (void)
 	target_quit ();
 }
 
+// FIMXE: HACK
+#ifdef FSUAE
+static bool started = false;
+#endif
+
 /* 0 = normal, 1 = nogui, -1 = disable nogui, -2 = autorestart */
 void uae_restart(struct uae_prefs *p, int opengui, const TCHAR *cfgfile)
 {
+#ifdef FSUAE
+	// Because of reasons, FS-UAE can call uae_restart before real_main2 has started, and in that
+	// case, we cannot run uae_quit - that will cause real_main2 to stop the emulation thread.
+	if (started) {
+#endif
 	uae_quit ();
+#ifdef FSUAE
+	}
+#endif
+
 	restart_program = opengui == -2 ? 4 : (opengui > 0 ? 1 : (opengui == 0 ? 2 : 3));
+	printf("setting restart_program = %d\n", restart_program);
 	restart_config[0] = 0;
 	default_config = 0;
 	if (cfgfile)
@@ -1138,6 +1153,9 @@ void leave_program (void)
 
 static int real_main2 (int argc, TCHAR **argv)
 {
+#ifdef FSUAE
+	started = true;
+#endif
 
 #ifdef USE_SDL
 	SDL_Init (SDL_INIT_TIMER | SDL_INIT_AUDIO | SDL_INIT_JOYSTICK | SDL_INIT_NOPARACHUTE);
@@ -1160,6 +1178,7 @@ static int real_main2 (int argc, TCHAR **argv)
 		copy_prefs(&changed_prefs, &currprefs);
 
 	if (!machdep_init ()) {
+		printf("machdep_init failed\n");
 		restart_program = 0;
 		return -1;
 	}
@@ -1284,15 +1303,22 @@ static int real_main2 (int argc, TCHAR **argv)
 void real_main (int argc, TCHAR **argv)
 {
 	restart_program = 1;
-
+#ifdef FSUAE_XXX
+	// This will overwrite restart_config with something else
+	// FIXME: Alternatively, just make sure fsuae messages early does not process
+	// uae reset??
+	// FIXME via delayed uae_reset
+#else
 	fetch_configurationpath (restart_config, sizeof (restart_config) / sizeof (TCHAR));
 	_tcscat (restart_config, OPTIONSFILENAME);
+#endif
 	default_config = 1;
 
 	while (restart_program) {
 		int ret;
 		copy_prefs(&currprefs, &changed_prefs);
 		ret = real_main2 (argc, argv);
+		printf("ret %d quit_to_gui %d restart_program %d\n", ret, quit_to_gui, restart_program);
 		if (ret == 0 && quit_to_gui)
 			restart_program = 1;
 		leave_program ();

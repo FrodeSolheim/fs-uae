@@ -11,4 +11,4 @@ extern "C" {
 }
 #endif
 
-#endif // FSUAE_CONFIG_H
+#endif  // FSUAE_CONFIG_H

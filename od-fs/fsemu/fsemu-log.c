@@ -8,11 +8,6 @@
 #include "fsemu-option.h"
 #include "fsemu-time.h"
 
-#ifdef FSUAE
-// For now...
-#include <fs/log.h>
-#endif
-
 static struct {
     bool initialized;
     bool stdout_logging;
@@ -20,13 +15,11 @@ static struct {
     int64_t last_error_at;
 } fsemu_log;
 
-int64_t fsemu_log_last_warning_at(void)
-{
+int64_t fsemu_log_last_warning_at(void) {
     return fsemu_log.last_warning_at;
 }
 
-int64_t fsemu_log_last_error_at(void)
-{
+int64_t fsemu_log_last_error_at(void) {
     return fsemu_log.last_error_at;
 }
 
@@ -40,11 +33,7 @@ int64_t fsemu_log_last_error_at(void)
 //     printf("%s", message);
 // }
 
-void fsemu_log_with_level_and_flags(int level,
-                                    int flags,
-                                    const char *format,
-                                    ...)
-{
+void fsemu_log_with_level_and_flags(int level, int flags, const char* format, ...) {
     va_list ap;
     if (level <= FSEMU_LOG_LEVEL_WARNING) {
         va_start(ap, format);
@@ -58,10 +47,11 @@ void fsemu_log_with_level_and_flags(int level,
 
 #ifdef FSUAE
     va_start(ap, format);
-    char *buffer = g_strdup_vprintf(format, ap);
+    char* buffer = g_strdup_vprintf(format, ap);
     va_end(ap);
     // For now...
-    fs_log_string(buffer);
+    // fs_log_string(buffer);
+    SDL_Log("%s", buffer);
     g_free(buffer);
 #endif
     if (level == FSEMU_LOG_LEVEL_WARNING) {
@@ -75,8 +65,7 @@ void fsemu_log_with_level_and_flags(int level,
     }
 }
 
-void fsemu_log_setup(void)
-{
+void fsemu_log_setup(void) {
     if (fsemu_log.initialized) {
         return;
     }

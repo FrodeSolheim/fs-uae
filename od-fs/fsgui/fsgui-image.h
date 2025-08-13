@@ -40,4 +40,4 @@ struct fsgui_image {
 }
 #endif
 
-#endif // FSGUI_IMAGE_H
+#endif  // FSGUI_IMAGE_H

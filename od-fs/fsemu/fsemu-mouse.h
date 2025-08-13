@@ -79,7 +79,7 @@ typedef struct fsemu_mouse_event {
     int state;
 } fsemu_mouse_event_t;
 
-bool fsemu_mouse_handle_mouse(fsemu_mouse_event_t *event);
+bool fsemu_mouse_handle_mouse(fsemu_mouse_event_t* event);
 
 enum {
     // Make sure to keep these in the same order as in fsemu-inputdevice.

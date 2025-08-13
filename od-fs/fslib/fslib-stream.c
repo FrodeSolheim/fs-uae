@@ -4,8 +4,7 @@
 
 // typedef SDL_RWops fslib_stream_t;
 
-static void fslib_stream_free(fslib_stream_t* stream)
-{
+static void fslib_stream_free(fslib_stream_t* stream) {
     printf("FIXME: free not implemented\n");
     abort();
     // printf("fslib_stream_free stream=%p\n", stream);
@@ -15,13 +14,11 @@ static void fslib_stream_free(fslib_stream_t* stream)
     // free(stream);
 }
 
-static void fslib_stream_cleanup(void* stream)
-{
+static void fslib_stream_cleanup(void* stream) {
     fslib_stream_free((fslib_stream_t*)stream);
 }
 
-static fslib_stream_t* fslib_stream_new_with_rwops(SDL_IOStream* rwops)
-{
+static fslib_stream_t* fslib_stream_new_with_rwops(SDL_IOStream* rwops) {
     fslib_stream_t* stream = malloc(sizeof(fslib_stream_t));
     printf("fslib_stream_new_with_rwops rwops=%p -> %p\n", rwops, stream);
     stream->rwops = rwops;
@@ -29,8 +26,7 @@ static fslib_stream_t* fslib_stream_new_with_rwops(SDL_IOStream* rwops)
     return stream;
 }
 
-fslib_stream_t* fslib_stream_null(void)
-{
+fslib_stream_t* fslib_stream_null(void) {
 #if 1
     return fslib_stream_new_with_rwops(NULL);
 
@@ -49,8 +45,7 @@ fslib_stream_t* fslib_stream_null(void)
 #endif
 }
 
-fslib_stream_t* fslib_stream_new(void)
-{
+fslib_stream_t* fslib_stream_new(void) {
     // return fslib_stream_new_with_rwops(SDL_AllocRW());
     printf("NOT IMPLEMENTED\n");
     SDL_assert(false);
@@ -58,29 +53,24 @@ fslib_stream_t* fslib_stream_new(void)
     return NULL;
 }
 
-void fslib_stream_unref(fslib_stream_t* stream)
-{
+void fslib_stream_unref(fslib_stream_t* stream) {
     printf("fslib_stream_unref stream=%p\n", stream);
     fslib_refable_unref(stream);
 }
 
-fslib_stream_t* fslib_stream_from_const_data(const void* mem, int size)
-{
+fslib_stream_t* fslib_stream_from_const_data(const void* mem, int size) {
     return fslib_stream_new_with_rwops(SDL_IOFromConstMem(mem, size));
 }
 
-fslib_stream_t* fslib_stream_from_file(FILE* fp, bool autoclose)
-{
+fslib_stream_t* fslib_stream_from_file(FILE* fp, bool autoclose) {
     return fslib_stream_new_with_rwops(SDL_IOFromMem(fp, autoclose));
 }
 
-fslib_stream_t* fslib_stream_from_path(const char* file, const char* mode)
-{
+fslib_stream_t* fslib_stream_from_path(const char* file, const char* mode) {
     return fslib_stream_new_with_rwops(SDL_IOFromFile(file, mode));
 }
 
-fslib_stream_t* fslib_stream_from_data(void* mem, int size)
-{
+fslib_stream_t* fslib_stream_from_data(void* mem, int size) {
     return fslib_stream_new_with_rwops(SDL_IOFromMem(mem, size));
 }
 
@@ -89,24 +79,21 @@ fslib_stream_t* fslib_stream_from_data(void* mem, int size)
 // #define fslib_stream_from_path SDL_RWFromFile
 // #define fslib_stream_from_data SDL_RWFromMem
 
-int fslib_stream_close(fslib_stream_t* stream)
-{
+int fslib_stream_close(fslib_stream_t* stream) {
     if (stream->rwops == NULL) {
         return 0;
     }
     return SDL_CloseIO(stream->rwops);
 }
 
-int64_t fslib_stream_size(fslib_stream_t* stream)
-{
+int64_t fslib_stream_size(fslib_stream_t* stream) {
     if (stream->rwops == NULL) {
         return 0;
     }
     return SDL_GetIOSize(stream->rwops);
 }
 
-size_t fslib_stream_read(fslib_stream_t* stream, void* ptr, size_t size)
-{
+size_t fslib_stream_read(fslib_stream_t* stream, void* ptr, size_t size) {
     if (stream->rwops == NULL) {
         return 0;
     }

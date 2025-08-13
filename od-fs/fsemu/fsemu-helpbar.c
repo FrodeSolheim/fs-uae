@@ -7,33 +7,29 @@
 
 static struct {
     bool initialized;
-    fsemu_widget_t *container_w;
+    fsemu_widget_t* container_w;
 } fsemu_helpbar;
 
 // ----------------------------------------------------------------------------
 
-void fsemu_helpbar_update(void)
-{
+void fsemu_helpbar_update(void) {
 }
 
 // ----------------------------------------------------------------------------
 
-static void fsemu_helpbar_quit(void)
-{
+static void fsemu_helpbar_quit(void) {
 }
 
 // ----------------------------------------------------------------------------
 
-void fsemu_helpbar_init(void)
-{
-    fsemu_widget_t *w;
+void fsemu_helpbar_init(void) {
+    fsemu_widget_t* w;
 
     if (FSEMU_MODULE_INIT(helpbar)) {
         return;
     }
 
-    w = fsemu_helpbar.container_w =
-        fsemu_widget_new_with_name("leds-container");
+    w = fsemu_helpbar.container_w = fsemu_widget_new_with_name("leds-container");
     // FIXME: Make sure that this is optimized and not attempted rendering.
     fsemu_widget_set_color(w, FSEMU_COLOR_TRANSPARENT);
     // FIXME: Check what z-index to use (below video)

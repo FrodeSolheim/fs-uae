@@ -22,20 +22,18 @@
 #define fsemu_sdlvideo_MAX_FRAME_STATS (1 << 8)  // 256
 
 static struct {
-    SDL_Renderer *renderer;
-    SDL_Texture *textures[2];
+    SDL_Renderer* renderer;
+    SDL_Texture* textures[2];
     int current_texture;
     fsemu_rect_t rect;
     fsemu_rect_t limits_rect;
 } fsemu_sdlvideo;
 
-void fsemu_sdlvideo_hack(SDL_Renderer *renderer)
-{
+void fsemu_sdlvideo_hack(SDL_Renderer* renderer) {
     fsemu_sdlvideo.renderer = renderer;
 }
 
-void fsemu_sdlvideo_init(void)
-{
+void fsemu_sdlvideo_init(void) {
     fsemu_return_if_already_initialized();
     fsemu_video_log("Initializing SDL video renderer\n");
 
@@ -60,36 +58,27 @@ void fsemu_sdlvideo_init(void)
     }
 #endif
 
-    fsemu_sdlvideo.textures[0] = SDL_CreateTexture(fsemu_sdlvideo.renderer,
-                                                   SDL_PIXELFORMAT_BGRA32,
-                                                   SDL_TEXTUREACCESS_STREAMING,
-                                                   1024,
-                                                   1024);
-    fsemu_sdlvideo.textures[1] = SDL_CreateTexture(fsemu_sdlvideo.renderer,
-                                                   SDL_PIXELFORMAT_BGRA32,
-                                                   SDL_TEXTUREACCESS_STREAMING,
-                                                   1024,
-                                                   1024);
+    fsemu_sdlvideo.textures[0] = SDL_CreateTexture(fsemu_sdlvideo.renderer, SDL_PIXELFORMAT_BGRA32,
+                                                   SDL_TEXTUREACCESS_STREAMING, 1024, 1024);
+    fsemu_sdlvideo.textures[1] = SDL_CreateTexture(fsemu_sdlvideo.renderer, SDL_PIXELFORMAT_BGRA32,
+                                                   SDL_TEXTUREACCESS_STREAMING, 1024, 1024);
 }
 
-static void fsemu_sdlvideo_handle_frame(fsemu_video_frame_t *frame)
-{
+static void fsemu_sdlvideo_handle_frame(fsemu_video_frame_t* frame) {
     if (frame->dummy) {
         fsemu_video_set_ready(true);
         return;
     }
     fsemu_video_must_render_frame();
 
-    fsemu_video_log(" ---------------- draw got frame! (%dx%d) partial? %d\n",
-                    frame->width,
-                    frame->height,
-                    frame->partial);
+    fsemu_video_log(" ---------------- draw got frame! (%dx%d) partial? %d\n", frame->width,
+                    frame->height, frame->partial);
     SDL_Rect rect;
     rect.x = 0;
     rect.y = 0;
     rect.w = frame->width;
     rect.h = frame->height;
-    uint8_t *pixels = (uint8_t *) frame->buffer;
+    uint8_t* pixels = (uint8_t*)frame->buffer;
 
     // FIXME: support for partial
     int y = 0;
@@ -120,34 +109,24 @@ static void fsemu_sdlvideo_handle_frame(fsemu_video_frame_t *frame)
     // rect.y = y;
     // rect.h = rect.h - y;
 
-    fsemu_video_log(" draw ___________ y %d -> %d %d %d %d \n",
-                    y,
-                    rect.x,
-                    rect.y,
-                    rect.w,
-                    rect.h);
+    fsemu_video_log(" draw ___________ y %d -> %d %d %d %d \n", y, rect.x, rect.y, rect.w, rect.h);
 
     // printf("update texture\n");
-    SDL_UpdateTexture(fsemu_sdlvideo.textures[fsemu_sdlvideo.current_texture],
-                      &rect,
-                      pixels,
+    SDL_UpdateTexture(fsemu_sdlvideo.textures[fsemu_sdlvideo.current_texture], &rect, pixels,
                       frame->stride);
 
 #if 1
-    static uint8_t *greenline;
+    static uint8_t* greenline;
     if (greenline == NULL) {
-        greenline = (uint8_t *) malloc(2048 * 4);
+        greenline = (uint8_t*)malloc(2048 * 4);
         for (int i = 0; i < 2048; i++) {
-            ((int32_t *) greenline)[i] = FSEMU_RGB(0x00ff00);
+            ((int32_t*)greenline)[i] = FSEMU_RGB(0x00ff00);
         }
     }
     if (fsemu_perfgui_mode() == 2) {
         rect.h = 1;
-        SDL_UpdateTexture(
-            fsemu_sdlvideo.textures[fsemu_sdlvideo.current_texture],
-            &rect,
-            greenline,
-            2048 * 4);
+        SDL_UpdateTexture(fsemu_sdlvideo.textures[fsemu_sdlvideo.current_texture], &rect, greenline,
+                          2048 * 4);
     }
 #endif
 
@@ -169,8 +148,7 @@ static void fsemu_sdlvideo_handle_frame(fsemu_video_frame_t *frame)
 
     static int64_t last;
     int64_t now = fsemu_time_us();
-    fsemu_video_log("_______draw _______diff __________ %lld\n",
-                    lld(now - last));
+    fsemu_video_log("_______draw _______diff __________ %lld\n", lld(now - last));
     last = now;
 
     static int framecount;
@@ -191,9 +169,8 @@ static void fsemu_sdlvideo_handle_frame(fsemu_video_frame_t *frame)
     // FIXME: Free frame if it is a partial frame, otherwise save for render...
 }
 
-void fsemu_sdlvideo_work(int timeout_us)
-{
-    fsemu_video_frame_t *frame = fsemu_video_get_frame(timeout_us);
+void fsemu_sdlvideo_work(int timeout_us) {
+    fsemu_video_frame_t* frame = fsemu_video_get_frame(timeout_us);
     if (frame) {
         fsemu_sdlvideo_handle_frame(frame);
         // fsemu_video_free_frame(frame);
@@ -202,8 +179,7 @@ void fsemu_sdlvideo_work(int timeout_us)
     }
 }
 
-void fsemu_sdlvideo_render(void)
-{
+void fsemu_sdlvideo_render(void) {
     fsemu_video_log("--- render --- [draw]\n");
     SDL_FRect src;
     src.x = 0;
@@ -219,7 +195,7 @@ void fsemu_sdlvideo_render(void)
     src.h = fsemu_sdlvideo.limits_rect.h;
 
     fsemu_layout_set_video_size(src.w, src.h);
-    fsemu_layout_set_pixel_aspect(((double) src.w / src.h) / (4.0 / 3.0));
+    fsemu_layout_set_pixel_aspect(((double)src.w / src.h) / (4.0 / 3.0));
 
     SDL_Rect dst2;
     fsemu_layout_video_rect(&dst2);
@@ -235,22 +211,12 @@ void fsemu_sdlvideo_render(void)
     dst.w = src.w;
     dst.h = src.h;
 
-    printf("%f %f %f %f -> %f %f %f %f\n",
-           src.x,
-           src.y,
-           src.w,
-           src.h,
-           dst.x,
-           dst.y,
-           dst.w,
-           dst.h);
+    printf("%f %f %f %f -> %f %f %f %f\n", src.x, src.y, src.w, src.h, dst.x, dst.y, dst.w, dst.h);
 
     // SDL_SetRenderDrawBlendMode(fsemu_sdlvideo.renderer, SDL_BLENDMODE_NONE);
-    bool result = SDL_RenderTexture(
-        fsemu_sdlvideo.renderer,
-        fsemu_sdlvideo.textures[fsemu_sdlvideo.current_texture],
-        &src,
-        &dst);
+    bool result =
+        SDL_RenderTexture(fsemu_sdlvideo.renderer,
+                          fsemu_sdlvideo.textures[fsemu_sdlvideo.current_texture], &src, &dst);
     if (!result) {
         printf("SDL_RenderTexture failed: %s\n", SDL_GetError());
     }
@@ -273,8 +239,7 @@ void fsemu_sdlvideo_render(void)
     framecount += 1;
 }
 
-void fsemu_sdlvideo_display(void)
-{
+void fsemu_sdlvideo_display(void) {
 #if 0
     if (fsemu_video_can_skip_rendering_this_frame()) {
         return;
@@ -294,10 +259,7 @@ void fsemu_sdlvideo_display(void)
     SDL_RenderClear(fsemu_sdlvideo.renderer);
 }
 
-static void fsemu_sdlvideo_convert_coordinates(SDL_FRect *out,
-                                               fsemu_rect_t *in,
-                                               int coordinates)
-{
+static void fsemu_sdlvideo_convert_coordinates(SDL_FRect* out, fsemu_rect_t* in, int coordinates) {
     // FIXME: Use copy of window size? Layout?
     fsemu_size_t window_size;
     fsemu_window_size(&window_size);
@@ -341,27 +303,21 @@ static void fsemu_sdlvideo_convert_coordinates(SDL_FRect *out,
     }
 }
 
-static void fsemu_sdlvideo_render_image(fsemu_gui_item_t *item)
-{
+static void fsemu_sdlvideo_render_image(fsemu_gui_item_t* item) {
     SDL_FRect dr;
     fsemu_sdlvideo_convert_coordinates(&dr, &item->rect, item->coordinates);
 
-    fsemu_image_t *image = item->image;
-    SDL_Surface *surface = SDL_CreateSurfaceFrom(image->width,
-                                                 image->height,
-                                                 SDL_PIXELFORMAT_RGBA32,
-                                                 image->data,
-                                                 image->stride);
+    fsemu_image_t* image = item->image;
+    SDL_Surface* surface = SDL_CreateSurfaceFrom(
+        image->width, image->height, SDL_PIXELFORMAT_RGBA32, image->data, image->stride);
     if (surface == NULL) {
         fprintf(stderr, "CreateRGBSurface failed: %s\n", SDL_GetError());
         exit(1);
     }
 
-    SDL_Texture *texture =
-        SDL_CreateTextureFromSurface(fsemu_sdlvideo.renderer, surface);
+    SDL_Texture* texture = SDL_CreateTextureFromSurface(fsemu_sdlvideo.renderer, surface);
     if (texture == NULL) {
-        fprintf(
-            stderr, "CreateTextureFromSurface failed: %s\n", SDL_GetError());
+        fprintf(stderr, "CreateTextureFromSurface failed: %s\n", SDL_GetError());
         exit(1);
     }
     SDL_DestroySurface(surface);
@@ -374,19 +330,17 @@ static void fsemu_sdlvideo_render_image(fsemu_gui_item_t *item)
 
     SDL_FlipMode flip = SDL_FLIP_NONE;
     if (item->flags & FSEMU_WIDGET_FLAG_FLIPX) {
-        flip = (SDL_FlipMode) (flip | SDL_FLIP_HORIZONTAL);
+        flip = (SDL_FlipMode)(flip | SDL_FLIP_HORIZONTAL);
     }
 
     // SDL_RenderCopy(fsemu_sdlvideo.renderer, texture, &src_rect, &dr);
-    SDL_RenderTextureRotated(
-        fsemu_sdlvideo.renderer, texture, &src_rect, &dr, 0, NULL, flip);
+    SDL_RenderTextureRotated(fsemu_sdlvideo.renderer, texture, &src_rect, &dr, 0, NULL, flip);
 
     fsemu_video_log("Render image to %d,%d %dx%d\n", dr.x, dr.y, dr.w, dr.h);
     SDL_DestroyTexture(texture);
 }
 
-static void fsemu_sdlvideo_render_rectangle(fsemu_gui_item_t *item)
-{
+static void fsemu_sdlvideo_render_rectangle(fsemu_gui_item_t* item) {
     SDL_FRect dr;
     fsemu_sdlvideo_convert_coordinates(&dr, &item->rect, item->coordinates);
 
@@ -405,8 +359,7 @@ static void fsemu_sdlvideo_render_rectangle(fsemu_gui_item_t *item)
     fsemu_video_log("Render rect to %d,%d %dx%d\n", dr.x, dr.y, dr.w, dr.h);
 }
 
-static void fsemu_sdlvideo_render_item(fsemu_gui_item_t *item)
-{
+static void fsemu_sdlvideo_render_item(fsemu_gui_item_t* item) {
     if (item->visible) {
         if (item->image) {
             // item->color = 0xff0000ff;
@@ -418,12 +371,11 @@ static void fsemu_sdlvideo_render_item(fsemu_gui_item_t *item)
     }
 }
 
-void fsemu_sdlvideo_render_gui_early(fsemu_gui_item_t *items)
-{
+void fsemu_sdlvideo_render_gui_early(fsemu_gui_item_t* items) {
     fsemu_video_log("fsemu_sdlvideo_render_gui_early\n");
 #if 1
     SDL_SetRenderDrawBlendMode(fsemu_sdlvideo.renderer, SDL_BLENDMODE_BLEND);
-    fsemu_gui_item_t *item = items;
+    fsemu_gui_item_t* item = items;
     while (item) {
         if (item->z_index < 0) {
             fsemu_sdlvideo_render_item(item);
@@ -434,12 +386,11 @@ void fsemu_sdlvideo_render_gui_early(fsemu_gui_item_t *items)
 #endif
 }
 
-void fsemu_sdlvideo_render_gui(fsemu_gui_item_t *items)
-{
+void fsemu_sdlvideo_render_gui(fsemu_gui_item_t* items) {
     fsemu_video_log("fsemu_sdlvideo_render_gui\n");
 #if 1
     SDL_SetRenderDrawBlendMode(fsemu_sdlvideo.renderer, SDL_BLENDMODE_BLEND);
-    fsemu_gui_item_t *item = items;
+    fsemu_gui_item_t* item = items;
     while (item) {
         if (item->z_index >= 0) {
             fsemu_sdlvideo_render_item(item);

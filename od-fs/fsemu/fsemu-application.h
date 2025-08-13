@@ -9,19 +9,19 @@ extern "C" {
 #endif
 
 // Can be called before fsemu_application_init
-void fsemu_application_set_name(const char *name);
+void fsemu_application_set_name(const char* name);
 
 // Can be called before fsemu_application_init
-void fsemu_application_set_base_dir(const char *dir_path);
+void fsemu_application_set_base_dir(const char* dir_path);
 
 // Can be called before fsemu_application_init
-void fsemu_application_set_base_dir_name(const char *dir_name);
+void fsemu_application_set_base_dir_name(const char* dir_name);
 
 void fsemu_application_init(void);
 
-const char *fsemu_application_name(void);
+const char* fsemu_application_name(void);
 
-const char *fsemu_application_base_dir(void);
+const char* fsemu_application_base_dir(void);
 
 #ifdef FSEMU_INTERNAL
 

@@ -347,10 +347,12 @@ static LRESULT CALLBACK RawWndProc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lP
 
 #ifdef FSUAE
 
+#if 0
 #include <SDL.h>
 #include <SDL_syswm.h>
 
 extern SDL_Window *g_fs_ml_window;
+#endif
 static WNDPROC OldWndProc;
 
 static LRESULT CALLBACK NewWndProc(HWND hwnd, UINT Msg, WPARAM wParam, LPARAM lParam)

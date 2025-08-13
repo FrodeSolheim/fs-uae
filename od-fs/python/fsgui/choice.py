@@ -231,11 +231,7 @@ class ChoiceMenu(BorderlessWindow):
         # FIXME: Maybe set width based on largest item
         # width = 320 + self.padding[1] + self.padding[3]
         width = 1
-        height = (
-            self.item_height * len(self.items)
-            + self.padding[0]
-            + self.padding[2]
-        )
+        height = self.item_height * len(self.items) + self.padding[0] + self.padding[2]
         self.resize((width, height))
 
         # ...?
@@ -258,10 +254,7 @@ class ChoiceMenu(BorderlessWindow):
         if y < self.padding[0] or y >= self.height - self.padding[2]:
             return None
         return int(
-            (
-                (y - self.padding[0])
-                / (self.height - self.padding[0] - self.padding[2])
-            )
+            ((y - self.padding[0]) / (self.height - self.padding[0] - self.padding[2]))
             * len(self.items)
         )
 

@@ -18,14 +18,14 @@ class Colour(tuple[int, int, int, int]):
     WHITE = (0xFF, 0xFF, 0xFF, 0xFF)
 
 
-type TColour = tuple[int, int, int, int]
+TColour = tuple[int, int, int, int]
 
-type ExpandParam = bool | float
-type Padding = tuple[int, int, int, int] | int
-type PaddingParam = Padding | int | None
-type Position = tuple[int, int]
-type Size = tuple[int, int]
-type SizeParam = Size | None
+ExpandParam = bool | float
+Padding = tuple[int, int, int, int] | int
+PaddingParam = Padding | int | None
+Position = tuple[int, int]
+Size = tuple[int, int]
+SizeParam = Size | None
 
 
 class Borders:

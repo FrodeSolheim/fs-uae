@@ -60,6 +60,7 @@ int g_fs_uae_writable_disk_images = 0;
 
 void gui_filename(int num, const char *name)
 {
+    SDL_Log("DISK INSERT (df%d): %s", num, name);
     if (g_amiga_media_function) {
         g_amiga_media_function(num, name);
     }

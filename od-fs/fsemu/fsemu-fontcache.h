@@ -11,7 +11,7 @@ extern "C" {
 // You do not need to call this, it will be called on demand.
 void fsemu_fontcache_init(void);
 
-fsemu_font_t *fsemu_fontcache_font(const char *name, int size);
+fsemu_font_t* fsemu_fontcache_font(const char* name, int size);
 
 #ifdef __cplusplus
 }

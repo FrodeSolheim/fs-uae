@@ -46,13 +46,9 @@ class InputControlWindow(Window):
 
         for port_index in range(2):
             with VerticalLayout(gap=8).fill():
-                InputModeSelector(
-                    services.input_ports, services.input_devices, port_index
-                ).fill()
+                InputModeSelector(services.input_ports, services.input_devices, port_index).fill()
 
-                InputDeviceSelector(
-                    services.input_ports, services.input_devices, port_index
-                ).fill()
+                InputDeviceSelector(services.input_ports, services.input_devices, port_index).fill()
 
         self.resize_to_fit_content()
         # self.set_width(692)
@@ -73,13 +69,9 @@ class InputControlWidget(Widget):
 
         # FIXME: # .set_width(300) does not have any effect
         # FIXME: # .set_min_width instead?
-        InputModeSelector(
-            input_port_service, input_device_service, port_index
-        ).set_min_width(200)
+        InputModeSelector(input_port_service, input_device_service, port_index).set_min_width(200)
 
-        InputDeviceSelector(
-            input_port_service, input_device_service, port_index
-        ).expand()
+        InputDeviceSelector(input_port_service, input_device_service, port_index).expand()
 
 
 class InputModeSelector(Choice):
@@ -145,6 +137,4 @@ class InputDeviceSelector(Choice):
         logger.debug("%r on_change %r", self, self.index)
         # FIXME: Maybe not a good idea, replace with name?
         index = self.index
-        self.input_port_service.ports[self.port_index].set_device_by_index(
-            index
-        )
+        self.input_port_service.ports[self.port_index].set_device_by_index(index)

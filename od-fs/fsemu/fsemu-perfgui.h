@@ -33,7 +33,7 @@ fsemu_perfgui_mode_t fsemu_perfgui_mode(void);
 
 void fsemu_perfgui_update_image(void);
 
-fsemu_image_t *fsemu_perfgui_image(void);
+fsemu_image_t* fsemu_perfgui_image(void);
 
 #endif  // FSEMU_INTERNAL
 

@@ -1,4 +1,37 @@
-config.h
+# Temporary files
+
+.~*
+*.DS_Store
+*~
+
+# Files created by bootstrap
+
 config.h.in
+
+# Files created by configure script
+
+config.h
 fs-uae.rc
-stamp-h1
+
+# Files created by make
+
+_build/
+.deps/
+/fs-uae
+/FS-UAE.app/
+
+# Files created by running FS-UAE
+
+__pycache__/
+/Data/
+
+# Files created by dist scripts
+
+_dist/
+
+# Files created by running WinUAE
+
+configuration.backup
+configuration.cache
+winuaebootlog.txt
+winuaelog.txt

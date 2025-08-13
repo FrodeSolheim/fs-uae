@@ -39,47 +39,47 @@
 int fsemu_oskeyboard_log_level = FSEMU_LOG_LEVEL_INFO;
 
 struct fsemu_oskeyboard {
-    fsemu_oskeyboard_key_t *selected_key;
-    fsemu_oskeyboard_key_t *pressed_key;
-    fsemu_widget_t *selected_w;
+    fsemu_oskeyboard_key_t* selected_key;
+    fsemu_oskeyboard_key_t* pressed_key;
+    fsemu_widget_t* selected_w;
     bool dirty;
-    fsemu_oskeyboard_row_t *first_row;
-    fsemu_oskeyboard_row_t *last_row;
+    fsemu_oskeyboard_row_t* first_row;
+    fsemu_oskeyboard_row_t* last_row;
     // Size in key units * 100 (i.e. 300 = 3 standard key widths)
     fsemu_size_t size;
-    fsemu_widget_t *widget;
+    fsemu_widget_t* widget;
 };
 
 struct fsemu_oskeyboard_row {
     int bottom_margin;
-    fsemu_oskeyboard_key_t *first_key;
+    fsemu_oskeyboard_key_t* first_key;
     int height;
     // Index of row in keyboard (bottom row is 0)
     int index;
-    fsemu_oskeyboard_t *keyboard;
-    fsemu_oskeyboard_row_t *next;
-    fsemu_oskeyboard_key_t *last_key;
+    fsemu_oskeyboard_t* keyboard;
+    fsemu_oskeyboard_row_t* next;
+    fsemu_oskeyboard_key_t* last_key;
 };
 
 struct fsemu_oskeyboard_key {
-    char *name;
+    char* name;
     fsemu_action_t action;
     // Index of key in row (left key is 0)
     int height;
     int index;
     int left_margin;
-    fsemu_oskeyboard_key_t *next;
-    fsemu_oskeyboard_row_t *row;
-    fsemu_widget_t *widget;
+    fsemu_oskeyboard_key_t* next;
+    fsemu_oskeyboard_row_t* row;
+    fsemu_widget_t* widget;
     int width;
 };
 
 // ----------------------------------------------------------------------------
 
 static struct {
-    fsemu_oskeyboard_t *active;
-    fsemu_widget_t *background_w;
-    fsemu_widget_t *container_w;
+    fsemu_oskeyboard_t* active;
+    fsemu_widget_t* background_w;
+    fsemu_widget_t* container_w;
     bool initialized;
     bool open;
     bool was_open;
@@ -87,22 +87,19 @@ static struct {
 
 // ----------------------------------------------------------------------------
 
-fsemu_oskeyboard_t *fsemu_oskeyboard_new(void)
-{
-    fsemu_oskeyboard_t *keyboard = FSEMU_UTIL_MALLOC0(fsemu_oskeyboard_t);
+fsemu_oskeyboard_t* fsemu_oskeyboard_new(void) {
+    fsemu_oskeyboard_t* keyboard = FSEMU_UTIL_MALLOC0(fsemu_oskeyboard_t);
     return keyboard;
 }
 
-static fsemu_oskeyboard_row_t *fsemu_oskeyboard_row_new(void)
-{
-    fsemu_oskeyboard_row_t *row = FSEMU_UTIL_MALLOC0(fsemu_oskeyboard_row_t);
+static fsemu_oskeyboard_row_t* fsemu_oskeyboard_row_new(void) {
+    fsemu_oskeyboard_row_t* row = FSEMU_UTIL_MALLOC0(fsemu_oskeyboard_row_t);
     row->height = 100;
     return row;
 }
 
-fsemu_oskeyboard_row_t *fsemu_oskeyboard_new_row(fsemu_oskeyboard_t *keyboard)
-{
-    fsemu_oskeyboard_row_t *row = fsemu_oskeyboard_row_new();
+fsemu_oskeyboard_row_t* fsemu_oskeyboard_new_row(fsemu_oskeyboard_t* keyboard) {
+    fsemu_oskeyboard_row_t* row = fsemu_oskeyboard_row_new();
     row->keyboard = keyboard;
     if (keyboard->last_row) {
         row->index = keyboard->last_row->index + 1;
@@ -116,18 +113,16 @@ fsemu_oskeyboard_row_t *fsemu_oskeyboard_new_row(fsemu_oskeyboard_t *keyboard)
     return row;
 }
 
-static fsemu_oskeyboard_key_t *fsemu_oskeyboard_key_new(void)
-{
-    fsemu_oskeyboard_key_t *key = FSEMU_UTIL_MALLOC0(fsemu_oskeyboard_key_t);
+static fsemu_oskeyboard_key_t* fsemu_oskeyboard_key_new(void) {
+    fsemu_oskeyboard_key_t* key = FSEMU_UTIL_MALLOC0(fsemu_oskeyboard_key_t);
     key->width = 100;
     key->height = 100;
     return key;
 }
 
-fsemu_oskeyboard_key_t *fsemu_oskeyboard_row_new_key_with_name(
-    fsemu_oskeyboard_row_t *row, const char *name)
-{
-    fsemu_oskeyboard_key_t *key = fsemu_oskeyboard_key_new();
+fsemu_oskeyboard_key_t* fsemu_oskeyboard_row_new_key_with_name(fsemu_oskeyboard_row_t* row,
+                                                               const char* name) {
+    fsemu_oskeyboard_key_t* key = fsemu_oskeyboard_key_new();
     key->name = strdup(name);
     key->row = row;
     if (row->last_key) {
@@ -143,63 +138,47 @@ fsemu_oskeyboard_key_t *fsemu_oskeyboard_row_new_key_with_name(
     return key;
 }
 
-void fsemu_oskeyboard_row_set_bottom_margin(fsemu_oskeyboard_row_t *row,
-                                            int bottom_margin)
-{
+void fsemu_oskeyboard_row_set_bottom_margin(fsemu_oskeyboard_row_t* row, int bottom_margin) {
     row->bottom_margin = bottom_margin;
     row->keyboard->dirty = true;
 }
 
-void fsemu_oskeyboard_key_set_left_margin(fsemu_oskeyboard_key_t *key,
-                                          int left_margin)
-{
+void fsemu_oskeyboard_key_set_left_margin(fsemu_oskeyboard_key_t* key, int left_margin) {
     key->left_margin = left_margin;
     key->row->keyboard->dirty = true;
 }
 
-void fsemu_oskeyboard_key_set_height(fsemu_oskeyboard_key_t *key, int height)
-{
+void fsemu_oskeyboard_key_set_height(fsemu_oskeyboard_key_t* key, int height) {
     key->height = height;
     key->row->keyboard->dirty = true;
 }
 
-void fsemu_oskeyboard_key_set_width(fsemu_oskeyboard_key_t *key, int width)
-{
+void fsemu_oskeyboard_key_set_width(fsemu_oskeyboard_key_t* key, int width) {
     key->width = width;
     key->row->keyboard->dirty = true;
 }
 
-void fsemu_oskeyboard_key_set_action(fsemu_oskeyboard_key_t *key,
-                                     fsemu_action_t action)
-{
+void fsemu_oskeyboard_key_set_action(fsemu_oskeyboard_key_t* key, fsemu_action_t action) {
     key->action = action;
 }
 
-bool fsemu_oskeyboard_open(void)
-{
+bool fsemu_oskeyboard_open(void) {
     return fsemu_oskeyboard.open;
 }
 
-static void fsemu_oskeyboard_release_keys(fsemu_oskeyboard_t *keyboard)
-{
+static void fsemu_oskeyboard_release_keys(fsemu_oskeyboard_t* keyboard) {
     // FIXME: Release currently held keys!
-    fsemu_oskeyboard_log_debug(
-        "\nFIXME: ON-SCREEN KEYBOARD - RELEASE PRESSED KEYS\n\n");
+    fsemu_oskeyboard_log_debug("\nFIXME: ON-SCREEN KEYBOARD - RELEASE PRESSED KEYS\n\n");
 }
 
-static void fsemu_oskeyboard_cannot_show(const char *message)
-{
+static void fsemu_oskeyboard_cannot_show(const char* message) {
     fsemu_hud_show_notification(
-        FSEMU_HUD_NOTICATION_ID(
-            0x411a51a9, 0x7ef6, 0x4169, 0x9240, 0x7058f8ffd15a),
-        "Cannot show keyboard",
-        message,
-        FSEMU_HUD_NOTIFICATION_WARNING_ICON,
+        FSEMU_HUD_NOTICATION_ID(0x411a51a9, 0x7ef6, 0x4169, 0x9240, 0x7058f8ffd15a),
+        "Cannot show keyboard", message, FSEMU_HUD_NOTIFICATION_WARNING_ICON,
         FSEMU_HUD_NOTIFICATION_DEFAULT_DURATION);
 }
 
-void fsemu_oskeyboard_set_open(bool open)
-{
+void fsemu_oskeyboard_set_open(bool open) {
     fsemu_oskeyboard_log_debug("fsemu_oskeyboard_set_open open=%d\n", open);
     if (!fsemu_oskeyboard.initialized) {
         fsemu_oskeyboard_cannot_show("Keyboard module was not initialized");
@@ -220,21 +199,17 @@ void fsemu_oskeyboard_set_open(bool open)
     fsemu_widget_set_visible(fsemu_oskeyboard.container_w, open);
 }
 
-void fsemu_oskeyboard_toggle_open(void)
-{
+void fsemu_oskeyboard_toggle_open(void) {
     fsemu_oskeyboard_set_open(!fsemu_oskeyboard_open());
 }
 
-static void fsemu_oskeyboard_update_keyboard_size(fsemu_oskeyboard_t *keyboard)
-{
+static void fsemu_oskeyboard_update_keyboard_size(fsemu_oskeyboard_t* keyboard) {
     int width = 0;
     int height = 0;
-    for (fsemu_oskeyboard_row_t *row = keyboard->first_row; row;
-         row = row->next) {
+    for (fsemu_oskeyboard_row_t* row = keyboard->first_row; row; row = row->next) {
         height += 100;
         int row_width = 0;
-        for (fsemu_oskeyboard_key_t *key = row->first_key; key;
-             key = key->next) {
+        for (fsemu_oskeyboard_key_t* key = row->first_key; key; key = key->next) {
             row_width += key->left_margin;
             row_width += key->width;
         }
@@ -247,11 +222,8 @@ static void fsemu_oskeyboard_update_keyboard_size(fsemu_oskeyboard_t *keyboard)
     // fsemu_oskeyboard_log_debug("KEYBOARD %d x %d\n", width, height);
 }
 
-static void fsemu_oskeyboard_update_keyboard_key(fsemu_oskeyboard_t *keyboard,
-                                                 fsemu_oskeyboard_key_t *key,
-                                                 int x,
-                                                 int y)
-{
+static void fsemu_oskeyboard_update_keyboard_key(fsemu_oskeyboard_t* keyboard,
+                                                 fsemu_oskeyboard_key_t* key, int x, int y) {
     int w = key->width * KEY_WIDTH / 100;
     // int h = key->row->height * KEY_HEIGHT / 100;
     int h = key->height * KEY_HEIGHT / 100;
@@ -261,7 +233,7 @@ static void fsemu_oskeyboard_update_keyboard_key(fsemu_oskeyboard_t *keyboard,
     p = 0;
 #endif
 
-    fsemu_widget_t *widget;
+    fsemu_widget_t* widget;
     if (key->widget == NULL) {
         key->widget = fsemu_widget_new();
         fsemu_widget_add_child(keyboard->widget, key->widget);
@@ -270,25 +242,21 @@ static void fsemu_oskeyboard_update_keyboard_key(fsemu_oskeyboard_t *keyboard,
         widget = key->widget;
         fsemu_widget_set_color(widget, FSEMU_RGBA(0xffffffcc));
 #if 1
-        fsemu_widget_set_top_2(
-            widget, -(y + h - p), FSEMU_WIDGET_PARENT_BOTTOM);
+        fsemu_widget_set_top_2(widget, -(y + h - p), FSEMU_WIDGET_PARENT_BOTTOM);
         fsemu_widget_set_right_2(widget, x + w - p, FSEMU_WIDGET_PARENT_LEFT);
-        fsemu_widget_set_bottom_2(
-            widget, -(y + p), FSEMU_WIDGET_PARENT_BOTTOM);
+        fsemu_widget_set_bottom_2(widget, -(y + p), FSEMU_WIDGET_PARENT_BOTTOM);
         fsemu_widget_set_left_2(widget, x + p, FSEMU_WIDGET_PARENT_LEFT);
 #else
-        fsemu_widget_set_top_2(
-            widget, -(y + h - p), FSEMU_WIDGET_SCREEN_BOTTOM);
+        fsemu_widget_set_top_2(widget, -(y + h - p), FSEMU_WIDGET_SCREEN_BOTTOM);
         fsemu_widget_set_right_2(widget, x + w - p, FSEMU_WIDGET_SCREEN_LEFT);
-        fsemu_widget_set_bottom_2(
-            widget, -(y + p), FSEMU_WIDGET_SCREEN_BOTTOM);
+        fsemu_widget_set_bottom_2(widget, -(y + p), FSEMU_WIDGET_SCREEN_BOTTOM);
         fsemu_widget_set_left_2(widget, x + p, FSEMU_WIDGET_SCREEN_LEFT);
 #endif
         fsemu_widget_set_z_index(widget, FSEMU_LAYER_OSKEYBOARD + 2);
         // FIXME: Not needed for widget?
         fsemu_widget_set_visible(widget, true);
 
-        fsemu_widget_t *text_widget = fsemu_widget_new();
+        fsemu_widget_t* text_widget = fsemu_widget_new();
         fsemu_widget_set_font_size(text_widget, 24);
         fsemu_widget_set_text(text_widget, key->name);
         // fsemu_widget_set_top(text_widget, 10);
@@ -322,8 +290,7 @@ static void fsemu_oskeyboard_update_keyboard_key(fsemu_oskeyboard_t *keyboard,
     }
 }
 
-static void fsemu_oskeyboard_update_keyboard_keys(fsemu_oskeyboard_t *keyboard)
-{
+static void fsemu_oskeyboard_update_keyboard_keys(fsemu_oskeyboard_t* keyboard) {
     int y = 0;
     // FIXME: Temp
     // y = 60;
@@ -331,15 +298,13 @@ static void fsemu_oskeyboard_update_keyboard_keys(fsemu_oskeyboard_t *keyboard)
     // Center vertically on the keyboard container which is half the screen
     // height. Using normalized 1080p coordinates.
     y = ((1080 / 2) - keyboard->size.h) / 2;
-    for (fsemu_oskeyboard_row_t *row = keyboard->first_row; row;
-         row = row->next) {
+    for (fsemu_oskeyboard_row_t* row = keyboard->first_row; row; row = row->next) {
         y += row->bottom_margin * KEY_HEIGHT / 100;
         int x = 0;
         // FIXME: Temp
         // x = 240 + (1440 - keyboard->size.w * KEY_WIDTH / 100) / 2;
         x = (1440 - keyboard->size.w * KEY_WIDTH / 100) / 2;
-        for (fsemu_oskeyboard_key_t *key = row->first_key; key;
-             key = key->next) {
+        for (fsemu_oskeyboard_key_t* key = row->first_key; key; key = key->next) {
             x += key->left_margin * KEY_WIDTH / 100;
 
             fsemu_oskeyboard_update_keyboard_key(keyboard, key, x, y);
@@ -349,16 +314,13 @@ static void fsemu_oskeyboard_update_keyboard_keys(fsemu_oskeyboard_t *keyboard)
     }
 }
 
-static fsemu_oskeyboard_key_t *fsemu_oskeyboard_find_key_by_index(
-    fsemu_oskeyboard_t *keyboard, int row_index, int key_index)
-{
-    for (fsemu_oskeyboard_row_t *row = keyboard->first_row; row;
-         row = row->next) {
+static fsemu_oskeyboard_key_t* fsemu_oskeyboard_find_key_by_index(fsemu_oskeyboard_t* keyboard,
+                                                                  int row_index, int key_index) {
+    for (fsemu_oskeyboard_row_t* row = keyboard->first_row; row; row = row->next) {
         if (row->index != row_index) {
             continue;
         }
-        for (fsemu_oskeyboard_key_t *key = row->first_key; key;
-             key = key->next) {
+        for (fsemu_oskeyboard_key_t* key = row->first_key; key; key = key->next) {
             if (key->index != key_index) {
                 continue;
             }
@@ -370,9 +332,8 @@ static fsemu_oskeyboard_key_t *fsemu_oskeyboard_find_key_by_index(
 
 // ----------------------------------------------------------------------------
 
-static void fsemu_oskeyboard_set_position(bool top)
-{
-    fsemu_widget_t *widget = fsemu_oskeyboard.container_w;
+static void fsemu_oskeyboard_set_position(bool top) {
+    fsemu_widget_t* widget = fsemu_oskeyboard.container_w;
     if (widget == NULL) {
         return;
     }
@@ -385,9 +346,8 @@ static void fsemu_oskeyboard_set_position(bool top)
     }
 }
 
-void fsemu_oskeyboard_toggle_position(void)
-{
-    fsemu_widget_t *widget = fsemu_oskeyboard.container_w;
+void fsemu_oskeyboard_toggle_position(void) {
+    fsemu_widget_t* widget = fsemu_oskeyboard.container_w;
     if (widget == NULL) {
         return;
     }
@@ -398,9 +358,7 @@ void fsemu_oskeyboard_toggle_position(void)
     }
 }
 
-static void fsemu_oskeyboard_navigate_primary(fsemu_oskeyboard_t *keyboard,
-                                              int32_t state)
-{
+static void fsemu_oskeyboard_navigate_primary(fsemu_oskeyboard_t* keyboard, int32_t state) {
     fsemu_oskeyboard_log_debug("\nprimary\n\n");
     // FIXME: We should register that we have "pressed this action" and
     // release the key action when we close the keyboard, if not already
@@ -418,9 +376,7 @@ static void fsemu_oskeyboard_navigate_primary(fsemu_oskeyboard_t *keyboard,
     }
 }
 
-static void fsemu_oskeyboard_navigate_secondary(fsemu_oskeyboard_t *keyboard,
-                                                int32_t state)
-{
+static void fsemu_oskeyboard_navigate_secondary(fsemu_oskeyboard_t* keyboard, int32_t state) {
     fsemu_oskeyboard_log_debug("\nsecondary\n\n");
     fsemu_action_t action = keyboard->selected_key->action;
     // FIXME: We should register that we have "pressed this action" and
@@ -437,44 +393,37 @@ static void fsemu_oskeyboard_navigate_secondary(fsemu_oskeyboard_t *keyboard,
     // secondary once more.
 }
 
-static void fsemu_oskeyboard_navigate_tertiary(fsemu_oskeyboard_t *keyboard,
-                                               int32_t state)
-{
+static void fsemu_oskeyboard_navigate_tertiary(fsemu_oskeyboard_t* keyboard, int32_t state) {
     if (state) {
         fsemu_oskeyboard_log_debug("\ntertiary\n\n");
         fsemu_oskeyboard_toggle_position();
     }
 }
 
-static void fsemu_oskeyboard_navigate_back(fsemu_oskeyboard_t *keyboard,
-                                           int32_t state)
-{
+static void fsemu_oskeyboard_navigate_back(fsemu_oskeyboard_t* keyboard, int32_t state) {
     if (state) {
         fsemu_oskeyboard_log_debug("\nback\n\n");
         fsemu_oskeyboard_set_open(false);
     }
 }
 
-static void fsemu_oskeyboard_navigate_close(fsemu_oskeyboard_t *keyboard,
-                                            int32_t state)
-{
+static void fsemu_oskeyboard_navigate_close(fsemu_oskeyboard_t* keyboard, int32_t state) {
     if (state) {
         fsemu_oskeyboard_log_debug("\nclose\n\n");
         fsemu_oskeyboard_set_open(false);
     }
 }
 
-void fsemu_oskeyboard_navigate(int navigate, int32_t state)
-{
+void fsemu_oskeyboard_navigate(int navigate, int32_t state) {
     if (navigate == FSEMU_OSKEYBOARD_NAVIGATE_NONE) {
         return;
     }
 
-    fsemu_oskeyboard_t *keyboard = fsemu_oskeyboard.active;
+    fsemu_oskeyboard_t* keyboard = fsemu_oskeyboard.active;
     if (keyboard == NULL) {
         return;
     }
-    fsemu_oskeyboard_key_t *selected = keyboard->selected_key;
+    fsemu_oskeyboard_key_t* selected = keyboard->selected_key;
     if (selected == NULL) {
         // FIXME: Warning?
         return;
@@ -494,15 +443,14 @@ void fsemu_oskeyboard_navigate(int navigate, int32_t state)
         } else {
             row_index += 1;
         }
-        fsemu_oskeyboard_row_t *row = keyboard->first_row;
+        fsemu_oskeyboard_row_t* row = keyboard->first_row;
         for (int i = 0; i < row_index; i++) {
             row = row->next;
         }
         if (key_index > row->last_key->index) {
             key_index = row->last_key->index;
         }
-        keyboard->selected_key =
-            fsemu_oskeyboard_find_key_by_index(keyboard, row_index, key_index);
+        keyboard->selected_key = fsemu_oskeyboard_find_key_by_index(keyboard, row_index, key_index);
     } else if (navigate == FSEMU_OSKEYBOARD_NAVIGATE_RIGHT) {
         if (!state) {
             return;
@@ -516,8 +464,7 @@ void fsemu_oskeyboard_navigate(int navigate, int32_t state)
         } else {
             key_index += 1;
         }
-        keyboard->selected_key =
-            fsemu_oskeyboard_find_key_by_index(keyboard, row_index, key_index);
+        keyboard->selected_key = fsemu_oskeyboard_find_key_by_index(keyboard, row_index, key_index);
     } else if (navigate == FSEMU_OSKEYBOARD_NAVIGATE_DOWN) {
         if (!state) {
             return;
@@ -530,7 +477,7 @@ void fsemu_oskeyboard_navigate(int navigate, int32_t state)
         } else {
             row_index -= 1;
         }
-        fsemu_oskeyboard_row_t *row = keyboard->first_row;
+        fsemu_oskeyboard_row_t* row = keyboard->first_row;
         for (int i = 0; i < row_index; i++) {
             row = row->next;
         }
@@ -539,8 +486,7 @@ void fsemu_oskeyboard_navigate(int navigate, int32_t state)
         }
         // fsemu_oskeyboard_log_debug("\ndown -> %d %d\n\n", row_index,
         // key_index);
-        keyboard->selected_key =
-            fsemu_oskeyboard_find_key_by_index(keyboard, row_index, key_index);
+        keyboard->selected_key = fsemu_oskeyboard_find_key_by_index(keyboard, row_index, key_index);
     } else if (navigate == FSEMU_OSKEYBOARD_NAVIGATE_LEFT) {
         if (!state) {
             return;
@@ -553,8 +499,7 @@ void fsemu_oskeyboard_navigate(int navigate, int32_t state)
         } else {
             key_index -= 1;
         }
-        keyboard->selected_key =
-            fsemu_oskeyboard_find_key_by_index(keyboard, row_index, key_index);
+        keyboard->selected_key = fsemu_oskeyboard_find_key_by_index(keyboard, row_index, key_index);
     } else if (navigate == FSEMU_OSKEYBOARD_NAVIGATE_PRIMARY) {
         fsemu_oskeyboard_navigate_primary(keyboard, state);
     } else if (navigate == FSEMU_OSKEYBOARD_NAVIGATE_SECONDARY) {
@@ -570,32 +515,28 @@ void fsemu_oskeyboard_navigate(int navigate, int32_t state)
     }
 }
 
-void fsemu_oskeyboard_add(fsemu_oskeyboard_t *keyboard)
-{
+void fsemu_oskeyboard_add(fsemu_oskeyboard_t* keyboard) {
     // No-op for now?
 }
 
-void fsemu_oskeyboard_set_active(fsemu_oskeyboard_t *keyboard)
-{
+void fsemu_oskeyboard_set_active(fsemu_oskeyboard_t* keyboard) {
     fsemu_oskeyboard.active = keyboard;
 }
 
-void fsemu_oskeyboard_update(void)
-{
+void fsemu_oskeyboard_update(void) {
     if (!fsemu_oskeyboard.open) {
         return;
     }
-    fsemu_oskeyboard_t *keyboard = fsemu_oskeyboard.active;
+    fsemu_oskeyboard_t* keyboard = fsemu_oskeyboard.active;
     if (keyboard == NULL) {
         return;
     }
 
     if (keyboard->widget == NULL) {
-        keyboard->widget =
-            fsemu_widget_new_with_name("fsemu_oskeyboard_keyboard");
+        keyboard->widget = fsemu_widget_new_with_name("fsemu_oskeyboard_keyboard");
         fsemu_widget_add_child(fsemu_oskeyboard.container_w, keyboard->widget);
 
-        fsemu_widget_t *widget = keyboard->widget;
+        fsemu_widget_t* widget = keyboard->widget;
         fsemu_widget_set_color(widget, FSEMU_COLOR_TRANSPARENT);
         // FIXME: Reconsider position/size of this. Enable debug color to see.
         // fsemu_widget_set_color(widget, FSEMU_COLOR_RGBA(0xff000080));
@@ -615,11 +556,10 @@ void fsemu_oskeyboard_update(void)
 
     static bool added;
     if (keyboard->selected_w == NULL) {
-        keyboard->selected_w =
-            fsemu_widget_new_with_name("fsemu_oskeyboard_selected_key");
+        keyboard->selected_w = fsemu_widget_new_with_name("fsemu_oskeyboard_selected_key");
         // fsemu_widget_add_child(keyboard->widget, keyboard->selected_w);
 
-        fsemu_widget_t *widget = keyboard->selected_w;
+        fsemu_widget_t* widget = keyboard->selected_w;
         // fsemu_widget_set_color(widget, FSEMU_RGBA(0x0000ff80));
         fsemu_widget_set_color(widget, FSEMU_RGBA(0xff9900cc));
         // fsemu_widget_set_color(widget, FSEMU_RGB(0xff0000));
@@ -637,8 +577,7 @@ void fsemu_oskeyboard_update(void)
     }
 
     if (keyboard->selected_key == NULL) {
-        keyboard->selected_key =
-            fsemu_oskeyboard_find_key_by_index(keyboard, 0, 0);
+        keyboard->selected_key = fsemu_oskeyboard_find_key_by_index(keyboard, 0, 0);
     }
 
     fsemu_oskeyboard_update_keyboard_size(keyboard);
@@ -652,11 +591,9 @@ void fsemu_oskeyboard_update(void)
     }
 }
 
-static void fsemu_oskeyboard_init_container(void)
-{
-    fsemu_oskeyboard.container_w =
-        fsemu_widget_new_with_name("fsemu_oskeyboard_container");
-    fsemu_widget_t *widget = fsemu_oskeyboard.container_w;
+static void fsemu_oskeyboard_init_container(void) {
+    fsemu_oskeyboard.container_w = fsemu_widget_new_with_name("fsemu_oskeyboard_container");
+    fsemu_widget_t* widget = fsemu_oskeyboard.container_w;
 
     // Top and bottom coordinates are set afterwards.
     fsemu_widget_set_right_2(widget, 0, FSEMU_WIDGET_SCREEN_RIGHT);
@@ -673,11 +610,9 @@ static void fsemu_oskeyboard_init_container(void)
     fsemu_gui_add_item(widget);
 }
 
-static void fsemu_oskeyboard_init_background(void)
-{
-    fsemu_oskeyboard.background_w =
-        fsemu_widget_new_with_name("fsemu_oskeyboard_background");
-    fsemu_widget_t *widget = fsemu_oskeyboard.background_w;
+static void fsemu_oskeyboard_init_background(void) {
+    fsemu_oskeyboard.background_w = fsemu_widget_new_with_name("fsemu_oskeyboard_background");
+    fsemu_widget_t* widget = fsemu_oskeyboard.background_w;
 
     fsemu_widget_add_child(fsemu_oskeyboard.container_w, widget);
     // fsemu_widget_set_color(widget, FSEMU_RGBA(0x0080ff80));
@@ -697,8 +632,7 @@ static void fsemu_oskeyboard_init_background(void)
     // fsemu_gui_add_item(w);
 }
 
-void fsemu_oskeyboard_init(void)
-{
+void fsemu_oskeyboard_init(void) {
     if (fsemu_oskeyboard.initialized) {
         return;
     }

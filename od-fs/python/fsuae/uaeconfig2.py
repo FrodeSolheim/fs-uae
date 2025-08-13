@@ -35,9 +35,7 @@ class StrStateVar(StateVar):
 
 
 class UaeString(StrStateVar):
-    def __init__(
-        self, config: "UAEConfig2", name: str, value: str = ""
-    ) -> None:
+    def __init__(self, config: "UAEConfig2", name: str, value: str = "") -> None:
         super().__init__()
         self.config = config
         self.name = name

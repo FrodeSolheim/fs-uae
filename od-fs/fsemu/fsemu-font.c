@@ -12,24 +12,21 @@ int fsemu_font_log_level = FSEMU_LOG_LEVEL_INFO;
 
 struct fsemu_font {
     FSLIB_REFABLE;
-    TTF_Font *font;
-    SDL_IOStream *rwops;
-    void *data;
+    TTF_Font* font;
+    SDL_IOStream* rwops;
+    void* data;
 };
 
-void fsemu_font_ref(fsemu_font_t *font)
-{
+void fsemu_font_ref(fsemu_font_t* font) {
     fslib_refable_ref(font);
 }
 
-void fsemu_font_unref(fsemu_font_t *font)
-{
+void fsemu_font_unref(fsemu_font_t* font) {
     fslib_refable_unref(font);
 }
 
-static void fsemu_font_finalize(void *object)
-{
-    fsemu_font_t *font = (fsemu_font_t *) object;
+static void fsemu_font_finalize(void* object) {
+    fsemu_font_t* font = (fsemu_font_t*)object;
     fsemu_font_log_debug("Finalizing font %p\n", font);
     if (font->font) {
         TTF_CloseFont(font->font);
@@ -44,15 +41,14 @@ static void fsemu_font_finalize(void *object)
     free(font);
 }
 
-fsemu_font_t *fsemu_font_load(const char *name, int size)
-{
+fsemu_font_t* fsemu_font_load(const char* name, int size) {
     fsemu_font_init();
 
-    fsemu_font_t *font = FSEMU_UTIL_MALLOC0(fsemu_font_t);
+    fsemu_font_t* font = FSEMU_UTIL_MALLOC0(fsemu_font_t);
     // printf("LEAK malloc %p\n", font);
     fslib_refable_init_with_finalizer(font, fsemu_font_finalize);
 
-    void *data;
+    void* data;
     int data_size;
     fsemu_data_load(name, &data, &data_size);
     if (data == NULL) {
@@ -83,13 +79,10 @@ fsemu_font_t *fsemu_font_load(const char *name, int size)
     return font;
 }
 
-fsemu_image_t *fsemu_font_render_text_to_image(fsemu_font_t *font,
-                                               const char *text,
-                                               uint32_t color)
-{
+fsemu_image_t* fsemu_font_render_text_to_image(fsemu_font_t* font, const char* text,
+                                               uint32_t color) {
     SDL_Color sdl_color;
-    fsemu_color_decode(
-        color, &sdl_color.r, &sdl_color.g, &sdl_color.b, &sdl_color.a);
+    fsemu_color_decode(color, &sdl_color.r, &sdl_color.g, &sdl_color.b, &sdl_color.a);
 #if 0
     sdl_color.r = 255;
     sdl_color.g = 255;
@@ -104,18 +97,18 @@ fsemu_image_t *fsemu_font_render_text_to_image(fsemu_font_t *font,
 
     // printf("color %d %d %d %d\n", sdl_color.r, sdl_color.g, sdl_color.b,
     // sdl_color.a);
-    SDL_Surface *surface;
+    SDL_Surface* surface;
     if (!(surface = TTF_RenderText_Blended(font->font, text, 0, sdl_color))) {
         // handle error here, perhaps print SDL_GetError at least
         fsemu_font_log_error("Error rendering text: %s\n", SDL_GetError());
         fsemu_font_log_debug("Text was: '%s'\n", text);
-        fsemu_image_t *image = fsemu_image_from_size(1, 1);
+        fsemu_image_t* image = fsemu_image_from_size(1, 1);
         // FIXME: Make transparent pixel
         return image;
         // return NULL;
     }
 
-    fsemu_image_t *image = fsemu_image_new();
+    fsemu_image_t* image = fsemu_image_new();
     image->bpp = 4;
     image->depth = 32;
     image->height = surface->h;
@@ -123,8 +116,8 @@ fsemu_image_t *fsemu_font_render_text_to_image(fsemu_font_t *font,
     image->width = surface->w;
 
 #if 1
-    image->data = (uint8_t *) surface->pixels;
-    image->free_function = (void (*)(void *)) SDL_DestroySurface;
+    image->data = (uint8_t*)surface->pixels;
+    image->free_function = (void (*)(void*))SDL_DestroySurface;
     image->free_param = surface;
 #else
     // It seems we cannot call free on surface->pixels. So right now we
@@ -132,7 +125,7 @@ fsemu_image_t *fsemu_font_render_text_to_image(fsemu_font_t *font,
     // safely free it later. Alternatively, we could add a free callback
     // (free_function = SDL_FreeSurface, free_data = surface).
 
-    image->data = (uint8_t *) malloc(surface->pitch * surface->h);
+    image->data = (uint8_t*)malloc(surface->pitch * surface->h);
     memcpy(image->data, surface->pixels, surface->pitch * surface->h);
     SDL_FreeSurface(surface);
 #endif
@@ -146,8 +139,7 @@ fsemu_image_t *fsemu_font_render_text_to_image(fsemu_font_t *font,
 
 // ----------------------------------------------------------------------------
 
-void fsemu_font_init(void)
-{
+void fsemu_font_init(void) {
     fsemu_return_if_already_initialized();
     fsemu_data_init();
     fsemu_font_log("Initializing font module\n");

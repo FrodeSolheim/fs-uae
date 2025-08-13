@@ -2,23 +2,23 @@
 #include "config.h"
 #endif
 
-#include "fs/data.h"
 #include "fs/base.h"
+#include "fs/data.h"
 #include "fs/endian.h"
 #include "fs/filesys.h"
+#include <glib.h>
 #include <limits.h>
-#include <string.h>
-#include <stdlib.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include <glib.h>
+#include <stdlib.h>
+#include <string.h>
 
 #ifdef USE_ZLIB
 #include "zlib.h"
 #endif
 
 static FILE* g_dat_file;
-static GHashTable *g_dat_table;
+static GHashTable* g_dat_table;
 
 #pragma pack(push, 1)
 
@@ -79,7 +79,7 @@ typedef struct local_file_header {
 #define ERROR_CFH_SIG 9
 #define ERROR_CFH_NAME 10
 
-static int read_zip_entries (FILE *f)
+static int read_zip_entries(FILE* f)
 {
     if (fseek(f, 0, SEEK_END) != 0) {
         /* fseek to end of file failed */
@@ -122,7 +122,7 @@ static int read_zip_entries (FILE *f)
             return ERROR_CFH_SIG;
         }
         uint16_t name_len = le16toh(cfh.file_name_length);
-        char *name = (char *) malloc(name_len + 1);
+        char* name = (char*)malloc(name_len + 1);
         name[name_len] = 0;
         pos += sizeof(central_file_header);
         if (fread(name, name_len, 1, f) != 1) {
@@ -134,13 +134,12 @@ static int read_zip_entries (FILE *f)
             g_dat_table, name,
             GUINT_TO_POINTER(le32toh(cfh.relative_offset_of_local_header)));
 
-        pos += name_len + le16toh(cfh.extra_field_length) + \
-                le16toh(cfh.file_comment_length);
+        pos += name_len + le16toh(cfh.extra_field_length) + le16toh(cfh.file_comment_length);
     }
     return 0;
 }
 
-static int fs_data_read_file(const char *name, char **data, int *size)
+static int fs_data_read_file(const char* name, char** data, int* size)
 {
     gsize size2;
     bool success = g_file_get_contents(name, data, &size2, NULL);
@@ -148,7 +147,7 @@ static int fs_data_read_file(const char *name, char **data, int *size)
     return success ? 0 : 1;
 }
 
-int fs_data_file_content(const char *name, char **data, int *size)
+int fs_data_file_content(const char* name, char** data, int* size)
 {
     if (g_dat_file == NULL) {
         if (fs_data_read_file(name, data, size) == 0) {
@@ -159,9 +158,9 @@ int fs_data_file_content(const char *name, char **data, int *size)
     if (g_dat_table == NULL) {
         return 2;
     }
-    char *name2 = strdup(name);
-    char *c = name2;
-    while(*c) {
+    char* name2 = strdup(name);
+    char* c = name2;
+    while (*c) {
         if (*c == '\\') {
             *c = '/';
         }
@@ -187,8 +186,7 @@ int fs_data_file_content(const char *name, char **data, int *size)
         /* no signature found, not a local file header */
         return 8;
     }
-    if (le16toh(lfh.compression_method) != 0 &&
-            le16toh(lfh.compression_method) != 8) {
+    if (le16toh(lfh.compression_method) != 0 && le16toh(lfh.compression_method) != 8) {
         /* Unsupported compression type. */
         return 9;
     }
@@ -204,10 +202,9 @@ int fs_data_file_content(const char *name, char **data, int *size)
         /* don't try to allocate very large files */
         return 12;
     }
-    *data = (char *) malloc(*size);
+    *data = (char*)malloc(*size);
 
-    pos += sizeof(local_file_header) + le16toh(lfh.file_name_length) + \
-            le16toh(lfh.extra_field_length);
+    pos += sizeof(local_file_header) + le16toh(lfh.file_name_length) + le16toh(lfh.extra_field_length);
     if (fseek(g_dat_file, pos, SEEK_SET) != 0) {
         printf("could not seek to dat file data position %d\n", pos);
         return 13;
@@ -237,7 +234,7 @@ int fs_data_file_content(const char *name, char **data, int *size)
         static char buffer[1024];
 
         int ret;
-        char *data_p = *data;
+        char* data_p = *data;
         /* Use inflateInit2 with negative window bits to indicate raw data */
         if ((ret = inflateInit2(&strm, -MAX_WBITS)) != Z_OK) {
             /* zlib errors are negative */
@@ -250,8 +247,7 @@ int fs_data_file_content(const char *name, char **data, int *size)
         while (compressed_left && uncompressed_left && ret != Z_STREAM_END) {
             /* Read next chunk */
             strm.avail_in = fread(buffer, 1,
-                (sizeof(buffer) < compressed_left) ?
-                 sizeof(buffer) : compressed_left, g_dat_file);
+                (sizeof(buffer) < compressed_left) ? sizeof(buffer) : compressed_left, g_dat_file);
 
             if (strm.avail_in == 0 || ferror(g_dat_file)) {
                 inflateEnd(&strm);
@@ -274,7 +270,7 @@ int fs_data_file_content(const char *name, char **data, int *size)
                 /* and fall through */
             case Z_DATA_ERROR:
             case Z_MEM_ERROR:
-                (void) inflateEnd(&strm);
+                (void)inflateEnd(&strm);
                 return ret;
             }
 
@@ -293,9 +289,9 @@ int fs_data_file_content(const char *name, char **data, int *size)
     return 0;
 }
 
-int fs_data_init(const char *app_name, const char *dat_name)
+int fs_data_init(const char* app_name, const char* dat_name)
 {
-    fs_log("fs_data_init %s %s\n", app_name, dat_name);
+    // fs_log("fs_data_init %s %s\n", app_name, dat_name);
     char exe_path[PATH_MAX + 1];
     int result = fs_get_application_exe_path(exe_path, PATH_MAX);
     if (result != 1) {
@@ -305,13 +301,13 @@ int fs_data_init(const char *app_name, const char *dat_name)
     g_dat_table = g_hash_table_new(g_str_hash, g_str_equal);
 
     /* Check for embedded dat file */
-    fs_log("checking dat file: %s\n", exe_path);
+    // fs_log("checking dat file: %s\n", exe_path);
     g_dat_file = g_fopen(exe_path, "rb");
     int error = read_zip_entries(g_dat_file);
     if (error == 0) {
         return 0;
     }
-    fs_log("no dat file: %s\n", exe_path);
+    // fs_log("no dat file: %s\n", exe_path);
     fclose(g_dat_file);
     g_dat_file = NULL;
 
@@ -321,22 +317,22 @@ int fs_data_init(const char *app_name, const char *dat_name)
     }
 
     /* Check if dat file is placed alongside the executable */
-    char *dat_path = g_build_filename(exe_path, dat_name, NULL);
-    fs_log("checking dat file: %s\n", dat_path);
+    char* dat_path = g_build_filename(exe_path, dat_name, NULL);
+    // fs_log("checking dat file: %s\n", dat_path);
     g_dat_file = g_fopen(dat_path, "rb");
     free(dat_path);
 
     if (g_dat_file == NULL) {
-        char *dat_path = g_build_filename(
+        char* dat_path = g_build_filename(
             exe_path, "..", "share", app_name, dat_name, NULL);
-        fs_log("checking dat file: %s\n", dat_path);
+        // fs_log("checking dat file: %s\n", dat_path);
         g_dat_file = g_fopen(dat_path, "rb");
         free(dat_path);
     }
 
 #ifdef MACOSX
     if (g_dat_file == NULL) {
-        char *dat_path = g_build_filename(
+        char* dat_path = g_build_filename(
             exe_path, "..", "..", "..", "..", "..", "Data", dat_name, NULL);
         fs_log("checking dat file: %s\n", dat_path);
         g_dat_file = g_fopen(dat_path, "rb");
@@ -344,9 +340,9 @@ int fs_data_init(const char *app_name, const char *dat_name)
     }
 #else
     if (g_dat_file == NULL) {
-        char *dat_path = g_build_filename(
+        char* dat_path = g_build_filename(
             exe_path, "..", "..", "Data", dat_name, NULL);
-        fs_log("checking dat file: %s\n", dat_path);
+        // fs_log("checking dat file: %s\n", dat_path);
         g_dat_file = g_fopen(dat_path, "rb");
         free(dat_path);
     }

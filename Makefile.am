@@ -8,17 +8,19 @@ CM_CFLAGS =
 
 AM_CFLAGS =
 AM_CPPFLAGS =
-AM_CXXFLAGS =
+AM_CXXFLAGS = -std=gnu++17
 AM_LDFLAGS =
 
 # FIXME: DEBUG BUILDS ONLY
 # CM_CFLAGS += -DDEBUG
 
 CM_CFLAGS += @ALSA_CFLAGS@
+CM_CFLAGS += @FLAC_CFLAGS@
 CM_CFLAGS += @FREETYPE_CFLAGS@
 CM_CFLAGS += @GLEW_CFLAGS@
 CM_CFLAGS += @GLIB_CFLAGS@
 CM_CFLAGS += @MIR_CFLAGS@
+CM_CFLAGS += @MPG123_CFLAGS@
 CM_CFLAGS += @OPENGL_CFLAGS@
 # CM_CFLAGS += @OS_CFLAGS@
 CM_CFLAGS += @PNG_CFLAGS@
@@ -28,6 +30,7 @@ CM_CFLAGS += @SDL3_IMAGE_CFLAGS@
 CM_CFLAGS += @SDL3_TTF_CFLAGS@
 CM_CFLAGS += @X11_CFLAGS@
 CM_CFLAGS += @ZLIB_CFLAGS@
+CM_CFLAGS += @ZSTD_CFLAGS@
 CM_CFLAGS += $(WARNINGS)
 
 if F_NO_STRICT_OVERFLOW
@@ -118,23 +121,8 @@ AM_CXXFLAGS += -Wno-sign-compare
 
 # -----------------------------------------------------------------------------
 
-LIBS += @ALSA_LIBS@
-LIBS += @CARBON_LIBS@
-LIBS += @FREETYPE_LIBS@
-LIBS += @GLEW_LIBS@
-LIBS += @GLIB_LIBS@
-LIBS += @IOKIT_LIBS@
-# LIBS += @MIR_LIBS@
-LIBS += @OPENGL_LIBS@
-# LIBS += @OS_LIBS@
-LIBS += @PNG_LIBS@
-LIBS += @MIDI_LIBS@
-LIBS += @PYTHON3_LIBS@
-LIBS += @SDL3_LIBS@
-LIBS += @SDL3_IMAGE_LIBS@
-LIBS += @SDL3_TTF_LIBS@
-LIBS += @X11_LIBS@
-LIBS += @ZLIB_LIBS@
+fs_uae_LDADD =
+
 
 # AM_LDFLAGS += -rdynamic
 AM_LDFLAGS += @OS_LDFLAGS@
@@ -142,16 +130,14 @@ AM_LDFLAGS += @OS_LDFLAGS@
 MSGFMT = @MSGFMT@
 ZIP = @ZIP@
 
-s = $(srcdir)
-b = $(builddir)
-
 bin_PROGRAMS = fs-uae
 
 libexec_PROGRAMS =
 
 dist_doc_DATA =
 
-#noinst_PROGRAMS = \
+noinst_PROGRAMS =
+#noinst_PROGRAMS += \
 #	gen/build68k \
 #	gen/genblitter \
 #	gen/gencomp \
@@ -166,10 +152,12 @@ BUILT_SOURCES =
 
 nodist_fs_uae_SOURCES =
 
-AM_CPPFLAGS += -I$(s)/od-fs/fsapp
-AM_CPPFLAGS += -I$(s)/od-fs/fsgui
-AM_CPPFLAGS += -I$(s)/od-fs/fslib
-AM_CPPFLAGS += -I$(s)/od-fs/fsuae
+AM_CPPFLAGS += -I$(srcdir)/od-fs/fsapp
+AM_CPPFLAGS += -I$(srcdir)/od-fs/fsgui
+AM_CPPFLAGS += -I$(srcdir)/od-fs/fslib
+AM_CPPFLAGS += -I$(srcdir)/od-fs/fsuae
+
+EXTRA_DIST =
 
 fs_uae_SOURCES = \
 	od-fs/fsapp/fsapp-channel.c \
@@ -178,16 +166,24 @@ fs_uae_SOURCES = \
 	od-fs/fsapp/fsapp-events.c \
 	od-fs/fsapp/fsapp-events.h \
 	od-fs/fsapp/fsapp-main.c \
-	od-fs/fsapp/fsgui-config.h \
+	od-fs/fsapp/fsapp-main.h \
+	od-fs/fsapp/fsapp.h \
+	od-fs/fsapp/fsapp-pythonthread.c \
+	od-fs/fsapp/fsapp-pythonthread.h \
+	od-fs/fsgui/fsgui-config.h \
 	od-fs/fsgui/fsgui-font.c \
 	od-fs/fsgui/fsgui-font.h \
 	od-fs/fsgui/fsgui-image.c \
 	od-fs/fsgui/fsgui-image.h \
 	od-fs/fsgui/fsgui-surface.c \
 	od-fs/fsgui/fsgui-surface.h \
+	od-fs/fsgui/fsgui-window.c \
+	od-fs/fsgui/fsgui-window.h \
+	od-fs/fsgui/fsgui-windows.c \
+	od-fs/fsgui/fsgui-windows.h \
 	od-fs/fslib/fslib-config.h \
-	od-fs/fslib/fslib-data.c \
-	od-fs/fslib/fslib-data.h \
+	od-fs/fslib/fslib-log.c \
+	od-fs/fslib/fslib-log.h \
 	od-fs/fslib/fslib-os.c \
 	od-fs/fslib/fslib-os.h \
 	od-fs/fslib/fslib-path.c \
@@ -208,12 +204,17 @@ fs_uae_SOURCES = \
 	od-fs/fsuae/fsuae-init.h \
 	od-fs/fsuae/fsuae-main.c \
 	od-fs/fsuae/fsuae-main.h \
+	od-fs/fsuae/fsuae-mainthread.c \
+	od-fs/fsuae/fsuae-mainthread.h \
 	od-fs/fsuae/fsuae-messages.cpp \
 	od-fs/fsuae/fsuae-messages.h \
 	od-fs/fsuae/fsuae-path.c \
 	od-fs/fsuae/fsuae-path.h \
 	od-fs/fsuae/fsuae-plugins.c \
 	od-fs/fsuae/fsuae-plugins.h \
+	od-fs/fsuae/fsuae-renderer.c \
+	od-fs/fsuae/fsuae-renderer.h \
+	od-fs/fsuae/fsuae.h \
 	od-fs/libuae/libuae-config.h \
 	od-fs/libuae/libuae-main.cpp \
 	od-fs/libuae/libuae-main.h \
@@ -221,22 +222,39 @@ fs_uae_SOURCES = \
 	od-fs/libuae/libuae-python.h
 
 if WINDOWS
-nodist_fs_uae_SOURCES += od-fs/fs-uae.rc
+nodist_fs_uae_SOURCES += od-fs/windows/fs-uae.rc
 .rc.o:
-	windres $< -o $@ -I$(s)
+	cp $(srcdir)/od-fs/windows/fs-uae.ico $(builddir)/od-fs/windows/fs-uae.ico
+	windres $< -o $@ -I$(srcdir)/od-fs/include
 else
-AM_CPPFLAGS += -I$(s)/od-fs/non-win32
+AM_CPPFLAGS += -I$(srcdir)/od-fs/non-windows
 endif
 
-fs_uae_LDADD =
+# -----------------------------------------------------------------------------
 
 noinst_LIBRARIES += libuae.a
-AM_CPPFLAGS += -I$(s)/include
-AM_CPPFLAGS += -I$(s)/jit
-AM_CPPFLAGS += -I$(s)/od-fs
-AM_CPPFLAGS += -I$(s)/od-fs/include
-AM_CPPFLAGS += -I$(s)/od-fs/flac/include
-AM_CPPFLAGS += -I$(s)/od-win32
+AM_CPPFLAGS += -I$(srcdir)/include
+AM_CPPFLAGS += -I$(srcdir)/jit
+AM_CPPFLAGS += -I$(srcdir)/od-fs
+AM_CPPFLAGS += -I$(srcdir)/od-fs/archivers
+AM_CPPFLAGS += -I$(srcdir)/od-fs/include
+# AM_CPPFLAGS += -I$(srcdir)/od-fs/flac/include
+AM_CPPFLAGS += -I$(srcdir)/od-win32
+
+if WITH_CHD
+AM_CPPFLAGS += -I$(srcdir)/mame/src/osd
+AM_CPPFLAGS += -I$(srcdir)/mame/src/lib/util
+
+# FIXME: Only for libarchivers (lzma)
+AM_CPPFLAGS += -D UTF8PROC_STATIC -D_7ZIP_ST -DZ7_ST
+
+AM_CPPFLAGS += -I${srcdir}/mame/3rdparty
+AM_CPPFLAGS += -I${srcdir}/mame/3rdparty/utf8proc
+AM_CPPFLAGS += -I${srcdir}/mame/src/lib
+AM_CPPFLAGS += -I${srcdir}/mame/src/lib/util
+AM_CPPFLAGS += -I${srcdir}/mame/src/osd
+endif
+
 fs_uae_LDADD += libuae.a
 # libuae_a_CXXFLAGS = $(CM_CFLAGS) -fpermissive
 libuae_a_SOURCES = \
@@ -246,34 +264,6 @@ libuae_a_SOURCES = \
 	amax.cpp \
 	ar.cpp \
 	arcadia.cpp \
-	archivers/dms/cdata.h \
-	archivers/dms/crc_csum.cpp \
-	archivers/dms/crc_csum.h \
-	archivers/dms/getbits.cpp \
-	archivers/dms/getbits.h \
-	archivers/dms/maketbl.cpp \
-	archivers/dms/maketbl.h \
-	archivers/dms/pfile.cpp \
-	archivers/dms/pfile.h \
-	archivers/dms/tables.cpp \
-	archivers/dms/tables.h \
-	archivers/dms/u_deep.cpp \
-	archivers/dms/u_deep.h \
-	archivers/dms/u_heavy.cpp \
-	archivers/dms/u_heavy.h \
-	archivers/dms/u_init.cpp \
-	archivers/dms/u_init.h \
-	archivers/dms/u_medium.cpp \
-	archivers/dms/u_medium.h \
-	archivers/dms/u_quick.cpp \
-	archivers/dms/u_quick.h \
-	archivers/dms/u_rle.cpp \
-	archivers/dms/u_rle.h \
-	archivers/mp2/kjmp2.cpp \
-	archivers/mp2/kjmp2.h \
-	archivers/wrp/warp.h \
-	archivers/zip/unzip.cpp \
-	archivers/zip/unzip.h \
 	aros.rom.cpp \
 	audio.cpp \
 	autoconf.cpp \
@@ -347,7 +337,6 @@ libuae_a_SOURCES = \
 	include/blkdev.h \
 	include/bsdsocket.h \
 	include/calc.h \
-	include/casablanca.h \
 	include/catweasel.h \
 	include/cd32_fmv.h \
 	include/cdtv.h \
@@ -360,14 +349,17 @@ libuae_a_SOURCES = \
 	include/cpuboard.h \
 	include/cpummu.h \
 	include/cpummu030.h \
+	include/cputest.h \
 	include/crc32.h \
 	include/custom.h \
 	include/debug.h \
 	include/debugmem.h \
 	include/devices.h \
+	include/disasm.h \
 	include/disk.h \
 	include/diskutil.h \
 	include/dongle.h \
+	include/draco.h \
 	include/drawing.h \
 	include/driveclick.h \
 	include/enforcer.h \
@@ -377,12 +369,9 @@ libuae_a_SOURCES = \
 	include/events.h \
 	include/execio.h \
 	include/execlib.h \
-	include/fake86_cpu.h \
 	include/fdi2raw.h \
 	include/filesys.h \
 	include/flashrom.h \
-	include/fpp-ieee-be.h \
-	include/fpp-unknown.h \
 	include/fpp.h \
 	include/framebufferboards.h \
 	include/fsdb.h \
@@ -401,12 +390,17 @@ libuae_a_SOURCES = \
 	include/inputrecord.h \
 	include/isofs_api.h \
 	include/isofs.h \
+	include/keyboard_mcu.h \
 	include/keyboard.h \
 	include/keybuf.h \
 	include/luascript.h \
 	include/mackbd.h \
+	include/memory.h \
+	include/memory.h \
+	include/midiemu.h \
 	include/mmu_common.h \
 	include/moduleripper.h \
+	include/mos6502.h \
 	include/native2amiga_api.h \
 	include/native2amiga.h \
 	include/ncr_scsi.h \
@@ -446,7 +440,10 @@ libuae_a_SOURCES = \
 	include/uae/attributes.h \
 	include/uae/byteswap.h \
 	include/uae/cdrom.h \
+	include/uae/compat/windows.h \
+	include/uae/compat/windows2.h \
 	include/uae/debuginfo.h \
+	include/uae/declarations.h \
 	include/uae/dlopen.h \
 	include/uae/endian.h \
 	include/uae/enum.h \
@@ -471,6 +468,7 @@ libuae_a_SOURCES = \
 	include/uae/slirp.h \
 	include/uae/socket.h \
 	include/uae/string.h \
+	include/uae/tchar.h \
 	include/uae/time.h \
 	include/uae/types.h \
 	include/uae/vm.h \
@@ -488,19 +486,8 @@ libuae_a_SOURCES = \
 	include/zfile.h \
 	ini.cpp \
 	inputdevice.cpp \
-	inputrecord.cpp \
+	$(srcdir)/inputrecord.cpp \
 	isofs.cpp \
-	jit/codegen_udis86.h \
-	jit/codegen_x86.h \
-	jit/compemu_fpp.cpp \
-	jit/compemu_midfunc_arm.h \
-	jit/compemu_midfunc_x86.h \
-	jit/compemu_support.cpp \
-	jit/compemu.cpp \
-	jit/compemu.h \
-	jit/compstbl.cpp \
-	jit/comptbl.h \
-	jit/flags_x86.h \
 	kbmcu/8048/co8048.cpp \
 	kbmcu/8048/co8048.h \
 	kbmcu/keyboard_mcu_6500_1.cpp \
@@ -535,16 +522,22 @@ libuae_a_SOURCES = \
 	od-fs/defines.h \
 	od-fs/driveclick.cpp \
 	od-fs/filesys_host.cpp \
+	od-fs/flac/include/FLAC/all.h \
+	od-fs/flac/include/FLAC/assert.h \
+	od-fs/flac/include/FLAC/callback.h \
+	od-fs/flac/include/FLAC/export.h \
+	od-fs/flac/include/FLAC/format.h \
+	od-fs/flac/include/FLAC/metadata.h \
+	od-fs/flac/include/FLAC/ordinals.h \
+	od-fs/flac/include/FLAC/stream_decoder.h \
+	od-fs/flac/include/FLAC/stream_encoder.h \
 	od-fs/fsdb_host.cpp \
 	od-fs/fsdb_host.h \
 	od-fs/gui.cpp \
 	od-fs/hardfile_host.cpp \
-	od-fs/include/direct3d.h \
-	od-fs/include/registry.h \
 	od-fs/include/resource.h \
 	od-fs/include/uae/uae_inputevents_def.h \
 	od-fs/include/uae/uae.h \
-	od-fs/include/win32gui.h \
 	od-fs/input-fs.cpp \
 	od-fs/inputrecord.cpp \
 	od-fs/ioport.cpp \
@@ -565,7 +558,8 @@ libuae_a_SOURCES = \
 	od-fs/midi.cpp \
 	od-fs/midi.h \
 	od-fs/mouse-fs.cpp \
-	od-fs/mp3decoder.h \
+	od-fs/mp3decoder.cpp \
+	od-fs/non-windows/tchar.h \
 	od-fs/parser.cpp \
 	od-fs/paths.cpp \
 	od-fs/random.cpp \
@@ -576,12 +570,12 @@ libuae_a_SOURCES = \
 	od-fs/statusline-fs.cpp \
 	od-fs/stubs.cpp \
 	od-fs/support.cpp \
-	od-fs/sysconfig.h \
+	od-fs/sysconfig-fs.h \
 	od-fs/target.h \
-	od-fs/threaddep/sem.h \
 	od-fs/threaddep/thread.h \
 	od-fs/threading-fs.cpp \
 	od-fs/uae_host.cpp \
+	od-fs/uae-fs.h \
 	od-fs/uaemisc.cpp \
 	od-fs/video-fs.cpp \
 	od-fs/videograb-fs.cpp \
@@ -589,6 +583,9 @@ libuae_a_SOURCES = \
 	od-fs/vpar.h \
 	od-fs/winuae_compat.h \
 	od-fs/writelog-fs.cpp \
+	od-win32/ahidsound_new.h \
+	od-win32/ahidsound.h \
+	od-win32/avioutput.h \
 	od-win32/bsdsock.cpp \
 	od-win32/caps/caps_win32.cpp \
 	od-win32/caps/caps_win32.h \
@@ -598,17 +595,24 @@ libuae_a_SOURCES = \
 	od-win32/cda_play.h \
 	od-win32/clipboard_win32.cpp \
 	od-win32/clipboard_win32.h \
+	od-win32/darkmode.h \
 	od-win32/debug_win32.h \
-	od-win32/dxwrap.h \
-	od-win32/md-fpp.h \
+	od-win32/direct3d.h \
+	od-win32/lcd.h \
 	od-win32/midi.h \
 	od-win32/mman.cpp \
+	od-win32/mp3decoder.h \
 	od-win32/parser.h \
 	od-win32/picasso96_win.cpp \
 	od-win32/picasso96_win.h \
+	od-win32/registry.h \
+	od-win32/render.h \
 	od-win32/serial_win32.cpp \
+	od-win32/sounddep/sound.h \
+	od-win32/sysconfig.h \
 	od-win32/win32_scaler.cpp \
 	od-win32/win32_uaenet.cpp \
+	od-win32/win32_uaenet.h \
 	od-win32/win32.cpp \
 	od-win32/win32.h \
 	od-win32/win32gfx.h \
@@ -668,6 +672,37 @@ libuae_a_SOURCES = \
 	x86.cpp \
 	zfile_archive.cpp \
 	zfile.cpp
+EXTRA_DIST += \
+	aks.def \
+	filesys_bootrom.cpp \
+	inputevents.def \
+	linetoscr_aga_fast.cpp \
+	linetoscr_aga_fm0_genlock.cpp \
+	linetoscr_aga_fm0.cpp \
+	linetoscr_aga_fm1_genlock.cpp \
+	linetoscr_aga_fm1.cpp \
+	linetoscr_aga_fm2_genlock.cpp \
+	linetoscr_aga_fm2.cpp \
+	linetoscr_aga_genlock_fast.cpp \
+	linetoscr_common.cpp \
+	linetoscr_ecs_fast.cpp \
+	linetoscr_ecs_genlock_fast.cpp \
+	linetoscr_ecs_shres.cpp \
+	linetoscr_ocs_ecs_genlock.cpp \
+	linetoscr_ocs_ecs_ntsc_genlock.cpp \
+	linetoscr_ocs_ecs_ntsc.cpp \
+	linetoscr_ocs_ecs.cpp \
+	mame/tm34010/34010fld.c \
+	mame/tm34010/34010gfx.c \
+	mame/tm34010/34010ops.c \
+	mame/tm34010/34010ops.h \
+	mame/tm34010/34010tbl.c \
+	od-fs/windows/fs-uae.rc.in \
+	od-win32/sounddep/sound.cpp \
+	od-win32/win32gfx.cpp \
+	p96_blit.cpp \
+	sinctable.cpp \
+	table68k
 
 #nodist__libs_libuae_a_SOURCES = \
 #	gen/blit.h \
@@ -681,6 +716,207 @@ libuae_a_SOURCES = \
 #	gen/cpustbl.cpp \
 #	gen/cputbl.h
 BUILT_SOURCES += $(nodist__libs_libuae_a_SOURCES)
+
+# archivers -------------------------------------------------------------------
+
+noinst_LIBRARIES += libarchivers.a
+fs_uae_LDADD +=  libarchivers.a
+libarchivers_a_SOURCES = \
+	archivers/dms/cdata.h \
+	archivers/dms/crc_csum.cpp \
+	archivers/dms/crc_csum.h \
+	archivers/dms/getbits.cpp \
+	archivers/dms/getbits.h \
+	archivers/dms/maketbl.cpp \
+	archivers/dms/maketbl.h \
+	archivers/dms/pfile.cpp \
+	archivers/dms/pfile.h \
+	archivers/dms/tables.cpp \
+	archivers/dms/tables.h \
+	archivers/dms/u_deep.cpp \
+	archivers/dms/u_deep.h \
+	archivers/dms/u_heavy.cpp \
+	archivers/dms/u_heavy.h \
+	archivers/dms/u_init.cpp \
+	archivers/dms/u_init.h \
+	archivers/dms/u_medium.cpp \
+	archivers/dms/u_medium.h \
+	archivers/dms/u_quick.cpp \
+	archivers/dms/u_quick.h \
+	archivers/dms/u_rle.cpp \
+	archivers/dms/u_rle.h \
+	archivers/mp2/kjmp2.cpp \
+	archivers/mp2/kjmp2.h \
+	archivers/wrp/warp.h \
+	archivers/zip/unzip.cpp \
+	archivers/zip/unzip.h
+if WITH_CHD
+# libarchivers_a_CXXFLAGS = 
+libarchivers_a_SOURCES += \
+	mame/3rdparty/lzma/C/7zAlloc.c \
+	mame/3rdparty/lzma/C/7zArcIn.c \
+	mame/3rdparty/lzma/C/7zBuf.c \
+	mame/3rdparty/lzma/C/7zBuf2.c \
+	mame/3rdparty/lzma/C/7zCrc.c \
+	mame/3rdparty/lzma/C/7zCrcOpt.c \
+	mame/3rdparty/lzma/C/7zDec.c \
+	mame/3rdparty/lzma/C/7zFile.c \
+	mame/3rdparty/lzma/C/7zStream.c \
+	mame/3rdparty/lzma/C/Aes.c \
+	mame/3rdparty/lzma/C/AesOpt.c \
+	mame/3rdparty/lzma/C/Alloc.c \
+	mame/3rdparty/lzma/C/Bcj2.c \
+	mame/3rdparty/lzma/C/Bra.c \
+	mame/3rdparty/lzma/C/Bra86.c \
+	mame/3rdparty/lzma/C/BraIA64.c \
+	mame/3rdparty/lzma/C/CpuArch.c \
+	mame/3rdparty/lzma/C/Delta.c \
+	mame/3rdparty/lzma/C/LzFind.c \
+	mame/3rdparty/lzma/C/Lzma2Dec.c \
+	mame/3rdparty/lzma/C/Lzma2Enc.c \
+	mame/3rdparty/lzma/C/Lzma86Dec.c \
+	mame/3rdparty/lzma/C/Lzma86Enc.c \
+	mame/3rdparty/lzma/C/LzmaDec.c \
+	mame/3rdparty/lzma/C/LzmaEnc.c \
+	mame/3rdparty/lzma/C/LzmaLib.c \
+	mame/3rdparty/lzma/C/Ppmd7.c \
+	mame/3rdparty/lzma/C/Ppmd7Dec.c \
+	mame/3rdparty/lzma/C/Ppmd7Enc.c \
+	mame/3rdparty/lzma/C/Sha256.c \
+	mame/3rdparty/lzma/C/Sort.c \
+	mame/3rdparty/lzma/C/Xz.c \
+	mame/3rdparty/lzma/C/XzCrc64.c \
+	mame/3rdparty/lzma/C/XzCrc64Opt.c \
+	mame/3rdparty/lzma/C/XzDec.c \
+	mame/3rdparty/lzma/C/XzEnc.c \
+	mame/3rdparty/lzma/C/XzIn.c \
+	mame/src/lib/util/avhuff.cpp \
+	mame/src/lib/util/bitmap.cpp \
+	mame/src/lib/util/cdrom.cpp \
+	mame/src/lib/util/chd.cpp \
+	mame/src/lib/util/chdcd.cpp \
+	mame/src/lib/util/chdcodec.cpp \
+	mame/src/lib/util/corealloc.cpp \
+	mame/src/lib/util/corefile.cpp \
+	mame/src/lib/util/corestr.cpp \
+	mame/src/lib/util/flac.cpp \
+	mame/src/lib/util/harddisk.cpp \
+	mame/src/lib/util/hashing.cpp \
+	mame/src/lib/util/huffman.cpp \
+	mame/src/lib/util/md5.cpp \
+	mame/src/osd/modules/lib/osdlib_unix.cpp \
+	mame/src/osd/osdsync.cpp \
+	mame/src/lib/util/palette.cpp \
+	mame/src/osd/modules/file/posixdir.cpp \
+	mame/src/osd/modules/file/posixfile.cpp \
+	mame/src/osd/osdcore.cpp \
+	mame/src/osd/strconv.cpp \
+	mame/src/osd/modules/file/posixdir.cpp \
+	mame/src/osd/modules/file/posixfile.cpp \
+	mame/src/lib/util/strformat.cpp \
+	mame/src/lib/util/unicode.cpp \
+	mame/src/lib/util/vecstream.cpp \
+	mame/3rdparty/utf8proc/utf8proc.c
+
+#	od-fs/archivers/7z/7zAlloc.c \
+#	od-fs/archivers/7z/7zArcIn.c \
+#	od-fs/archivers/7z/7zBuf.c \
+#	od-fs/archivers/7z/7zBuf2.c \
+#	od-fs/archivers/7z/7zCrc.c \
+#	od-fs/archivers/7z/7zCrcOpt.c \
+#	od-fs/archivers/7z/7zDec.c \
+#	od-fs/archivers/7z/7zFile.c \
+#	od-fs/archivers/7z/7zStream.c \
+#	od-fs/archivers/7z/Aes.c \
+#	od-fs/archivers/7z/AesOpt.c \
+#	od-fs/archivers/7z/Alloc.c \
+#	od-fs/archivers/7z/Bcj2.c \
+#	od-fs/archivers/7z/Bra.c \
+#	od-fs/archivers/7z/Bra86.c \
+#	od-fs/archivers/7z/BraIA64.c \
+#	od-fs/archivers/7z/CpuArch.c \
+#	od-fs/archivers/7z/Delta.c \
+#	od-fs/archivers/7z/LzFind.c \
+#	od-fs/archivers/7z/Lzma2Dec.c \
+#	od-fs/archivers/7z/Lzma2Enc.c \
+#	od-fs/archivers/7z/Lzma86Dec.c \
+#	od-fs/archivers/7z/Lzma86Enc.c \
+#	od-fs/archivers/7z/LzmaDec.c \
+#	od-fs/archivers/7z/LzmaEnc.c \
+#	od-fs/archivers/7z/LzmaLib.c \
+#	od-fs/archivers/7z/Ppmd7.c \
+#	od-fs/archivers/7z/Ppmd7Dec.c \
+#	od-fs/archivers/7z/Ppmd7Enc.c \
+#	od-fs/archivers/7z/Sha256.c \
+#	od-fs/archivers/7z/Sort.c \
+#	od-fs/archivers/7z/Xz.c \
+#	od-fs/archivers/7z/XzCrc64.c \
+#	od-fs/archivers/7z/XzCrc64Opt.c \
+#	od-fs/archivers/7z/XzDec.c \
+#	od-fs/archivers/7z/XzEnc.c \
+#	od-fs/archivers/7z/XzIn.c \
+# 
+#	mame/src/osd/modules/file/posixptty.cpp \
+#	mame/src/osd/modules/file/posixsocket.cpp \
+#	mame/src/lib/util/osdcore.cpp \
+#
+
+#	od-fs/archivers/chd/avhuff.cpp \
+#	od-fs/archivers/chd/bitmap.cpp \
+#	od-fs/archivers/chd/cdrom.cpp \
+#	od-fs/archivers/chd/chd.cpp \
+#	od-fs/archivers/chd/chdcd.cpp \
+#	od-fs/archivers/chd/chdcodec.cpp \
+#	od-fs/archivers/chd/corealloc.cpp \
+#	od-fs/archivers/chd/corefile.cpp \
+#	od-fs/archivers/chd/corestr.cpp \
+#	od-fs/archivers/chd/flac.cpp \
+#	od-fs/archivers/chd/harddisk.cpp \
+#	od-fs/archivers/chd/hashing.cpp \
+#	od-fs/archivers/chd/huffman.cpp \
+#	od-fs/archivers/chd/md5.cpp \
+#	od-fs/archivers/chd/osdcore.cpp \
+#	od-fs/archivers/chd/osdlib_unix.cpp \
+#	od-fs/archivers/chd/osdsync.cpp \
+#	od-fs/archivers/chd/palette.cpp \
+#	od-fs/archivers/chd/posixdir.cpp \
+#	od-fs/archivers/chd/posixfile.cpp \
+#	od-fs/archivers/chd/posixptty.cpp \
+#	od-fs/archivers/chd/posixsocket.cpp \
+#	od-fs/archivers/chd/strconv.cpp \
+#	od-fs/archivers/chd/strformat.cpp \
+#	od-fs/archivers/chd/unicode.cpp \
+#	od-fs/archivers/chd/vecstream.cpp \
+#	od-fs/archivers/chd/utf8proc.c
+
+#	archivers/chd/astring.cpp \
+#	archivers/chd/astring.h \
+#	archivers/chd/bitstream.h \
+#	archivers/chd/chd.cpp \
+#	archivers/chd/chd.h \
+#	archivers/chd/chdcdrom.cpp \
+#	archivers/chd/chdcdrom.h \
+#	archivers/chd/chdcodec.cpp \
+#	archivers/chd/chdcodec.h \
+#	archivers/chd/chdglue.cpp \
+#	archivers/chd/chdtypes.h \
+#	archivers/chd/corealloc.cpp \
+#	archivers/chd/corealloc.h \
+#	archivers/chd/corefile.h \
+#	archivers/chd/coretmpl.h \
+#	archivers/chd/flac.cpp \
+#	archivers/chd/flac.h \
+#	archivers/chd/harddisk.cpp \
+#	archivers/chd/harddisk.h \
+#	archivers/chd/hashing.h \
+#	archivers/chd/huffman.cpp \
+#	archivers/chd/huffman.h \
+#	archivers/chd/md5.h \
+#	archivers/chd/osdcore.h \
+#	archivers/chd/sha1.h
+endif
+
+# -----------------------------------------------------------------------------
 
 noinst_LIBRARIES += libcpuemu.a
 fs_uae_LDADD += libcpuemu.a
@@ -700,7 +936,6 @@ libcpuemu_a_SOURCES = \
 	cpuemu_35.cpp \
 	cpuemu_40.cpp \
 	cpuemu_50.cpp
-
 #nodist_src_libcpuemu_a_SOURCES = \
 #	gen/cpuemu_0.cpp \
 #	gen/cpuemu_11.cpp \
@@ -719,51 +954,69 @@ libcpuemu_a_SOURCES = \
 #	gen/cpuemu_50.cpp
 #BUILT_SOURCES += $(nodist_src_libcpuemu_a_SOURCES)
 
+# -----------------------------------------------------------------------------
+
+if FLOPPYBRIDGE
+libuae_a_SOURCES += \
+	floppybridge/floppybridge_abstract.h \
+	floppybridge/floppybridge_lib.cpp \
+	floppybridge/floppybridge_lib.h
+endif
+
+# jit -------------------------------------------------------------------------
+
+noinst_LIBRARIES += libjit.a
+fs_uae_LDADD += libjit.a
+libjit_a_SOURCES = \
+	jit/codegen_udis86.h \
+	jit/codegen_x86.h \
+	jit/compemu_fpp.cpp \
+	jit/compemu_midfunc_arm.h \
+	jit/compemu_midfunc_x86.h \
+	jit/compemu_support.cpp \
+	jit/compemu.cpp \
+	jit/compemu.h \
+	jit/compstbl.cpp \
+	jit/comptbl.h \
+	jit/flags_x86.h \
+	jit/memory-uae.h
+EXTRA_DIST += \
+	jit/codegen_x86.cpp \
+	jit/compemu_midfunc_x86.cpp \
+	jit/compemu_prefs.cpp \
+	jit/exception_handler.cpp
+
+# fsemu0 ----------------------------------------------------------------------
+
 noinst_LIBRARIES += libfsemu0.a
-AM_CPPFLAGS += -I$(s)/od-fs/libfsemu/include
+AM_CPPFLAGS += -I$(srcdir)/od-fs/libfsemu/include
 fs_uae_LDADD += libfsemu0.a
 libfsemu0_a_SOURCES = \
 	od-fs/libfsemu/include/fs/base.h \
-	od-fs/libfsemu/include/fs/conf.h \
 	od-fs/libfsemu/include/fs/data.h \
 	od-fs/libfsemu/include/fs/defines.h \
-	od-fs/libfsemu/include/fs/emu.h \
 	od-fs/libfsemu/include/fs/endian.h \
-	od-fs/libfsemu/include/fs/eventlog.h \
 	od-fs/libfsemu/include/fs/filesys.h \
 	od-fs/libfsemu/include/fs/fs.h \
 	od-fs/libfsemu/include/fs/glib.h \
 	od-fs/libfsemu/include/fs/i18n.h \
-	od-fs/libfsemu/include/fs/image.h \
-	od-fs/libfsemu/include/fs/inifile.h \
 	od-fs/libfsemu/include/fs/init.h \
 	od-fs/libfsemu/include/fs/lazyness.h \
-	od-fs/libfsemu/include/fs/log.h \
 	od-fs/libfsemu/include/fs/main.h \
-	od-fs/libfsemu/include/fs/malloc.h \
-	od-fs/libfsemu/include/fs/ref.h \
 	od-fs/libfsemu/include/fs/thread.h \
 	od-fs/libfsemu/include/fs/time.h \
 	od-fs/libfsemu/include/fs/util.h \
-	od-fs/libfsemu/src/base.c \
-	od-fs/libfsemu/src/conf.c \
-	od-fs/libfsemu/src/data.c \
-	od-fs/libfsemu/src/eventlog.c \
 	od-fs/libfsemu/src/filesys.c \
-	od-fs/libfsemu/src/image.c \
-	od-fs/libfsemu/src/inifile.c \
 	od-fs/libfsemu/src/init.c \
-	od-fs/libfsemu/src/log.c \
-	od-fs/libfsemu/src/malloc.c \
-	od-fs/libfsemu/src/ref.c \
 	od-fs/libfsemu/src/thread.c \
 	od-fs/libfsemu/src/time.c
 
+# fsemu -----------------------------------------------------------------------
 
 if FSEMU
 
 noinst_LIBRARIES += libfsemu.a
-AM_CPPFLAGS += -I$(s)/od-fs/fsemu
+AM_CPPFLAGS += -I$(srcdir)/od-fs/fsemu
 fs_uae_LDADD += libfsemu.a
 libfsemu_a_SOURCES = \
 	od-fs/fsemu/fsemu-action.c \
@@ -951,11 +1204,11 @@ fsuae_data_files =
 libfsemu_a_SOURCES += $(fsemu_data_files)
 
 #data/.fsemu: $(fsemu_data_files) ${fsuae_data_files}
-#	mkdir -p $(b)/data/
-#	cp $(s)/fsemu/fonts/saira/* $(b)/data/
-#	cp $(s)/fsemu/icons/fontawesome/* $(b)/data/
-#	cp $(s)/fsemu/images/* $(b)/data/
-#	cp $(s)/src/fsuae/images/* $(b)/data/
+#	mkdir -p $(builddir)/data/
+#	cp $(srcdir)/fsemu/fonts/saira/* $(builddir)/data/
+#	cp $(srcdir)/fsemu/icons/fontawesome/* $(builddir)/data/
+#	cp $(srcdir)/fsemu/images/* $(builddir)/data/
+#	cp $(srcdir)/src/fsuae/images/* $(builddir)/data/
 #	touch data/.fsemu
 
 fsemu-data: 
@@ -967,14 +1220,23 @@ fsemu-data:
 
 endif
 
-if BUILTIN_CEF
-AM_CPPFLAGS += -I$(s)/cef
-fs_uae_LDADD += cef/libcef_dll/libcef_dll_wrapper.a -L $(s)/cef/Release -lcef
+# glad ------------------------------------------------------------------------
+
+if WITH_GLAD
+noinst_LIBRARIES += libglad.a
+AM_CPPFLAGS += -I$(srcdir)/od-fs/glad/include
+fs_uae_LDADD += libglad.a
+libglad_a_SOURCES = \
+	od-fs/glad/include/glad/glad.h \
+	od-fs/glad/include/KHR/khrplatform.h \
+	od-fs/glad/src/glad.c
 endif
+
+# manymouse -------------------------------------------------------------------
 
 if BUILTIN_MANYMOUSE
 # noinst_LIBRARIES += libmanymouse.a
-# AM_CPPFLAGS += -I$(s)/manymouse
+# AM_CPPFLAGS += -I$(srcdir)/manymouse
 # fs_uae_LDADD += libmanymouse.a
 # libmanymouse_a_SOURCES = \
 # 	manymouse/linux_evdev.c \
@@ -986,90 +1248,7 @@ if BUILTIN_MANYMOUSE
 # 	manymouse/x11_xinput2.c
 endif
 
-if WITH_GLAD
-noinst_LIBRARIES += libglad.a
-AM_CPPFLAGS += -I$(s)/od-fs/glad/include
-fs_uae_LDADD += libglad.a
-libglad_a_SOURCES = \
-	od-fs/glad/src/glad.c
-endif
-
-if WITH_PEARPC_CPU
-noinst_LIBRARIES += libpearpc.a
-AM_CPPFLAGS += -I$(s)/ppc/pearpc
-fs_uae_LDADD += libpearpc.a
-libpearpc_a_SOURCES = \
-	ppc/pearpc/cpu/common.h \
-	ppc/pearpc/cpu/cpu_generic/ppc_alu.cpp \
-	ppc/pearpc/cpu/cpu_generic/ppc_alu.h \
-	ppc/pearpc/cpu/cpu_generic/ppc_cpu.cpp \
-	ppc/pearpc/cpu/cpu_generic/ppc_cpu.h \
-	ppc/pearpc/cpu/cpu_generic/ppc_dec.cpp \
-	ppc/pearpc/cpu/cpu_generic/ppc_dec.h \
-	ppc/pearpc/cpu/cpu_generic/ppc_exc.cpp \
-	ppc/pearpc/cpu/cpu_generic/ppc_exc.h \
-	ppc/pearpc/cpu/cpu_generic/ppc_fpu.cpp \
-	ppc/pearpc/cpu/cpu_generic/ppc_fpu.h \
-	ppc/pearpc/cpu/cpu_generic/ppc_mmu.cpp \
-	ppc/pearpc/cpu/cpu_generic/ppc_mmu.h \
-	ppc/pearpc/cpu/cpu_generic/ppc_opc.cpp \
-	ppc/pearpc/cpu/cpu_generic/ppc_opc.h \
-	ppc/pearpc/cpu/cpu_generic/ppc_tools.h \
-	ppc/pearpc/cpu/cpu_generic/ppc_vec.cpp \
-	ppc/pearpc/cpu/cpu_generic/ppc_vec.h \
-	ppc/pearpc/cpu/cpu.h \
-	ppc/pearpc/cpu/debug.h \
-	ppc/pearpc/cpu/mem.h \
-	ppc/pearpc/info.h \
-	ppc/pearpc/io/io.h \
-	ppc/pearpc/pearpc_config.h \
-	ppc/pearpc/system/arch/generic/sysendian.h \
-	ppc/pearpc/system/arch/generic/sysfeatures.h \
-	ppc/pearpc/system/arch/sysendian.h \
-	ppc/pearpc/system/arch/sysfeatures.h \
-	ppc/pearpc/system/arch/x86_64/sysendian.h \
-	ppc/pearpc/system/arch/x86_64/sysfeatures.h \
-	ppc/pearpc/system/arch/x86/sysendian.h \
-	ppc/pearpc/system/arch/x86/sysfeatures.h \
-	ppc/pearpc/system/systhread.h \
-	ppc/pearpc/system/types.h \
-	ppc/pearpc/tools/debug.h \
-	ppc/pearpc/tools/endianess.h \
-	ppc/pearpc/tools/snprintf.h \
-	ppc/pearpc/tracers.h \
-	ppc/pearpc/uaeglue.cpp
-endif
-
-if WITH_CHD
-noinst_LIBRARIES += libchd.a
-fs_uae_LDADD +=  libchd.a
-libchd_a_SOURCES = \
-	archivers/chd/astring.cpp \
-	archivers/chd/astring.h \
-	archivers/chd/bitstream.h \
-	archivers/chd/chd.cpp \
-	archivers/chd/chd.h \
-	archivers/chd/chdcdrom.cpp \
-	archivers/chd/chdcdrom.h \
-	archivers/chd/chdcodec.cpp \
-	archivers/chd/chdcodec.h \
-	archivers/chd/chdglue.cpp \
-	archivers/chd/chdtypes.h \
-	archivers/chd/corealloc.cpp \
-	archivers/chd/corealloc.h \
-	archivers/chd/corefile.h \
-	archivers/chd/coretmpl.h \
-	archivers/chd/flac.cpp \
-	archivers/chd/flac.h \
-	archivers/chd/harddisk.cpp \
-	archivers/chd/harddisk.h \
-	archivers/chd/hashing.h \
-	archivers/chd/huffman.cpp \
-	archivers/chd/huffman.h \
-	archivers/chd/md5.h \
-	archivers/chd/osdcore.h \
-	archivers/chd/sha1.h
-endif
+# pcem ------------------------------------------------------------------------
 
 if WITH_X86
 noinst_LIBRARIES += libpcem.a
@@ -1080,10 +1259,17 @@ libpcem_a_SOURCES = \
 	pcem/386_dynarec.cpp \
 	pcem/386_ops.h \
 	pcem/386.cpp \
-	pcem/386.h \
+	pcem/8087.h \
 	pcem/808x.cpp \
-	pcem/codegen_x86-64.h \
-	pcem/codegen_x86.h \
+	pcem/codegen_backend_arm_defs.h \
+	pcem/codegen_backend_arm.h \
+	pcem/codegen_backend_arm64_defs.h \
+	pcem/codegen_backend_arm64.h \
+	pcem/codegen_backend_x86_defs.h \
+	pcem/codegen_backend_x86-64_defs.h \
+	pcem/codegen_backend_x86-64.h \
+	pcem/codegen_backend_x86.h \
+	pcem/codegen_backend.h \
 	pcem/codegen.h \
 	pcem/config.h \
 	pcem/cpu.cpp \
@@ -1095,8 +1281,10 @@ libpcem_a_SOURCES = \
 	pcem/dosbox/dbopl.h \
 	pcem/dosbox/nukedopl.cpp \
 	pcem/dosbox/nukedopl.h \
+	pcem/f82c710_upc.h \
 	pcem/fdc.h \
 	pcem/filters.h \
+	pcem/i440bx.h \
 	pcem/ibm.h \
 	pcem/io.h \
 	pcem/keyboard_at.cpp \
@@ -1151,30 +1339,41 @@ libpcem_a_SOURCES = \
 	pcem/sound.h \
 	pcem/t1000.h \
 	pcem/t3100e.h \
+	pcem/thread.h \
 	pcem/timer.cpp \
 	pcem/timer.h \
 	pcem/vid_cl5429.cpp \
 	pcem/vid_cl5429.h \
+	pcem/vid_et4000.h \
+	pcem/vid_et4000.h \
+	pcem/vid_inmos.h \
+	pcem/vid_ncr.h \
+	pcem/vid_permedia2.cpp \
+	pcem/vid_permedia2.h \
+	pcem/vid_s3_virge.cpp \
+	pcem/vid_s3_virge.h \
 	pcem/vid_s3.cpp \
 	pcem/vid_s3.h \
 	pcem/vid_sdac_ramdac.cpp \
 	pcem/vid_sdac_ramdac.h \
+	pcem/vid_svga_render_remap.h \
 	pcem/vid_svga_render.cpp \
 	pcem/vid_svga_render.h \
 	pcem/vid_svga.cpp \
 	pcem/vid_svga.h \
-	pcem/vid_s3_virge.cpp \
-	pcem/vid_s3_virge.h \
-	pcem/vid_permedia2.cpp \
-	pcem/vid_permedia2.h \
+	pcem/vid_unk_ramdac.h \
+	pcem/vid_vga.h \
+	pcem/vid_voodoo_banshee.h \
 	pcem/video.h \
 	pcem/x86_flags.h \
+	pcem/x86_ops_3dnow.h \
 	pcem/x86_ops_arith.h \
 	pcem/x86_ops_atomic.h \
 	pcem/x86_ops_bcd.h \
 	pcem/x86_ops_bit.h \
 	pcem/x86_ops_bitscan.h \
 	pcem/x86_ops_call.h \
+	pcem/x86_ops_cyrix.h \
 	pcem/x86_ops_flag.h \
 	pcem/x86_ops_fpu.h \
 	pcem/x86_ops_inc_dec.h \
@@ -1218,106 +1417,19 @@ libpcem_a_SOURCES = \
 	pcem/xi8088.h
 endif
 
+# ppc -------------------------------------------------------------------------
+
 if WITH_PPC
 fs_uae_SOURCES += \
 	ppc/ppcd.cpp \
 	ppc/ppcd.h
 endif
 
-if WITH_SLIRP
-if WITH_BUILTIN_SLIRP
-noinst_LIBRARIES += libslirp.a
-fs_uae_LDADD += libslirp.a
-LIBS += @SLIRP_LIBS@
-libslirp_a_SOURCES = \
-	od-fs/slirp/src/arp_table.c \
-	od-fs/slirp/src/bootp.c \
-	od-fs/slirp/src/bootp.h \
-	od-fs/slirp/src/cksum.c \
-	od-fs/slirp/src/debug.h \
-	od-fs/slirp/src/dhcpv6.c \
-	od-fs/slirp/src/dhcpv6.h \
-	od-fs/slirp/src/dnssearch.c \
-	od-fs/slirp/src/if.c \
-	od-fs/slirp/src/if.h \
-	od-fs/slirp/src/ip_icmp.c \
-	od-fs/slirp/src/ip_icmp.h \
-	od-fs/slirp/src/ip_input.c \
-	od-fs/slirp/src/ip_output.c \
-	od-fs/slirp/src/ip.h \
-	od-fs/slirp/src/ip6_icmp.c \
-	od-fs/slirp/src/ip6_icmp.h \
-	od-fs/slirp/src/ip6_input.c \
-	od-fs/slirp/src/ip6_output.c \
-	od-fs/slirp/src/ip6.h \
-	od-fs/slirp/src/libslirp-version.h \
-	od-fs/slirp/src/libslirp.h \
-	od-fs/slirp/src/main.h \
-	od-fs/slirp/src/mbuf.c \
-	od-fs/slirp/src/mbuf.h \
-	od-fs/slirp/src/misc.c \
-	od-fs/slirp/src/misc.h \
-	od-fs/slirp/src/ncsi-pkt.h \
-	od-fs/slirp/src/ncsi.c \
-	od-fs/slirp/src/ndp_table.c \
-	od-fs/slirp/src/sbuf.c \
-	od-fs/slirp/src/sbuf.h \
-	od-fs/slirp/src/slirp.c \
-	od-fs/slirp/src/slirp.h \
-	od-fs/slirp/src/socket.c \
-	od-fs/slirp/src/socket.h \
-	od-fs/slirp/src/state.c \
-	od-fs/slirp/src/stream.c \
-	od-fs/slirp/src/stream.h \
-	od-fs/slirp/src/tcp_input.c \
-	od-fs/slirp/src/tcp_output.c \
-	od-fs/slirp/src/tcp_subr.c \
-	od-fs/slirp/src/tcp_timer.c \
-	od-fs/slirp/src/tcp_timer.h \
-	od-fs/slirp/src/tcp_var.h \
-	od-fs/slirp/src/tcp.h \
-	od-fs/slirp/src/tcpip.h \
-	od-fs/slirp/src/tftp.c \
-	od-fs/slirp/src/tftp.h \
-	od-fs/slirp/src/udp.c \
-	od-fs/slirp/src/udp.h \
-	od-fs/slirp/src/udp6.c \
-	od-fs/slirp/src/util.c \
-	od-fs/slirp/src/util.h \
-	od-fs/slirp/src/version.c \
-	od-fs/slirp/src/vmstate.c \
-	od-fs/slirp/src/vmstate.h
-endif
-endif
-
-if WITH_TOCCATA
-fs_uae_SOURCES += \
-	sndboard.cpp
-endif
-
-if WITH_UDIS86
-noinst_LIBRARIES += libudis86.a
-AM_CPPFLAGS += -I$(s)/od-fs/libudis86/include
-fs_uae_LDADD += libudis86.a
-libudis86_a_SOURCES = \
-	od-fs/libudis86/include/udis86.h \
-	od-fs/libudis86/src/decode.c \
-	od-fs/libudis86/src/decode.h \
-	od-fs/libudis86/src/extern.h \
-	od-fs/libudis86/src/itab.c \
-	od-fs/libudis86/src/itab.h \
-	od-fs/libudis86/src/syn-att.c \
-	od-fs/libudis86/src/syn-intel.c \
-	od-fs/libudis86/src/syn.c \
-	od-fs/libudis86/src/syn.h \
-	od-fs/libudis86/src/types.h \
-	od-fs/libudis86/src/udint.h \
-	od-fs/libudis86/src/udis86.c
-endif
+# -----------------------------------------------------------------------------
 
 if PROWIZARD
 noinst_LIBRARIES += libprowizard.a
-AM_CPPFLAGS += -I$(s)/prowizard/include
+AM_CPPFLAGS += -I$(srcdir)/prowizard/include
 fs_uae_LDADD += libprowizard.a
 fs_uae_SOURCES += moduleripper.cpp
 libprowizard_a_CFLAGS = $(AM_CFLAGS)
@@ -1407,6 +1519,80 @@ libprowizard_a_SOURCES = \
 	prowizard/rippers/ZenPacker.c
 endif
 
+# slirp -----------------------------------------------------------------------
+
+if WITH_SLIRP
+if WITH_BUILTIN_SLIRP
+noinst_LIBRARIES += libslirp.a
+fs_uae_LDADD += libslirp.a
+fs_uae_LDADD += @SLIRP_LIBS@
+libslirp_a_SOURCES = \
+	od-fs/slirp/src/arp_table.c \
+	od-fs/slirp/src/bootp.c \
+	od-fs/slirp/src/bootp.h \
+	od-fs/slirp/src/cksum.c \
+	od-fs/slirp/src/debug.h \
+	od-fs/slirp/src/dhcpv6.c \
+	od-fs/slirp/src/dhcpv6.h \
+	od-fs/slirp/src/dnssearch.c \
+	od-fs/slirp/src/if.c \
+	od-fs/slirp/src/if.h \
+	od-fs/slirp/src/ip_icmp.c \
+	od-fs/slirp/src/ip_icmp.h \
+	od-fs/slirp/src/ip_input.c \
+	od-fs/slirp/src/ip_output.c \
+	od-fs/slirp/src/ip.h \
+	od-fs/slirp/src/ip6_icmp.c \
+	od-fs/slirp/src/ip6_icmp.h \
+	od-fs/slirp/src/ip6_input.c \
+	od-fs/slirp/src/ip6_output.c \
+	od-fs/slirp/src/ip6.h \
+	od-fs/slirp/src/libslirp-version.h \
+	od-fs/slirp/src/libslirp.h \
+	od-fs/slirp/src/main.h \
+	od-fs/slirp/src/mbuf.c \
+	od-fs/slirp/src/mbuf.h \
+	od-fs/slirp/src/misc.c \
+	od-fs/slirp/src/misc.h \
+	od-fs/slirp/src/ncsi-pkt.h \
+	od-fs/slirp/src/ncsi.c \
+	od-fs/slirp/src/ndp_table.c \
+	od-fs/slirp/src/sbuf.c \
+	od-fs/slirp/src/sbuf.h \
+	od-fs/slirp/src/slirp.c \
+	od-fs/slirp/src/slirp.h \
+	od-fs/slirp/src/socket.c \
+	od-fs/slirp/src/socket.h \
+	od-fs/slirp/src/state.c \
+	od-fs/slirp/src/stream.c \
+	od-fs/slirp/src/stream.h \
+	od-fs/slirp/src/tcp_input.c \
+	od-fs/slirp/src/tcp_output.c \
+	od-fs/slirp/src/tcp_subr.c \
+	od-fs/slirp/src/tcp_timer.c \
+	od-fs/slirp/src/tcp_timer.h \
+	od-fs/slirp/src/tcp_var.h \
+	od-fs/slirp/src/tcp.h \
+	od-fs/slirp/src/tcpip.h \
+	od-fs/slirp/src/tftp.c \
+	od-fs/slirp/src/tftp.h \
+	od-fs/slirp/src/udp.c \
+	od-fs/slirp/src/udp.h \
+	od-fs/slirp/src/udp6.c \
+	od-fs/slirp/src/util.c \
+	od-fs/slirp/src/util.h \
+	od-fs/slirp/src/version.c \
+	od-fs/slirp/src/vmstate.c \
+	od-fs/slirp/src/vmstate.h
+endif
+endif
+EXTRA_DIST += \
+	od-fs/slirp/CHANGELOG.md \
+	od-fs/slirp/COPYRIGHT \
+	od-fs/slirp/README.md
+
+# -----------------------------------------------------------------------------
+
 if WITH_SOFTFLOAT
 noinst_LIBRARIES += libsoftfloat.a
 fs_uae_LDADD += libsoftfloat.a
@@ -1423,10 +1609,69 @@ libsoftfloat_a_SOURCES = \
 	softfloat/softfloat.h
 endif
 
+# -----------------------------------------------------------------------------
+
+if WITH_TOCCATA
+fs_uae_SOURCES += \
+	sndboard.cpp
+endif
+
+# -----------------------------------------------------------------------------
+
+if WITH_UDIS86
+noinst_LIBRARIES += libudis86.a
+AM_CPPFLAGS += -I$(srcdir)/od-fs/libudis86/include
+fs_uae_LDADD += libudis86.a
+libudis86_a_SOURCES = \
+	od-fs/libudis86/include/udis86.h \
+	od-fs/libudis86/src/decode.c \
+	od-fs/libudis86/src/decode.h \
+	od-fs/libudis86/src/extern.h \
+	od-fs/libudis86/src/itab.c \
+	od-fs/libudis86/src/itab.h \
+	od-fs/libudis86/src/syn-att.c \
+	od-fs/libudis86/src/syn-intel.c \
+	od-fs/libudis86/src/syn.c \
+	od-fs/libudis86/src/syn.h \
+	od-fs/libudis86/src/types.h \
+	od-fs/libudis86/src/udint.h \
+	od-fs/libudis86/src/udis86.c
+endif
+
+# --------------------------------------------------------------------------------------------------
+
+fs_uae_LDADD += @ALSA_LIBS@
+fs_uae_LDADD += @CARBON_LIBS@
+fs_uae_LDADD += @FLAC_LIBS@
+fs_uae_LDADD += @FREETYPE_LIBS@
+fs_uae_LDADD += @GLEW_LIBS@
+fs_uae_LDADD += @GLIB_LIBS@
+fs_uae_LDADD += @IOKIT_LIBS@
+fs_uae_LDADD += @MIDI_LIBS@
+fs_uae_LDADD += @MPG123_LIBS@
+fs_uae_LDADD += @OPENGL_LIBS@
+fs_uae_LDADD += @PNG_LIBS@
+fs_uae_LDADD += @PYTHON3_LIBS@
+fs_uae_LDADD += @SDL3_IMAGE_LIBS@
+fs_uae_LDADD += @SDL3_LIBS@
+fs_uae_LDADD += @SDL3_TTF_LIBS@
+fs_uae_LDADD += @X11_LIBS@
+fs_uae_LDADD += @ZLIB_LIBS@
+fs_uae_LDADD += @ZSTD_LIBS@
+
 if WITH_LIBMPEG2
 CM_CFLAGS += @LIBMPEG2_CFLAGS@
-LIBS += @LIBMPEG2_LIBS@
+fs_uae_LDADD += @LIBMPEG2_LIBS@
 endif
+
+if WINDOWS
+fs_uae_LDADD += -lWininet
+endif
+
+# fs_uae_LDADD += @MIR_LIBS@
+# fs_uae_LDADD += @OS_LIBS@
+
+# --------------------------------------------------------------------------------------------------
 
 # if BUILTIN_LIBMPEG2
 # SUBDIRS += slirp
@@ -1440,10 +1685,10 @@ endif
 #BUILT_SOURCES += $(nodist_libdummy_a_SOURCES)
 #
 #gen/cdummy.c:
-#	echo "int cdummy;" > $(b)/gen/cdummy.c
+#	echo "int cdummy;" > $(builddir)/gen/cdummy.c
 #
 #gen/cppdummy.cpp:
-#	echo "int cppdummy;" > $(b)/gen/cppdummy.cpp
+#	echo "int cppdummy;" > $(builddir)/gen/cppdummy.cpp
 
 #gen_build68k_SOURCES = \
 #	src/build68k.cpp \
@@ -1473,29 +1718,32 @@ endif
 #gen_genlinetoscr_SOURCES = \
 #	src/genlinetoscr.cpp
 
-TESTS = \
-	tests/dummy-test
+#TESTS = \
+#	tests/dummy-test
 
-EXTRA_TESTS = \
-	tests/cppcheck-fs-uae \
-	tests/cppcheck-libfsemu \
-	tests/cppcheck-libmpeg2 \
-	tests/cppcheck-manymouse \
-	tests/cppcheck-od-fs \
-	tests/cppcheck-pearpc \
-	tests/cppcheck-ppc \
-	tests/cppcheck-slirp \
-	tests/cppcheck-uae
+#EXTRA_TESTS = \
+#	tests/cppcheck-fs-uae \
+#	tests/cppcheck-libfsemu \
+#	tests/cppcheck-libmpeg2 \
+#	tests/cppcheck-manymouse \
+#	tests/cppcheck-od-fs \
+#	tests/cppcheck-pearpc \
+#	tests/cppcheck-ppc \
+#	tests/cppcheck-slirp \
+#	tests/cppcheck-uae
 
-EXTRA_DIST = $(TESTS) $(EXTRA_TESTS) \
+#	licenses/fs-uae.txt \
+#	licenses/glib.txt \
+#	licenses/ipflib.txt \
+#	licenses/libgcc.txt \
+#	licenses/libintl.txt \
+#	licenses/libpng.txt \
+#	licenses/libstdc++.txt \
+#	licenses/zlib.txt \
+#	po
+
+EXTRA_DIST += $(TESTS) $(EXTRA_TESTS) \
 	$(fsuae_data_files) \
-	debian/changelog \
-	debian/compat \
-	debian/control \
-	debian/copyright \
-	debian/rules \
-	debian/source \
-	debian/source/format \
 	docs/action-replay.md \
 	docs/amiga-forever.md \
 	docs/amigaos-4-1.md \
@@ -1507,8 +1755,8 @@ EXTRA_DIST = $(TESTS) $(EXTRA_TESTS) \
 	docs/examples/Default.fs-uae \
 	docs/examples/Keyboard.ini \
 	docs/faq.md \
-	docs/getting-started.md \
 	docs/g-sync.md \
+	docs/getting-started.md \
 	docs/issues.md \
 	docs/jit-compiler.md \
 	docs/joysticks.md \
@@ -1526,87 +1774,50 @@ EXTRA_DIST = $(TESTS) $(EXTRA_TESTS) \
 	docs/vsync.md \
 	docs/windows.md \
 	docs/x-arcade.md \
-	src/flac/include/FLAC/all.h \
-	src/flac/include/FLAC/assert.h \
-	src/flac/include/FLAC/callback.h \
-	src/flac/include/FLAC/export.h \
-	src/flac/include/FLAC/format.h \
-	src/flac/include/FLAC/metadata.h \
-	src/flac/include/FLAC/ordinals.h \
-	src/flac/include/FLAC/stream_decoder.h \
-	src/flac/include/FLAC/stream_encoder.h \
-	fsemu/gamemode/LICENSE.txt \
-	fsemu/gamemode/README.md \
-	fsemu/libinih/ini.c \
-	fsemu/libinih/ini.h \
-	fsemu/libinih/LICENSE.txt \
-	fs-uae.spec \
-	icon/fs-uae.ico \
-	src/glad/include/glad/glad.h \
-	src/glad/include/KHR/khrplatform.h \
-	src/glad/LICENSE \
-	src/libudis86/README \
-	licenses/fs-uae.txt \
-	licenses/glib.txt \
-	licenses/ipflib.txt \
-	licenses/libgcc.txt \
-	licenses/libintl.txt \
-	licenses/libpng.txt \
-	licenses/libstdc++.txt \
-	licenses/zlib.txt \
-	po \
-	slirp/CHANGELOG.md \
-	slirp/COPYRIGHT \
-	slirp/README.md \
-	src/aks.def \
-	src/filesys_bootrom.cpp \
-	src/fsuae/fs-uae.rc.in \
-	src/inputevents.def \
-	src/jit/codegen_x86.cpp \
-	src/jit/compemu_midfunc_x86.cpp \
-	src/jit/compemu_prefs.cpp \
-	src/jit/exception_handler.cpp \
-	src/mame/tm34010/34010fld.c \
-	src/mame/tm34010/34010tbl.c \
-	src/mame/tm34010/34010ops.c \
-	src/mame/tm34010/34010ops.h \
-	src/mame/tm34010/34010gfx.c \
-	src/p96_blit.cpp \
-	src/sinctable.cpp \
-	src/table68k \
-	share/applications \
-	share/fs-uae \
-	share/icons \
-	share/mime
+	od-fs/ChangeLog \
+	od-fs/gamemode/LICENSE.txt \
+	od-fs/gamemode/README.md \
+	od-fs/glad/LICENSE \
+	od-fs/libinih/ini.c \
+	od-fs/libinih/ini.h \
+	od-fs/libinih/LICENSE.txt \
+	od-fs/libudis86/README \
+	od-fs/README.md \
+	od-fs/windows/fs-uae.ico
+
+#	share/applications \
+#	share/fs-uae \
+#	share/icons \
+#	share/mime
 
 CLEANFILES = $(BUILT_SOURCES)
 
 if CODEGEN
 
 #gen/blit.h: gen/genblitter$(EXEEXT)
-#	$(b)/gen/genblitter$(EXEEXT) i > $(b)/gen/blit.h
+#	$(builddir)/gen/genblitter$(EXEEXT) i > $(builddir)/gen/blit.h
 
 #gen/blitfunc.cpp: gen/genblitter$(EXEEXT) gen/blitfunc.h
-#	$(b)/gen/genblitter$(EXEEXT) f > $(b)/gen/blitfunc.cpp
+#	$(builddir)/gen/genblitter$(EXEEXT) f > $(builddir)/gen/blitfunc.cpp
 
 #gen/blitfunc.h: gen/genblitter$(EXEEXT)
-#	$(b)/gen/genblitter$(EXEEXT) h > $(b)/gen/blitfunc.h
+#	$(builddir)/gen/genblitter$(EXEEXT) h > $(builddir)/gen/blitfunc.h
 
 #gen/blittable.cpp: gen/genblitter$(EXEEXT) gen/blitfunc.h
-#	$(b)/gen/genblitter$(EXEEXT) t > $(b)/gen/blittable.cpp
+#	$(builddir)/gen/genblitter$(EXEEXT) t > $(builddir)/gen/blittable.cpp
 
 #gen/compemu.cpp: gen/gencomp$(EXEEXT)
-#	$(b)/gen/gencomp$(EXEEXT)
+#	$(builddir)/gen/gencomp$(EXEEXT)
 
 #gen/compstbl.cpp: gen/compemu.cpp
 
 #gen/comptbl.h: gen/compemu.cpp
 
 #gen/cpudefs.cpp: gen/build68k$(EXEEXT) src/table68k
-#	$(b)/gen/build68k$(EXEEXT) < $(s)/src/table68k > $(b)/gen/cpudefs.cpp
+#	$(builddir)/gen/build68k$(EXEEXT) < $(srcdir)/src/table68k > $(builddir)/gen/cpudefs.cpp
 
 #gen/cpuemu_0.cpp: gen/gencpu$(EXEEXT)
-#	cd $(b)/gen && ./gencpu$(EXEEXT) --optimized-flags
+#	cd $(builddir)/gen && ./gencpu$(EXEEXT) --optimized-flags
 
 #gen/cpuemu_11.cpp: gen/cpuemu_0.cpp
 
@@ -1641,127 +1852,134 @@ if CODEGEN
 #gen/cputbl.h: gen/cpuemu_0.cpp
 
 #gen/linetoscr.cpp: gen/genlinetoscr$(EXEEXT)
-#	$(b)/gen/genlinetoscr$(EXEEXT) > $(b)/gen/linetoscr.cpp
+#	$(builddir)/gen/genlinetoscr$(EXEEXT) > $(builddir)/gen/linetoscr.cpp
 
 endif
 
-catalogs =
+#catalogs =
+#
+#share/locale/cs/LC_MESSAGES/fs-uae.mo: po/cs.po
+#	mkdir -p share/locale/cs/LC_MESSAGES
+#	$(MSGFMT) --verbose $(srcdir)/po/cs.po -o $@
+#
+#share/locale/da/LC_MESSAGES/fs-uae.mo: po/da.po
+#	mkdir -p share/locale/da/LC_MESSAGES
+#	$(MSGFMT) --verbose $(srcdir)/po/da.po -o $@
+#
+#share/locale/de/LC_MESSAGES/fs-uae.mo: po/de.po
+#	mkdir -p share/locale/de/LC_MESSAGES
+#	$(MSGFMT) --verbose $(srcdir)/po/de.po -o $@
+#
+#share/locale/eo/LC_MESSAGES/fs-uae.mo: po/eo.po
+#	mkdir -p share/locale/eo/LC_MESSAGES
+#	$(MSGFMT) --verbose $(srcdir)/po/eo.po -o $@
+#
+#share/locale/es/LC_MESSAGES/fs-uae.mo: po/es.po
+#	mkdir -p share/locale/es/LC_MESSAGES
+#	$(MSGFMT) --verbose $(srcdir)/po/es.po -o $@
+#
+#share/locale/fi/LC_MESSAGES/fs-uae.mo: po/fi.po
+#	mkdir -p share/locale/fi/LC_MESSAGES
+#	$(MSGFMT) --verbose $(srcdir)/po/fi.po -o $@
+#
+#share/locale/fr/LC_MESSAGES/fs-uae.mo: po/fr.po
+#	mkdir -p share/locale/fr/LC_MESSAGES
+#	$(MSGFMT) --verbose $(srcdir)/po/fr.po -o $@
+#
+#share/locale/hu/LC_MESSAGES/fs-uae.mo: po/hu.po
+#	mkdir -p share/locale/hu/LC_MESSAGES
+#	$(MSGFMT) --verbose $(srcdir)/po/hu.po -o $@
+#
+#share/locale/it/LC_MESSAGES/fs-uae.mo: po/it.po
+#	mkdir -p share/locale/it/LC_MESSAGES
+#	$(MSGFMT) --verbose $(srcdir)/po/it.po -o $@
+#
+#share/locale/nb/LC_MESSAGES/fs-uae.mo: po/nb.po
+#	mkdir -p share/locale/nb/LC_MESSAGES
+#	$(MSGFMT) --verbose $(srcdir)/po/nb.po -o $@
+#
+#share/locale/nl/LC_MESSAGES/fs-uae.mo: po/nl.po
+#	mkdir -p share/locale/nl/LC_MESSAGES
+#	$(MSGFMT) --verbose $(srcdir)/po/nl.po -o $@
+#
+#share/locale/pl/LC_MESSAGES/fs-uae.mo: po/pl.po
+#	mkdir -p share/locale/pl/LC_MESSAGES
+#	$(MSGFMT) --verbose $(srcdir)/po/pl.po -o $@
+#
+#share/locale/pt/LC_MESSAGES/fs-uae.mo: po/pt.po
+#	mkdir -p share/locale/pt/LC_MESSAGES
+#	$(MSGFMT) --verbose $(srcdir)/po/pt.po -o $@
+#
+#share/locale/pt_BR/LC_MESSAGES/fs-uae.mo: po/pt_BR.po
+#	mkdir -p share/locale/pt_BR/LC_MESSAGES
+#	$(MSGFMT) --verbose $(srcdir)/po/pt_BR.po -o $@
+#
+#share/locale/sr/LC_MESSAGES/fs-uae.mo: po/sr.po
+#	mkdir -p share/locale/sr/LC_MESSAGES
+#	$(MSGFMT) --verbose $(srcdir)/po/sr.po -o $@
+#
+#share/locale/sv/LC_MESSAGES/fs-uae.mo: po/sv.po
+#	mkdir -p share/locale/sv/LC_MESSAGES
+#	$(MSGFMT) --verbose $(srcdir)/po/sv.po -o $@
+#
+#share/locale/tr/LC_MESSAGES/fs-uae.mo: po/tr.po
+#	mkdir -p share/locale/tr/LC_MESSAGES
+#	$(MSGFMT) --verbose $(srcdir)/po/tr.po -o $@
 
-share/locale/cs/LC_MESSAGES/fs-uae.mo: po/cs.po
-	mkdir -p share/locale/cs/LC_MESSAGES
-	$(MSGFMT) --verbose $(s)/po/cs.po -o $@
+#mo: $(catalogs)
 
-share/locale/da/LC_MESSAGES/fs-uae.mo: po/da.po
-	mkdir -p share/locale/da/LC_MESSAGES
-	$(MSGFMT) --verbose $(s)/po/da.po -o $@
-
-share/locale/de/LC_MESSAGES/fs-uae.mo: po/de.po
-	mkdir -p share/locale/de/LC_MESSAGES
-	$(MSGFMT) --verbose $(s)/po/de.po -o $@
-
-share/locale/eo/LC_MESSAGES/fs-uae.mo: po/eo.po
-	mkdir -p share/locale/eo/LC_MESSAGES
-	$(MSGFMT) --verbose $(s)/po/eo.po -o $@
-
-share/locale/es/LC_MESSAGES/fs-uae.mo: po/es.po
-	mkdir -p share/locale/es/LC_MESSAGES
-	$(MSGFMT) --verbose $(s)/po/es.po -o $@
-
-share/locale/fi/LC_MESSAGES/fs-uae.mo: po/fi.po
-	mkdir -p share/locale/fi/LC_MESSAGES
-	$(MSGFMT) --verbose $(s)/po/fi.po -o $@
-
-share/locale/fr/LC_MESSAGES/fs-uae.mo: po/fr.po
-	mkdir -p share/locale/fr/LC_MESSAGES
-	$(MSGFMT) --verbose $(s)/po/fr.po -o $@
-
-share/locale/hu/LC_MESSAGES/fs-uae.mo: po/hu.po
-	mkdir -p share/locale/hu/LC_MESSAGES
-	$(MSGFMT) --verbose $(s)/po/hu.po -o $@
-
-share/locale/it/LC_MESSAGES/fs-uae.mo: po/it.po
-	mkdir -p share/locale/it/LC_MESSAGES
-	$(MSGFMT) --verbose $(s)/po/it.po -o $@
-
-share/locale/nb/LC_MESSAGES/fs-uae.mo: po/nb.po
-	mkdir -p share/locale/nb/LC_MESSAGES
-	$(MSGFMT) --verbose $(s)/po/nb.po -o $@
-
-share/locale/nl/LC_MESSAGES/fs-uae.mo: po/nl.po
-	mkdir -p share/locale/nl/LC_MESSAGES
-	$(MSGFMT) --verbose $(s)/po/nl.po -o $@
-
-share/locale/pl/LC_MESSAGES/fs-uae.mo: po/pl.po
-	mkdir -p share/locale/pl/LC_MESSAGES
-	$(MSGFMT) --verbose $(s)/po/pl.po -o $@
-
-share/locale/pt/LC_MESSAGES/fs-uae.mo: po/pt.po
-	mkdir -p share/locale/pt/LC_MESSAGES
-	$(MSGFMT) --verbose $(s)/po/pt.po -o $@
-
-share/locale/pt_BR/LC_MESSAGES/fs-uae.mo: po/pt_BR.po
-	mkdir -p share/locale/pt_BR/LC_MESSAGES
-	$(MSGFMT) --verbose $(s)/po/pt_BR.po -o $@
-
-share/locale/sr/LC_MESSAGES/fs-uae.mo: po/sr.po
-	mkdir -p share/locale/sr/LC_MESSAGES
-	$(MSGFMT) --verbose $(s)/po/sr.po -o $@
-
-share/locale/sv/LC_MESSAGES/fs-uae.mo: po/sv.po
-	mkdir -p share/locale/sv/LC_MESSAGES
-	$(MSGFMT) --verbose $(s)/po/sv.po -o $@
-
-share/locale/tr/LC_MESSAGES/fs-uae.mo: po/tr.po
-	mkdir -p share/locale/tr/LC_MESSAGES
-	$(MSGFMT) --verbose $(s)/po/tr.po -o $@
-
-mo: $(catalogs)
-
-fs-uae.dat: $(catalogs)
+#fs-uae.dat: $(catalogs)
 #	rm -f fs-uae.dat
-#	for d in $(s) $(b) ; do \
+#	for d in $(srcdir) $(builddir) ; do \
 #	  ( cd $$d && $(ZIP) -X $(abs_builddir)/fs-uae.dat $$(find share | LC_ALL=C sort ) ) ; \
 #	done
 
-all-local: mo fs-uae.dat fsemu-data
+#all-local: mo fs-uae.dat fsemu-data
 
-install-data-hook: mo fs-uae.dat
-	chmod -R u+w $(s)/share  	# FIXME: Why?
+#install-data-hook: mo fs-uae.dat
+#	chmod -R u+w $(srcdir)/share  	# FIXME: Why?
+#
+#	mkdir -p $(DESTDIR)$(datadir)/applications
+#	cp -R $(srcdir)/share/applications/* $(DESTDIR)$(datadir)/applications/
+#	mkdir -p $(DESTDIR)$(datadir)/fs-uae
+#	touch $(DESTDIR)$(datadir)/fs-uae/share-dir
+#	cp fs-uae.dat $(DESTDIR)$(datadir)/fs-uae/
+#	cp -R data/* $(DESTDIR)$(datadir)/fs-uae/
+#	mkdir -p $(DESTDIR)$(datadir)/icons
+#	cp -R $(srcdir)/share/icons/* $(DESTDIR)$(datadir)/icons/
+#	mkdir -p $(DESTDIR)$(datadir)/locale
+#	cp -R $(builddir)/share/locale/* $(DESTDIR)$(datadir)/locale/
+#	mkdir -p $(DESTDIR)$(datadir)/mime
+#	cp -R $(srcdir)/share/mime/* $(DESTDIR)$(datadir)/mime/
 
-	mkdir -p $(DESTDIR)$(datadir)/applications
-	cp -R $(s)/share/applications/* $(DESTDIR)$(datadir)/applications/
-	mkdir -p $(DESTDIR)$(datadir)/fs-uae
-	touch $(DESTDIR)$(datadir)/fs-uae/share-dir
-	cp fs-uae.dat $(DESTDIR)$(datadir)/fs-uae/
-	cp -R data/* $(DESTDIR)$(datadir)/fs-uae/
-	mkdir -p $(DESTDIR)$(datadir)/icons
-	cp -R $(s)/share/icons/* $(DESTDIR)$(datadir)/icons/
-	mkdir -p $(DESTDIR)$(datadir)/locale
-	cp -R $(b)/share/locale/* $(DESTDIR)$(datadir)/locale/
-	mkdir -p $(DESTDIR)$(datadir)/mime
-	cp -R $(s)/share/mime/* $(DESTDIR)$(datadir)/mime/
+#uninstall-local:
+#	rm -f $(DESTDIR)$(datadir)/applications/net.fs_uae.FS-UAE.desktop
+#	rm -Rf $(DESTDIR)$(datadir)/fs-uae
+#	find $(DESTDIR)$(datadir)/icons/hicolor -name net.fs_uae.FS-UAE.png -delete
+#	find $(DESTDIR)$(datadir)/locale -name fs-uae.mo -delete
+#	rm -f $(DESTDIR)$(datadir)/mime/packages/net.fs_uae.FS-UAE.xml
 
-uninstall-local:
-	rm -f $(DESTDIR)$(datadir)/applications/net.fs_uae.FS-UAE.desktop
-	rm -Rf $(DESTDIR)$(datadir)/fs-uae
-	find $(DESTDIR)$(datadir)/icons/hicolor -name net.fs_uae.FS-UAE.png -delete
-	find $(DESTDIR)$(datadir)/locale -name fs-uae.mo -delete
-	rm -f $(DESTDIR)$(datadir)/mime/packages/net.fs_uae.FS-UAE.xml
-
-clean-local:
-	rm -f fs-uae.dat
-	rm -f data/*.ttf
-	rm -f data/*.png
-	rm -f data/.fsemu
+#clean-local:
+#	rm -f fs-uae.dat
+#	rm -f data/*.ttf
+#	rm -f data/*.png
+#	rm -f data/.fsemu
 #	find share -name fs-uae.mo -delete
 
-format:
-	find src/fsapp -name '*.h' -o -name '*.c' -o -name '*.cpp' | xargs clang-format --verbose -i
-	find src/fsemu -name '*.h' -o -name '*.c' -o -name '*.cpp' | xargs clang-format --verbose -i
-	find src/fsgui -name '*.h' -o -name '*.c' -o -name '*.cpp' | xargs clang-format --verbose -i
-	find src/fslib -name '*.h' -o -name '*.c' -o -name '*.cpp' | xargs clang-format --verbose -i
-	find src/fsuae -name '*.h' -o -name '*.c' -o -name '*.cpp' | xargs clang-format --verbose -i
+# --------------------------------------------------------------------------------------------------
 
-	ruff format
+if WINDOWS
+
+noinst_PROGRAMS += proxy
+
+proxy_SOURCES = od-fs/windows/proxy.c
+proxy_CFLAGS = -DUNICODE -D_UNICODE
+proxy_LDFLAGS = -mwindows -static
+proxy_LDADD = -lShlwapi
+nodist_proxy_SOURCES = od-fs/windows/fs-uae.rc
+
+endif
+
+# --------------------------------------------------------------------------------------------------
 
 .PHONY: fsemu-data

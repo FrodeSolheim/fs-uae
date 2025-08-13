@@ -22,8 +22,7 @@ static struct {
 } fsemu_main;
 */
 
-void fsemu_main_init_module(void)
-{
+void fsemu_main_init_module(void) {
 }
 
 // ----------------------------------------------------------------------------

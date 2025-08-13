@@ -11,8 +11,7 @@ static struct {
     bool initialized;
 } fsemu_manymouse;
 
-void fsemu_manymouse_init(void)
-{
+void fsemu_manymouse_init(void) {
     if (fsemu_manymouse.initialized) {
         return;
     }

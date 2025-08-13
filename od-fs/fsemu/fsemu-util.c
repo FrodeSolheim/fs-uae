@@ -10,19 +10,15 @@
 // File functions
 // ----------------------------------------------------------------------------
 
-bool fsemu_path_exists(const char *path)
-{
+bool fsemu_path_exists(const char* path) {
     return g_file_test(path, G_FILE_TEST_EXISTS);
 }
 
-int fsemu_util_copy_file_with_size_limit(const char *src,
-                                         const char *dst,
-                                         int64_t size_limit)
-{
+int fsemu_util_copy_file_with_size_limit(const char* src, const char* dst, int64_t size_limit) {
     int error = 0;
-    FILE *src_f = NULL;
-    FILE *dst_f = NULL;
-    char *buffer = NULL;
+    FILE* src_f = NULL;
+    FILE* dst_f = NULL;
+    char* buffer = NULL;
     int chunk_size;
 
     src_f = g_fopen(src, "rb");
@@ -89,18 +85,15 @@ end:
     return error;
 }
 
-int fsemu_util_copy_file(const char *src, const char *dst)
-{
+int fsemu_util_copy_file(const char* src, const char* dst) {
     return fsemu_util_copy_file_with_size_limit(src, dst, -1);
 }
 
-int fsemu_util_delete_file(const char *path)
-{
+int fsemu_util_delete_file(const char* path) {
     return g_unlink(path);
 }
 
-int fsemu_util_delete_file_if_exists(const char *path)
-{
+int fsemu_util_delete_file_if_exists(const char* path) {
     if (fsemu_path_exists(path)) {
         return fsemu_util_delete_file(path);
     }
@@ -112,15 +105,14 @@ int fsemu_util_delete_file_if_exists(const char *path)
 // ----------------------------------------------------------------------------
 
 // FIXME: Belongs in fsemu-option module?
-const char *fsemu_read_env_option(const char *name)
-{
-    gchar *key = g_strdup_printf("FSEMU_%s", name);
-    char *c = key;
+const char* fsemu_read_env_option(const char* name) {
+    gchar* key = g_strdup_printf("FSEMU_%s", name);
+    char* c = key;
     while (*c) {
         *c = g_ascii_toupper(*c);
         c++;
     }
-    const char *value = getenv(key);
+    const char* value = getenv(key);
     g_free(key);
     if (value != NULL) {
         return value;
@@ -136,9 +128,8 @@ const char *fsemu_read_env_option(const char *name)
     return "";
 }
 
-const char *fsemu_getenv(const char *name)
-{
-    const char *value = getenv(name);
+const char* fsemu_getenv(const char* name) {
+    const char* value = getenv(name);
     if (value != NULL) {
         return value;
     }
@@ -151,8 +142,7 @@ const char *fsemu_getenv(const char *name)
 
 // Same spring calculation and initial values as used by react-spring.
 
-void fsemu_util_spring_init(fsemu_util_spring_t *spring)
-{
+void fsemu_util_spring_init(fsemu_util_spring_t* spring) {
     spring->current = 0.0;
     // FIXME: Consider including a spring->icurrent (double value rounded
     // to nearest integer), but only done once per current update. This would
@@ -170,14 +160,11 @@ void fsemu_util_spring_init(fsemu_util_spring_t *spring)
 // void fsemu_util_spring_init_with_params(fsemu_util_spring_t *spring, double
 // ...);
 
-void fsemu_util_spring_update(fsemu_util_spring_t *spring)
-{
+void fsemu_util_spring_update(fsemu_util_spring_t* spring) {
     fsemu_util_spring_update_with_time(spring, fsemu_time_us());
 }
 
-void fsemu_util_spring_update_with_time(fsemu_util_spring_t *spring,
-                                        int64_t time_us)
-{
+void fsemu_util_spring_update_with_time(fsemu_util_spring_t* spring, int64_t time_us) {
     if (spring->stopped) {
         return;
     }
@@ -202,16 +189,13 @@ void fsemu_util_spring_update_with_time(fsemu_util_spring_t *spring,
     double precision = 1.0;
 
     bool clamp = true;
-    bool overshooting = clamp && spring->tension != 0
-                            ? spring->from < spring->target
-                                  ? spring->current > spring->target
-                                  : spring->current < spring->target
-                            : false;
+    bool overshooting = clamp && spring->tension != 0 ? spring->from < spring->target
+                                                            ? spring->current > spring->target
+                                                            : spring->current < spring->target
+                                                      : false;
     bool velocity_target = fabs(spring->velocity) <= precision;
     bool displacement_target =
-        spring->tension != 0
-            ? fabs(spring->target - spring->current) <= precision
-            : true;
+        spring->tension != 0 ? fabs(spring->target - spring->current) <= precision : true;
 #if 0
     if (abs(spring->from - spring->target) < 100) {
         printf("%d %d velocity %0.1f displacement %0.1f overshooting %d\n",
@@ -227,16 +211,14 @@ void fsemu_util_spring_update_with_time(fsemu_util_spring_t *spring,
     }
 }
 
-void fsemu_util_spring_finish(fsemu_util_spring_t *spring)
-{
+void fsemu_util_spring_finish(fsemu_util_spring_t* spring) {
     spring->stopped = true;
     spring->current = spring->target;
     spring->velocity = 0.0;
     spring->last_us = 0;
 }
 
-void fsemu_util_spring_set_target(fsemu_util_spring_t *spring, double target)
-{
+void fsemu_util_spring_set_target(fsemu_util_spring_t* spring, double target) {
     if (spring->target == target) {
         return;
     }
@@ -245,8 +227,7 @@ void fsemu_util_spring_set_target(fsemu_util_spring_t *spring, double target)
     spring->stopped = false;
 }
 
-void fsemu_util_spring_set_tension(fsemu_util_spring_t *spring, double tension)
-{
+void fsemu_util_spring_set_tension(fsemu_util_spring_t* spring, double tension) {
     spring->tension = tension;
 }
 

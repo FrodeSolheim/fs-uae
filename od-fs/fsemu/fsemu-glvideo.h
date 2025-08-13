@@ -10,10 +10,7 @@ extern "C" {
 #endif
 
 // FIXME: Temporary hack
-void fsemu_glvideo_set_rect_temp(double left,
-                                 double top,
-                                 double right,
-                                 double bottom);
+void fsemu_glvideo_set_rect_temp(double left, double top, double right, double bottom);
 
 void fsemu_glvideo_set_frame_rendered_externally(void);
 
@@ -28,11 +25,10 @@ void fsemu_glvideo_work(int timeout_us);
 // This must be called from the video thread.
 void fsemu_glvideo_init_gl_state(void);
 
-void fsemu_glvideo_render_gui_early(fsemu_gui_item_t *items);
-void fsemu_glvideo_render(
-    int window_width, int window_height, int x, int y, int w, int h);
+void fsemu_glvideo_render_gui_early(fsemu_gui_item_t* items);
+void fsemu_glvideo_render(int window_width, int window_height, int x, int y, int w, int h);
 
-void fsemu_glvideo_render_gui(fsemu_gui_item_t *items);
+void fsemu_glvideo_render_gui(fsemu_gui_item_t* items);
 
 void fsemu_glvideo_display(void);
 

@@ -20,13 +20,11 @@ bool fsemu_titlebar_visible(void);
 int fsemu_titlebar_unscaled_height(void);
 int fsemu_titlebar_height(void);
 
-static inline bool fsemu_titlebar_static(void)
-{
+static inline bool fsemu_titlebar_static(void) {
     return !fsemu_window_fullscreen() && !fsemu_titlebar_use_system();
 }
 
-static inline int fsemu_titlebar_static_height(void)
-{
+static inline int fsemu_titlebar_static_height(void) {
     return fsemu_titlebar_static() ? fsemu_titlebar_height() : 0;
 }
 
@@ -38,7 +36,7 @@ void fsemu_titlebar_set_width(int w);
 #ifdef FSEMU_INTERNAL
 
 bool fsemu_titlebar_want_cursor(void);
-bool fsemu_titlebar_handle_mouse(fsemu_mouse_event_t *event);
+bool fsemu_titlebar_handle_mouse(fsemu_mouse_event_t* event);
 
 // ----------------------------------------------------------------------------
 // Logging
@@ -46,8 +44,7 @@ bool fsemu_titlebar_handle_mouse(fsemu_mouse_event_t *event);
 
 extern int fsemu_titlebar_log_level;
 
-#define fsemu_titlebar_log(format, ...) \
-    FSEMU_LOG(titlebar, "[FSE] [TBR]", format, ##__VA_ARGS__)
+#define fsemu_titlebar_log(format, ...) FSEMU_LOG(titlebar, "[FSE] [TBR]", format, ##__VA_ARGS__)
 
 #define fsemu_titlebar_log_debug(format, ...) \
     FSEMU_LOG_DEBUG(titlebar, "[FSE] [TBR]", format, ##__VA_ARGS__)

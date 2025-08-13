@@ -61,9 +61,7 @@ class CheckBox(Widget):
         painter.paint_box((x1, y1), (self.check_width, self.check_width))
 
         _, th = dc.measure_text(self.text)
-        dc.draw_text(
-            self.text, (self.check_width + self.gap, (self.height - th) // 2)
-        )
+        dc.draw_text(self.text, (self.check_width + self.gap, (self.height - th) // 2))
 
         # Drawing a square for now. Maybe draw a proper checkmark later
         # (however, the square is more visible though...)

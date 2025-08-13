@@ -15,4 +15,4 @@
 #define FSLIB_OS_LINUX 1
 #endif
 
-#endif // FSLIB_OS_H
+#endif  // FSLIB_OS_H

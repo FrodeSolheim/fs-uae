@@ -26,15 +26,14 @@ static struct fsemu_mouse {
     bool automatic_grab;
     // True if middle clicking should grab/ungrab input
     bool middle_click_ungrab;
-    fsemu_inputdevice_t *system_mouse;
+    fsemu_inputdevice_t* system_mouse;
 } fsemu_mouse;
 
 // ----------------------------------------------------------------------------
 
-static void fsemu_mouse_add_system_device(void)
-{
+static void fsemu_mouse_add_system_device(void) {
     fsemu_mouse_log("Adding system mouse device\n");
-    fsemu_inputdevice_t *device = fsemu_inputdevice_new();
+    fsemu_inputdevice_t* device = fsemu_inputdevice_new();
     fsemu_inputdevice_set_type(device, FSEMU_INPUTDEVICE_TYPE_MOUSE);
     fsemu_inputdevice_set_name(device, "Mouse");
     int error;
@@ -48,20 +47,17 @@ static void fsemu_mouse_add_system_device(void)
 
 // ----------------------------------------------------------------------------
 
-bool fsemu_mouse_captured(void)
-{
+bool fsemu_mouse_captured(void) {
     return fsemu_mouse.captured;
 }
 
 // ----------------------------------------------------------------------------
 
-void fsemu_mouse_set_captured(bool captured)
-{
+void fsemu_mouse_set_captured(bool captured) {
     fsemu_mouse.captured = captured;
 }
 
-void fsemu_mouse_toggle_captured(void)
-{
+void fsemu_mouse_toggle_captured(void) {
     fsemu_mouse_set_captured(!fsemu_mouse_captured());
 }
 
@@ -112,16 +108,14 @@ static int g_fs_emu_mouse_speed = 100;
 // subjective opinion).
 #define FSEMU_MOUSE_SLOWDOWN 2.0
 
-static void fsemu_mouse_adjust_movement(int mouse, int axis, int *movement)
-{
+static void fsemu_mouse_adjust_movement(int mouse, int axis, int* movement) {
     // FIXME: Maybe these fractional values should decay over time? So that
     // the mouse does not stay at the "edge" of triggering movement for long.
     static double fract[FSEMU_MOUSE_MAX_MICE][FSEMU_MOUSE_MAX_MICE_AXES];
-    double d =
-        *movement * g_fs_emu_mouse_speed / (100.0 * FSEMU_MOUSE_SLOWDOWN);
-    int v = (int) d;
+    double d = *movement * g_fs_emu_mouse_speed / (100.0 * FSEMU_MOUSE_SLOWDOWN);
+    int v = (int)d;
     fract[mouse][axis] += d - v;
-    int diff = (int) fract[mouse][axis];
+    int diff = (int)fract[mouse][axis];
     v += diff;
     fract[mouse][axis] -= diff;
     *movement = v;
@@ -130,8 +124,7 @@ static void fsemu_mouse_adjust_movement(int mouse, int axis, int *movement)
 // ----------------------------------------------------------------------------
 
 // void fsemu_mouse_handle_mouse(int x, int y, int button, int state)
-bool fsemu_mouse_handle_mouse(fsemu_mouse_event_t *event)
-{
+bool fsemu_mouse_handle_mouse(fsemu_mouse_event_t* event) {
     fsemu_thread_assert_main();
 #if 0
     if (fsemu_titlebar_handle_mouse(event)) {
@@ -140,11 +133,8 @@ bool fsemu_mouse_handle_mouse(fsemu_mouse_event_t *event)
 #endif
     if (event->button > 0) {
         // printf("click\n");
-        fsemu_mouse_log_debug("Button %d clicked (%d) at %d,%d\n",
-                              event->button,
-                              event->state,
-                              event->x,
-                              event->y);
+        fsemu_mouse_log_debug("Button %d clicked (%d) at %d,%d\n", event->button, event->state,
+                              event->x, event->y);
 
         if (event->state) {
             // if (fsemu_osmenu_open()) {
@@ -160,8 +150,7 @@ bool fsemu_mouse_handle_mouse(fsemu_mouse_event_t *event)
                 }
                 return true;
             } else {
-                if (fsemu_mouse.automatic_grab && !fsemu_mouse_captured() &&
-                    !fsemu_osmenu_open()) {
+                if (fsemu_mouse.automatic_grab && !fsemu_mouse_captured() && !fsemu_osmenu_open()) {
                     fsemu_mouse_set_captured(true);
                     return true;
                 }
@@ -183,8 +172,7 @@ bool fsemu_mouse_handle_mouse(fsemu_mouse_event_t *event)
 
     if (event->button > 0) {
         if (event->button > 3) {
-            fsemu_mouse_log("Mouse button %d not supported yet\n",
-                            event->button);
+            fsemu_mouse_log("Mouse button %d not supported yet\n", event->button);
         } else {
             slot = FSEMU_MOUSE_BEFORE_FIRST_BUTTON + event->button;
             state = event->state ? FSEMU_ACTION_STATE_MAX : 0;
@@ -217,15 +205,13 @@ bool fsemu_mouse_handle_mouse(fsemu_mouse_event_t *event)
     return false;
 }
 
-void fsemu_mouse_add_devices(void)
-{
+void fsemu_mouse_add_devices(void) {
     fsemu_mouse_add_system_device();
 }
 
 // ----------------------------------------------------------------------------
 
-void fsemu_mouse_init_module(void)
-{
+void fsemu_mouse_init_module(void) {
     fsemu_return_if_already_initialized();
     fsemu_thread_init();
 #if 0
@@ -260,8 +246,7 @@ void fsemu_mouse_init_module(void)
 
     fsemu_mouse_log("Initial grab:        %d\n", fsemu_mouse.initial_grab);
     fsemu_mouse_log("Automatic grab:      %d\n", fsemu_mouse.automatic_grab);
-    fsemu_mouse_log("Middle-click ungrab: %d\n",
-                    fsemu_mouse.middle_click_ungrab);
+    fsemu_mouse_log("Middle-click ungrab: %d\n", fsemu_mouse.middle_click_ungrab);
 
     // Set the desired state of mouse capture (to be handled by window update
     // or creation function

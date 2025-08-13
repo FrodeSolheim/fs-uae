@@ -1,24 +1,24 @@
 #include "fslib-path.h"
-#include "fslib-os.h"
 
 #include <glib.h>
 #include <stdio.h>
 
+#include "fslib-os.h"
+
 int fslib_path_log_level = FSEMU_LOG_LEVEL_DEBUG;
 
-bool fslib_path_exists(const char* path)
-{
+bool fslib_path_exists(const char* path) {
     return g_file_test(path, G_FILE_TEST_EXISTS);
 }
 
 #ifdef _WIN32
+#include <Windows.h>
 #elif defined(FSEMU_OS_MACOS)
 #else
 
 #define USE_GLIB
 
-static char* fslib_path_find_program_in_path(const char* prog)
-{
+static char* fslib_path_find_program_in_path(const char* prog) {
 #ifdef USE_GLIB
     return g_find_program_in_path(prog);
 #else
@@ -56,8 +56,7 @@ static char* fslib_path_find_program_in_path(const char* prog)
 
 #endif
 
-bool fslib_path_executable_path(char* buffer, int buffer_size)
-{
+bool fslib_path_executable_path(char* buffer, int buffer_size) {
     // FIXME: CACHE THIS
 
     /* Possible sources:
@@ -81,9 +80,8 @@ bool fslib_path_executable_path(char* buffer, int buffer_size)
      * character. */
     int len = GetModuleFileNameW(NULL, temp_buf, FSEMU_PATH_MAX);
     /* Specify size - 1 to reserve space for a null-terminating byte. */
-    int result = WideCharToMultiByte(
-        CP_UTF8, 0, temp_buf, len, buffer, buffer_size - 1, NULL, NULL
-    );
+    int result =
+        WideCharToMultiByte(CP_UTF8, 0, temp_buf, len, buffer, buffer_size - 1, NULL, NULL);
     g_free(temp_buf);
     if (result == 0) {
         return false;
@@ -154,8 +152,7 @@ bool fslib_path_executable_path(char* buffer, int buffer_size)
 // app bundle and not the actual executable dir
 // fslib_path_application_dir for example?
 
-bool fslib_path_executable_dir(char* buffer, int buffer_size)
-{
+bool fslib_path_executable_dir(char* buffer, int buffer_size) {
     static bool initialized;
     static char path[FSLIB_PATH_MAX];
     if (!initialized) {
@@ -181,8 +178,7 @@ bool fslib_path_executable_dir(char* buffer, int buffer_size)
 
 // FIXME: macOS - directory containing the .app bundle
 
-bool fslib_path_application_dir(char* buffer, int buffer_size)
-{
+bool fslib_path_application_dir(char* buffer, int buffer_size) {
     static bool initialized;
     static char path[FSLIB_PATH_MAX];
     if (!initialized) {

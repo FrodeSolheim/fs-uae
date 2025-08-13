@@ -1,4 +1,6 @@
-version = "5.0.0-dev"
+import os
+
+version = os.environ.get("FSAPP_PACKAGE_VERSION", "0.0.0")
 
 copyright = """\
 Copyright 2011-2025 Frode Solheim and others. Licensed under GPLv2."""

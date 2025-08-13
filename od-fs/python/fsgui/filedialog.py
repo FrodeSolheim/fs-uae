@@ -1,6 +1,7 @@
 from collections.abc import Callable
 
-import fsapp  # type: ignore
+import _fsapp
+
 from fsgui.widget import Widget
 from fsgui.window import Window
 
@@ -51,4 +52,4 @@ class FileDialog:
             surface = self._window._surface.get_surface()
         else:
             surface = None
-        fsapp.open_file_dialog(surface, self)
+        _fsapp.open_file_dialog(surface, self)

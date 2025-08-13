@@ -19,7 +19,7 @@ static struct {
     int buffer_bytes;
 } fsemu_alsaaudio;
 
-snd_pcm_t *playback_handle;
+snd_pcm_t* playback_handle;
 
 #if 0
 int playback_callback(snd_pcm_sframes_t nframes)
@@ -38,8 +38,7 @@ int playback_callback(snd_pcm_sframes_t nframes)
 }
 #endif
 
-static void fsemu_alsaaudio_handle_underrun(void)
-{
+static void fsemu_alsaaudio_handle_underrun(void) {
     // fsemu_audio_log_inflight_estimate();
     fsemu_audio_log("----------\n");
     if (fsemu_audio_log_buffer_stats() <= 1) {
@@ -57,8 +56,7 @@ static void fsemu_alsaaudio_handle_underrun(void)
     // fsemu_audiobuffer_write_silence_ms(1);
 }
 
-static int fsemu_alsaaudio_write(void *buffer, int bytes)
-{
+static int fsemu_alsaaudio_write(void* buffer, int bytes) {
     int err;
     if ((err = snd_pcm_writei(playback_handle, buffer, bytes / 4)) < 0) {
         fprintf(stderr, "write failed (%s)\n", snd_strerror(err));
@@ -68,8 +66,7 @@ static int fsemu_alsaaudio_write(void *buffer, int bytes)
         if (err = snd_pcm_recover(playback_handle, err, 0)) {
             fprintf(stderr, "snd_pcm_recover (%s)\n", snd_strerror(err));
         } else {
-            if ((err = snd_pcm_writei(playback_handle, buffer, bytes / 4)) <
-                0) {
+            if ((err = snd_pcm_writei(playback_handle, buffer, bytes / 4)) < 0) {
                 fprintf(stderr, "write failed!!! (%s)\n", snd_strerror(err));
                 // FIXME: Not recovering?
             }
@@ -77,8 +74,7 @@ static int fsemu_alsaaudio_write(void *buffer, int bytes)
     }
 }
 
-static void fsemu_alsaaudio_callback(snd_pcm_sframes_t want_frames)
-{
+static void fsemu_alsaaudio_callback(snd_pcm_sframes_t want_frames) {
     static int64_t last_time;
     int64_t now = fsemu_time_us();
 #if 0
@@ -116,8 +112,8 @@ static void fsemu_alsaaudio_callback(snd_pcm_sframes_t want_frames)
 
     int err;
 
-    uint8_t volatile *read = fsemu_audiobuffer.read;
-    uint8_t volatile *write = fsemu_audiobuffer.write;
+    uint8_t volatile* read = fsemu_audiobuffer.read;
+    uint8_t volatile* write = fsemu_audiobuffer.write;
 
     int bytes = 0;
     int bytes_written = 0;
@@ -135,7 +131,7 @@ static void fsemu_alsaaudio_callback(snd_pcm_sframes_t want_frames)
     }
     // printf("[FSE] bytes %d\n", bytes);
 
-    int error = fsemu_alsaaudio_write((void *) read, bytes);
+    int error = fsemu_alsaaudio_write((void*)read, bytes);
     // FIXME: Check for underrun
     want_bytes -= bytes;
     bytes_written += bytes;
@@ -148,7 +144,7 @@ static void fsemu_alsaaudio_callback(snd_pcm_sframes_t want_frames)
             if (bytes > want_bytes) {
                 bytes = want_bytes;
             }
-            error = fsemu_alsaaudio_write((void *) read, bytes);
+            error = fsemu_alsaaudio_write((void*)read, bytes);
             // FIXME: Check for underrun
             want_bytes -= bytes;
             bytes_written += bytes;
@@ -164,17 +160,14 @@ static void fsemu_alsaaudio_callback(snd_pcm_sframes_t want_frames)
 #endif
 
     int wanted_bytes = want_frames * 4;
-    int buffered_bytes =
-        fsemu_audio_alsa.buffer_bytes - wanted_bytes + bytes_written;
-    fsemu_audio_register_data_sent(
-        buffered_bytes, now, (void *) read, (void *) write);
+    int buffered_bytes = fsemu_audio_alsa.buffer_bytes - wanted_bytes + bytes_written;
+    fsemu_audio_register_data_sent(buffered_bytes, now, (void*)read, (void*)write);
 
     last_time = now;
     fsemu_audiobuffer.read = read;
 }
 
-static void *fsemu_alsaaudio_thread(void *data)
-{
+static void* fsemu_alsaaudio_thread(void* data) {
     fsemu_thread_set_priority();
 
     snd_pcm_sframes_t frames_to_deliver;
@@ -202,11 +195,8 @@ static void *fsemu_alsaaudio_thread(void *data)
             if (err == EPIPE) {
                 fprintf(stderr, "an xrun occured\n");
             } else {
-                fsemu_warning(
-                    "Unknown ALSA error from snd_pcm_avail_update (%d)", err);
-                fprintf(stderr,
-                        "unknown ALSA avail update return value (%d)\n",
-                        err);
+                fsemu_warning("Unknown ALSA error from snd_pcm_avail_update (%d)", err);
+                fprintf(stderr, "unknown ALSA avail update return value (%d)\n", err);
             }
 
             fsemu_alsaaudio_handle_underrun();
@@ -241,47 +231,38 @@ static void *fsemu_alsaaudio_thread(void *data)
     return NULL;
 }
 
-void fsemu_alsaaudio_init(void)
-{
+void fsemu_alsaaudio_init(void) {
     fsemu_audio_log("Initialize ALSA audio driver\n");
 
-    snd_pcm_hw_params_t *hw_params;
-    snd_pcm_sw_params_t *sw_params;
+    snd_pcm_hw_params_t* hw_params;
+    snd_pcm_sw_params_t* sw_params;
     int nfds;
     int err;
-    struct pollfd *pfds;
+    struct pollfd* pfds;
 
     // const char *device_name = "default";
-    const char *device_name = "hw:0,0";
+    const char* device_name = "hw:0,0";
 
-    if ((err = snd_pcm_open(
-             &playback_handle, device_name, SND_PCM_STREAM_PLAYBACK, 0)) < 0) {
-        fprintf(stderr,
-                "cannot open audio device %s (%s)\n",
-                device_name,
-                snd_strerror(err));
+    if ((err = snd_pcm_open(&playback_handle, device_name, SND_PCM_STREAM_PLAYBACK, 0)) < 0) {
+        fprintf(stderr, "cannot open audio device %s (%s)\n", device_name, snd_strerror(err));
         return;
     }
     if ((err = snd_pcm_hw_params_malloc(&hw_params)) < 0) {
-        fprintf(stderr,
-                "cannot allocate hardware parameter structure (%s)\n",
-                snd_strerror(err));
+        fprintf(stderr, "cannot allocate hardware parameter structure (%s)\n", snd_strerror(err));
         return;
     }
     if ((err = snd_pcm_hw_params_any(playback_handle, hw_params)) < 0) {
-        fprintf(stderr,
-                "cannot initialize hardware parameter structure (%s)\n",
-                snd_strerror(err));
+        fprintf(stderr, "cannot initialize hardware parameter structure (%s)\n", snd_strerror(err));
         return;
     }
 
-    if ((err = snd_pcm_hw_params_set_access(
-             playback_handle, hw_params, SND_PCM_ACCESS_RW_INTERLEAVED)) < 0) {
+    if ((err = snd_pcm_hw_params_set_access(playback_handle, hw_params,
+                                            SND_PCM_ACCESS_RW_INTERLEAVED)) < 0) {
         fprintf(stderr, "cannot set access type (%s)\n", snd_strerror(err));
         return;
     }
-    if ((err = snd_pcm_hw_params_set_format(
-             playback_handle, hw_params, SND_PCM_FORMAT_S16_LE)) < 0) {
+    if ((err = snd_pcm_hw_params_set_format(playback_handle, hw_params, SND_PCM_FORMAT_S16_LE)) <
+        0) {
         fprintf(stderr, "cannot set sample format (%s)\n", snd_strerror(err));
         return;
     }
@@ -289,22 +270,21 @@ void fsemu_alsaaudio_init(void)
     snd_pcm_uframes_t buffer_size = 256;
     snd_pcm_uframes_t period_size = 64;
 
-    if ((err = snd_pcm_hw_params_set_buffer_size_near(
-             playback_handle, hw_params, &buffer_size)) < 0) {
+    if ((err = snd_pcm_hw_params_set_buffer_size_near(playback_handle, hw_params, &buffer_size)) <
+        0) {
         fprintf(stderr, "cannot set sample format (%s)\n", snd_strerror(err));
         return;
     }
 
-    if ((err = snd_pcm_hw_params_set_period_size_near(
-             playback_handle, hw_params, &period_size, NULL)) < 0) {
+    if ((err = snd_pcm_hw_params_set_period_size_near(playback_handle, hw_params, &period_size,
+                                                      NULL)) < 0) {
         fprintf(stderr, "cannot set period size (%s)\n", snd_strerror(err));
         return;
     }
 
     unsigned int frequency = fsemu_audio_frequency();
 
-    if ((err = snd_pcm_hw_params_set_rate_near(
-             playback_handle, hw_params, &frequency, 0)) < 0) {
+    if ((err = snd_pcm_hw_params_set_rate_near(playback_handle, hw_params, &frequency, 0)) < 0) {
         fprintf(stderr, "cannot set sample rate (%s)\n", snd_strerror(err));
         return;
     }
@@ -313,8 +293,7 @@ void fsemu_alsaaudio_init(void)
         // FIXME: Handle
     }
 
-    if ((err = snd_pcm_hw_params_set_channels(playback_handle, hw_params, 2)) <
-        0) {
+    if ((err = snd_pcm_hw_params_set_channels(playback_handle, hw_params, 2)) < 0) {
         fprintf(stderr, "cannot set channel count (%s)\n", snd_strerror(err));
         return;
     }
@@ -325,8 +304,7 @@ void fsemu_alsaaudio_init(void)
 
     fsemu_audio_log("ALSA frequency: %u Hz)\n", frequency);
 
-    if (err = snd_pcm_hw_params_get_period_size(
-                  hw_params, &period_size, NULL) < 0) {
+    if (err = snd_pcm_hw_params_get_period_size(hw_params, &period_size, NULL) < 0) {
         fsemu_warning("[FSE] Could not query ALSA period size\n");
         snd_strerror(err);
     }
@@ -337,8 +315,7 @@ void fsemu_alsaaudio_init(void)
         fsemu_warning("[FSE] Could not query ALSA period size\n");
         snd_strerror(err);
     }
-    fsemu_audio_log("ALSA buffer size: %ld frames (%ld ms)\n",
-                    buffer_size,
+    fsemu_audio_log("ALSA buffer size: %ld frames (%ld ms)\n", buffer_size,
                     buffer_size * 1000 / fsemu_audio_frequency());
 
     fsemu_audio_alsa.buffer_bytes = buffer_size * 4;
@@ -351,14 +328,11 @@ void fsemu_alsaaudio_init(void)
     */
 
     if ((err = snd_pcm_sw_params_malloc(&sw_params)) < 0) {
-        fprintf(stderr,
-                "cannot allocate software parameters structure (%s)\n",
-                snd_strerror(err));
+        fprintf(stderr, "cannot allocate software parameters structure (%s)\n", snd_strerror(err));
         return;
     }
     if ((err = snd_pcm_sw_params_current(playback_handle, sw_params)) < 0) {
-        fprintf(stderr,
-                "cannot initialize software parameters structure (%s)\n",
+        fprintf(stderr, "cannot initialize software parameters structure (%s)\n",
                 snd_strerror(err));
         return;
     }
@@ -371,15 +345,12 @@ void fsemu_alsaaudio_init(void)
         return;
     }
 #endif
-    if ((err = snd_pcm_sw_params_set_start_threshold(
-             playback_handle, sw_params, 0U)) < 0) {
+    if ((err = snd_pcm_sw_params_set_start_threshold(playback_handle, sw_params, 0U)) < 0) {
         fprintf(stderr, "cannot set start mode (%s)\n", snd_strerror(err));
         return;
     }
     if ((err = snd_pcm_sw_params(playback_handle, sw_params)) < 0) {
-        fprintf(stderr,
-                "cannot set software parameters (%s)\n",
-                snd_strerror(err));
+        fprintf(stderr, "cannot set software parameters (%s)\n", snd_strerror(err));
         return;
     }
 
@@ -388,9 +359,7 @@ void fsemu_alsaaudio_init(void)
     */
 
     if ((err = snd_pcm_prepare(playback_handle)) < 0) {
-        fprintf(stderr,
-                "cannot prepare audio interface for use (%s)\n",
-                snd_strerror(err));
+        fprintf(stderr, "cannot prepare audio interface for use (%s)\n", snd_strerror(err));
         return;
     }
 

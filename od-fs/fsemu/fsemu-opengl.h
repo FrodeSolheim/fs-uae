@@ -33,8 +33,7 @@ void fsemu_opengl_log_error(void);
 
 extern bool fsemu_opengl_error_checking;
 
-static inline void fsemu_opengl_log_error_maybe(void)
-{
+static inline void fsemu_opengl_log_error_maybe(void) {
     if (fsemu_opengl_error_checking) {
         fsemu_opengl_log_error();
     }
@@ -42,8 +41,7 @@ static inline void fsemu_opengl_log_error_maybe(void)
 
 #ifdef FSEMU_INTERNAL
 
-#define fsemu_opengl_log(format, ...) \
-    fsemu_log("[FSE] [OGL] " format, ##__VA_ARGS__)
+#define fsemu_opengl_log(format, ...) fsemu_log("[FSE] [OGL] " format, ##__VA_ARGS__)
 
 #endif
 

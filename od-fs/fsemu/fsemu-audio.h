@@ -61,15 +61,12 @@ void fsemu_audio_set_frequency(int frequency);
 /* The latency information is updated after each fsemu_audio_start_frame */
 int64_t fsemu_audio_latency_us(void);
 
-void fsemu_audio_register_data_sent(int size,
-                                    int64_t when,
-                                    uintptr_t read,
-                                    uintptr_t write);
+void fsemu_audio_register_data_sent(int size, int64_t when, uintptr_t read, uintptr_t write);
 
 int fsemu_audio_log_buffer_stats(void);
 void fsemu_audio_log_inflight_estimate(void);
 
-void fsemu_audio_frame_stats(int frame, fsemu_audio_frame_stats_t *stats);
+void fsemu_audio_frame_stats(int frame, fsemu_audio_frame_stats_t* stats);
 int fsemu_audio_bytes_to_ms(int bytes);
 int64_t fsemu_audio_bytes_to_us(int bytes);
 
@@ -79,8 +76,7 @@ void fsemu_audio_register_underrun(void);
 
 void fsemu_audio_end_frame(void);
 
-void fsemu_audio_update_min_fill(uint8_t volatile *read,
-                                 uint8_t volatile *write);
+void fsemu_audio_update_min_fill(uint8_t volatile* read, uint8_t volatile* write);
 
 // ----------------------------------------------------------------------------
 // Logging
@@ -88,8 +84,7 @@ void fsemu_audio_update_min_fill(uint8_t volatile *read,
 
 extern int fsemu_audio_log_level;
 
-#define fsemu_audio_log(format, ...) \
-    FSEMU_LOG(audio, "[FSE] [AUD]", format, ##__VA_ARGS__)
+#define fsemu_audio_log(format, ...) FSEMU_LOG(audio, "[FSE] [AUD]", format, ##__VA_ARGS__)
 
 #define fsemu_audio_log_debug(format, ...) \
     FSEMU_LOG_DEBUG(audio, "[FSE] [AUD]", format, ##__VA_ARGS__)

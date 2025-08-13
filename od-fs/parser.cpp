@@ -364,6 +364,7 @@ static int dataininput, dataininputcnt;
 static OVERLAPPED writeol, readol;
 #endif
 static int writepending;
+static bool breakpending;
 
 #ifndef _WIN32
 #define BOOL bool
@@ -570,6 +571,10 @@ void flushser(void)
 #warning Not handling breakcond...
 int readseravail(bool *breakcond)
 {
+#ifdef _WIN32
+        COMSTAT ComStat;
+        DWORD dwErrorFlags;
+#endif
 	if (breakcond)
 		*breakcond = false;
 	if (tcpserial) {

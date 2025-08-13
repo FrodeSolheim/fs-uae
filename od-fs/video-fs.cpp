@@ -135,12 +135,18 @@ void InitializeDarkMode(void)
 	UAE_LOG_STUB("");
 }
 
+#ifdef _WIN32
+#else
+
 // Dummy types to allow some (unused) declarations
+// FIXME: Move to compat/windows.h
 
 typedef void DISPLAYCONFIG_PATH_INFO;
 typedef void DISPLAYCONFIG_DEVICE_INFO_HEADER;
 typedef void DISPLAYCONFIG_MODE_INFO;
 typedef void DISPLAYCONFIG_TOPOLOGY_ID;
+
+#endif
 
 #include "od-win32/win32gfx.cpp"
 
@@ -2635,9 +2641,11 @@ bool uae_fsvideo_renderframe(int monid, int mode, bool immediate)
 #endif
 			frame->buffer = video_memory;
 			// frame->buffer = uae_fsvideo.chipset_framebuffer;
-			frame->stride = AMIGA_WIDTH * g_amiga_video_bpp;
+			// frame->stride = AMIGA_WIDTH * g_amiga_video_bpp;
 			frame->stride = 2048 * 4;
 			// frame->stride = AMIGA_WIDTH * 4;
+			
+			// FIXME: AMIGA_WIDTH / HEIGHT ARE NOT ALWAYS CORRECT ANY MORE...?
 			frame->width = AMIGA_WIDTH;
 			frame->height = AMIGA_HEIGHT;
 
@@ -2652,7 +2660,7 @@ bool uae_fsvideo_renderframe(int monid, int mode, bool immediate)
 			}
 
 			if (mode == 1) {
-				frame->partial = AMIGA_HEIGHT;
+				frame->partial = frame->height;
 			} else if (mode == 2) {
 				frame->partial = avidinfo->drawbuffer.last_drawn_line;
 			} else {
@@ -2670,10 +2678,33 @@ bool uae_fsvideo_renderframe(int monid, int mode, bool immediate)
 			// frame->limits.w = cw;
 			// frame->limits.h = ch;
 
-			frame->limits.x = 48;
-			frame->limits.y = 22;
-			frame->limits.w = 692;
-			frame->limits.h = 540;
+			// frame->limits.x = 48;
+			// frame->limits.y = 22;
+			// frame->limits.w = 692;
+			// frame->limits.h = 540;
+
+			int center_x = 394;
+			int center_y = 292;
+
+			// 540 - 512 = 28 - 14
+
+			// After WinUAE 6 merge?
+			center_x += 2;
+
+			// 16 / 3 * (4 * 480 / 512) = 20
+			// UAE_RECT - defining crop limits here
+			//frame->limits.w = 672; // 640 + 16 * 2
+			//frame->limits.w = 640 + 16; // 656
+			
+			// Maybe just show 8 * 2 pixels, might be a better crop rect, and the aspect ratio
+			// wil just be a tiny bit off.
+			// frame->limits.w = 640 + 20; // 660
+			frame->limits.w = 640 + 16; // 656
+			frame->limits.h = 512 + 16; // 528
+
+			frame->limits.x = center_x - frame->limits.w / 2;
+			frame->limits.y = center_y- frame->limits.h / 2;
+
 		}
 
 		frame->frequency = 0;  // FIXME

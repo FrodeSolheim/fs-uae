@@ -70,12 +70,6 @@ integrated directly into FS-UAE without having to write it in C/C++. This also
 means that the Launcher will likely "disappear" (as in being integrated
 directly into FS-UAE instead).
 
-## Run with logging
-
-FIXME:
-
-    SDL_LOGGING="app=debug" ./fs-uae
-
 ## Building FS-UAE
 
 Dependencies:
@@ -94,28 +88,40 @@ Dependencies:
 If you've download the git repository, you need to bootstrap the project
 (autoconf/automake and friends are needed for this step) by running:
 
-    od-fs/bootstrap
+```sh
+cd od-fs
+./bootstrap
+```
 
-Then you can go ahead and configure and build the project like this:
+Then you can go ahead and configure and build the project like this (run this from the `fs`
+sub-directory and not in the root project folder).
 
-    ./configure
-    make
+```sh
+./configure
+make
+```
 
 You can then run fs-uae directly from the source directory by running:
 
-    ./fs-uae
+```sh
+./fs-uae
+```
 
 ## Configure debug build
 
 There is no dedicated configure flag for enabling a debug build. Instead, you
 can run the following command with environment flags:
 
-    ./configure CPPFLAGS="-DDEBUG" CFLAGS="-g -O0" CXXFLAGS="-g -O0"
+```sh
+./configure CPPFLAGS="-DDEBUG" CFLAGS="-g -O0" CXXFLAGS="-g -O0"
+```
 
 ## Installation instructions
 
 To be determined. For now, a portable build can be created by running:
 
-    build/dist/all
+```sh
+build/dist/all
+```
 
-The resulting bundle is stored in build/\_dist.
+The resulting bundle is stored in fs/\_dist.

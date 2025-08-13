@@ -5,8 +5,7 @@
 
 // typedef SDL_RWops fsemu_stream_t;
 
-static void fsemu_stream_free(fsemu_stream_t *stream)
-{
+static void fsemu_stream_free(fsemu_stream_t* stream) {
     printf("FIXME: free not implemented\n");
     abort();
     // printf("fsemu_stream_free stream=%p\n", stream);
@@ -16,22 +15,19 @@ static void fsemu_stream_free(fsemu_stream_t *stream)
     // free(stream);
 }
 
-static void fsemu_stream_cleanup(void *stream)
-{
-    fsemu_stream_free((fsemu_stream_t *) stream);
+static void fsemu_stream_cleanup(void* stream) {
+    fsemu_stream_free((fsemu_stream_t*)stream);
 }
 
-static fsemu_stream_t *fsemu_stream_new_with_rwops(SDL_IOStream *rwops)
-{
-    fsemu_stream_t *stream = malloc(sizeof(fsemu_stream_t));
+static fsemu_stream_t* fsemu_stream_new_with_rwops(SDL_IOStream* rwops) {
+    fsemu_stream_t* stream = malloc(sizeof(fsemu_stream_t));
     printf("fsemu_stream_new_with_rwops rwops=%p -> %p\n", rwops, stream);
     stream->rwops = rwops;
     fslib_refable_set_cleanup_handler(stream, fsemu_stream_cleanup);
     return stream;
 }
 
-fsemu_stream_t *fsemu_stream_null(void)
-{
+fsemu_stream_t* fsemu_stream_null(void) {
 #if 1
     return fsemu_stream_new_with_rwops(NULL);
 
@@ -42,7 +38,7 @@ fsemu_stream_t *fsemu_stream_null(void)
     // static int null_data;
     // return fsemu_stream_from_const_data(&null_data, 0);
 #else
-    fsemu_stream_t *stream = malloc(sizeof(fsemu_stream_t));
+    fsemu_stream_t* stream = malloc(sizeof(fsemu_stream_t));
     printf("fsemu_stream_null -> %p\n", stream);
     stream->rwops = NULL;
     fslib_refable_set_cleanup_handler(stream, fsemu_stream_cleanup);
@@ -50,8 +46,7 @@ fsemu_stream_t *fsemu_stream_null(void)
 #endif
 }
 
-fsemu_stream_t *fsemu_stream_new(void)
-{
+fsemu_stream_t* fsemu_stream_new(void) {
     // return fsemu_stream_new_with_rwops(SDL_AllocRW());
     printf("NOT IMPLEMENTED\n");
     SDL_assert(false);
@@ -59,29 +54,24 @@ fsemu_stream_t *fsemu_stream_new(void)
     return NULL;
 }
 
-void fsemu_stream_unref(fsemu_stream_t *stream)
-{
+void fsemu_stream_unref(fsemu_stream_t* stream) {
     printf("fsemu_stream_unref stream=%p\n", stream);
     fslib_refable_unref(stream);
 }
 
-fsemu_stream_t *fsemu_stream_from_const_data(const void *mem, int size)
-{
+fsemu_stream_t* fsemu_stream_from_const_data(const void* mem, int size) {
     return fsemu_stream_new_with_rwops(SDL_IOFromConstMem(mem, size));
 }
 
-fsemu_stream_t *fsemu_stream_from_file(FILE *fp, bool autoclose)
-{
+fsemu_stream_t* fsemu_stream_from_file(FILE* fp, bool autoclose) {
     return fsemu_stream_new_with_rwops(SDL_IOFromMem(fp, autoclose));
 }
 
-fsemu_stream_t *fsemu_stream_from_path(const char *file, const char *mode)
-{
+fsemu_stream_t* fsemu_stream_from_path(const char* file, const char* mode) {
     return fsemu_stream_new_with_rwops(SDL_IOFromFile(file, mode));
 }
 
-fsemu_stream_t *fsemu_stream_from_data(void *mem, int size)
-{
+fsemu_stream_t* fsemu_stream_from_data(void* mem, int size) {
     return fsemu_stream_new_with_rwops(SDL_IOFromMem(mem, size));
 }
 
@@ -90,24 +80,21 @@ fsemu_stream_t *fsemu_stream_from_data(void *mem, int size)
 // #define fsemu_stream_from_path SDL_RWFromFile
 // #define fsemu_stream_from_data SDL_RWFromMem
 
-int fsemu_stream_close(fsemu_stream_t *stream)
-{
+int fsemu_stream_close(fsemu_stream_t* stream) {
     if (stream->rwops == NULL) {
         return 0;
     }
     return SDL_CloseIO(stream->rwops);
 }
 
-int64_t fsemu_stream_size(fsemu_stream_t *stream)
-{
+int64_t fsemu_stream_size(fsemu_stream_t* stream) {
     if (stream->rwops == NULL) {
         return 0;
     }
     return SDL_GetIOSize(stream->rwops);
 }
 
-size_t fsemu_stream_read(fsemu_stream_t *stream, void *ptr, size_t size)
-{
+size_t fsemu_stream_read(fsemu_stream_t* stream, void* ptr, size_t size) {
     if (stream->rwops == NULL) {
         return 0;
     }

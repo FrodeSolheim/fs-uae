@@ -7,8 +7,7 @@ extern "C" {
 
 void fsemu_python_init(void);
 
-void fsemu_python_apply_options(void (*callback)(const char *name,
-                                                 const char *value));
+void fsemu_python_apply_options(void (*callback)(const char* name, const char* value));
 
 #ifdef __cplusplus
 }

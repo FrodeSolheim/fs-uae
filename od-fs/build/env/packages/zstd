@@ -3,11 +3,8 @@
 set -e
 # --------------------------------------------------------------------------------------------------
 
-# Dependency: pulseaudio?
-# Dependency: wayland?
-
 PACKAGE=zstd-1.5.7
-PACKAGE_REVISION=0
+PACKAGE_REVISION=1
 PACKAGE_URL=https://github.com/facebook/zstd/releases/download/v1.5.7/zstd-1.5.7.tar.gz
 PACKAGE_CHECKSUM=eb33e51f49a15e023950cd7825ca74a4a2b43db8354825ac24fc1b7ee09e6fa3
 
@@ -23,9 +20,10 @@ cmake -S . -B _build
 cmake --build _build
 cmake --install _build --prefix "$PACKAGE_PREFIX"
 
-#./configure --prefix=$PREFIX --without-ogg
-#make
-#make install
+if [ "$SYSTEM_OS" = "macOS" ]; then
+DYLIB=libzstd.1.dylib
+install_name_tool -id "$PACKAGE_PREFIX/lib/$DYLIB" "$PACKAGE_PREFIX/lib/$DYLIB"
+fi
 
 # --------------------------------------------------------------------------------------------------
 . "$PACKAGE_POST"

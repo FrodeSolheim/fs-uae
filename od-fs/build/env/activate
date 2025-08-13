@@ -1,3 +1,0 @@
-. build/env/scripts/env.sh
-. build/env/scripts/bashrc
-# . .venv/bin/activate

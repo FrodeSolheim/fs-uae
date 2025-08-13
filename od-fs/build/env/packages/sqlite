@@ -5,21 +5,20 @@ set -e
 
 "$BUILD_ENV_DIR/packages/zlib"
 
-PACKAGE=libpng-1.6.48
+PACKAGE=sqlite-3.50.4
 PACKAGE_REVISION=0
-CHECKSUM=46fd06ff37db1db64c0dc288d78a3f5efd23ad9ac41561193f983e20937ece03
+CHECKSUM=a3db587a1b92ee5ddac2f66b3edb41b26f9c867275782d46c3a088977d6a5b18
 
 # --------------------------------------------------------------------------------------------------
 . "$PACKAGE_PRE"
 # --------------------------------------------------------------------------------------------------
 
 "$BUILD_ENV_DIR/scripts/download.py" \
-https://downloads.sourceforge.net/project/libpng/libpng16/\
-1.6.48/$PACKAGE.tar.xz \
+https://www.sqlite.org/2025/sqlite-autoconf-3500400.tar.gz \
 sha256:$CHECKSUM
 
-tar xf "$BUILD_ENV_DIR/_sources/$PACKAGE.tar.xz"
-cd $PACKAGE
+tar xf "$BUILD_ENV_DIR/_sources/sqlite-autoconf-3500400.tar.gz"
+cd sqlite-autoconf-3500400
 
 ./configure --prefix=$PREFIX
 make

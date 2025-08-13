@@ -9,13 +9,21 @@ case "`uname`" in
 esac
 
 case "`uname -m`" in
-    i686*)    SYSTEM_ARCH=i686;;
     x86_64*)  SYSTEM_ARCH=x86-64;;
     aarch64*) SYSTEM_ARCH=ARM64;;
     arm64*)   SYSTEM_ARCH=ARM64;;
     armv7l*)  SYSTEM_ARCH=ARM;;
     *)        SYSTEM_ARCH=Unknown;;
 esac
+
+# FIXME: Issue when running i686 in docker via multi-platform; uname -m returns host x86_64
+# -compensating
+
+if [ $SYSTEM_OS = "Linux" ]; then
+if [ $(gcc -dumpmachine) = "i686-linux-gnu" ]; then
+SYSTEM_ARCH=i686
+fi
+fi
 
 if [ $SYSTEM_OS = "Windows" ]; then
 SYSTEM_EXE=.exe
@@ -24,6 +32,8 @@ else
 SYSTEM_EXE=
 SYSTEM_DLL=.so
 fi
+
+SYSTEM_OS_ARCH="${SYSTEM_OS}_${SYSTEM_ARCH}"
 
 # FIXME: Deprecated alias
 SYSTEM=$SYSTEM_OS

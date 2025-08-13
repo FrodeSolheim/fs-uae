@@ -1,0 +1,8 @@
+#!/bin/sh
+
+set -e
+
+CFLAGS="-g -O0 -fstack-protector"
+CXXFLAGS="$CFLAGS"
+CPPFLAGS="-DDEBUG -D_FORTIFY_SORCE=1"
+./configure CPPFLAGS="$CPPFLAGS" CFLAGS="$CFLAGS" CXXFLAGS="$CFLAGS"

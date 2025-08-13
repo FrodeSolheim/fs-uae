@@ -11,7 +11,7 @@ BUNDLE_ID=$4
 TEMP_APP=build/_build/temp.app
 
 echo "Creating temporary app at $TEMP_APP"
-rm -Rf $TEMP_APP
+rm -Rf "$TEMP_APP"
 mkdir -p $TEMP_APP/Contents/MacOS
 # mv "$1"/* $TEMP_APP/Contents/MacOS/
 # mv $TEMP_APP/Contents/MacOS/Version.txt "$1"/

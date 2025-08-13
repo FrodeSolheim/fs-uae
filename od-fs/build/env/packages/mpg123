@@ -3,25 +3,22 @@
 set -e
 # --------------------------------------------------------------------------------------------------
 
-"$BUILD_ENV_DIR/packages/zlib"
+# Dependency: pulseaudio?
+# Dependency: wayland?
 
-PACKAGE=libpng-1.6.48
+PACKAGE=mpg123-1.33.2
 PACKAGE_REVISION=0
-CHECKSUM=46fd06ff37db1db64c0dc288d78a3f5efd23ad9ac41561193f983e20937ece03
+PACKAGE_URL=https://deac-fra.dl.sourceforge.net/project/mpg123/mpg123/1.33.2/mpg123-1.33.2.tar.bz2
+PACKAGE_CHECKSUM=2c54fabbfa696dce8f9b137c8ef7a429a061f8fe633cd7d0a511809855f2c219
 
 # --------------------------------------------------------------------------------------------------
 . "$PACKAGE_PRE"
 # --------------------------------------------------------------------------------------------------
 
-"$BUILD_ENV_DIR/scripts/download.py" \
-https://downloads.sourceforge.net/project/libpng/libpng16/\
-1.6.48/$PACKAGE.tar.xz \
-sha256:$CHECKSUM
-
-tar xf "$BUILD_ENV_DIR/_sources/$PACKAGE.tar.xz"
+tar xf "$PACKAGE_SOURCES/$PACKAGE.tar.bz2"
 cd $PACKAGE
 
-./configure --prefix=$PREFIX
+./configure --prefix=$PREFIX --without-ogg
 make
 make install
 

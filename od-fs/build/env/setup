@@ -4,25 +4,35 @@ set -e
 
 export BUILD_ENV_DIR="$(cd "$(dirname "$0")" && pwd)"
 echo "BUILD_ENV_DIR=$BUILD_ENV_DIR"
+if [ "$BUILD_ENV_PREFIX" != "" ]; then
+echo "Existing BUILD_ENV_PREFIX found in environment"
+else
+export BUILD_ENV_PREFIX="$BUILD_ENV_DIR/_prefix"
+fi
+echo "BUILD_ENV_PREFIX=$BUILD_ENV_PREFIX"
 
 echo "Build dependencies"
 echo -------------------------------------------------------------------------\
 -------
 
 . "$BUILD_ENV_DIR/scripts/env.sh"
-. "$BUILD_ENV_DIR/../scripts/system.sh"
+. "$BUILD_ENV_DIR/scripts/system.sh"
 
-echo FSENV_PREFIX=$FSENV_PREFIX
 echo LIBRARY_PATH=$LIBRARY_PATH
 echo PKG_CONFIG_PATH=$PKG_CONFIG_PATH
 
 # Create the lib64 dir since is is added to LIBRARY_PATH always for simplicity
 # even though it is only used on some platforms.
-mkdir -p $FSENV_PREFIX/lib64
+mkdir -p $BUILD_ENV_PREFIX/lib64
 
 if [ $SYSTEM_OS = "macOS" ]; then
 echo MACOSX_DEPLOYMENT_TARGET=$MACOSX_DEPLOYMENT_TARGET
 fi
+
+export PACKAGE_PRE="$BUILD_ENV_DIR/scripts/package.sh"
+export PACKAGE_POST="$BUILD_ENV_DIR/scripts/package_post.sh"
+export PACKAGE_DEPENDENCY="$BUILD_ENV_DIR/packages"
+export PACKAGE_SOURCES="$BUILD_ENV_DIR/_sources"
 
 for package_script in "$BUILD_ENV_DIR/packages"/*; do
 $package_script
@@ -36,17 +46,23 @@ done
 # fi
 
 if [ $SYSTEM_OS = "Windows" ]; then
-if [ -d $FSENV_PREFIX/bin ]; then
-FIND_DLLS="`find $FSENV_PREFIX/bin -maxdepth 1 -mindepth 1 -name '*.dll'`"
+if [ -d $BUILD_ENV_PREFIX/bin ]; then
+FIND_DLLS="`find $BUILD_ENV_PREFIX/bin -maxdepth 1 -mindepth 1 -name '*.dll'`"
 if [ "$FIND_DLLS" != "" ]; then
 # Copy DLL files to root directory for running executables during development
-echo "cp $FSENV_PREFIX/bin/*.dll ."
-cp $FSENV_PREFIX/bin/*.dll .
+echo "cp $BUILD_ENV_PREFIX/bin/*.dll ."
+cp $BUILD_ENV_PREFIX/bin/*.dll .
 else
-echo "No DLL files to copy from $FSENV_PREFIX/bin"
+echo "No DLL files to copy from $BUILD_ENV_PREFIX/bin"
 fi
 fi
 fi
+
+rm -Rf "$BUILD_ENV_PREFIX/_build"
+
+cp "$BUILD_ENV_DIR/scripts/bashrc" "$BUILD_ENV_PREFIX/.bashrc"
+cp "$BUILD_ENV_DIR/scripts/_run" "$BUILD_ENV_PREFIX/run"
+chmod a+x "$BUILD_ENV_PREFIX/run"
 
 echo -------------------------------------------------------------------------\
 -------

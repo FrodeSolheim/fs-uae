@@ -3,27 +3,32 @@
 set -e
 # --------------------------------------------------------------------------------------------------
 
-"$BUILD_ENV_DIR/packages/zlib"
+# Dependency: pulseaudio?
+# Dependency: wayland?
 
-PACKAGE=libpng-1.6.48
+PACKAGE=SDL3-3.2.20
 PACKAGE_REVISION=0
-CHECKSUM=46fd06ff37db1db64c0dc288d78a3f5efd23ad9ac41561193f983e20937ece03
+CHECKSUM=467600ae090dd28616fa37369faf4e3143198ff1da37729b552137e47f751a67
 
 # --------------------------------------------------------------------------------------------------
 . "$PACKAGE_PRE"
 # --------------------------------------------------------------------------------------------------
 
 "$BUILD_ENV_DIR/scripts/download.py" \
-https://downloads.sourceforge.net/project/libpng/libpng16/\
-1.6.48/$PACKAGE.tar.xz \
+https://www.libsdl.org/release/$PACKAGE.tar.gz \
 sha256:$CHECKSUM
 
-tar xf "$BUILD_ENV_DIR/_sources/$PACKAGE.tar.xz"
+tar xf "$BUILD_ENV_DIR/_sources/$PACKAGE.tar.gz"
 cd $PACKAGE
 
-./configure --prefix=$PREFIX
-make
-make install
+cmake -S . -B _build
+cmake --build _build
+cmake --install _build --prefix $PREFIX
+
+if [ "$SYSTEM_OS" = "macOS" ]; then
+DYLIB=libSDL3.0.dylib
+install_name_tool -id $PREFIX/lib/$DYLIB $PREFIX/lib/$DYLIB
+fi
 
 # --------------------------------------------------------------------------------------------------
 . "$PACKAGE_POST"

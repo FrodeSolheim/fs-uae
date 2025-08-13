@@ -86,12 +86,8 @@ def fix_linux_binary(path: str) -> int:
             print("[FSBUILD] Copy", library_source)
             print("Needed by:", path)
 
-            if library_source.startswith("/lib") or library_source.startswith(
-                "/usr"
-            ):
-                raise Exception(
-                    f"Not allowing external library {library_source}"
-                )
+            if library_source.startswith("/lib") or library_source.startswith("/usr"):
+                raise Exception(f"Not allowing external library {library_source}")
 
             shutil.copy(library_source, dst)
             os.chmod(dst, 0o644)
@@ -139,9 +135,7 @@ manylinux2014_whitelist = set(
 def ignore_linux_library(name: str) -> bool:
     if os.getenv("LIBGPG_ERROR_CHECK", "") != "0":
         if name.startswith("libgpg-error.so"):
-            raise Exception(
-                "Bundling libgpg-error (libgcrypt?) breaks Intel GL driver"
-            )
+            raise Exception("Bundling libgpg-error (libgcrypt?) breaks Intel GL driver")
 
     # Skip the dynamic linker for all known architectures
     if name.startswith("linux-gate.so"):

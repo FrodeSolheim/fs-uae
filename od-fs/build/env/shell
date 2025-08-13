@@ -2,8 +2,14 @@
 
 set -e
 
-BUILD_ENV_DIR="$(cd "$(dirname "$0")" && pwd)"
+export BUILD_ENV_DIR="$(cd "$(dirname "$0")" && pwd)"
 echo "BUILD_ENV_DIR=$BUILD_ENV_DIR"
+if [ "$BUILD_ENV_PREFIX" != "" ]; then
+echo "Existing BUILD_ENV_PREFIX found in environment"
+else
+export BUILD_ENV_PREFIX="$BUILD_ENV_DIR/_prefix"
+fi
+echo "BUILD_ENV_PREFIX=$BUILD_ENV_PREFIX"
 
 . "$BUILD_ENV_DIR/scripts/env.sh"
 

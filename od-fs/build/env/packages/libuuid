@@ -1,0 +1,35 @@
+#!/bin/sh
+# --------------------------------------------------------------------------------------------------
+set -e
+# --------------------------------------------------------------------------------------------------
+
+PACKAGE=libuuid-2.41.1
+PACKAGE_REVISION=2
+PACKAGE_URL=https://www.kernel.org/pub/linux/utils/util-linux/v2.41/util-linux-2.41.1.tar.xz
+PACKAGE_CHECKSUM=be9ad9a276f4305ab7dd2f5225c8be1ff54352f565ff4dede9628c1aaa7dec57
+
+# --------------------------------------------------------------------------------------------------
+. "$PACKAGE_PRE"
+# --------------------------------------------------------------------------------------------------
+
+# libuuid is (optionally) used by Python. The reason it is compiled here is so we can distribute a
+# version that is independent on the host system. But we could maybe also let the Python module
+# depend on host libuuid (stable and always present??), or try to build a Python module without
+# using libuuid at all (must maybe remove libuuid headers on build system).
+
+if [ "$SYSTEM_OS" = "Linux" ]; then
+
+tar xf "$BUILD_ENV_DIR/_sources/util-linux-2.41.1.tar.xz"
+cd util-linux-2.41.1
+
+./configure --prefix=$PREFIX --disable-all-programs --enable-libuuid
+make
+make install
+
+else 
+echo "Only building libuuid for Linux"
+fi
+
+# --------------------------------------------------------------------------------------------------
+. "$PACKAGE_POST"
+# --------------------------------------------------------------------------------------------------

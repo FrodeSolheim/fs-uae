@@ -24,7 +24,10 @@ def main():
     url = sys.argv[1]
     checksum = sys.argv[2]
 
-    if checksum.startswith("sha256:"):
+    if len(checksum) == 64:
+        h = hashlib.sha256
+        checksum = checksum
+    elif checksum.startswith("sha256:"):
         h = hashlib.sha256
         checksum = checksum[7:]
     else:
@@ -42,7 +45,12 @@ def main():
         os.remove(archive)
 
     # FIXME: Replace use of wget, just use python instead
-    if os.system(f'cd {build_env_dir}/_sources && wget "{url}"') != 0:
+    # if os.system(f'cd {build_env_dir}/_sources && curl "{url}" -o {archive}') != 0:
+
+    print("Using --no-check-certificate due to missing certificates in the build process")
+    print("The downloads are verified using SHA-256")
+
+    if os.system(f'cd {build_env_dir}/_sources && wget --no-check-certificate "{url}"') != 0:
         print("Failed to download")
         sys.exit(1)
 

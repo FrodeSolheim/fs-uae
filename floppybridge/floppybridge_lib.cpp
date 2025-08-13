@@ -19,7 +19,10 @@
 #include <codecvt>
 #include <locale>
 #include <algorithm>
-
+#include <cstring>
+#ifndef _WIN32
+#include <dlfcn.h>
+#endif
 
 // Used by BRIDGE_About
 struct BridgeAbout {
@@ -166,7 +169,9 @@ _BRIDGE_SetProfileConfigFromString BRIDGE_SetProfileConfigFromString = nullptr;
 _BRIDGE_SetProfileName BRIDGE_SetProfileName = nullptr;
 _BRIDGE_CreateNewProfile BRIDGE_CreateNewProfile = nullptr;
 _BRIDGE_DeleteProfile BRIDGE_DeleteProfile = nullptr;
+#ifdef _WIN32
 _BRIDGE_ShowConfigDialog BRIDGE_ShowConfigDialog = nullptr;
+#endif
 _BRIDGE_GetDriverIndex BRIDGE_GetDriverIndex = nullptr;
 _BRIDGE_FreeDriver	BRIDGE_FreeDriver = nullptr;
 _BRIDGE_DriverGetMode	BRIDGE_DriverGetMode = nullptr;
@@ -215,10 +220,25 @@ _DRIVER_isWriteComplete	DRIVER_isWriteComplete = nullptr;
 _DRIVER_canTurboWrite	DRIVER_canTurboWrite = nullptr;
 _DRIVER_isReadyToWrite	DRIVER_isReadyToWrite = nullptr;
 
+// This is normally declared in uae/dlopen.h, but if we include that here, it breaks the build
+#ifdef _WIN32
+#define UAE_DLHANDLE HINSTANCE
+#else
+#define UAE_DLHANDLE void *
+#endif
+UAE_DLHANDLE uae_dlopen_plugin(const TCHAR *path);
+
 // Sets up the bridge.  We assume it will persist while the application is open.
 void prepareBridge() {
 	if (hBridgeDLLHandle) return;
 
+#ifdef FSUAE
+	hBridgeDLLHandle = uae_dlopen_plugin("FloppyBridge");
+	if (hBridgeDLLHandle == NULL) {
+		// Load using Amiberry plugin name
+		hBridgeDLLHandle = uae_dlopen_plugin("libfloppybridge");
+	}
+#else
 #ifdef WIN32
 #ifdef WINUAE
 	hBridgeDLLHandle = WIN32_LoadLibrary(MODULENAME);
@@ -232,6 +252,7 @@ void prepareBridge() {
 #else
 	hBridgeDLLHandle = dlopen(MODULENAME, RTLD_NOW);
 #endif
+#endif // !FSUAE
 
 	// Did it open?
 	if (!hBridgeDLLHandle) return;
@@ -242,7 +263,9 @@ void prepareBridge() {
 	BRIDGE_GetDriverInfo = (_BRIDGE_GetDriverInfo)GETFUNC(hBridgeDLLHandle, "BRIDGE_GetDriverInfo");
 	BRIDGE_CreateDriver = (_BRIDGE_CreateDriver)GETFUNC(hBridgeDLLHandle, "BRIDGE_CreateDriver");
 	BRIDGE_GetDriverIndex = (_BRIDGE_GetDriverIndex)GETFUNC(hBridgeDLLHandle, "BRIDGE_GetDriverIndex");	
+#ifdef _WIN32
 	BRIDGE_ShowConfigDialog = (_BRIDGE_ShowConfigDialog)GETFUNC(hBridgeDLLHandle, "BRIDGE_ShowConfigDialog");
+#endif
 	BRIDGE_Close = (_BRIDGE_Close)GETFUNC(hBridgeDLLHandle, "BRIDGE_Close");
 	BRIDGE_Open = (_BRIDGE_Open)GETFUNC(hBridgeDLLHandle, "BRIDGE_Open");
 	BRIDGE_CreateDriverFromProfileID = (_BRIDGE_CreateDriverFromProfileID)GETFUNC(hBridgeDLLHandle, "BRIDGE_CreateDriverFromProfileID");
@@ -339,7 +362,7 @@ void _char2TChar(const char* input, TCHAR* output, unsigned maxLength) {
 #ifdef _WIN32
 	strcpy_s(output, maxLength, input);
 #else
-	strcpy_s(output, input);
+	strcpy(output, input);
 #endif
 #endif
 }
@@ -749,7 +772,7 @@ const char* FloppyBridgeAPI::getLastErrorMessage() {
 	_quickw2a(m_error, m_lastErrorAnsi);
 	return m_lastErrorAnsi.c_str();
 #else
-	return m_lastError;
+	return m_error;
 #endif
 }
 const FloppyDiskBridge::BridgeDriver* FloppyBridgeAPI::getDriverInfo() {

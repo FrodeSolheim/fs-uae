@@ -10,6 +10,8 @@ extern "C" {
 struct fsapp_channel;
 typedef struct fsapp_channel fsapp_channel_t;
 
+fsapp_channel_t* fsapp_channel_create(void);
+
 void fsapp_channel_lock(fsapp_channel_t* channel);
 
 void fsapp_channel_unlock(fsapp_channel_t* channel);

@@ -3,7 +3,7 @@
 import os
 
 
-def main():
+def main() -> None:
     enum = True
 
     with open("inputevents.def", "r") as f:

@@ -153,6 +153,7 @@ void gui_led (int led, int state, int brightness)
 int gui_message_multibutton (int flags, const TCHAR *format,...)
 {
     UAE_LOG_STUB("");
+    return 0;
 }
 
 extern "C" {

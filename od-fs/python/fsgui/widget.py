@@ -1,15 +1,27 @@
 import logging
 import traceback
-from typing import Callable, Optional, Self
+from typing import Any, Callable, Optional, Self, TypeVar, overload
 
+from fsuae.reactive import Observable0, Observable1, Property, State
+from fsuae.uaeconfig import Connectable
+from fsuae.var import Var
+
+from fsgui.drawingcontext import DrawingContext
 from fsgui.font import Font
 from fsgui.internal.surface import Surface
 from fsgui.parentstack import ParentStack
 from fsgui.style import Style
-from fsgui.types import PaddingParam, Position, Size, SizeParam
+from fsgui.types import Colour, PaddingParam, Position, Size, SizeParam
 from fsgui.widgetorlayout import WidgetOrLayout
 
 logger = logging.getLogger(__name__)
+
+
+# FIXME: Layoutable ? ILayoyt?
+
+# FIXME: WidgetWithChildren?
+
+T = TypeVar("T")
 
 
 class Widget(WidgetOrLayout):
@@ -31,7 +43,8 @@ class Widget(WidgetOrLayout):
         else:
             self.font = Font("UI")
 
-        self.enabled = True
+        self.enabled_state = Property(True)
+        # self.enabled = True
         # self.pressed = False
 
         # self.parent = parent
@@ -120,15 +133,85 @@ class Widget(WidgetOrLayout):
         # self._old_size = self._size
 
         # FIXME: Any -> StateVar?
-        # self._listeners: list[tuple[Any, Callable]] = []
-        self._listeners = []
+
+        self._listeners: list[tuple[Var[Any], Callable[..., None]]] = []
+        # self._listeners = [Callable[..., None]]
+
         self._handlers: dict[str, list[Callable]] = {
             "on_destroy": [],
         }
 
-    def connect(self, state, listener) -> Self:
+    @property
+    def enabled(self) -> bool:
+        return self.enabled_state.value
+
+    # FIXME: Maybe remove
+    @enabled.setter
+    def enabled(self, v: bool) -> None:
+        self.enabled_state.set(v)
+
+    def set_enabled(self, enabled: bool) -> None:
+        self.enabled_state.set(enabled)
+
+    def bind_enabled(self, enabled: State[bool]) -> Self:
+        self.enabled_state.bind(enabled)
+        return self
+
+    # FIXME: Copied to EventHandler class
+    @overload
+    def on(self, src: State[T], fn: Callable[[T], None], /, *, immediate: bool = False) -> Self: ...
+
+    # FIXME: Copied to EventHandler class
+    @overload
+    def on(self, src: Observable1[T], fn: Callable[[T], None], /) -> Self: ...
+
+    # FIXME: Copied to EventHandler class
+    @overload
+    def on(self, src: Observable0, fn: Callable[[], None], /) -> Self: ...
+
+    # FIXME: Copied to EventHandler class
+    def on(self, src: Any, listener: Any, /, *, immediate: bool = False) -> Self:
+        # if isinstance(listener, str):
+        #     listener = getattr(self, listener)
+        self._listeners.append((src, listener))
+        src.connect(listener)
+        # FIXME: Right now the only difference between connect and listen
+        # is this call. Resolve somehow?
+
+        # if immediate?
+        # Are we OK with this runtime check?
+        # if isinstance(src, State):
+        if hasattr(src, "value") and immediate:
+            listener(src.value)
+        return self
+
+        # # FIXME: ...
+        # self.listen(src, fn)  # type: ignore
+        # # self.connect(src, fn)
+        # # track and auto-disconnect here
+        # return self
+
+    def connect(self, state: Connectable, listener: Callable[[], None]) -> Self:
         if isinstance(listener, str):
             listener = getattr(self, listener)
+        self._listeners.append((state, listener))
+        state.connect(listener)
+        # FIXME: Right now the only difference between connect and listen
+        # is this call. Resolve somehow?
+        listener(state.value)
+        return self
+
+    def connect_bool(self, state: Var[bool], listener: Callable[[bool], None]) -> Self:
+        self._listeners.append((state, listener))
+        state.connect(listener)
+        # FIXME: Right now the only difference between connect and listen
+        # is this call. Resolve somehow?
+        listener(state.value)
+        return self
+
+    def connect_str(self, state: Var[str], listener: Callable[[str], None]) -> Self:
+        # if isinstance(listener, str):
+        #     listener = getattr(self, listener)
         self._listeners.append((state, listener))
         state.connect(listener)
         # FIXME: Right now the only difference between connect and listen
@@ -162,24 +245,28 @@ class Widget(WidgetOrLayout):
                 # FIXME: Log to log file
                 traceback.print_exc()
 
-    def calculate_min_height(self, width):
+    def calculate_min_height(self, width: int) -> int:
         # FIXME: Not accounting for padding...!
         if self.layout is not None:
             return self.layout.calculate_min_height(width)
-        raise NotImplementedError()
+        # raise NotImplementedError()
+        return 1
 
-    def calculate_min_width(self):
+    def calculate_min_width(self) -> int:
         if self.layout is not None:
             return self.layout.calculate_min_width()
-        raise NotImplementedError()
+        # raise NotImplementedError()
+        return 1
 
     def create_dc(self) -> "DrawingContext":
-        dc = DrawingContext(self)
+        dc = DrawingContext(self._surface, self.get_dc_offset(), self.font)
         if not self.enabled:
             dc.set_text_colour(Colour.GREY_88)
         return dc
 
     def destroy(self):
+        self.enabled_state.destroy()
+
         from fsgui.windowmanager import WindowManager
 
         # Call all on_destroy event listeners
@@ -204,8 +291,8 @@ class Widget(WidgetOrLayout):
                 import traceback
 
                 traceback.print_exc()
-        # And finally clear the internal listeners list itself to remove
-        # references cycles.
+
+        # And finally clear the internal listeners list itself to remove references cycles
         self._listeners.clear()
 
         # FIXME: When destroying widgets, also destroy layout hierarchy...!!
@@ -261,6 +348,8 @@ class Widget(WidgetOrLayout):
     #     dc.draw_filled_rectangle((0, 0), self.get_size())
 
     # FIXME: Or self.enable(enable=True)
+    # FIFMX
+    # @deprecated
     def enable(self) -> None:
         self.set_enabled(True)
 
@@ -353,7 +442,7 @@ class Widget(WidgetOrLayout):
             self.layout.height = self.get_height() - top - bottom
             self.layout.layout_children()
 
-    def on_destroy(self, on_destroy: Callable) -> Self:
+    def on_destroy(self, on_destroy: Callable[[], None]) -> Self:
         self._handlers["on_destroy"].append(on_destroy)
         return self
 
@@ -412,7 +501,7 @@ class Widget(WidgetOrLayout):
         pass
 
     def on_paint(self):
-        dc = DrawingContext(self)
+        dc = self.create_dc()
         dc.set_fill_colour(self.style.background_color)
         dc.draw_filled_rectangle((0, 0), self.get_size())
 
@@ -428,10 +517,6 @@ class Widget(WidgetOrLayout):
     def refresh(self) -> None:
         # No-op right now
         pass
-
-    def set_enabled(self, enabled: bool) -> None:
-        self.enabled = enabled
-        self.refresh()
 
     def set_min_width(self, min_width: int | None) -> Self:
         self._min_width = min_width
@@ -476,7 +561,3 @@ class Widget(WidgetOrLayout):
         from fsgui.windowmanager import WindowManager
 
         WindowManager.get().transfer_mouse_tracking(self, widget)
-
-
-# Put down here due to circular import and typing
-from fsgui.drawingcontext import Colour, DrawingContext  # noqa: E402

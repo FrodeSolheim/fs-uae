@@ -1,19 +1,24 @@
-from typing import Any, Self, Sequence, Union
+import logging
+from typing import Any, Sequence, Union
+
+from fsuae.fsuaemainwindow import MainWindow
 
 from fsgui.borderlesswindow import BorderlessWindow
 from fsgui.drawingcontext import Colour, DrawingContext
 from fsgui.font import Font
+from fsgui.item import Item
 from fsgui.transparentwindow import TransparentWindow
 from fsgui.types import Position, Size
 from fsgui.widget import Widget
 from fsgui.widgetpainter import WidgetPainter
-from fsuae.fsuaemainwindow import MainWindow
+
+logger = logging.getLogger(__name__)
 
 
 class Choice(Widget):
     def __init__(
         self,
-        items: Sequence[Union["MenuItem", str]],
+        items: Sequence[Union["Item", str]],
         *,
         font: Font | None = None,
         parent: Widget | None = None,
@@ -24,20 +29,20 @@ class Choice(Widget):
 
         # self.index: int | None = 0
         self.index: int = 0
-        self.items: list[MenuItem] = []
+        self.items: list[Item] = []
 
         for i, item in enumerate(items):
-            if not isinstance(item, MenuItem):
-                item = MenuItem(item)
+            if not isinstance(item, Item):
+                item = Item(item)
             item.index = i
             self.items.append(item)
-        # self.items = [MenuItem(x) for x in items]
+        # self.items = [Item(x) for x in items]
         self.button_size = (24, 28)
         # self.button = ChoiceButton()
 
         self.min_width = 0
         for item in self.items:
-            tw, th = self.font.measure_text(item.text)
+            tw, _th = self.font.measure_text(item.text)
             mw = 1 + 6 + tw + 6 + self.button_size[0]
             if mw > self.min_width:
                 self.min_width = mw
@@ -60,12 +65,39 @@ class Choice(Widget):
         # _on_resize_function overrides on_resize or the other way round?
         self.on_resize()
 
-    def add_item(self, item: str) -> None:
-        if not isinstance(item, MenuItem):
-            item = MenuItem(item)
+    # FIXME: Same as ListView?
+    def add_item(self, item: Item | str) -> None:
+        if not isinstance(item, Item):
+            item = Item(item)
         item.index = len(self.items)
         self.items.append(item)
         self.refresh()
+
+    def remove_item_by_index(self, index: int) -> None:
+        del self.items[index]
+        if self.index < index:
+            # No need to do anything
+            pass
+        elif self.index > index:
+            # Just silently decrement the index, and the selected item stays the same
+            self.index -= 1
+        else:
+            # FIXME: What to do?
+            # FIXME: WARNING: Not handled properly..!
+            print('\n\nWARNING: SELECTED LIST VIEW ITEM REMOVED ("UNHANDLED")')
+            # print("Setting index to 0 (no event sent) FIXME: Need better handling")
+            # self.index = 0
+            print("Selecting item 0")
+            self.set_index(0)
+
+    # FIXME: Same as ListView?
+    def remove_item_by_data(self, data: Any) -> None:
+        for i, item in enumerate(self.items):
+            if item.data == data:
+                self.remove_item_by_index(i)
+                break
+        else:
+            logger.warning("remove_item_by_data - item not found")
 
     def calculate_min_height(self, width: int) -> int:
         return 28
@@ -79,7 +111,7 @@ class Choice(Widget):
         # return self.check_width + self.gap + tw
         return self.min_width
 
-    def find_index_by_data(self, data) -> int | None:
+    def find_index_by_data(self, data: Any) -> int | None:
         for item in self.items:
             if item.data == data:
                 return item.index
@@ -167,21 +199,6 @@ class Choice(Widget):
         # FIXME: on_select
 
 
-class MenuItem:
-    def __init__(self, text: str, data: Any = None) -> None:
-        self.index: int = 0
-        self.text = text
-        self.enabled = True
-        self.data = data
-
-    # def disable(self) -> None:
-    #     self.enabled = False
-
-    def set_enabled(self, enabled=True) -> Self:
-        self.enabled = enabled
-        return self
-
-
 # FIXME: The transparent window should resize if the main window resizes?
 # FIXME: Do not cover main window titlebar (???)
 class ChoiceBackgroundWindow(TransparentWindow):
@@ -202,7 +219,7 @@ class ChoiceBackgroundWindow(TransparentWindow):
 class ChoiceMenu(BorderlessWindow):
     # FIXME: on_activate vs on_select
     # FIXME: callback type
-    def __init__(self, items: list[MenuItem], index: int, on_select) -> None:
+    def __init__(self, items: list[Item], index: int, on_select) -> None:
         size = 200, 100
         super().__init__(size=size)
 
@@ -258,15 +275,6 @@ class ChoiceMenu(BorderlessWindow):
             * len(self.items)
         )
 
-    def on_close(self) -> None:
-        self.background_window.close()
-
-    def _on_destroy(self) -> None:
-        self._on_select = None
-
-    # def on_left_press(self) -> None:
-    #     self.close()
-
     def on_left_release(self) -> None:
         index = self.get_index_at_position(self.get_mouse_position())
         if index is not None:
@@ -283,6 +291,15 @@ class ChoiceMenu(BorderlessWindow):
             if index != self._temp_index:
                 if self.items[index].enabled:
                     self.set_temp_index(index)
+
+    def on_close(self) -> None:
+        self.background_window.close()
+
+    def _on_destroy(self) -> None:
+        self._on_select = None
+
+    # def on_left_press(self) -> None:
+    #     self.close()
 
     def on_paint(self) -> None:
         dc = self.create_dc()
@@ -303,7 +320,7 @@ class ChoiceMenu(BorderlessWindow):
     def paint_item(
         self,
         dc: DrawingContext,
-        item: MenuItem,
+        item: Item,
         position: Position,
         size: Size,
         selected: bool,
@@ -321,7 +338,7 @@ class ChoiceMenu(BorderlessWindow):
         dc.set_text_colour(text_colour)
         dc.set_fill_colour(fill_colour)
         dc.draw_filled_rectangle(position, size)
-        tw, th = dc.measure_text(item.text)
+        _tw, th = dc.measure_text(item.text)
         # FIXME: Get 6 from theme
         x = position[0] + 6 - 1
         y = position[1] + (size[1] - th) // 2

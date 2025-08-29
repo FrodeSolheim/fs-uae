@@ -115,6 +115,11 @@ static int python_thread_function(void* data) {
     SDL_assert_release(init_error == 0);
 #else
     // FIXME: Advantage: Logging errors are possible...
+
+    // FIXME: It breaks the abstractions a bit to call fsuae.init here, should probably be
+    // calling fsapp_init instead, possible with an environment variable telling what kind of
+    // app-specific init function to import/run in addition.
+
     PyObject* init_module = PyImport_ImportModule("fsuae.init");
     // SDL_assert_release(init_module != NULL);
     if (!init_module) {

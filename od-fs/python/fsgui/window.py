@@ -113,22 +113,9 @@ class Window(Widget):
             # self._title_bar = None
             pass
         else:
-            # FIXME: duplicate code in _update_window_size
-            title_bar_size = (
-                size[0] + self._left_border + self._right_border,
-                self._top_border - self.outline,
-            )
-            # title_bar_size = (
-            #     size[0] + self._left_border + self._right_border - 2,
-            #     self._top_border - 1,
-            # )
-            self._title_bar = WindowTitleBar(self, self._title, title_bar_size)
-            self._title_bar.set_position(
-                (-self._left_border + self.outline, -self._top_border + self.outline)
-            )
-            # self._title_bar.set_position(
-            #     (-self._left_border + 1, -self._top_border + 1)
-            # )
+            title_bar_height = self._top_border - self.outline
+            self._title_bar = WindowTitleBar(self, self._title, (1, title_bar_height))
+            self._reposition_and_resize_title_bar(size)
 
     # def update(self):
     #     self.surface.update()
@@ -158,7 +145,8 @@ class Window(Widget):
         self.destroy()
 
     def create_window_dc(self) -> "DrawingContext":
-        dc = DrawingContext(self)
+        dc = self.create_dc()
+        # dc = DrawingContext(self)
         # FIXME: Hackish to set origin in DrawingContext constructor and then reset..
         dc.origin = (0, 0)
         return dc
@@ -442,24 +430,30 @@ class Window(Widget):
         # Let fsgui._frame set the final position, after considering "origin"?
         # self._surface.set_position(self._window_position)
 
+    def _reposition_and_resize_title_bar(self, size: Size) -> None:
+        if self._title_bar is None:
+            return
+
+        title_bar_size = (
+            size[0] + self._left_border + self._right_border - 2 * self.outline,
+            self._top_border - self.outline,
+        )
+        # title_bar_size = (
+        #     size[0] + self._left_border + self._right_border - 2,
+        #     self._top_border - 1,
+        # )
+        self._title_bar.set_position(
+            (-self._left_border + self.outline, -self._top_border + self.outline)
+        )
+        self._title_bar.set_size(title_bar_size)
+
     def _update_window_size(self, size: Size) -> None:
         window_width = size[0] + self._left_border + self._right_border
         window_height = size[1] + self._top_border + self._bottom_border
         self._window_size = (window_width, window_height)
 
         if self._title_bar is not None:
-            title_bar_size = (
-                size[0] + self._left_border + self._right_border - 2 * self.outline,
-                self._top_border - self.outline,
-            )
-            # title_bar_size = (
-            #     size[0] + self._left_border + self._right_border - 2,
-            #     self._top_border - 1,
-            # )
-            self._title_bar.set_position(
-                (-self._left_border + self.outline, -self._top_border + self.outline)
-            )
-            self._title_bar.set_size(title_bar_size)
+            self._reposition_and_resize_title_bar(size)
 
     @property
     def layer(self) -> bool:

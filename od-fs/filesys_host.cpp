@@ -15,8 +15,9 @@
 #include "zfile.h"
 #include <fs/util.h>
 #include <unistd.h>
-#ifdef WINDOWS
-#include <Windows.h>
+#ifdef _WIN32
+#include <winsock2.h>
+#include <windows.h>
 #endif
 #include "fsdb_host.h"
 #include "uae.h"

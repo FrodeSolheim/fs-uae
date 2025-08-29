@@ -7,7 +7,7 @@
 #include "fsemu-window.h"
 
 #ifdef FSEMU_OS_WINDOWS
-#include <Windows.h>
+#include <windows.h>
 #endif
 
 #ifdef __APPLE__

@@ -1,8 +1,7 @@
 from fsapp.tickservice import TickService
 from fsgui.mainwindow import MainWindow
-from fsgui.types import Colour
-
 from fsgui.windowmanager import WindowManager
+
 from fsuae import version
 from fsuae.emulatorwindow import EmulatorWindow
 
@@ -16,9 +15,12 @@ class FSUAEMainWindow(MainWindow):
         # width, height = 1366, 768
         # width = 1366
 
-        # height = int(540 * 1.5)
-        height = int((512 + 16) * 1.5)
+        # UAE_RECT
+        # height = int((512 + 16) * 1.5)
+
+        height = int(540 * 1.5)
         width = int(height * (4 / 3))
+
         print("FS-UAE desired window client size", width, height)
 
         delim = "  \u00b7  "
@@ -74,13 +76,11 @@ class FSUAEMainWindow(MainWindow):
                 pass
             else:
                 self.title_bar.set_visible(False)
-        
 
     # MainWindow does not get destroyed as such, currently...
     # def on_destroy(self) -> None:
     #     TickService().get().unregister(self.__on_tick)
     #     super().on_destroy()
-
 
     def on_fullscreen(self) -> None:
         super().on_fullscreen()
@@ -94,8 +94,8 @@ class FSUAEMainWindow(MainWindow):
 
         # border = 14 # (540 - 512 - 16) / 2
         if self.fullscreen:
-            border = 12  # 1080 - 528 * 2 / 2
-            border = (12 * wh) // 1080  # 12 px on 1080p, scale with resolution
+            # border = (12 * wh) // 1080  # 12 px on 1080p, scale with resolution
+            border = 0
         else:
             border = 0
 

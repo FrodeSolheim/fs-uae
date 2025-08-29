@@ -11,6 +11,7 @@
 #include "sysdeps.h"
 #undef DUMMY_KEEP_INCLUDE_ORDER
 
+#include "disk.h"
 #include "libuae.h"  // libamiga
 #include "memory.h"
 #include "options.h"
@@ -39,6 +40,17 @@ static void quickstart(int quickstart_model) {
     // FIXME: Maybe do more, see load_quickstart (win32gui.cpp)
     default_prefs(&changed_prefs, false, 0);
     built_in_prefs(&changed_prefs, quickstart_model, 0, 0, 0);
+}
+
+static void floppysetwriteprotect(int n, bool writeprotected) {
+    // "Similar" to floppysetwriteprotect in win32gui.cpp.
+    // write protection code is weird/confusing...
+    if (disk_setwriteprotect(&changed_prefs, n, changed_prefs.floppyslots[n].df, writeprotected)) {
+        // if (!full_property_sheet)
+        DISK_reinsert(n);
+    }
+    currprefs.floppyslots[n].forcedwriteprotect = writeprotected;
+    changed_prefs.floppyslots[n].forcedwriteprotect = writeprotected;
 }
 
 static fsapp_channel_t* g_channel;
@@ -93,7 +105,7 @@ static void fsuae_messages_handle_message(int type, const char* data) {
         return;
     } else {
         // FIXME: WARNING
-        printf("WARNING: Unhandled message type %d\n", type);
+        // printf("WARNING: Unhandled message type %d\n", type);
     }
 
     // int quickstart_model = 0;
@@ -145,6 +157,22 @@ static void fsuae_messages_handle_message(int type, const char* data) {
             //     copy_prefs(&changed_prefs, &currprefs);
             //     memory_hardreset(2);
             //     break;
+
+        case WRITE_PROTECT_DRIVE_0:
+        case WRITE_PROTECT_DRIVE_1:
+        case WRITE_PROTECT_DRIVE_2:
+        case WRITE_PROTECT_DRIVE_3:
+            floppysetwriteprotect(type - WRITE_PROTECT_DRIVE_0, true);
+            break;
+
+        case UN_WRITE_PROTECT_DRIVE_0:
+        case UN_WRITE_PROTECT_DRIVE_1:
+        case UN_WRITE_PROTECT_DRIVE_2:
+        case UN_WRITE_PROTECT_DRIVE_3:
+            floppysetwriteprotect(type - UN_WRITE_PROTECT_DRIVE_0, false);
+            break;
+        default:
+            printf("WARNING: Unhandled message type %d\n", type);
     }
 }
 

@@ -3,7 +3,7 @@
 
 AC_PREREQ([2.67])
 
-AC_INIT([FS-UAE], [5.0.3], [frode@fs-uae.net], [fs-uae], [https://fs-uae.net])
+AC_INIT([FS-UAE], [5.0.6], [frode@fs-uae.net], [fs-uae], [https://fs-uae.net])
 
 AC_CONFIG_AUX_DIR([od-fs/build/build-aux])
 AC_CANONICAL_HOST
@@ -52,6 +52,8 @@ AC_DEFINE_UNQUOTED([PACKAGE_REVISION], [$PACKAGE_REVISION], [Package revision])
 
 # Checks for programs
 
+AM_PATH_PYTHON([3.11])
+
 AC_PROG_CC
 AC_PROG_CXX
 AC_PROG_CPP
@@ -73,6 +75,10 @@ if test "$ZIP" = "not found"; then
 fi
 PKG_PROG_PKG_CONFIG
 
+AC_CHECK_TOOL([WINDRES], [windres], [:])
+
+# Needed for x86_64-w64-mingw32 cross compilation and std::mutex support via <mutex>
+AX_PTHREAD
 
 # Feature test macros
 
@@ -106,6 +112,16 @@ DIS_FEATURE([STATIC_BUILD], [static], [static], [static build (works on Windows)
 
 AS_IF([test "x$enable_static" = xyes], [PKG_CONFIG="$PKG_CONFIG --static"])
 
+# Portable mode
+
+DIS_FEATURE([PORTABLE_MODE], [portable_mode], [portable-mode], [self-contained/portable mode])
+
+# Share directory name
+
+AC_ARG_WITH([share-dir-name], AS_HELP_STRING([--with-share-dir-name=NAME], [set share directory name (default: fs-uae)]))
+AS_IF([test "x$with_share_dir_name" = "x"], [with_share_dir_name="fs-uae"])
+AC_SUBST([SHARE_DIR_NAME], ["$with_share_dir_name"])
+AC_DEFINE_UNQUOTED([SHARE_DIR_NAME], ["$with_share_dir_name"], [Share directory name])
 
 # Compiler / linker feature checks
 
@@ -220,12 +236,8 @@ AC_CHECK_LIB([dl], [dlopen])
 AC_SUBST([FREETYPE_CFLAGS])
 AC_SUBST([FREETYPE_LIBS])
 
-AC_CHECK_LIB([gdi32], [main])
-
 AC_DEFINE([USE_GLIB], [1], [Define to 1 to use GLib])
 PKG_CHECK_MODULES([GLIB], [glib-2.0 >= 2.32 gthread-2.0])
-
-AC_CHECK_LIB([Iphlpapi], [main])
 
 AC_ARG_WITH(glad, AS_HELP_STRING([--without-glad], [use GLAD OpenGL loader]))
 AS_IF([test "x$with_glad" != xno], [
@@ -265,21 +277,22 @@ PKG_CHECK_MODULES([MIR], [mirclient], [
     AC_SUBST([MIR_CFLAGS])
 ])
 
-# AC_SUBST([USE_OPENGL], [1])
 AC_DEFINE([USE_OPENGL], [1], [Define to 1 to use OpenGL])
-PKG_CHECK_MODULES([OPENGL], [gl], [
-], [
-    AS_CASE([$host_os],
-    [darwin*], [
-        AC_MSG_NOTICE([Using OpenGL.framework])
-        OPENGL_LIBS="-framework OpenGL"
-    ],
-    [
-        AC_CHECK_LIB([OpenGL], [glViewport], [OPENGL_LIBS=-lOpenGL])
-        AC_CHECK_LIB([OpenGL32], [main], [OPENGL_LIBS=-lOpenGL32])
-    ])
+AS_CASE([$host_os],
+[darwin*], [
+    AC_MSG_NOTICE([Using OpenGL.framework])
+    OPENGL_LIBS="-framework OpenGL"
     AC_SUBST([OPENGL_CFLAGS])
     AC_SUBST([OPENGL_LIBS])
+],
+[mingw*], [
+    AC_MSG_NOTICE([Linking with -lopengl32 for OpenGL])
+    AC_CHECK_LIB([opengl32], [main], [OPENGL_LIBS=-lopengl32])
+    AC_SUBST([OPENGL_CFLAGS])
+    AC_SUBST([OPENGL_LIBS])
+],
+[
+    PKG_CHECK_MODULES([OPENGL], [gl])
 ])
 
 # midi support via PortMidi
@@ -339,11 +352,6 @@ PKG_CHECK_MODULES([ZLIB], [zlib], [
     AC_SUBST([ZLIB_LIBS])
 ])
 
-AC_CHECK_LIB([Winmm], [main])
-
-AC_CHECK_LIB([Ws2_32], [main])
-
-
 # Operating system
 
 AC_SUBST([OS_CPPFLAGS])
@@ -355,70 +363,97 @@ AC_SUBST([PACKAGE_ARCH])
 AC_SUBST([SLIRP_LIBS])
 AC_SUBST([HOST_OS], $host_os)
 AC_SUBST([HOST_CPU], $host_cpu)
+
 AS_CASE([$host_os],
-[mingw*], [
-    OS_NAME="windows"
-    OS_NAME_2="Windows"
-    OS_NAME_3="Windows"
-    OS_CPPFLAGS="-DWINDOWS"
-    AS_CASE([$host_cpu],
-    [x86_64], [
-        OS_LDFLAGS="-mwindows -Wl,--image-base=0x400000"
-        PACKAGE_ARCH="x86-64"
-    ], [
-        OS_LDFLAGS="-mwindows -Wl,--large-address-aware"
-        PACKAGE_ARCH="x86"
-    ])
-    LOADABLE_MODULE_EXT=".dll"
-],
-[linux*], [
-    OS_NAME="linux"
-    OS_NAME_2="Linux"
-    OS_NAME_3="Linux"
-    OS_CPPFLAGS="-DLINUX"
-    LOADABLE_MODULE_EXT=".so"
-],
-[darwin*], [
-    OS_NAME="macos"
-    OS_NAME_2="macOS"
-    OS_NAME_3="macOS"
-    OS_CPPFLAGS="-DMACOSX -DMACOS"
-    LOADABLE_MODULE_EXT=".so"
-    AS_CASE([$host_cpu],
-    [x86_64], [
-        OS_LDFLAGS="-headerpad_max_install_names -pagezero_size 0x2000 -rpath @executable_path/../Frameworks"
-    ],
-    [
-        OS_LDFLAGS="-headerpad_max_install_names -rpath @executable_path/../Frameworks"
-    ])
-    SLIRP_LIBS="-lresolv"
-],
-[freebsd*], [
-    OS_NAME="freebsd"
-    OS_NAME_2="FreeBSD"
-    OS_NAME_3="FreeBSD"
-    OS_CPPFLAGS="-DFREEBSD"
-    LOADABLE_MODULE_EXT=".so"
-],
-[openbsd*], [
-    OS_NAME="openbsd"
-    OS_NAME_2="OpenBSD"
-    OS_NAME_3="OpenBSD"
-    OS_CPPFLAGS="-DOPENBSD"
-    LOADABLE_MODULE_EXT=".so"
-],
-[dragonfly*], [
-    OS_NAME="dragonflybsd"
-    OS_NAME_2="DragonFlyBSD"
-    OS_NAME_3="DragonFlyBSD"
-    OS_CPPFLAGS="-DDRAGONFLYBSD"
-    LOADABLE_MODULE_EXT=".so"
+[dummy*], [
+
+# --------------------------------------------------------------------------------------------------
+], [mingw*], [
+
+OS_NAME="windows"
+OS_NAME_2="Windows"
+OS_NAME_3="Windows"
+OS_CPPFLAGS="-DWINDOWS"
+AS_CASE([$host_cpu],
+[x86_64], [
+    OS_LDFLAGS="-mwindows -Wl,--image-base=0x400000"
+    PACKAGE_ARCH="x86-64"
+], [
+    OS_LDFLAGS="-mwindows -Wl,--large-address-aware"
+    PACKAGE_ARCH="x86"
+])
+LOADABLE_MODULE_EXT=".dll"
+
+# FIXME: Check if needed
+AC_CHECK_LIB([winmm], [main])
+
+AC_CHECK_LIB([ws2_32], [main])
+AC_CHECK_LIB([gdi32], [main])
+AC_CHECK_LIB([iphlpapi], [main])
+
+# --------------------------------------------------------------------------------------------------
+], [linux*], [
+
+OS_NAME="linux"
+OS_NAME_2="Linux"
+OS_NAME_3="Linux"
+OS_CPPFLAGS="-DLINUX"
+LOADABLE_MODULE_EXT=".so"
+
+# --------------------------------------------------------------------------------------------------
+], [darwin*], [
+
+OS_NAME="macos"
+OS_NAME_2="macOS"
+OS_NAME_3="macOS"
+OS_CPPFLAGS="-DMACOSX -DMACOS"
+LOADABLE_MODULE_EXT=".so"
+AS_CASE([$host_cpu],
+[x86_64], [
+    OS_LDFLAGS="-headerpad_max_install_names -pagezero_size 0x2000 -rpath @executable_path/../Frameworks"
 ],
 [
-    OS_NAME="unknown"
-    OS_NAME_2="Unknown OS"
-    OS_NAME_3="Unknown"
-    LOADABLE_MODULE_EXT=".unknown"
+    OS_LDFLAGS="-headerpad_max_install_names -rpath @executable_path/../Frameworks"
+])
+SLIRP_LIBS="-lresolv"
+
+# --------------------------------------------------------------------------------------------------
+], [freebsd*], [
+
+OS_NAME="freebsd"
+OS_NAME_2="FreeBSD"
+OS_NAME_3="FreeBSD"
+OS_CPPFLAGS="-DFREEBSD"
+LOADABLE_MODULE_EXT=".so"
+
+# --------------------------------------------------------------------------------------------------
+], [openbsd*], [
+
+OS_NAME="openbsd"
+OS_NAME_2="OpenBSD"
+OS_NAME_3="OpenBSD"
+OS_CPPFLAGS="-DOPENBSD"
+LOADABLE_MODULE_EXT=".so"
+
+# --------------------------------------------------------------------------------------------------
+], [dragonfly*], [
+
+OS_NAME="dragonflybsd"
+OS_NAME_2="DragonFlyBSD"
+OS_NAME_3="DragonFlyBSD"
+OS_CPPFLAGS="-DDRAGONFLYBSD"
+LOADABLE_MODULE_EXT=".so"
+
+# --------------------------------------------------------------------------------------------------
+], [
+
+OS_NAME="unknown"
+OS_NAME_2="Unknown OS"
+OS_NAME_3="Unknown"
+LOADABLE_MODULE_EXT=".unknown"
+
+# --------------------------------------------------------------------------------------------------
+
 ])
 
 AM_CONDITIONAL([LINUX], [test x$OS_NAME = xlinux])
@@ -719,7 +754,7 @@ OPT_FEATURE([CPUEMU_40], [cpuemu_40], [cpuemu-40], [generic 680x0 with JIT direc
 OPT_FEATURE([CPUEMU_50], [cpuemu_50], [cpuemu-50], [generic 680x0 with indirect memory access])
 REQ_FEATURE([WITH_CPUBOARD], [cpuboard], [cpuboard], [cpu board emulation])
 OPT_FEATURE([DEBUGGER], [debugger], [debugger], [debugger support (cannot be disabled right now)])
-OPT_FEATURE([A_DMS], [dms], [dms], [DMS support])
+# OPT_FEATURE([A_DMS], [dms], [dms], [DMS support])
 OPT_FEATURE([DRIVESOUND], [drivesound], [drivesound], [drive sound emulation])
 OPT_FEATURE([FDI2RAW], [fdi2raw], [fdi2raw], [FDI 1.0 and 2.x image support])
 REQ_FEATURE([FILESYS], [filesys], [filesys], [directory hard drives])
@@ -799,7 +834,7 @@ AM_CONDITIONAL([WITH_X86],
 [test x$enable_x86 != xno])
 
 OPT_FEATURE([WITH_XML_SHADER], [xml_shader], [xml-shader], [XML shader support])
-OPT_FEATURE([A_ZIP], [zip], [zip], [ZIP archive support])
+# OPT_FEATURE([A_ZIP], [zip], [zip], [ZIP archive support])
 
 AC_DEFINE([FPU_UAE], [1], [Define to 1])
 
@@ -832,7 +867,8 @@ echo "  OS_CPPFLAGS:       $OS_CPPFLAGS"
 echo "  OS_LDFLAGS:        $OS_LDFLAGS"
 echo "  SDL3_CFLAGS:       $SDL3_CFLAGS"
 echo "  SDL3_LIBS:         $SDL3_LIBS"
-
-echo "  PYTHON3_CFLAGS:    $PYTHON3_CFLAGS"
-echo "  PYTHON3_LIBS:      $PYTHON3_LIBS"
+echo ""
+echo "  Python interpreter: $PYTHON"
+echo "  PYTHON3_CFLAGS:     $PYTHON3_CFLAGS"
+echo "  PYTHON3_LIBS:       $PYTHON3_LIBS"
 echo ""

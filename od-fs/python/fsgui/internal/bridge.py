@@ -7,7 +7,7 @@ from app.app_init import app_init
 import fsapp  # type: ignore
 from fsgui.mainwindow import MainWindow
 from fsgui.windowmanager import WindowManager
-from fsuae.eventservice import EventService
+from fsapp.eventservice import EventService
 
 logger = logging.getLogger(__name__)
 

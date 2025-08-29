@@ -64,7 +64,7 @@
 #ifdef FSUAE
 #ifdef _WIN32
 // For MAX_PATH
-#include "Windef.h"
+#include "windef.h"
 #endif
 #endif
 

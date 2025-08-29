@@ -49,6 +49,21 @@ int fsemu_inputdevice_type(fsemu_inputdevice_t* device) {
     return device->type;
 }
 
+int fsemu_inputdevice_get_instance_id(fsemu_inputdevice_t* device) {
+    SDL_assert(device != NULL);
+    return device->instance_id;
+}
+
+void fsemu_inputdevice_set_instance_id(fsemu_inputdevice_t* device, int instance_id) {
+    SDL_assert(device != NULL);
+    device->instance_id = instance_id;
+}
+
+bool fsemu_inputdevice_matches(fsemu_inputdevice_t* device, int type, int instance_id) {
+    SDL_assert(device != NULL);
+    return device->type == type && device->instance_id == instance_id;
+}
+
 void fsemu_inputdevice_set_type(fsemu_inputdevice_t* device, int type) {
     if (type != FSEMU_INPUTDEVICE_TYPE_CONTROLLER && type != FSEMU_INPUTDEVICE_TYPE_JOYSTICK &&
         type != FSEMU_INPUTDEVICE_TYPE_KEYBOARD && type != FSEMU_INPUTDEVICE_TYPE_MOUSE) {
@@ -70,6 +85,7 @@ void fsemu_inputdevice_set_name(fsemu_inputdevice_t* device, const char* name) {
     if (device->name) {
         free(device->name);
     }
+    SDL_Log("InputDevice: Set name '%s'", name);
     device->name = strdup(name);
 }
 

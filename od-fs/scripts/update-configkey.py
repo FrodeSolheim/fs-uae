@@ -3,7 +3,7 @@
 import os
 
 
-def main():
+def main() -> None:
     with open("od-fs/python/uae/configurations/a500.py", "r") as f:
         lines = f.readlines()
 

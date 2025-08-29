@@ -1,0 +1,15 @@
+from enum import IntEnum
+
+
+class FSAppEvent(IntEnum):
+    FSAPP_KEYBOARD_NAME = 1
+    FSAPP_MOUSE_NAME = 2
+    FSAPP_JOYSTICK_NAME = 3
+    FSAPP_GAMEPAD_NAME = 4
+
+
+# class FSAppEventName(StrEnum):
+#    KEYBOARD_NAME = "FSAPP_KEYBOARD_NAME"
+#    MOUSE_NAME = "FSAPP_MOUSE_NAME"
+#    JOYSTICK_NAME = "FSAPP_JOYSTICK_NAME"
+#    GAMEPAD_NAME = "FSAPP_GAMEPAD_NAME"

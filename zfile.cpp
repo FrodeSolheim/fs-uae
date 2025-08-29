@@ -1160,7 +1160,7 @@ static struct zfile *wrp (struct zfile *z, int *retcode)
 
 #ifdef A_7Z
 #include "7z/Xz.h"
-#include "7z/Lzmadec.h"
+#include "7z/LzmaDec.h"
 #include "7z/7zCrc.h"
 
 static void *SzAlloc (void *p, size_t size)
@@ -1218,7 +1218,11 @@ static struct zfile *xz (struct zfile *z, int *retcode)
 		for (;;) {
 			SizeT srclen = read;
 			SizeT outlen = XZ_OUT_SIZE;
+#if defined(AMIBERRY) || defined(FSUAE)
+			if (XzUnpacker_Code (&cx, out, &outlen, inp, &srclen, CODER_FINISH_ANY, &status) != SZ_OK) {
+#else
 			if (XzUnpacker_Code (&cx, out, &outlen, inp, &srclen, LZMA_FINISH_ANY, &status) != SZ_OK) {
+#endif
 				zfile_fclose (zo);
 				zo = NULL;
 				break;
@@ -2720,10 +2724,20 @@ static struct zvolume *zvolume_alloc_2 (const TCHAR *name, struct zfile *z, unsi
 	root->volume = zv;
 	root->type = ZNODE_DIR;
 	i = 0;
+#ifdef FSUAE
+	// FIXME: Can clean up this if paths are normalized to either / or \\ on all OS-ses
+	if (name[0] != '/' && _tcsncmp(name, _T("./"), 2) != 0 && _tcsncmp(name, _T("../"), 3) != 0 &&
+	    name[0] != '\\' && _tcsncmp(name, _T(".\\"), 2) != 0 && _tcsncmp(name, _T("..\\"), 3) != 0) {
+#else
 	if (name[0] != '/' && name[0] != '\\' && _tcsncmp(name, _T(".\\"), 2) != 0 && _tcsncmp(name, _T("..\\"), 3) != 0) {
+#endif
 		if (_tcschr (name, ':') == 0) {
 			for (i = uaetcslen (name) - 1; i > 0; i--) {
+#ifdef FSUAE
+				if (name[i] == '/' || name[i] == '\\') {
+#else
 				if (name[i] == FSDB_DIR_SEPARATOR) {
+#endif
 					i++;
 					break;
 				}

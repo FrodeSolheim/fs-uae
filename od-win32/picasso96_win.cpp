@@ -2062,8 +2062,8 @@ int picasso_setwincursor(int monid)
 		if (createwindowscursor(monid, 0, 1))
 			return 1;
 	}
-	return 0;
 #endif
+	return 0;
 }
 
 static uae_u32 setspriteimage(TrapContext *ctx, uaecptr bi)

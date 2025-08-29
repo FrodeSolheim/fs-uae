@@ -14,7 +14,7 @@ from fsuae.chipsetwindow import ChipsetWindow
 from fsuae.cpuwindow import CPUWindow
 from fsuae.displaywindow import DisplayWindow
 from fsuae.floppycontrolwindow import FloppyControlWindow
-from fsuae.inputcontrolwindow import InputControlWindow
+from fsuae.input.inputcontrolwindow import InputControlWindow
 from fsuae.quickstartwindow import QuickStartWindow
 from fsuae.roms.rommanagerwindow import ROMManagerWindow
 
@@ -38,42 +38,42 @@ class ShortcutsWindow(Window):
         # HorizontalLayout(gap=4)
         VerticalLayout(gap=8)
         # Label("Temp shortcuts:")
-        Button("About", on_activate=lambda: AboutWindow.instance().show()).fill()
+        Button("About", on_activate=lambda: AboutWindow.instance().show().none).fill()
         Button(
             "Widgets",
-            on_activate=lambda: WidgetTestWindow.instance().show(),
+            on_activate=lambda: WidgetTestWindow.instance().show().none,
         ).fill()
         Button(
             "ROMs",
-            on_activate=lambda: ROMManagerWindow.instance().show(),
+            on_activate=lambda: ROMManagerWindow.instance().show().none,
         ).fill()
         Button(
             "Quick Start",
-            on_activate=lambda: QuickStartWindow.instance().show(),
+            on_activate=lambda: QuickStartWindow.instance().show().none,
         ).fill()
         Button(
             "Floppies",
-            on_activate=lambda: FloppyControlWindow.instance().show(),
+            on_activate=lambda: FloppyControlWindow.instance().show().none,
         ).fill()
         Button(
             "CPU",
-            on_activate=lambda: CPUWindow.instance().show(),
+            on_activate=lambda: CPUWindow.instance().show().none,
         ).fill()
         Button(
             "Chipset",
-            on_activate=lambda: ChipsetWindow.instance().show(),
+            on_activate=lambda: ChipsetWindow.instance().show().none,
         ).fill()
         Button(
             "Adv",
-            on_activate=lambda: AdvChipsetWindow.instance().show(),
+            on_activate=lambda: AdvChipsetWindow.instance().show().none,
         ).fill()
         Button(
             "Input",
-            on_activate=lambda: InputControlWindow.instance().show(),
+            on_activate=lambda: InputControlWindow.instance().show().none,
         ).fill()
         Button(
             "Display",
-            on_activate=lambda: DisplayWindow.instance().show(),
+            on_activate=lambda: DisplayWindow.instance().show().none,
         ).fill()
         Button(
             "Reset",

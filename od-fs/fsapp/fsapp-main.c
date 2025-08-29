@@ -17,9 +17,9 @@
 #include "fsapp-channel.h"
 #include "fsapp-events.h"
 #include "fsapp-main.h"
+#include "fsapp-surface.h"
 #include "fsgui-font.h"
 #include "fsgui-image.h"
-#include "fsgui-surface.h"
 #include "fsgui-window.h"
 #include "fsgui-windows.h"
 #include "fslib-os.h"
@@ -71,6 +71,7 @@ static struct {
 } fsapp;
 
 uint32_t SDL_EVENT_FSAPP_WINDOW;
+uint32_t SDL_EVENT_FSAPP_CUSTOM;
 
 static volatile bool g_fsemu_video_initialized = false;
 
@@ -103,6 +104,7 @@ static GList* g_windows = NULL;
 
 #define FSEMU_INTERNAL
 
+#include "fsapp-channel.h"
 #include "fsemu-application.h"
 #include "fsemu-audio.h"
 #include "fsemu-audiobuffer.h"
@@ -120,6 +122,8 @@ static GList* g_windows = NULL;
 #include "fsemu-thread.h"
 #include "fsemu-video.h"
 #include "fsuae-path.h"
+
+fsapp_channel_t* g_fsapp_main_channel;
 
 // -------------------------------------------------------------------------------------
 
@@ -212,8 +216,8 @@ static PyObject* fsapp_py_open_file_dialog(PyObject* self, PyObject* args) {
 
     SDL_Window* window = NULL;
     if (!Py_IsNone(capsule)) {
-        fsgui_surface_t* surface =
-            (fsgui_surface_t*)PyCapsule_GetPointer(capsule, "fsgui_surface_t");
+        fsapp_surface_t* surface =
+            (fsapp_surface_t*)PyCapsule_GetPointer(capsule, "fsapp_surface_t");
         SDL_assert(surface != NULL);
         // We can use surface to get the Window here in the future, for now
         // assume one window
@@ -270,7 +274,7 @@ static PyObject* fsapp_py_update(PyObject* self, PyObject* args) {
 
     // Iterate over the list
     for (Py_ssize_t i = 0; i < list_size; i++) {
-        // fsgui_surface_t* surface = g_surfaces[i];
+        // fsapp_surface_t* surface = g_surfaces[i];
 
         PyObject* item = PyList_GetItem(py_list, i);
         if (item == NULL) {
@@ -282,8 +286,8 @@ static PyObject* fsapp_py_update(PyObject* self, PyObject* args) {
         if (!PyArg_ParseTuple(item, "O(ii):update(item)", &capsule, &x, &y)) {
             return NULL;
         }
-        fsgui_surface_t* surface =
-            (fsgui_surface_t*)PyCapsule_GetPointer(capsule, "fsgui_surface_t");
+        fsapp_surface_t* surface =
+            (fsapp_surface_t*)PyCapsule_GetPointer(capsule, "fsapp_surface_t");
         if (surface == NULL) {
             return NULL;
         }
@@ -292,8 +296,8 @@ static PyObject* fsapp_py_update(PyObject* self, PyObject* args) {
 
         // FIXME: Use PyArg_ParseTuple
 
-        // fsgui_surface_t* surface =
-        // (fsgui_surface_t*)PyCapsule_GetPointer(capsule, "fsgui_surface_t");
+        // fsapp_surface_t* surface =
+        // (fsapp_surface_t*)PyCapsule_GetPointer(capsule, "fsapp_surface_t");
         // if (surface == NULL) {
         //     return NULL;
         // }
@@ -574,9 +578,19 @@ static PyObject* fsapp_main_python_quit(PyObject* self, PyObject* args) {
 // -------------------------------------------------------------------------------------------------
 
 static void fsapp_event_capsule_destructor(PyObject* capsule) {
-    void* p = PyCapsule_GetPointer(capsule, "SDL_Event");
-    // printf("Free %p\n", p);
-    free(p);
+    SDL_Event* event = (SDL_Event*)PyCapsule_GetPointer(capsule, "SDL_Event");
+    // printf("Free SDL Event %p\n", event);
+    if (event->type == SDL_EVENT_FSAPP_CUSTOM) {
+        printf("Freeing SDL_EVENT_FSAPP_CUSTOM event %p\n", event);
+        // data1 is used to pass integers
+        // if (event->user.data1 != NULL) {
+        //     free(event->user.data1);
+        // }
+        if (event->user.data2 != NULL) {
+            free(event->user.data2);
+        }
+    }
+    free(event);
 }
 
 static PyObject* fsapp_main_python_get_events(PyObject* self, PyObject* args) {
@@ -630,6 +644,17 @@ static PyObject* fsapp_py_force_ui_cursor(PyObject* self, PyObject* args) {
     Py_RETURN_NONE;
 }
 
+static PyObject* fsapp_main_python_get_main_channel(PyObject* self, PyObject* args) {
+    if (!PyArg_ParseTuple(args, ":get_main_channel")) {
+        return NULL;
+    }
+
+    // We don't really need an destructor here; the main channel should have lifetime equal the
+    // program, so we don't bother, for now at least.
+    PyObject* capsule = PyCapsule_New(g_fsapp_main_channel, "fsapp_channel_t", NULL);
+    return capsule;
+}
+
 // -------------------------------------------------------------------------------------------------
 
 static PyMethodDef EmbMethods[] = {
@@ -650,6 +675,7 @@ static PyMethodDef EmbMethods[] = {
     {"quit", fsapp_main_python_quit, METH_VARARGS, "..."},
     {"get_events", fsapp_main_python_get_events, METH_VARARGS, "..."},
     {"get_event_pointer", fsapp_main_python_get_event_pointer, METH_VARARGS, "..."},
+    {"get_main_channel", fsapp_main_python_get_main_channel, METH_VARARGS, "..."},
     {NULL, NULL, 0, NULL}};
 
 static PyModuleDef EmbModule = {
@@ -664,7 +690,7 @@ static void update_python_textures() {
     // FIXME: Only update dirty region(s)
 
     for (GList* item = g_surfaces; item; item = item->next) {
-        fsgui_surface_t* surface = (fsgui_surface_t*)item->data;
+        fsapp_surface_t* surface = (fsapp_surface_t*)item->data;
         if (surface->special) {
             // Skip special surfaces
             continue;
@@ -687,7 +713,7 @@ static void update_python_textures() {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 #if 0
         // printf("%d\n", i);
-        fsgui_surface_t* surface = g_surfaces[i];
+        fsapp_surface_t* surface = g_surfaces[i];
         if (surface->render_texture == NULL) {
             printf("CreateTexture %d %d\n", surface->width, surface->height);
             surface->render_texture = SDL_CreateTexture(
@@ -714,13 +740,13 @@ static void render_python_textures() {
     // int texture_height = 480;
     // Do game logic, present a frame, etc.
     // for (int i = 0; i < 4; i++) {
-    //    fsgui_surface_t* surface = g_surfaces[i];
+    //    fsapp_surface_t* surface = g_surfaces[i];
     //    if (surface == NULL) {
     //        continue;
     //    }
 
     for (GList* item = g_surfaces; item; item = item->next) {
-        fsgui_surface_t* surface = (fsgui_surface_t*)item->data;
+        fsapp_surface_t* surface = (fsapp_surface_t*)item->data;
 
         if (surface->special) {
             // printf("%d\n", surface->special);
@@ -927,6 +953,8 @@ bool fsapp_init(int argc, char* argv[], int* error) {
     dialog_data_mutex = SDL_CreateMutex();
     g_fsapp_event_mutex = SDL_CreateMutex();
 
+    g_fsapp_main_channel = fsapp_channel_create();
+
     // FIXME: Order should be (roughly):
     // - Init SDL
     // - Init Python
@@ -969,7 +997,7 @@ bool fsapp_init(int argc, char* argv[], int* error) {
 
     fsgui_font_init_module();
     fsgui_image_init_module();
-    fsgui_surface_init_module();
+    fsapp_surface_init_module();
 
     g_python_lock = SDL_CreateMutex();
     g_python_cond = SDL_CreateCondition();
@@ -1034,6 +1062,90 @@ static void fsapp_main_toggle_mouse_grab(void) {
 
 // ----------------------------------------------------------------------------
 
+static void log_opengl_information(void) {
+    static int written = 0;
+    if (written) {
+        return;
+    }
+    written = 1;
+    char* software_renderer = NULL;
+    const char* str;
+    str = (const char*)glGetString(GL_VENDOR);
+    if (str) {
+        SDL_Log("OpenGL vendor: %s\n", str);
+    }
+    str = (const char*)glGetString(GL_RENDERER);
+    if (str) {
+        SDL_Log("OpenGL renderer: %s\n", str);
+        if (strstr(str, "GDI Generic") != NULL) {
+            software_renderer = g_strdup(str);
+        } else if (strstr(str, "llvmpipe") != NULL) {
+            software_renderer = g_strdup(str);
+        }
+    }
+    str = (const char*)glGetString(GL_VERSION);
+    if (str) {
+        SDL_Log("OpenGL version: %s\n", str);
+    }
+    str = (const char*)glGetString(GL_SHADING_LANGUAGE_VERSION);
+    if (str) {
+        SDL_Log("OpenGL shading language version: %s\n", str);
+    }
+    str = (const char*)glGetString(GL_EXTENSIONS);
+    if (str) {
+        SDL_Log("OpenGL extensions: %s\n", str);
+    }
+    int g_max_texture_size;
+    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &g_max_texture_size);
+    SDL_Log("OpenGL reported max texture size: %dx%d\n", g_max_texture_size, g_max_texture_size);
+
+    if (software_renderer) {
+        // fs_emu_warning("No HW OpenGL driver: %s", software_renderer);
+        // SDL_Log(software_renderer);
+    }
+}
+
+// ----------------------------------------------------------------------------
+
+static void add_python_event(SDL_Event* event) {
+    void* event_copy = malloc(sizeof(SDL_Event));
+    memcpy(event_copy, event, sizeof(SDL_Event));
+    SDL_LockMutex(g_fsapp_event_mutex);
+    g_event_list = g_list_append(g_event_list, event_copy);
+    SDL_UnlockMutex(g_fsapp_event_mutex);
+}
+
+// static void add_custom_python_event(int code, const char* data1, const char* data2) {
+//     SDL_Event event;
+//     SDL_zero(event);
+//     event.type = SDL_EVENT_FSAPP_CUSTOM;
+//     event.user.code = code;
+//     if (data1 != NULL) {
+//         event.user.data1 = strdup(data1);
+//     }
+//     if (data2 != NULL) {
+//         event.user.data2 =  strdup(data2);
+//     }
+//     add_python_event(&event);
+// }
+
+static void add_custom_python_event(int code, int intdata, const char* strdata) {
+    SDL_Event event;
+    SDL_zero(event);
+
+    // For now, this is an assumption (because we haven't bothered communicating
+    // the value of SDL_EVENT_FSAPP_CUSTOM to the Python code.
+    SDL_assert(SDL_EVENT_FSAPP_CUSTOM == SDL_EVENT_USER);
+
+    event.type = SDL_EVENT_FSAPP_CUSTOM;
+    event.user.code = code;
+    event.user.data1 = (void*)(intptr_t)intdata;
+    if (strdata != NULL) {
+        event.user.data2 = strdup(strdata);
+    }
+    add_python_event(&event);
+}
+
 // FIXME:
 extern bool g_fsuae_main_quit;
 
@@ -1053,11 +1165,14 @@ void fsapp_main_handle_event(SDL_Event* event) {
 
     switch (event->type) {
         case SDL_EVENT_GAMEPAD_ADDED:
-            SDL_GUIDToString(SDL_GetGamepadGUIDForID(event->gdevice.which), guid, 33);
-            fsapp_events_push("GAMEPAD_ADDED", SDL_GetGamepadNameForID(event->gdevice.which), guid,
-                              event->gdevice.which, 0, 0, 0);
+            // SDL_GUIDToString(SDL_GetGamepadGUIDForID(event->gdevice.which), guid, 33);
+            // fsapp_events_push("GAMEPAD_ADDED", SDL_GetGamepadNameForID(event->gdevice.which),
+            // guid,
+            //                   event->gdevice.which, 0, 0, 0);
+            break;
 
         case SDL_EVENT_KEY_DOWN:
+            printf("%d\n", event->key.scancode);
             // if (event->key.key == SDLK_ESCAPE) {
             //     SDL_Log("Escape pressed\n");
             //     fsapp.quitting = true;
@@ -1068,11 +1183,11 @@ void fsapp_main_handle_event(SDL_Event* event) {
                 fsapp_main_toggle_fullscreen();
             }
 
-            if (event->key.key == SDLK_F12) {
-                SDL_Log("F12 pressed\n");
-                // fsapp_main_toggle_fullscreen();
-                fsapp_events_push_int("FSAPP_KEY_PRESS", event->key.key);
-            }
+            // if (event->key.key == SDLK_F12) {
+            //     SDL_Log("F12 pressed\n");
+            //     // fsapp_main_toggle_fullscreen();
+            //     fsapp_events_push_int("FSAPP_KEY_PRESS", event->key.key);
+            // }
 
 #ifdef FSLIB_OS_MACOS
             if (event->key.mod & SDL_KMOD_LGUI) {
@@ -1246,6 +1361,7 @@ void fsapp_main_handle_event(SDL_Event* event) {
 
                     SDL_SetWindowHitTest(g_window, hit_test_callback, NULL);
                     SDL_GL_CreateContext(g_window);
+                    log_opengl_information();
                 } else if (event->user.code == FSAPP_WINDOW_MINIMIZE) {
                     SDL_MinimizeWindow(window->window);
                 } else if (event->user.code == FSAPP_WINDOW_MAXIMIZE) {
@@ -1269,9 +1385,9 @@ void fsapp_main_handle_event(SDL_Event* event) {
             }
     }
 
-    if (fsemu_sdlinput_handle_event(event)) {
-        // return true;
-    }
+    // if (fsemu_sdlinput_handle_event(event)) {
+    //     // return true;
+    // }
 
     /*
     case fsapp.SDL_EVENT_CREATE_FSAPP_WINDOW:
@@ -1287,16 +1403,43 @@ void fsapp_main_handle_event(SDL_Event* event) {
 
     // FIXME: Don't recall why we got some events with type 0?
     if (event->type != 0) {
-        void* event_copy = malloc(sizeof(SDL_Event));
-        memcpy(event_copy, event, sizeof(SDL_Event));
-        SDL_LockMutex(g_fsapp_event_mutex);
-        g_event_list = g_list_append(g_event_list, event_copy);
-        SDL_UnlockMutex(g_fsapp_event_mutex);
+        add_python_event(event);
+        // void* event_copy = malloc(sizeof(SDL_Event));
+        // memcpy(event_copy, event, sizeof(SDL_Event));
+        // SDL_LockMutex(g_fsapp_event_mutex);
+        // g_event_list = g_list_append(g_event_list, event_copy);
+        // SDL_UnlockMutex(g_fsapp_event_mutex);
+    }
+
+    switch (event->type) {
+        case SDL_EVENT_KEYBOARD_ADDED:
+            const char* keyboard_name = SDL_GetKeyboardNameForID(event->kdevice.which);
+            SDL_Log("SDL_EVENT_KEYBOARD_ADDED (%d): %s\n", event->kdevice.which, keyboard_name);
+            add_custom_python_event(FSAPP_EVENT_KEYBOARD_NAME, event->kdevice.which, keyboard_name);
+            break;
+        case SDL_EVENT_MOUSE_ADDED:
+            const char* mouse_name = SDL_GetMouseNameForID(event->mdevice.which);
+            SDL_Log("SDL_EVENT_MOUSE_ADDED (%d): %s\n", event->mdevice.which, mouse_name);
+            add_custom_python_event(FSAPP_EVENT_MOUSE_NAME, event->mdevice.which, mouse_name);
+            break;
+        case SDL_EVENT_JOYSTICK_ADDED:
+            const char* joystick_name = SDL_GetJoystickNameForID(event->jdevice.which);
+            SDL_Log("SDL_EVENT_JOYSTICK_ADDED (%d): %s\n", event->jdevice.which, joystick_name);
+            add_custom_python_event(FSAPP_EVENT_JOYSTICK_NAME, event->jdevice.which, joystick_name);
+            break;
+        case SDL_EVENT_GAMEPAD_ADDED:
+            // Note: gdevice.which is the joystick ID, so the gamepad can be matched with the
+            // joystick based on the ID.
+            const char* gamepad_name = SDL_GetGamepadNameForID(event->gdevice.which);
+            SDL_Log("SDL_EVENT_GAMEPAD_ADDED (%d): %s\n", event->gdevice.which, gamepad_name);
+            add_custom_python_event(FSAPP_EVENT_GAMEPAD_NAME, event->gdevice.which, gamepad_name);
+            break;
     }
 }
 
 // ----------------------------------------------------------------------------
 
+#if 0
 bool fsapp_main_handle_events(void) {
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
@@ -1333,6 +1476,7 @@ bool fsapp_main_handle_events(void) {
 
     return true;
 }
+#endif
 
 // ----------------------------------------------------------------------------
 

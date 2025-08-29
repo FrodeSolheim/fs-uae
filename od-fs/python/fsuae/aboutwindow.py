@@ -1,12 +1,13 @@
 import logging
 from typing import Self
 
-import fsuae
 from fsgui.font import Font
 from fsgui.imagelabel import Image, ImageLabel
 from fsgui.label import Label
 from fsgui.layout import HorizontalLayout, VerticalLayout
 from fsgui.window import Window
+
+import fsuae
 
 logger = logging.getLogger(__name__)
 

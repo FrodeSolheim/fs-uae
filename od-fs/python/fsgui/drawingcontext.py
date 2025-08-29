@@ -1,27 +1,36 @@
+import math
+from typing import Any
+
+import _fsapp_surface  # type: ignore
 import fsgui_font  # type: ignore
 import fsgui_image  # type: ignore
-import fsgui_surface  # type: ignore
 
 from fsgui.font import Font
 from fsgui.fontmanager import FontManager
 from fsgui.image import Image
 from fsgui.types import Colour, Position, Size, TColour
 
+__all__ = ["DrawingContext"]
+
 
 class DrawingContext:
-    def __init__(self, widget: "Widget") -> None:
-        self.widget = widget
-        self.surface = widget._surface.get_surface()
+    def __init__(self, surface: Any, origin: Position, font: Font) -> None:
+        self.surface = surface.get_surface()
+        # self.widget = widget
+        # self.surface = widget._surface.get_surface()
 
         # self.origin = widget._surface_pos
-        self.origin = widget.get_dc_offset()
+        # self.origin = widget.get_dc_offset()
+        self.origin = origin
 
         self.pen_colour: TColour = Colour.BLACK
         self.fill_colour: TColour = Colour.BLACK
         self.text_colour: TColour = Colour.BLACK
+        self.line_width: int = 1
 
         # self._font = self.get_ui_font()
-        self._font = widget.font
+        # self._font = widget.font
+        self._font = font
 
         # FIXME: Setup clipping based on widget rect!
 
@@ -29,7 +38,7 @@ class DrawingContext:
     def draw_filled_rectangle(self, position: Position, size: Size) -> None:
         color = self.fill_colour
         p = self.origin[0] + position[0], self.origin[1] + position[1]
-        fsgui_surface.draw_filled_rectangle(self.surface, p, size, color)
+        _fsapp_surface.draw_filled_rectangle(self.surface, p, size, color)
 
         # FIXME: draw_filled_rectangle_with_outline
 
@@ -67,16 +76,16 @@ class DrawingContext:
             color = self.pen_colour
         p1 = self.origin[0] + point_a[0], self.origin[1] + point_a[1]
         p2 = self.origin[0] + point_b[0], self.origin[1] + point_b[1]
-        fsgui_surface.draw_line(self.surface, p1, p2, color)
+        _fsapp_surface.draw_line(self.surface, p1, p2, color, self.line_width)
 
     def draw_point(self, point_a: Position, color: TColour | None = None) -> None:
         if color is None:
             color = self.pen_colour
         p1 = self.origin[0] + point_a[0], self.origin[1] + point_a[1]
         # FIXME: Using line draw for now
-        fsgui_surface.draw_line(self.surface, p1, p1, color)
+        _fsapp_surface.draw_line(self.surface, p1, p1, color, self.line_width)
 
-    def draw_text(self, text, position: Position) -> None:
+    def draw_text(self, text: str, position: Position) -> None:
         # FIXME: Cache...
         _, th = fsgui_font.measure_text(self._font.font, "Åg")
         tw, th2 = fsgui_font.measure_text(self._font.font, text)
@@ -117,5 +126,20 @@ class DrawingContext:
     def set_font(self, font: Font) -> None:
         self._font = font
 
+    def set_line_colour(self, line_colour: TColour) -> None:
+        """Set the line/pen colour"""
+        self.pen_colour = line_colour
 
-from .widget import Widget  # noqa: E402
+    def set_line_width(self, width: int) -> None:
+        """Set the line width for drawing operations"""
+        self.line_width = width
+
+    def draw_circle(self, center: Position, radius: int) -> None:
+        """Draw a circle outline using optimized C implementation"""
+        p = self.origin[0] + center[0], self.origin[1] + center[1]
+        _fsapp_surface.draw_circle(self.surface, p, radius, self.pen_colour, self.line_width)
+
+    def draw_filled_circle(self, center: Position, radius: int) -> None:
+        """Draw a filled circle using optimized C implementation"""
+        p = self.origin[0] + center[0], self.origin[1] + center[1]
+        _fsapp_surface.draw_filled_circle(self.surface, p, radius, self.fill_colour)

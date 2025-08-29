@@ -530,7 +530,11 @@ static SRes SzFileReadImp (void *object, void *buffer, size_t *size)
 {
 	CFileInStream *s = (CFileInStream *)object;
 #ifdef _WIN32
+#ifdef FSUAE
+	struct zfile *zf = (struct zfile*)s->file.handle;
+#else
 	struct zfile *zf = (struct zfile*)s->file.myhandle;
+#endif
 #else
 	struct zfile *zf = (struct zfile*)s->file.file;
 #endif
@@ -542,7 +546,11 @@ static SRes SzFileSeekImp(void *object, Int64 *pos, ESzSeek origin)
 {
 	CFileInStream *s = (CFileInStream *)object;
 #ifdef _WIN32
+#ifdef FSUAE
+	struct zfile *zf = (struct zfile*)s->file.handle;
+#else
 	struct zfile *zf = (struct zfile*)s->file.myhandle;
+#endif
 #else
 	struct zfile *zf =(struct zfile*) s->file.file;
 #endif
@@ -594,12 +602,136 @@ static void archive_close_7z (void *ctx)
 #define EPOCH_DIFF 0x019DB1DED53E8000LL /* 116444736000000000 nsecs */
 #define RATE_DIFF 10000000 /* 100 nsecs */
 
+#if defined(AMIBERRY) || defined(FSUAE)
+
+#include "7z/7zBuf.h"
+
+#define _UTF8_START(n) (0x100 - (1 << (7 - (n))))
+
+#define _UTF8_RANGE(n) (((UInt32)1) << ((n) * 5 + 6))
+
+#define _UTF8_HEAD(n, val) ((Byte)(_UTF8_START(n) + (val >> (6 * (n)))))
+#define _UTF8_CHAR(n, val) ((Byte)(0x80 + (((val) >> (6 * (n))) & 0x3F)))
+
+int Buf_EnsureSize(CBuf* dest, size_t size)
+{
+	if (dest->size >= size)
+		return 1;
+	Buf_Free(dest, &g_Alloc);
+	return Buf_Create(dest, size, &g_Alloc);
+}
+
+size_t Utf16_To_Utf8_Calc(const UInt16* src, const UInt16* srcLim)
+{
+	size_t size = 0;
+	for (;;)
+	{
+		UInt32 val;
+		if (src == srcLim)
+			return size;
+
+		size++;
+		val = *src++;
+
+		if (val < 0x80)
+			continue;
+
+		if (val < _UTF8_RANGE(1))
+		{
+			size++;
+			continue;
+		}
+
+		if (val >= 0xD800 && val < 0xDC00 && src != srcLim)
+		{
+			UInt32 c2 = *src;
+			if (c2 >= 0xDC00 && c2 < 0xE000)
+			{
+				src++;
+				size += 3;
+				continue;
+			}
+		}
+
+		size += 2;
+	}
+}
+
+Byte* Utf16_To_Utf8(Byte* dest, const UInt16* src, const UInt16* srcLim)
+{
+	for (;;)
+	{
+		UInt32 val;
+		if (src == srcLim)
+			return dest;
+
+		val = *src++;
+
+		if (val < 0x80)
+		{
+			*dest++ = (char)val;
+			continue;
+		}
+
+		if (val < _UTF8_RANGE(1))
+		{
+			dest[0] = _UTF8_HEAD(1, val);
+			dest[1] = _UTF8_CHAR(0, val);
+			dest += 2;
+			continue;
+		}
+
+		if (val >= 0xD800 && val < 0xDC00 && src != srcLim)
+		{
+			UInt32 c2 = *src;
+			if (c2 >= 0xDC00 && c2 < 0xE000)
+			{
+				src++;
+				val = (((val - 0xD800) << 10) | (c2 - 0xDC00)) + 0x10000;
+				dest[0] = _UTF8_HEAD(3, val);
+				dest[1] = _UTF8_CHAR(2, val);
+				dest[2] = _UTF8_CHAR(1, val);
+				dest[3] = _UTF8_CHAR(0, val);
+				dest += 4;
+				continue;
+			}
+		}
+
+		dest[0] = _UTF8_HEAD(2, val);
+		dest[1] = _UTF8_CHAR(1, val);
+		dest[2] = _UTF8_CHAR(0, val);
+		dest += 3;
+	}
+}
+
+SRes Utf16_To_Utf8Buf(CBuf* dest, const UInt16* src, size_t srcLen)
+{
+	size_t destLen = Utf16_To_Utf8_Calc(src, src + srcLen);
+	destLen += 1;
+	if (!Buf_EnsureSize(dest, destLen))
+		return SZ_ERROR_MEM;
+	*Utf16_To_Utf8(dest->data, src, src + srcLen) = 0;
+	return SZ_OK;
+}
+
+void Utf16_To_Char(CBuf* buf, const UInt16* s)
+{
+	unsigned len = 0;
+	for (len = 0; s[len] != 0; len++);
+	Utf16_To_Utf8Buf(buf, s, len);
+}
+
+#endif
+
 struct zvolume *archive_directory_7z (struct zfile *z)
 {
 	SRes res;
 	struct zvolume *zv;
 	int i;
 	struct SevenZContext *ctx;
+#if defined(FSUAE) || defined(AMIBERRY)
+	UInt16* temp = NULL;
+#endif
 
 	init_7z ();
 	ctx = xcalloc (struct SevenZContext, 1);
@@ -607,7 +739,11 @@ struct zvolume *archive_directory_7z (struct zfile *z)
 	ctx->archiveStream.s.Read = SzFileReadImp;
 	ctx->archiveStream.s.Seek = SzFileSeekImp;
 #ifdef _WIN32
+#ifdef FSUAE
+	ctx->archiveStream.file.handle = (void*)z;
+#else
 	ctx->archiveStream.file.myhandle = (void*)z;
+#endif
 #else
 	ctx->archiveStream.file.file = (FILE*)z;
 #endif
@@ -623,6 +759,41 @@ struct zvolume *archive_directory_7z (struct zfile *z)
 		return NULL;
 	}
 	zv = zvolume_alloc (z, ArchiveFormat7Zip, ctx, NULL);
+#if defined(AMIBERRY) || defined(FSUAE)
+	for (i = 0; i < ctx->db.NumFiles; i++) {
+		SzArEx_GetFileNameUtf16(&ctx->db, i, temp);
+		struct zarchive_info zai;
+		memset(&zai, 0, sizeof zai);
+		CBuf buf;
+		Buf_Init(&buf);
+		Utf16_To_Char(&buf, temp);
+		zai.name = (TCHAR*)buf.data;
+		zai.flags = SzBitWithVals_Check(&ctx->db.Attribs, i) ? ctx->db.Attribs.Vals[i] : -1;
+		zai.size = SzArEx_GetFileSize(&ctx->db, i);
+		if (SzBitWithVals_Check(&ctx->db.MTime, i)) {
+			uae_u64 t = (((uae_u64)&ctx->db.MTime.Vals[i].High) << 32) | ctx->db.MTime.Vals[i].Low;
+			if (t >= EPOCH_DIFF) {
+				zai.tv.tv_sec = (t - EPOCH_DIFF) / RATE_DIFF;
+#if 1
+				zai.tv.tv_sec -= timezone;
+				if (daylight)
+					zai.tv.tv_sec += 3600;
+#else
+				time_t sec = (time_t)zai.tv.tv_sec;
+				struct tm *lt = localtime(&sec);
+				if (lt)
+					zai.tv.tv_sec -= lt->tm_gmtoff;
+#endif
+				}
+		}
+		if (!SzArEx_IsDir(&ctx->db, i)) {
+				struct znode *zn = zvolume_addfile_abs (zv, &zai);
+				if (zn)
+						zn->offset = i;
+		}
+	}
+
+#else
 	for (i = 0; i < ctx->db.db.NumFiles; i++) {
 		CSzFileItem *f = ctx->db.db.Files + i;
 		TCHAR *name = (TCHAR*)(ctx->db.FileNames.data + ctx->db.FileNameOffsets[i] * 2);
@@ -647,6 +818,7 @@ struct zvolume *archive_directory_7z (struct zfile *z)
 				zn->offset = i;
 		}
 	}
+#endif
 	zv->method = ArchiveFormat7Zip;
 	return zv;
 }

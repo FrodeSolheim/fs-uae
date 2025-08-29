@@ -13,6 +13,12 @@
 
 #include "lha.h"
 
+#ifdef FSUAE
+// Missing count variable
+#ifdef DEBUG
+#undef DEBUG
+#endif
+#endif // FSUAE
 
 #ifdef DEBUG
 FILE *fout = NULL;

@@ -4,7 +4,7 @@ import csv
 import os
 
 
-def main():
+def main() -> None:
     configurations_path = "od-fs/python/uae/configurations"
     csv_file = "Work/Options.csv"
 

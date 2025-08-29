@@ -228,8 +228,9 @@ void gui_gameport_button_change(int port, int button, int onoff)
 {
 }
 
-#ifdef WINDOWS
-#include <Windows.h>
+#ifdef _WIN32
+#include <winsock2.h>
+#include <windows.h>
 #endif
 
 /**

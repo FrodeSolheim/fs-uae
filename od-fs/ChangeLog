@@ -1,3 +1,22 @@
+Version 5.0.4
+
+* Remember cursor position when grabbing mouse, and restore when ungrabbing.
+* Added support for more UAE archivers (7z, lha, lzx, wrp).
+* Fixed loading .cue/.bin images from archives (zip).
+
+Version 5.0.3
+
+* CHD support.
+* Support CD audio encoded as mp3 audio.
+
+Version 5.0.2:
+
+*
+
+Version 5.0.1:
+
+*
+
 Version 5.0.0:
 
 *

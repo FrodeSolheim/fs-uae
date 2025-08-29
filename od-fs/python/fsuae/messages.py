@@ -1,6 +1,6 @@
 from typing import Any
 
-import fsapp_channel  # type: ignore
+import _fsapp_channel
 
 # This message would make sense for net play clients
 FSUAE_MESSAGE_RESET = 10001
@@ -18,7 +18,7 @@ _channel = None
 
 
 def post_fsuae_message(type: int, data: str = "") -> None:
-    fsapp_channel.add_message(_channel, type, data)
+    _fsapp_channel.add_message(_channel, type, data)
 
 
 # def process_fsuae_messages() -> None:

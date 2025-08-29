@@ -14,13 +14,14 @@ endif
 
 SUBDIR = _build
 
-all: build fs-uae
+all: fs-uae
 
-build:
+_build:
 	$(MAKE) -C $(SUBDIR)
 
-fs-uae: _build/fs-uae
-	echo fs-uae
+fs-uae: _build _build/fs-uae
+# FIXME: try to make it so that fs-uae is only copied when changed while also forcing make in
+# subdirectory
 	cp -a _build/fs-uae fs-uae
 
 # --------------------------------------------------------------------------------------------------
@@ -60,6 +61,7 @@ endif
 # --------------------------------------------------------------------------------------------------
 
 bindist:
+	./bootstrap
 ifeq ($(OS),LINUX)
 	make -C dist/x86_64-linux-gnu
 else ifeq ($(OS),MACOS)
@@ -70,6 +72,16 @@ else
 	echo "Unknown platform"
 	exit 1
 endif
+
+# --------------------------------------------------------------------------------------------------
+
+dist:
+	$(MAKE) -C $(SUBDIR) dist
+
+# --------------------------------------------------------------------------------------------------
+
+flatpak: dist
+	make -C dist/flatpak
 
 # --------------------------------------------------------------------------------------------------
 
@@ -87,4 +99,4 @@ format:
 .DEFAULT:
 	$(MAKE) -C $(SUBDIR) $@
 
-.PHONY: bindist build default default-target format
+.PHONY: bindist default default-target dist format _build

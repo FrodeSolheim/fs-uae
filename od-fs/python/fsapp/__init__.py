@@ -1,5 +1,16 @@
+import logging
 import os
 import sys
+
+from fsapp.main import init_fsapp_main
+
+logger = logging.getLogger(__name__)
+
+
+def fsapp_init():
+    print("fsapp.fsapp_init")
+
+    init_fsapp_main()
 
 
 class FSApp:

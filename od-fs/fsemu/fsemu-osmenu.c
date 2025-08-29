@@ -340,10 +340,12 @@ int fsemu_osmenu_open_offset(void) {
 }
 
 static void fsemu_osmenu_cannot_open(const char* message) {
+#if 0
     fsemu_hud_show_notification(
         FSEMU_HUD_NOTICATION_ID(0x6ff589f5, 0xb480, 0x4aca, 0xa45f, 0x30bb3cac4377),
         "Cannot show menu", message, FSEMU_HUD_NOTIFICATION_WARNING_ICON,
         FSEMU_HUD_NOTIFICATION_DEFAULT_DURATION);
+#endif
 }
 
 static void fsemu_osmenu_update_left_positions(void) {

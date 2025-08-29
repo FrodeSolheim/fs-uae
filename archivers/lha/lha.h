@@ -2,6 +2,11 @@
 #include "sysdeps.h"
 #include "zfile.h"
 
+#ifdef FSUAE
+// Consistent with boolean from Windows rpcndr.h
+typedef unsigned char boolean;
+#endif
+
 #define SYSTIME_HAS_NO_TM
 #define NODIRECTORY
 #define FTIME

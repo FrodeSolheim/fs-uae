@@ -1,14 +1,18 @@
 import atexit
 import sys
 
+import _fsapp_channel  # type: ignore
 import _fsuae_main  # type: ignore
-import fsapp_channel  # type: ignore
+from fsapp.eventservice import EventService
+from fsapp.tickservice import TickService
 from fsemu.inputdeviceservice import InputDeviceService
 from fsemu.inputportservice import InputPortService
 from fsgui.windowmanager import WindowManager
-from fsuae.eventservice import EventService
+from fsuae.amigacontext import AmigaContext
 from fsuae.f12window import F12Window
 from fsuae.fsuaemainwindow import FSUAEMainWindow
+from fsuae.input.devicerobotservice import DeviceRobotService
+from fsuae.input.inputdevicewindow import InputDeviceWindow
 from fsuae.messages import (
     FSUAE_MESSAGE_ADD_ROM,
     FSUAE_MESSAGE_EARLY_STOP,
@@ -22,18 +26,18 @@ from fsuae.roms.romservice import ROMService
 from fsuae.servicecontainer import ServiceContainer
 from fsuae.uaeconfigservice import UAEConfigService
 from fsuae.workspace import init_fsuae_workspace
-from uae.optionblacklist import option_blacklist
+from uae.options.blacklisted import blacklisted_uae_options
 
 from app.map_ports import map_ports
 
 
-def on_exit():
-    import _fsapp
+def on_exit() -> None:
+    import _fsapp  # type: ignore
 
     _fsapp.quit()  # type: ignore
 
 
-def app_init():
+def app_init() -> None:
     atexit.register(on_exit)
 
     # FIXME: program name is not part of sys.argv (for some reason), injecting
@@ -52,7 +56,7 @@ def app_init():
     # FIXME: if app_init raises an exception, the entire app hangs
     # Improve this a bit!
 
-    channel = fsapp_channel.create()
+    channel = _fsapp_channel.create()
     set_fsuae_channel(channel)
     _fsuae_main.init(channel)
 
@@ -69,12 +73,16 @@ def app_init():
     services.input_ports = InputPortService().set_instance()
     services.path = PathService().set_instance()
     services.rom = ROMService(services.path)
+    services.tick = TickService().get()
 
     services.rom.scan_kickstarts_dir()
 
     for rom in services.rom.roms:
         post_fsuae_message(FSUAE_MESSAGE_ADD_ROM, f"{rom.crc32},{rom.sha1},{rom.path}")
     post_fsuae_message(FSUAE_MESSAGE_EARLY_STOP)
+
+    # arc.services?
+    # arc.config?
 
     # process_fsuae_messages()
 
@@ -92,18 +100,45 @@ def app_init():
 
     map_ports(services)
 
+    # Create Amiga Context after mapping ports. FIXME: Better AmigaContext creation later
+    ctx = AmigaContext(services)
+    # FIXME: Disallow / remove this later
+    AmigaContext._instance = ctx  # type: ignore
+
+    services.device_robot = DeviceRobotService(
+        # [ctx.ports[1], ctx.ports[0], ctx.ports[2], ctx.ports[3]],
+        [ctx.ports[0], ctx.ports[1], ctx.ports[2], ctx.ports[3]],
+        [
+            ctx.config.joystick_port_1,
+            ctx.config.joystick_port_0,
+            ctx.config.joystick_port_2,
+            ctx.config.joystick_port_3,
+        ],
+        services.uae_config.config2,
+        services.input_ports,
+        services.input_devices,
+        services.tick,
+    )
+
     init_fsuae_workspace()
+
+    from fsuae.misc.clockapp import setup_clock_app
+
+    setup_clock_app(services)
+
+    # InputDeviceService must have been created first
+    InputDeviceWindow().instance().show()
 
     last_arg = sys.argv[-1]
     if last_arg.endswith(".uae"):
-        config = []
+        config: list[tuple[str, str]] = []
         with open(last_arg, "r") as f:
             for line in f.readlines():
                 line = line.strip()
                 try:
                     key, value = line.split("=", 1)
                 except ValueError:
-                    pass
+                    continue
                 key = key.lower().strip()
                 value = value.replace("\\", "/")
                 config.append((key, value))
@@ -117,11 +152,11 @@ def app_init():
         #     fsemu.set(key, value)
         # fsemu.post(uae.INPUTEVENT_SPC_HARDRESET)
 
-        new_config = []
+        new_config: list[str] = []
         for key, value in config:
             # if key == "input.joymouse_speed_analog":
             #     continue
-            if key in option_blacklist:
+            if key in blacklisted_uae_options:
                 continue
             new_config.append(f"{key}={value}\n")
 

@@ -7,7 +7,7 @@ from fsgui.window import Window
 from uae.inputevent import InputEvent
 
 from fsuae.floppycontrolwindow import FloppyDriveWidget
-from fsuae.inputcontrolwindow import InputControlWidget
+from fsuae.input.inputcontrolwindow import InputControlWidget
 from fsuae.servicecontainer import ServiceContainer
 
 
@@ -42,8 +42,12 @@ class QuickStartWindow(Window):
             Button("Reset").on_activate(lambda: fsemu.post(InputEvent.SPC_HARDRESET))
 
         with VerticalLayout(gap=12):
-            InputControlWidget(services.input_ports, services.input_devices, 0).fill()
-            InputControlWidget(services.input_ports, services.input_devices, 1).fill()
+            InputControlWidget(
+                services.uae_config.config2, services.input_ports, services.input_devices, 0
+            ).fill()
+            InputControlWidget(
+                services.uae_config.config2, services.input_ports, services.input_devices, 1
+            ).fill()
 
         FloppyDriveWidget(services.uae_config.uae_config, 0).fill()
 

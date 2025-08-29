@@ -1,3 +1,9 @@
+/*.iso
+/*.mp3
+/*.wav
+/*.cue
+/*.uae
+
 # Temporary files
 
 .~*
@@ -11,7 +17,9 @@ config.h.in
 # Files created by configure script
 
 config.h
-fs-uae.rc
+macos/Info.plist
+stamp-h1
+windows/fs-uae.rc
 
 # Files created by make
 
@@ -22,12 +30,18 @@ _build/
 
 # Files created by running FS-UAE
 
-__pycache__/
-/Data/
+__pycache__
+/Data
+
+# Other directories used for testing
+
+/Media
 
 # Files created by dist scripts
 
 _dist/
+.flatpak-builder/
+repo/
 
 # Files created by running WinUAE
 

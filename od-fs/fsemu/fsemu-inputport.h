@@ -52,6 +52,9 @@ void fsemu_inputport_init_module(void);
 // void fsemu_inputport_set_index(fsemu_inputport_t *port, int index);
 
 struct fsemu_inputport {
+    // A unique (amongst the ports) instance id that will never be reused for other ports.
+    int instance_id;
+
     char* config_name;
     char* name;
     int dummy;

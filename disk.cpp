@@ -885,6 +885,9 @@ static void reset_drive (int num)
 	drive_settype_id (drv);
 	_tcscpy (currprefs.floppyslots[num].df, changed_prefs.floppyslots[num].df);
 	drv->newname[0] = 0;
+#ifdef FSUAE
+	write_log("reset_drive: set drv->newnamewriteprotected = false\n");
+#endif
 	drv->newnamewriteprotected = false;
 #ifdef FLOPPYBRIDGE
 	if (drv->bridge) {
@@ -895,6 +898,9 @@ static void reset_drive (int num)
 		drv->tracklen = drv->bridge->maxMFMBitPosition();
 		drv->ddhd = drv->bridge->getDriveTypeID() == FloppyDiskBridge::DriveTypeID::dti35HD ? 2 : 1;
 	}
+#endif
+#ifdef FSUAE
+	write_log("reset_drive calling drive_insert\n");
 #endif
 	if (!drive_insert (drv, &currprefs, num, currprefs.floppyslots[num].df, false, false))
 		disk_eject (num);
@@ -1348,6 +1354,9 @@ static void update_disk_statusline(int num)
 
 static int drive_insert (drive *drv, struct uae_prefs *p, int dnum, const TCHAR *fname_in, bool fake, bool forcedwriteprotect)
 {
+#ifdef FSUAE
+	write_log("drive_insert dnum=%d fake=%d forcewriteprotect=%d\n", dnum, fake, forcedwriteprotect);
+#endif
 	uae_u8 buffer[2 + 2 + 4 + 4];
 	trackid *tid;
 	int num_tracks, size;
@@ -1403,6 +1412,9 @@ static int drive_insert (drive *drv, struct uae_prefs *p, int dnum, const TCHAR 
 			_tcsncpy (currprefs.floppyslots[dnum].df, fname_in, 255);
 			currprefs.floppyslots[dnum].df[255] = 0;
 		}
+#ifdef FSUAE
+		write_log("drive_insert: set currprefs.floppyslots[%d].forcedwriteprotect to %d\n", dnum, forcedwriteprotect);
+#endif
 		currprefs.floppyslots[dnum].forcedwriteprotect = forcedwriteprotect;
 		_tcsncpy (changed_prefs.floppyslots[dnum].df, fname_in, 255);
 		changed_prefs.floppyslots[dnum].df[255] = 0;
@@ -1410,6 +1422,9 @@ static int drive_insert (drive *drv, struct uae_prefs *p, int dnum, const TCHAR 
 		if (drv->newname != fname_in) {
 			_tcscpy(drv->newname, fname_in);
 		}
+#ifdef FSUAE
+		write_log("drive_insert: set drv->newnamewriteprotected = %d\n", forcedwriteprotect);
+#endif
 		drv->newnamewriteprotected = forcedwriteprotect;
 		gui_filename (dnum, outname);
 	}
@@ -3249,11 +3264,22 @@ int disk_setwriteprotect (struct uae_prefs *p, int num, const TCHAR *fname_in, b
 		_wunlink (name2);
 	}
 
+#ifdef FSUAE
+	floppy[num].forcedwrprot = writeprotected;
+	write_log("disk_setwriteprotect: set drv->newnamewriteprotected = %d\n", writeprotected);
+	floppy[num].newnamewriteprotected = writeprotected;
+	write_log("TEST RETURNING EARLY FROM disk_setwriteprotect\n");
+	return 1;
+#endif
+
 	if (!needwritefile)
 		diskfile_readonly (outfname, writeprotected);
 	diskfile_readonly (name2, writeprotected);
 
 	floppy[num].forcedwrprot = false;
+#ifdef FSUAE
+	write_log("disk_setwriteprotect: set drv->newnamewriteprotected = false\n");
+#endif
 	floppy[num].newnamewriteprotected = false;
 
 	return 1;
@@ -3325,9 +3351,15 @@ TCHAR *DISK_history_get (int idx, int type)
 
 static void disk_insert_2 (int num, const TCHAR *name, bool forced, bool forcedwriteprotect)
 {
+#ifdef FSUAE
+	write_log("disk_insert_2 num=%d forced=%d forcedwriteprotect=%d\n", num, forced, forcedwriteprotect);
+#endif
 	drive *drv = floppy + num;
 
 	if (forced) {
+#ifdef FSUAE
+		write_log("disk_insert_2 calling drive_insert fake=false, forcedwriteprotect=%d\n", forcedwriteprotect);
+#endif
 		drive_insert (drv, &currprefs, num, name, false, forcedwriteprotect);
 		return;
 	}
@@ -3335,8 +3367,14 @@ static void disk_insert_2 (int num, const TCHAR *name, bool forced, bool forcedw
 		return;
 	drv->dskeject = false;
 	_tcscpy(drv->newname, name);
+#ifdef FSUAE
+	write_log("disk_insert_2: set drv->newnamewriteprotected = %d\n", forcedwriteprotect);
+#endif
 	drv->newnamewriteprotected = forcedwriteprotect;
 	_tcscpy (currprefs.floppyslots[num].df, name);
+#ifdef FSUAE
+	write_log("disk_insert_2 setting currprefs.floppyslots[%d].forcedwriteprotect to %d\n", num, forcedwriteprotect);
+#endif
 	currprefs.floppyslots[num].forcedwriteprotect = forcedwriteprotect;
 	DISK_history_add (name, -1, HISTORY_FLOPPY, 0);
 	if (name[0] == 0) {
@@ -3466,8 +3504,12 @@ void DISK_vsync(void)
 		if (drv->selected_delay > 0) {
 			drv->selected_delay--;
 		}
-		if (drv->dskchange_time == 0 && _tcscmp (currprefs.floppyslots[i].df, changed_prefs.floppyslots[i].df))
+		if (drv->dskchange_time == 0 && _tcscmp (currprefs.floppyslots[i].df, changed_prefs.floppyslots[i].df)) {
+#ifdef FSUAE
+			write_log("DISK_vsync calling disk_insert\n");
+#endif
 			disk_insert(i, changed_prefs.floppyslots[i].df, changed_prefs.floppyslots[i].forcedwriteprotect);
+		}
 	}
 }
 
@@ -4637,6 +4679,9 @@ static void DISK_start(void)
 				drv->dskchange_time = -2;
 				write_log(_T("Accessing state restored non-existing disk '%s'!\n"), drv->newname);
 				if (gui_ask_disk(dr, drv->newname)) {
+#ifdef FSUAE
+					write_log("DISK_start calling drive_insert\n");
+#endif
 					if (drive_insert(drv, &currprefs, dr, drv->newname, false, false)) {
 						write_log(_T("Replacement disk '%s' inserted.\n"), drv->newname);
 						drv->dskready_up_time = 0;
@@ -4711,6 +4756,9 @@ void DISK_hsync (void)
 		if (drv->dskchange_time > 0) {
 			drv->dskchange_time--;
 			if (drv->dskchange_time == 0) {
+#ifdef FSUAE
+				write_log("DISK_hsync calling drive_insert\n");
+#endif
 				drive_insert(drv, &currprefs, dr, drv->newname, false, drv->newnamewriteprotected);
 				if (disk_debug_logging > 0)
 					write_log(_T("delayed insert, drive %d, image '%s'\n"), dr, drv->newname);
@@ -5462,6 +5510,9 @@ void DISK_init (void)
 		drv->drvnum = dr;
 		/* reset all drive types to 3.5 DD */
 		drive_settype_id (drv);
+#ifdef FSUAE
+		write_log("DISK_init calling drive_insert\n");
+#endif
 		if (!drive_insert (drv, &currprefs, dr, currprefs.floppyslots[dr].df, false, currprefs.floppyslots[dr].forcedwriteprotect))
 			disk_eject (dr);
 	}
@@ -5715,6 +5766,9 @@ int DISK_examine_image(struct uae_prefs *p, int num, struct diskinfo *di, bool d
 	mfmpos = drv->mfmpos;
 	drv->cyl = 0;
 	side = 0;
+#ifdef FSUAE
+	write_log("DISK_examine_image calling drive_insert\n");
+#endif
 #ifdef FLOPPYBRIDGE
 	if (!drive_insert(drv, p, num, p->floppyslots[num].df, true, true) || (!drv->diskfile && !drv->bridge)) {
 #else

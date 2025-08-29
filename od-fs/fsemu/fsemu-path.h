@@ -10,10 +10,10 @@
 // #include <fs/defines.h>
 #include <stdint.h>
 #include <stdio.h>
-#ifdef WINDOWS
-#include <Winsock2.h>
+#ifdef _WIN32
+#include <winsock2.h>
 // struct timeval is defined here...
-#include <Windows.h>
+#include <windows.h>
 #else
 #include <sys/time.h>
 #endif

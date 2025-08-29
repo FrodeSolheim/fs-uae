@@ -12,7 +12,7 @@ bool fslib_path_exists(const char* path) {
 }
 
 #ifdef _WIN32
-#include <Windows.h>
+#include <windows.h>
 #elif defined(FSEMU_OS_MACOS)
 #else
 

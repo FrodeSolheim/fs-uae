@@ -3,6 +3,7 @@ from typing import ClassVar, Self
 
 import _fsapp  # type: ignore
 import fsemu
+from fsapp.eventservice import Event
 from fsgui.button import Button
 from fsgui.heading import Heading
 from fsgui.layout import HorizontalLayout, VerticalLayout
@@ -10,7 +11,7 @@ from fsgui.window import Window
 from uae.inputevent import InputEvent
 
 from fsuae.floppycontrolwindow import FloppyDriveWidget
-from fsuae.inputcontrolwindow import InputControlWidget
+from fsuae.input.inputcontrolwindow import InputControlWidget
 from fsuae.message import Message
 from fsuae.messages import post_fsuae_message
 from fsuae.servicecontainer import ServiceContainer
@@ -35,7 +36,7 @@ class F12Window(Window):
         return cls._instance
 
     @classmethod
-    def on_key_press_cls(cls, event):
+    def on_key_press_cls(cls, event: Event) -> None:
         if event["intdata"] == 1073741893:
             print("F12 pressed (python)")
             print(event)
@@ -47,7 +48,7 @@ class F12Window(Window):
 
     @classmethod
     def setup(cls, services: ServiceContainer):
-        services.event.add_listener(cls.on_key_press_cls, "FSAPP_KEY_PRESS")
+        services.event.add_listener("FSAPP_KEY_PRESS", cls.on_key_press_cls)
 
     def __init__(self) -> None:
         super().__init__("Quick settings (Temporary UI)", padding=24)
@@ -81,8 +82,12 @@ class F12Window(Window):
 
         Heading("Joystick and mouse ports")
         with VerticalLayout(gap=12):
-            InputControlWidget(services.input_ports, services.input_devices, 0).fill()
-            InputControlWidget(services.input_ports, services.input_devices, 1).fill()
+            InputControlWidget(
+                services.uae_config.config2, services.input_ports, services.input_devices, 0
+            ).fill()
+            InputControlWidget(
+                services.uae_config.config2, services.input_ports, services.input_devices, 1
+            ).fill()
 
         Heading("Floppy drives")
         FloppyDriveWidget(services.uae_config.uae_config, 0).fill()

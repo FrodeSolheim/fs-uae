@@ -1,3 +1,5 @@
+#if 0
+
 #define FSEMU_INTERNAL
 #include "fsemu-hud.h"
 
@@ -634,3 +636,5 @@ void fs_emu_deprecated(const char* format, ...) {
     // fs_emu_hud_add_console_line(buffer, 0);
     g_free(buffer);
 }
+
+#endif

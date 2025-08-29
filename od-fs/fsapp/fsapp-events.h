@@ -5,6 +5,19 @@
 extern "C" {
 #endif
 
+enum {
+    FSAPP_EVENT_BEFORE_FIRST,
+
+    FSAPP_EVENT_KEYBOARD_NAME,
+    FSAPP_EVENT_MOUSE_NAME,
+    FSAPP_EVENT_JOYSTICK_NAME,
+    FSAPP_EVENT_GAMEPAD_NAME,
+
+    FSAPP_EVENT_AFTER_LAST,
+};
+
+// TODO: ALMOST NOT USED ANY MORE...?
+
 void fsapp_events_push(const char* type, const char* strdata, const char* strdata2, int intdata,
                        int intdata2, float floatdata, float floatdata2);
 

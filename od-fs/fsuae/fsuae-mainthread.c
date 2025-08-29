@@ -8,10 +8,16 @@
 
 #include "fsapp-channel.h"
 #include "fsapp-main.h"
+#include "fsapp-mainloop.h"
 #include "fsapp-pythonthread.h"
+#include "fsapp-surface.h"
+#include "fsapp.h"
+#include "fsemu-input.h"
+#include "fsemu-mainloop.h"
+#include "fsemu-sdlinput.h"
 #include "fsemu-sdlwindow.h"
 #include "fsemu-thread.h"
-#include "fsgui-surface.h"
+#include "fsgui-windows.h"
 #include "fslib-path.h"
 #include "fsuae-bridge.h"
 #include "fsuae-extras.h"
@@ -20,7 +26,6 @@
 #include "fsuae-path.h"
 #include "fsuae-plugins.h"
 #include "fsuae-renderer.h"
-#include "fsgui-windows.h"
 
 #define FSEMU_INTERNAL 1
 #include "fsemu-glvideo.h"
@@ -43,11 +48,14 @@ static void set_swap_interval(int interval) {
 static void handle_pending_events() {
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
-        fsapp_main_handle_event(&event);
+        fsemu_mainloop_handle_event(&event);
+        // Or should we let fsemu give the event to fsapp?
+
+        fsapp_mainloop_handle_event(&event);
     }
 }
 
-static void initialize_fsemu() {
+static void initialize_fsemu_video() {
     // FIXME: Move somewhere else...
     if (!g_fsemu_video_initialized) {
         // fsemu_sdlvideo_hack(g_renderer);
@@ -61,6 +69,111 @@ static void initialize_fsemu() {
         fsemu_glvideo_set_size_2(g_window_width, g_window_height);
 
         g_fsemu_video_initialized = true;
+    }
+}
+
+static void handle_main_channel_messages(void) {
+    SDL_assert(g_fsapp_main_channel != NULL);
+
+    int type;
+    const char* data;
+    while (fsapp_channel_next_message(g_fsapp_main_channel, &type, &data)) {
+        printf("[MAIN] Received message type %d\n", type);
+
+        switch (type) {
+            // FIXME: FSEMU_ message? Move to fsemu?
+            case FSAPP_MESSAGE_INIT_SDL_GAMEPAD:
+#if 0
+            // long strtol(data, NULL, 10)
+                int instance_id = atoi(data);
+
+                SDL_Gamepad* gamepad = SDL_OpenGamepad(instance_id);
+                if (gamepad != NULL) {
+                    SDL_Log("Opened SDL gamepad instance ID %d\n", instance_id);
+                    fsemu_sdlinput_add_controller(gamepad);
+                } else {
+                    SDL_LogWarn(
+                        SDL_LOG_CATEGORY_APPLICATION,
+                        "Could not open SDL gamepad %d (maybe it has already been disconnected)",
+                        instance_id);
+                }
+
+                // exit(1);
+#endif
+                break;
+
+            case FSEMU_MESSAGE_SET_PORT_DEVICE:
+                int port_instance_id, device_type, device_instance_id;
+                // printf("About to sscanf '%s'\n", data);
+                int result =
+                    sscanf(data, "%d:%d:%d", &port_instance_id, &device_type, &device_instance_id);
+                // printf("result: %d\n", result);
+                SDL_assert(result == 3);
+
+                fsemu_inputport_t* port = fsemu_input_find_port_by_instance_id(port_instance_id);
+                if (port == NULL) {
+                    SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION, "Did not find input port");
+                    break;
+                }
+
+                printf("\nFIND DEVICE: %d:%d\n", device_type, device_instance_id);
+
+                fsemu_inputdevice_t* device = fsemu_input_find_device_by_type_and_instance_id(
+                    device_type, device_instance_id);
+                if (device == NULL) {
+                    SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION, "Did not find input device");
+                    break;
+                }
+
+                fsemu_inputport_set_device(port, device);
+
+                break;
+        }
+    }
+}
+
+static void handle_mouse_grab(void) {
+    // Assuming a single main window for now (will probably be true for a looong time)
+
+    fsgui_window_t* window = (fsgui_window_t*)g_fsgui_windows_list->window;
+
+    bool desired_state;
+    if (g_fsapp_force_ui_cursor) {
+        desired_state = !g_fsapp_force_ui_cursor;
+    } else {
+        desired_state = g_fsapp_mouse_grab;
+    }
+
+    static float last_mouse_x, last_mouse_y;
+
+    bool existing_state = SDL_GetWindowRelativeMouseMode(g_window);
+    if (desired_state != existing_state) {
+        // g_window->relative_mouse = desired_state;
+        SDL_Log("Set mouse grab = %d", desired_state);
+
+        if (desired_state) {
+            SDL_GetMouseState(&last_mouse_x, &last_mouse_y);
+            SDL_Log("Storing mouse coordinates %f,%f", last_mouse_x, last_mouse_y);
+        } else {
+            // When ungrabbing in fullscreen, it is possible that the mouse pointer is at the top
+            // of the screen, and the UI might briefly see a y 0 position, causing e.g. title
+            // bar to flash before the mouse pointer is moved by SDL.
+            SDL_Log("Restoring mouse coordinates %f,%f", last_mouse_x, last_mouse_y);
+            // A hack seems to be to manually warp the mouse cursor to e.g. the center.
+            // SDL_WarpMouseInWindow(g_window, g_window_width / 2, g_window_height / 2);
+            float warp_to_x = last_mouse_x;
+            float warp_to_y = last_mouse_y;
+            if (warp_to_x < 0 || warp_to_x >= g_window_width || warp_to_y < 0 ||
+                warp_to_y >= g_window_height) {
+                SDL_Log("Mouse coordinates out of bounds, centering instead");
+                warp_to_x = g_window_width / 2;
+                warp_to_y = g_window_height / 2;
+            }
+            SDL_WarpMouseInWindow(g_window, warp_to_x, warp_to_y);
+        }
+
+        SDL_SetWindowRelativeMouseMode(g_window, desired_state);
+        window->relative_mouse = desired_state;
     }
 }
 
@@ -81,36 +194,27 @@ static void fsuae_mainloop_iteration(void) {
     // Window and OpenGL is initialized, now it is time to initialize FSEMU the first time
 
     if (!g_fsemu_video_initialized) {
-        initialize_fsemu();
+        initialize_fsemu_video();
     }
 
-    // Assuming a single main window for now (will probably be true for a looong time)
+    fsemu_mainloop_iteration();
+    fsapp_mainloop_iteration();
 
-    fsgui_window_t* window = (fsgui_window_t*)g_fsgui_windows_list->window;
+    // We could have used the SDL event queue to pass these messages, but an advantage of using a
+    // separate fsapp_channel for this is that we can limit processing these types of
+    // events/messages to this particular spot in the main loop. -Especially nice to be able to
+    // avoid doing heavy custom event process during video wait loop.
+
+    handle_main_channel_messages();
 
     // Decide if mouse cursor should be grabbed or not...
 
-    bool desired_state;
-    if (g_fsapp_force_ui_cursor) {
-        desired_state = !g_fsapp_force_ui_cursor;
-    } else {
-        desired_state = g_fsapp_mouse_grab;
-    }
+    handle_mouse_grab();
 
-    bool existing_state = SDL_GetWindowRelativeMouseMode(g_window);
-    if (desired_state != existing_state) {
-        // g_window->relative_mouse = desired_state;
-        SDL_Log("Set mouse grab = %d", desired_state);
-        SDL_SetWindowRelativeMouseMode(g_window, desired_state);
-        if (!desired_state) {
-            // When ungrabbing in fullscreen, it is possible that the mouse pointer is at the top
-            // of the screen, and the UI might briefly see a y 0 position, causing e.g. title
-            // bar to flash before the mouse pointer is moved by SDL. A hack seems to be to
-            // manually warp the mouse cursor to e.g. the center of the screen.
-            SDL_WarpMouseInWindow(g_window, g_window_width / 2, g_window_height / 2);
-        }
-        window->relative_mouse = desired_state;
-    }
+    // Wayland/Linux only sees one mouse?
+    // int count;
+    // SDL_GetMice(&count);
+    // printf("%d\n", count);
 
     // fsgui_window_t* window = (fsgui_window_t*)g_windows->data;
     // window->relative_mouse = !window->relative_mouse;

@@ -19,7 +19,7 @@ tar xf "$PACKAGE_SOURCES/$PACKAGE.tar.xz"
 cd $PACKAGE
 
 # FIXME Compiling with neon does not work on raspberry pi 32-bit arm?
-python3 ../../../scripts/replace.py configure arm_neon.h arm_neon_xxx.h
+python3 "$BUILD_ENV_DIR/scripts/replace.py" configure arm_neon.h arm_neon_xxx.h
 
 ./configure --prefix=$PREFIX --without-ogg
 make

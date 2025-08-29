@@ -1,7 +1,10 @@
 import logging
 from typing import Callable, ClassVar, Self
 
+from fsapp.signal import Signal
+
 logger = logging.getLogger(__name__)
+
 
 class TickService:
     _instance: ClassVar[Self | None] = None
@@ -14,9 +17,14 @@ class TickService:
         #     cls._instance = cls()
         return cls._instance
 
-    def __init__(self):
-        self.tick_handlers: list[Callable[[], None]]  = []
-    
+    def __init__(self) -> None:
+        # Old-style
+        # FIXME: Deprecated
+        self.tick_handlers: list[Callable[[], None]] = []
+
+        # New-style
+        self.tick = Signal[[]]()
+
     def broadcast(self) -> None:
         for handler in self.tick_handlers:
             try:
@@ -24,7 +32,8 @@ class TickService:
             except Exception:
                 # FIXME: UI logging? An error occurred, check logs?
                 logging.exception("Exception in tick handler %s", repr(handler))
-
+        # Emit new-style signal
+        self.tick.emit()
 
     def register(self, handler: Callable[[], None]):
         self.tick_handlers.append(handler)

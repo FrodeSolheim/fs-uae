@@ -2692,15 +2692,17 @@ bool uae_fsvideo_renderframe(int monid, int mode, bool immediate)
 			center_x += 2;
 
 			// 16 / 3 * (4 * 480 / 512) = 20
-			// UAE_RECT - defining crop limits here
 			//frame->limits.w = 672; // 640 + 16 * 2
 			//frame->limits.w = 640 + 16; // 656
-			
+
+			// UAE_RECT - defining crop limits here
 			// Maybe just show 8 * 2 pixels, might be a better crop rect, and the aspect ratio
 			// wil just be a tiny bit off.
-			// frame->limits.w = 640 + 20; // 660
-			frame->limits.w = 640 + 16; // 656
-			frame->limits.h = 512 + 16; // 528
+			// frame->limits.w = 640 + 16; // 656
+			// frame->limits.h = 512 + 16; // 528
+
+			frame->limits.w = 692;
+			frame->limits.h = 540;
 
 			frame->limits.x = center_x - frame->limits.w / 2;
 			frame->limits.y = center_y- frame->limits.h / 2;

@@ -1,8 +1,10 @@
+import ctypes
 import logging
+from typing import cast
 
 import sdl3
 from fsapp.tickservice import TickService
-from fsuae.eventservice import EventService
+from fsapp.eventservice import EventService
 
 from fsgui.mainwindow import MainWindow
 from fsgui.windowmanager import WindowManager
@@ -40,6 +42,22 @@ def maybe_move_mouse(window_manager: WindowManager):
         state.last_mouse_pos = state.mouse_pos
 
 
+# # FIXME: Move to fsapp?
+# def handle_user_event(event: sdl3.SDL_UserEvent):
+#     print("handle_user_event")
+#     print(event.code)
+#     str_value = ""
+#     if event.data2 is not None:
+#         c_string: ctypes.c_char_p = ctypes.cast(event.data2, ctypes.c_char_p)
+#         if c_string.value is None:
+#             logger.warning("ctypes c_char_p value was None")
+#         else:
+#             str_value = c_string.value.decode("UTF-8")
+#     int_value = event.data1
+#     print(repr(int_value))
+#     print(repr(str_value))
+
+
 def handle_event(event: sdl3.SDL_Event):
     if event.type == sdl3.SDL_EVENT_MOUSE_MOTION:
         # print("state.mouse_pos", event.motion.y, event.motion.yrel, event.motion.which)
@@ -69,6 +87,11 @@ def handle_event(event: sdl3.SDL_Event):
             # FIXME: Remove hack
             notification_service = EventService.instance()
             notification_service.broadcast({"type": "FSAPP_KEY_PRESS", "intdata": 1073741893})
+        if event.key.key == sdl3.SDLK_F10:
+            # FIXME: Remove hack
+            notification_service = EventService.instance()
+            notification_service.broadcast({"type": "FSAPP_KEY_PRESS", "intdata": 1073741883})
+
         pass
     elif event.type == sdl3.SDL_EVENT_KEY_UP:
         # maybe_move_mouse(window_manager)

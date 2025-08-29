@@ -45,8 +45,8 @@ class WidgetPainter:
             self.enabled = True
             self.pressed = False
 
-        if self.dc is None:
-            raise Exception("dc cannot be None")
+        # if self.dc is None:
+        #     raise Exception("dc cannot be None")
 
     def paint_box(self, position: Position, size: Size):
         dc = self.dc

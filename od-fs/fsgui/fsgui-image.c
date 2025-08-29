@@ -5,8 +5,8 @@
 #include <SDL3_ttf/SDL_ttf.h>
 #include <glib.h>
 
+#include "fsapp-surface.h"
 #include "fsemu-util.h"
-#include "fsgui-surface.h"
 #include "fslib-refable.h"
 
 // ----------------------------------------------------------------------------
@@ -189,8 +189,8 @@ static PyObject* fsgui_image_python_draw(PyObject* self, PyObject* args) {
     fsgui_image_t* image = (fsgui_image_t*)PyCapsule_GetPointer(image_capsule, "fsgui_image_t");
     SDL_assert(image);
 
-    fsgui_surface_t* surface =
-        (fsgui_surface_t*)PyCapsule_GetPointer(surface_capsule, "fsgui_surface_t");
+    fsapp_surface_t* surface =
+        (fsapp_surface_t*)PyCapsule_GetPointer(surface_capsule, "fsapp_surface_t");
     SDL_assert(surface);
 
     // SDL_Rect src_rect = ;
@@ -215,8 +215,8 @@ static PyObject* fsgui_image_python_draw_stretched(PyObject* self, PyObject* arg
     fsgui_image_t* image = (fsgui_image_t*)PyCapsule_GetPointer(image_capsule, "fsgui_image_t");
     SDL_assert(image);
 
-    fsgui_surface_t* surface =
-        (fsgui_surface_t*)PyCapsule_GetPointer(surface_capsule, "fsgui_surface_t");
+    fsapp_surface_t* surface =
+        (fsapp_surface_t*)PyCapsule_GetPointer(surface_capsule, "fsapp_surface_t");
     SDL_assert(surface);
 
     // SDL_Rect src_rect = ;

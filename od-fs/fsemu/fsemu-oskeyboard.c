@@ -172,10 +172,12 @@ static void fsemu_oskeyboard_release_keys(fsemu_oskeyboard_t* keyboard) {
 }
 
 static void fsemu_oskeyboard_cannot_show(const char* message) {
+#if 0
     fsemu_hud_show_notification(
         FSEMU_HUD_NOTICATION_ID(0x411a51a9, 0x7ef6, 0x4169, 0x9240, 0x7058f8ffd15a),
         "Cannot show keyboard", message, FSEMU_HUD_NOTIFICATION_WARNING_ICON,
         FSEMU_HUD_NOTIFICATION_DEFAULT_DURATION);
+#endif
 }
 
 void fsemu_oskeyboard_set_open(bool open) {

@@ -29,6 +29,14 @@
 // Special Monitors support
 #define WITH_SPECIALMONITORS
 
+#define A_ZIP
+// #define A_RAR
+#define A_7Z
+#define A_LHA
+#define A_LZX
+#define A_DMS
+#define A_WRP
+
 /* Define to 1 if you have the <dirent.h> header file, and it defines `DIR'.
    */
 #define HAVE_DIRENT_H 1

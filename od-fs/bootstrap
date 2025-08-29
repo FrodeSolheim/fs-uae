@@ -24,4 +24,5 @@ automake --add-missing --copy
 echo "Running autoconf"
 autoconf
 
-echo "Bootstrap done, you can now run ./configure"
+echo
+echo "Done! You can now run ./configure"

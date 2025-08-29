@@ -1,4 +1,3 @@
-from fsgui.drawingcontext import DrawingContext
 from fsgui.image import Image
 from fsgui.widget import Widget
 
@@ -21,5 +20,5 @@ class ImageLabel(Widget):
         return self.image.width
 
     def on_paint(self):
-        dc = DrawingContext(self)
+        dc = self.create_dc()
         dc.draw_image(self.image, (0, 0))

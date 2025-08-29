@@ -41,7 +41,7 @@
 #endif
 
 #ifdef FSEMU_OS_WINDOWS
-#include <Windows.h>
+#include <windows.h>
 #endif
 
 #ifdef FSEMU_OS_LINUX

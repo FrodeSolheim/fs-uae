@@ -129,9 +129,11 @@ void fsemu_frame_reset_epoch(void) {
 void fsemu_frame_toggle_sleep_busywait(void) {
     printf("fsemu_frame_toggle_sleep_busywait\n");
     fsemu_frame.busy_wait = !fsemu_frame.busy_wait;
+#if 0
     fsemu_hud_show_notification(14034819788300734,
                                 fsemu_frame.busy_wait ? "Busywaiting" : "Sleeping", NULL, NULL,
                                 FSEMU_HUD_NOTIFICATION_DEFAULT_DURATION);
+#endif
 }
 
 void fsemu_frame_wait_until(int64_t until_us) {
@@ -161,10 +163,12 @@ void fsemu_frame_end(void) {
     // printf("now %ld frame_end_at %ld (diff %ld)\n",
     //     now, fsemu_frame_end_at, now - fsemu_frame_end_at);
     if (now > fsemu_frame_end_at + 1000) {
+#if 0
         printf(
             "fsemu_frame_end called %d ms too late "
             "(now=%lld, fsemu_frame_end_at=%lld)\n",
             (int)(now - fsemu_frame_end_at) / 1000, lld(now), lld(fsemu_frame_end_at));
+#endif
     } else if (now >= fsemu_frame_end_at) {
     } else {
         fsemu_frame_wait_until_frame_end();

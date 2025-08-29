@@ -1,6 +1,9 @@
 import logging
 from typing import Self
 
+# from typing import TYPE_CHECKING
+
+# if TYPE_CHECKING:
 from fsgui.types import Position
 from fsgui.widget import Widget
 from fsgui.window import Window

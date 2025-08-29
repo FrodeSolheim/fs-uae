@@ -3,8 +3,8 @@
 #include <Python.h>
 #include <SDL3_ttf/SDL_ttf.h>
 
+#include "fsapp-surface.h"
 #include "fsemu-util.h"
-#include "fsgui-surface.h"
 #include "fslib-refable.h"
 
 // ----------------------------------------------------------------------------
@@ -214,8 +214,8 @@ static PyObject* fsgui_font_python_draw_text(PyObject* self, PyObject* args) {
         return NULL;
     }
 
-    fsgui_surface_t* surface =
-        (fsgui_surface_t*)PyCapsule_GetPointer(surface_capsule, "fsgui_surface_t");
+    fsapp_surface_t* surface =
+        (fsapp_surface_t*)PyCapsule_GetPointer(surface_capsule, "fsapp_surface_t");
     if (surface == NULL) {
         return NULL;
     }
@@ -247,8 +247,8 @@ static PyObject* fsgui_font_python_draw_text_wrapped(PyObject* self, PyObject* a
         return NULL;
     }
 
-    fsgui_surface_t* surface =
-        (fsgui_surface_t*)PyCapsule_GetPointer(surface_capsule, "fsgui_surface_t");
+    fsapp_surface_t* surface =
+        (fsapp_surface_t*)PyCapsule_GetPointer(surface_capsule, "fsapp_surface_t");
     if (surface == NULL) {
         return NULL;
     }

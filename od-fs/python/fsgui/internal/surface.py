@@ -1,7 +1,7 @@
 # from io import BytesIO
 from typing import Tuple
 
-import fsgui_surface  # type: ignore
+import _fsapp_surface  # type: ignore
 
 from fsgui.internal.id import get_next_id
 from fsgui.types import Size
@@ -16,7 +16,7 @@ class Surface:
         # self._image = Image.frombuffer("RGBA", (640, 480), self._buffer.getbuffer())
 
         self._position = 0, 0
-        self._surface = fsgui_surface.create(size, special)
+        self._surface = _fsapp_surface.create(size, special)
         self._size = size
         self._z_index = 0
 
@@ -28,7 +28,7 @@ class Surface:
         self.id = get_next_id()
 
     def destroy(self) -> None:
-        fsgui_surface.destroy(self._surface)
+        _fsapp_surface.destroy(self._surface)
         self._surface = None
 
     # def update(self):
@@ -57,19 +57,19 @@ class Surface:
         return self._surface, self._position
 
     def resize(self, size: Size):
-        fsgui_surface.resize(self._surface, size)
+        _fsapp_surface.resize(self._surface, size)
         self._size = size
 
     def set_position(self, position: Tuple[int, int]):
         self._position = position
         # fsapp.set_surface_position(self._surface, position)
-        fsgui_surface.set_position(self._surface, position)
+        _fsapp_surface.set_position(self._surface, position)
 
     def set_visible(self, visible: bool) -> None:
-        fsgui_surface.set_visible(self._surface, visible)
+        _fsapp_surface.set_visible(self._surface, visible)
 
     def set_z_index(self, z_index: float) -> None:
         if z_index != self._z_index:
             # print(z_index, "vs", self._z_index)
-            fsgui_surface.set_z_index(self._surface, z_index)
+            _fsapp_surface.set_z_index(self._surface, z_index)
             self._z_index = z_index

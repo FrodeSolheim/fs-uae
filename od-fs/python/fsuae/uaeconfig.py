@@ -4,16 +4,27 @@ from typing import Callable
 logger = logging.getLogger(__name__)
 
 
-class StateVar:
+class Connectable:
     def __init__(self) -> None:
-        self.listeners: list[Callable] = []
+        self.listeners: list[Callable[[], None]] = []
 
-    # FIXME: add filter to connect/listener
-    def connect(self, listener: Callable) -> None:
+    def connect(self, listener: Callable[[], None]) -> None:
         self.listeners.append(listener)
 
-    def disconnect(self, listener: Callable) -> None:
+    def disconnect(self, listener: Callable[[], None]) -> None:
         self.listeners.remove(listener)
+
+
+class StateVar(Connectable):
+    def __init__(self) -> None:
+        super().__init__()
+
+    # # FIXME: add filter to connect/listener
+    # def connect(self, listener: Callable) -> None:
+    #     self.listeners.append(listener)
+
+    # def disconnect(self, listener: Callable) -> None:
+    #     self.listeners.remove(listener)
 
     def get(self):
         return self.value
@@ -60,6 +71,7 @@ class FilteredStateVar(StateVar):
     # def filter_state(self, value)
 
     def __on_state(self, value):
+        print(self, "on__state", value)
         self.set(self.get_filter(value))
 
 

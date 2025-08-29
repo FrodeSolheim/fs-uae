@@ -163,7 +163,7 @@ class _MainWindowBorderWindow(BorderlessWindow):
 
 class _MainWindowTopBorder(_MainWindowBorderWindow):
     def on_paint(self) -> None:
-        dc = DrawingContext(self)
+        dc = self.create_dc()
         size = self.size
 
         dc.set_pen_colour(self.params.outline_colour)
@@ -174,7 +174,7 @@ class _MainWindowTopBorder(_MainWindowBorderWindow):
 
 class _MainWindowLeftBorder(_MainWindowBorderWindow):
     def on_paint(self) -> None:
-        dc = DrawingContext(self)
+        dc = self.create_dc()
         size = self.size
 
         dc.set_pen_colour(self.params.outline_colour)
@@ -183,7 +183,7 @@ class _MainWindowLeftBorder(_MainWindowBorderWindow):
 
 class _MainWindowRightBorder(_MainWindowBorderWindow):
     def on_paint(self) -> None:
-        dc = DrawingContext(self)
+        dc = self.create_dc()
         size = self.size
 
         dc.set_pen_colour(self.params.outline_colour)
@@ -192,7 +192,7 @@ class _MainWindowRightBorder(_MainWindowBorderWindow):
 
 class _MainWindowBottomBorder(_MainWindowBorderWindow):
     def on_paint(self) -> None:
-        dc = DrawingContext(self)
+        dc = self.create_dc()
         size = self.size
 
         dc.set_pen_colour(self.params.outline_colour)

@@ -37,11 +37,11 @@ void fsemu_helper_init_emulator(const char* emulator_name, bool external_events,
                                 int fullscreen, int vsync) {
     fsemu_boot_log("fsemu_init_with_args");
     fsemu_log("[FSE] [HLP] Init emulator vsync=%d\n", vsync);
-
+#if 0
     // Make sure warnings can be safely logged and scheduled for later
     // displaying via an async queue.
     fsemu_hud_init_early();
-
+#endif
     fsemu_warning_2("Early development preview", "Some features are not fully developed");
 
     fsemu_boot_log("before fsemu_thread_init");
@@ -108,10 +108,10 @@ void fsemu_helper_init_emulator(const char* emulator_name, bool external_events,
     fsemu_action_init();
     fsemu_boot_log("before fsemu_background_init");
     fsemu_background_init();
-
+#if 0
     fsemu_boot_log("before fsemu_hud_init");
     fsemu_hud_init();
-
+#endif
     // FIXME: Postpone this until after the window is shown?
     fsemu_boot_log("before fsemu_gamemode_init");
     fsemu_gamemode_init();
@@ -335,7 +335,9 @@ void fsemu_helper_render_sleep_display_end_start(double hz) {
 void fsemu_helper_update(void) {
     fsemu_frame_log_epoch("Update (helper)\n");
     fsemu_fade_update();
+#if 0
     fsemu_hud_update();
+#endif
     fsemu_oskeyboard_update();
     fsemu_osmenu_update();
     fsemu_perfgui_update();

@@ -1,0 +1,51 @@
+#!/usr/bin/env python3
+import os
+import sys
+from datetime import datetime
+
+
+def update_configure_ac(path: str, version: str) -> None:
+    with open(path, "r") as f:
+        lines = f.readlines()
+    for i, line in enumerate(lines):
+        if line.startswith("AC_INIT"):
+            parts = line.split(",")
+            parts[1] = f" [{version}]"
+            lines[i] = ",".join(parts)
+            break
+    with open(path, "w") as f:
+        f.writelines(lines)
+
+
+def update_rpm_spec(path: str, version: str) -> None:
+    with open(path, "r") as f:
+        lines = f.readlines()
+    for i, line in enumerate(lines):
+        if line.startswith("%define version"):
+            lines[i] = f"%define version {version}"
+            break
+    with open(path, "w") as f:
+        f.writelines(lines)
+
+
+def update_debian_changelog(path: str, version: str) -> None:
+    now = datetime.now().astimezone()
+    date_time = now.strftime("%a, %d %b %Y %H:%M:%S %z")
+    with open(path, "w") as f:
+        f.write(f"fs-uae-5 ({version}-0) unstable; urgency=low\n")
+        f.write("\n")
+        f.write("  * Dummy changelog entry.\n")
+        f.write("\n")
+        f.write(f" -- Frode Solheim <frode@fs-uae.net>  {date_time}\n")
+
+
+def main() -> None:
+    version = sys.argv[1]
+    update_configure_ac("configure.ac", version)
+    update_debian_changelog("od-fs/dist/debian/changelog", version)
+    update_rpm_spec("od-fs/dist/fs-uae.spec", version)
+
+
+if __name__ == "__main__":
+    os.chdir(os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "..")))
+    main()

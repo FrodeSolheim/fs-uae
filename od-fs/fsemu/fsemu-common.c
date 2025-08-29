@@ -57,8 +57,9 @@ void fsemu_warning_2(const char* message, const char* sub) {
         fsemu_log_with_level_and_flags(FSEMU_LOG_LEVEL_WARNING, FSEMU_LOG_FLAG_NO_LAST_UPDATE,
                                        "WARNING: %s\n", message);
     }
-
+#if 0
     int notification_id = 0;
     // FIXME: Icon name
     fsemu_hud_show_notification(notification_id, message, sub, "warning", 10 * 1000 * 1000);
+#endif
 }

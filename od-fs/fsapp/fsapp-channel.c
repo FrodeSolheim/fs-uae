@@ -44,6 +44,8 @@ bool fsapp_channel_next_message(fsapp_channel_t* channel, int* type, const char*
         channel->read_message = NULL;
     }
 
+    fsapp_channel_lock(channel);
+
     if (channel->messages) {
         message = channel->messages->data;
         *type = message->type;
@@ -53,8 +55,12 @@ bool fsapp_channel_next_message(fsapp_channel_t* channel, int* type, const char*
         GList* first = channel->messages;
         channel->messages = g_list_remove_link(first, channel->messages);
         g_list_free_1(first);
+
+        fsapp_channel_unlock(channel);
         return true;
     }
+
+    fsapp_channel_unlock(channel);
     return false;
 }
 
@@ -66,14 +72,19 @@ static void fsapp_channel_python_destructor(PyObject* font_capsule) {
     // FIXME: Maybe unref fsapp_channel
 }
 
+fsapp_channel_t* fsapp_channel_create(void) {
+    fsapp_channel_t* channel = FSEMU_UTIL_MALLOC0(fsapp_channel_t);
+    channel->mutex = SDL_CreateMutex();
+    channel->messages = NULL;
+    return channel;
+}
+
 static PyObject* fsapp_channel_python_create(PyObject* self, PyObject* args) {
     if (!PyArg_ParseTuple(args, ":create")) {
         return NULL;
     }
 
-    fsapp_channel_t* channel = FSEMU_UTIL_MALLOC0(fsapp_channel_t);
-    channel->mutex = SDL_CreateMutex();
-    channel->messages = NULL;
+    fsapp_channel_t* channel = fsapp_channel_create();
 
     // FIXME: fslib_refable?
     // FIXME: Maybe make fsapp_channel refable!
@@ -105,7 +116,7 @@ static PyMethodDef fsapp_channel_python_methods[] = {
     {NULL, NULL, 0, NULL}};
 
 static PyModuleDef fsapp_events_python_module = {PyModuleDef_HEAD_INIT,
-                                                 "fsapp_events",
+                                                 "_fsapp_channel",
                                                  NULL,
                                                  -1,
                                                  fsapp_channel_python_methods,
@@ -125,5 +136,5 @@ void fsapp_channel_init_module(void) {
     }
     initialized = true;
 
-    PyImport_AppendInittab("fsapp_channel", &fsapp_channel_python_init);
+    PyImport_AppendInittab("_fsapp_channel", &fsapp_channel_python_init);
 }

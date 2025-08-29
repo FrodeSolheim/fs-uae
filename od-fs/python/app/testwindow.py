@@ -1,7 +1,7 @@
 import os
 
 import uae
-import uae.config
+import uae.xconfig
 
 import fsemu
 from fsgui.button import Button
@@ -34,7 +34,7 @@ class TestWindow(DecoratedWindow):
                 path = dialog.get_file()
                 text_field.set_text(os.path.basename(path))
 
-                fsemu.set(uae.config.FLOPPY0, path)
+                fsemu.set(uae.xconfig.FLOPPY0, path)
 
                 # This hack (and with nonlocal file_dialog) fixes the reference cycle
                 # file_dialog = None

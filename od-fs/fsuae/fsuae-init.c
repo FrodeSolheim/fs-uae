@@ -1,7 +1,11 @@
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include "fsuae-init.h"
 
 #ifdef _WIN32
-#include <Windows.h>
+#include <windows.h>
 #endif
 
 #include <Python.h>
@@ -202,13 +206,14 @@ static bool init_python(int argc, char* argv[]) {
         python_home = NULL;
         resources_dir = g_build_filename(SDL_GetBasePath(), "resources", NULL);
     } else {
+#ifdef PORTABLE_MODE
+
         // char temp[FSLIB_PATH_MAX];
         const char* temp = g_build_filename(SDL_GetBasePath(),
 #if defined(WINDOWS)
                                             "..", "..",
 #endif
                                             NULL);
-
         // #if defined(WINDOWS)
         //         SDL_strlcpy(temp, SDL_GetBasePath(), FSLIB_PATH_MAX);
         //         SDL_strlcat(temp, "..\\..\\Python", FSLIB_PATH_MAX);
@@ -224,7 +229,24 @@ static bool init_python(int argc, char* argv[]) {
 #else
         resources_dir = g_build_filename(base_dir, "Resources", NULL);
 #endif
+
+#else  // !PORTABLE_MODE
+
+        python_home = NULL;
+
+        gchar* temp = g_build_filename(SDL_GetBasePath(), "..", "share", SHARE_DIR_NAME, NULL);
+        gchar* share_fs_uae_dir = g_canonicalize_filename(temp, NULL);
+        g_free(temp);
+        resources_dir = g_build_filename(share_fs_uae_dir, "resources", NULL);
+        python_dir = g_build_filename(share_fs_uae_dir, "python", NULL);
+        g_free(share_fs_uae_dir);
+
+#endif  // !PORTABLE_MODE
     }
+
+    SDL_Log("python_dir: %s", python_dir ? python_dir : "NULL");
+    SDL_Log("python_home: %s", python_home ? python_home : "NULL");
+    SDL_Log("resources_dir: %s", resources_dir ? resources_dir : "NULL");
 
     // FIXME: Initialize elsewhere? (we're in init python now)
     // FIXME: Why does not SDL_setenv_unsafe work here...? g_setenv does work...
@@ -310,19 +332,9 @@ static bool init_python(int argc, char* argv[]) {
     // str_object = PyUnicode_FromString(python_dir);
     // PyList_Insert(sys_path, 0, str_object);
 
-    PyRun_SimpleString(
-        "import sys\n"
-        "print('sys.path =', end='')\n"
-        "print(sys.path)\n"
-        // "sys.path.insert(0, '.venv/lib/python3.13/site-packages')\n"
-        // "sys.path.insert(0, '.')\n"
-        // "sys.path.insert(0, 'python')\n"
-        "from fsgui.init import init\n"
-        "init()");
-
-    PyRun_SimpleString(
-        "from time import time,ctime\n"
-        "print('Today is', ctime(time()))\n");
+    PyRun_SimpleString("import sys; print('sys.path =', end=''); print(sys.path)\n");
+    PyRun_SimpleString("from fsgui import init; init()");
+    PyRun_SimpleString("import time; print('Today is', time.ctime(time.time()))\n");
 
     // PyEval_InitThreads();
 

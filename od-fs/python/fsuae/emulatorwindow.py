@@ -10,7 +10,8 @@ class EmulatorWindow(Window):
 
         # UAE_RECT
         # position = (660, 90)
-        size = (692, 540)
+        # size = (692, 540)
+        size = None
 
         super().__init__("Amiga display", size=size)
 

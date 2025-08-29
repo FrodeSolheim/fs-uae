@@ -3,6 +3,7 @@ from typing import Self
 from fsgui.label import Label
 from fsgui.layout import VerticalLayout
 from fsgui.window import Window
+
 from fsuae.servicecontainer import ServiceContainer
 from fsuae.uaeconfigwidgets import UaeConfigCheckBox
 

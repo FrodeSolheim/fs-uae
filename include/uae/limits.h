@@ -9,6 +9,12 @@
 #include <limits.h>
 #endif
 
+#ifdef _WIN32
+// Include Windows header files first to avoid warnings about re-defining MAX_PATH
+#include "winsock2.h"
+#include "windows.h"
+#endif
+
 #ifndef MAX_PATH
 #define MAX_PATH PATH_MAX
 #endif

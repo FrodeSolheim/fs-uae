@@ -4,9 +4,10 @@ from typing import Self
 
 from fsgui.button import Button
 from fsgui.checkbox import CheckBox
-from fsgui.choice import Choice, MenuItem
+from fsgui.choice import Choice
 from fsgui.filedialog import FileDialog
 from fsgui.heading import Heading
+from fsgui.item import Item
 from fsgui.label import Label
 from fsgui.layout import HorizontalLayout, VerticalLayout
 from fsgui.slider import DiscreteSlider
@@ -16,6 +17,7 @@ from fsgui.window import Window
 
 from fsuae.servicecontainer import ServiceContainer
 from fsuae.uaeconfig import UAEConfig
+from fsuae.uaeconfig2 import UAEConfig2
 from fsuae.uaeconfigwidgets import UaeConfigTextField
 
 logger = logging.getLogger(__name__)
@@ -63,66 +65,155 @@ class FloppyControlWindow(Window):
         FloppyDriveSoundChoice(self.config, 0)
 
 
+# --------------------------------------------------------------------------------------------------
+
+
 class FloppyEnabledCheckBox(CheckBox):
-    def __init__(self, config: UAEConfig, drive_index: int):
+    """
+
+    FIXME: There is a tiny bit of flickering when enabling this checkbox, and it seems to be
+    because we first change this value to True, but on the next update from UAE, the value
+    is (still?) False, and then on the next frame it gets changed to True.
+
+    PAINT: CHECKED changed to  True
+    apply option floppy3type = 0
+    [UAE] [000] Set option floppy3type = "0"
+    [UAE] [000]  -- stub -- my_resolvesoftlink
+    -- stub -- my_resolvesoftlink
+    [UAE] [000]  -- stub -- my_resolvesoftlink
+    -- stub -- my_resolvesoftlink
+    DISK INSERT (df3):
+    DEBUG:fsuae.uaeconfigservice:-----> 'floppy3type' <- '-1'
+    PAINT: CHECKED changed to  False
+    DEBUG:fsuae.uaeconfigservice:-----> 'floppy3type' <- '0'
+    PAINT: CHECKED changed to  True
+
+    !!!
+    IMPORTANT: Make sure that the config differ checks against config2!!! to make sure that
+    not correct options are reset to the real UAE value
+    !!!
+
+    """
+
+    def __init__(self, config2: UAEConfig2, drive_index: int):
         super().__init__(f"DF{drive_index}:")
-        self.config = config
-        self.state = config.floppy_type[drive_index]
-        # self.drive_index = drive_index
-        # self.state.connect(self.__on_config)
+        self.config = config2
+        self.drive_index = drive_index
 
-        self.connect(config.floppy_enabled[drive_index], self.set_value)
+        def str_to_bool(value: str) -> bool:
+            return value != "-1"
 
-    def __on_config(self, value):
-        pass
+        self.checked_state.bind(config2.floppy_n_type[drive_index].map(str_to_bool))
 
-    def on_change(self):
-        # state = self.config.floppy_type[drive_index]
-        logger.debug("on_change %r", self.value)
-        if self.value:
-            self.state.set(0)
+        # self.on(self.checked_state.change, self.__on_change)
+        self.on(self.checked_change, self.__on_change)
+        # FIXME: Something like this?
+        self.on(self.checked_state, lambda _: self.refresh(), immediate=False)
+
+        # self.on()
+        # self.checked.change.
+
+        # On - binds/connects to a source - making sure to disconnect from the source when calling
+        # destroy
+        # self.on(self.checked.change, self.on_change)
+
+    # FIXME: @override base implementation
+
+    # @override
+    def __on_change(self, value: bool) -> None:
+        print("FloppyEnabledCheckBox")
+        if value:
+            # FIXME: What type to set to, when enabling?
+            self.config.floppy_n_type[self.drive_index].set("0")
         else:
-            self.state.set(-1)
+            self.config.floppy_n_type[self.drive_index].set("-1")
+            # Good idea to eject disk also, probably...
+            self.config.floppy_n[self.drive_index].set("")
+
+    # def __on_change(self, value: bool) -> None:
+    #     pass
+
+    # def on_check
+
+    # self.state = config.floppy_type[drive_index]
+    # self.drive_index = drive_index
+    # self.state.connect(self.__on_config)
+
+    # self.connect(config.floppy_enabled[drive_index], self.set_value)
+    # self.connect(config.floppy_enabled[drive_index], self.set_value)
+
+    # FIXME: set_enabled(bool | Var[bool])
+
+    # self.connect(config2.floppy_n_type[drive_index], self.set_value)
+    # self.connect_bool(config2.floppy_n_type[drive_index], self.set_enabled)
+
+    # self.connect_bool(config2.floppy_n_type[drive_index], str_to_bool)
+    # config2.floppy_n_type[drive_index].connect(self.set_enabled)
+
+    # When the checkbox dies, it is important that the MappedVar disconnects from
+    # the source var...
+
+    # self.set_value(config2.floppy_n_type[drive_index].map(str_to_bool))
+    # FIXME
+    # self.checked.bind(config2.floppy_n_type[drive_index].map(str_to_bool))
+
+    # _enabled_var ?
+    # set_enabled must call _set_enabled in this case, so that the var can broadcast to
+    # _set_enabled directly and not break the bond.
+
+    # def set_enabled(self, enabled: bool | Var[bool]) -> None:
+    #     # FIXME: + Listen
+    #     if isinstance(enabled, Var):
+    #         super().set_enabled(enabled.value)
+    #     else:
+    #         super().set_enabled(enabled)
+
+    # def __on_config(self, value):
+    #     pass
+
+    # def on_change(self):
+    #     # state = self.config.floppy_type[drive_index]
+    #     logger.debug("on_change %r", self.value)
+    #     if self.value:
+    #         self.state.set(0)
+    #     else:
+    #         self.state.set(-1)
+
+
+# --------------------------------------------------------------------------------------------------
 
 
 class WriteProtectCheckBox(CheckBox):
-    def __init__(self, config: UAEConfig, drive_index: int):
+    """
+    FIXME: This is a tricky one... floppy{0,1,2,3}wp state is not reflected in currprefs until
+    a new disk is inserted, so checking this box will just briefly flash it before turning it on
+    again -- and when you actually insert a disk it will "automatically" turn on.
+
+    Maybe better with a dropdown (more) menu where you choose "Insert (write-protected) instead"..?
+    """
+
+    def __init__(self, config: UAEConfig2, drive_index: int):
         super().__init__("Write-protect")
 
-        self.state = config.floppy_wp[drive_index]
-        self.state.connect(self.__on_config)
+        self.drive_index = drive_index
+        # self.state = config.floppy_n_wp[drive_index]
+        self.bind_checked(config.floppy_n_wp[drive_index].map(lambda x: x == "true"))
+        self.on(self.checked_change, self.__on_change)
 
-        # self.enabled_state = config.floppy_type[drive_index]
-        # self.enabled_state.connect(self.__on_config_enabled)
+    def __on_change(self, value: bool):
+        from fsuae.message2 import Message2
+        from fsuae.messages import post_fsuae_message
 
-        # self._listeners = []
+        # self.state.set("true" if value else "false")
 
-        self.connect(config.floppy_wp[drive_index], self.__on_config)
-        # self.connect(config.floppy_type[drive_index], self.__on_config_enabled)
-        # self.connect(config.floppy_enabled[drive_index], self.__on_config_enabled)
-        self.connect(config.floppy_enabled[drive_index], self.set_enabled)
+        if value:
+            message = Message2.WRITE_PROTECT_DRIVE_0 + self.drive_index
+        else:
+            message = Message2.UN_WRITE_PROTECT_DRIVE_0 + self.drive_index
+        post_fsuae_message(message)
 
-    def __on_config(self, value):
-        self.set_value(value)
 
-    # def __on_config_enabled(self, value):
-    #     # self.set_enabled(value != -1)
-    #     self.set_enabled(value)
-
-    def on_change(self):
-        self.state.set(self.value)
-
-    # def connect(self, state, listener):
-    #     self._listeners.append((state, listener))
-    #     state.connect(listener)
-    #     listener(state.value)
-
-    # def _on_destroy(self):
-    #     for state, listener in self._listeners:
-    #         state.disconnect(listener)
-
-    # self.state.disconnect(self.__on_config)
-    # self.enabled_state.disconnect(self.__on_config_enabled)
+# --------------------------------------------------------------------------------------------------
 
 
 class FloppySpeedSlider(DiscreteSlider):
@@ -163,6 +254,9 @@ class FloppySpeedSlider(DiscreteSlider):
         self.config.floppy_speed.set(value)
 
 
+# --------------------------------------------------------------------------------------------------
+
+
 class FloppySpeedLabel(Label):
     def __init__(self, config: UAEConfig) -> None:
         super().__init__()
@@ -178,45 +272,60 @@ class FloppySpeedLabel(Label):
         self.set_text(text)
 
 
+# --------------------------------------------------------------------------------------------------
+
+
 class FloppyTypeChoice(Choice):
-    def __init__(self, config: UAEConfig, drive_index: int) -> None:
-        self.config = UAEConfig()
-        self.state = config.floppy_type[drive_index]
+    def __init__(self, config2: UAEConfig2, drive_index: int) -> None:
+        # self.config = UAEConfig()
+        self.config2 = config2
+        self.state = self.config2.floppy_n_type[drive_index]
 
         # d2p = drive_index >= 2
         items = [
             # '',
-            MenuItem('3.5" DD', data=0),
-            MenuItem('3.5" HD', data=1),
-            MenuItem('5.25" (40)', data=2),
-            MenuItem('5.25" (80)', data=7),
-            MenuItem('3.5" ESCOM', data=3),
+            Item('3.5" DD', data="0"),
+            Item('3.5" HD', data="1"),
+            Item('5.25" (40)', data="2"),
+            Item('5.25" (80)', data="7"),
+            Item('3.5" ESCOM', data="3"),
             # MenuItem('Bridgeboard 5.25" 40', data=4).set_enabled(d2p),
             # MenuItem('Bridgeboard 5.25" 80', data=6).set_enabled(d2p),
             # MenuItem('Bridgeboard 3.5" 80', data=5).set_enabled(d2p),
         ]
         super().__init__(items)
 
-        # FIXME: set_enabled?
-        self.connect_enabled(config.floppy_enabled[drive_index])
-        self.connect(config.floppy_type[drive_index], self.__config)
+        # self.on(self.config2.floppy_n_enabled[drive_index], self.)
+        # self.enabled_state.bind(self.config2.floppy_n_enabled[drive_index])
 
-    def __config(self, value) -> None:
-        if value == -1:
+        self.on(self.config2.floppy_n_type[drive_index], self.__config)
+        # FIXME: set_enabled?
+        # self.connect_enabled(config.floppy_enabled[drive_index])
+        # self.connect(config.floppy_type[drive_index], self.__config)
+
+    def __config(self, value: str) -> None:
+        # intvalue = int(value)
+        if value == "-1":
             index = 0
         else:
             index = self.find_index_by_data(value)
             if index is None:
                 logger.warning("Could not find item for value %r", value)
-        self.set_index(index)
+        if index is not None:
+            self.set_index(index)
+        else:
+            logger.warning("index is None - floppy type '%s' not found", value)
 
     def on_change(self) -> None:
         index = self.index
-        if index == 0 and self.state.get() == -1:
+        if index == 0 and self.state.value == "-1":
             # The current choice isn't valid, we want to keep -1. This is
             # controlled by the enable checkbox.
             return
         self.state.set(self.items[self.index].data)
+
+
+# --------------------------------------------------------------------------------------------------
 
 
 class FloppyDriveSoundChoice(Choice):
@@ -244,10 +353,16 @@ class FloppyDriveSoundChoice(Choice):
         self.state.set(index)
 
 
+# --------------------------------------------------------------------------------------------------
+
+
 class FloppyDriveWidget(Widget):
-    def __init__(self, config: UAEConfig, drive_index: int) -> None:
+    def __init__(self, configx: UAEConfig, drive_index: int) -> None:
         super().__init__()
-        self.config = config
+        self.configx = configx
+
+        services = ServiceContainer.instance()
+        config = services.uae_config.config2
 
         # FIXME: fill param...!
         # FIXME: pass param instead
@@ -259,23 +374,19 @@ class FloppyDriveWidget(Widget):
             path = dialog.get_file()
             self.text_field.set_text(os.path.basename(path))
             # fsemu.set(f"floppy{drive_index}", path)
-            self.config.floppy[drive_index].set(path)
+            config.floppy_n[drive_index].set(path)
 
         def on_insert_floppy() -> None:
             FileDialog(self, on_accept=on_insert_floppy_accept).show()
 
-        def on_eject_floppy() -> None:
-            self.text_field.set_text("")
-            # fsemu.set(f"floppy{drive_index}", "")
-            self.config.floppy[drive_index].set("")
-
         VerticalLayout(gap=8)
         with HorizontalLayout(gap=8):
             # FloppyEnabledCheckBox(f"{drive.upper()}:")
-            FloppyEnabledCheckBox(self.config, drive_index)
+            FloppyEnabledCheckBox(config, drive_index)
             Spacer().expand()
             Spacer(width=12)
-            FloppyTypeChoice(self.config, drive_index)
+            # FloppyTypeChoice(self.config, drive_index)
+            FloppyTypeChoice(config, drive_index).bind_enabled(config.floppy_n_enabled[drive_index])
             # Choice(
             #     [
             #         '3.5" DD',
@@ -295,22 +406,43 @@ class FloppyDriveWidget(Widget):
 
             # Actually, maybe set set_enabled take a state var..!
             # FIXME: connect_enabled vs set_enabled...
-            Button("Eject", on_activate=on_eject_floppy).connect(
-                self.config.floppy_inserted_filtered[drive_index],
-                "set_enabled",
+
+            # Button("Eject", on_activate=on_eject_floppy).connect(
+            #     self.config.floppy_inserted_filtered[drive_index],
+            #     "set_enabled",
+            # )
+
+            WriteProtectCheckBox(config, drive_index).bind_enabled(
+                config.floppy_n_enabled[drive_index]
             )
-            WriteProtectCheckBox(self.config, drive_index)
-            Button("...", on_activate=on_insert_floppy).connect_enabled(
-                self.config.floppy_enabled[drive_index]
+            # Button("...", on_activate=on_insert_floppy).on(
+            #     config.floppy_n_enabled[drive_index], "set_enabled")
+
+            Button("...", on_activate=on_insert_floppy).bind_enabled(
+                config.floppy_n_enabled[drive_index]
             )
+
+            # self.text_field.set_text("")
+
+            # def eject_floppy() -> None:
+            #     config.floppy_n[drive_index].set("")
+
+            # Button("Eject").bind_enabled(
+            #     config.floppy_n[drive_index].map(lambda x: x != "")
+            # ).on_activate(eject_floppy)
+
+            Button("Eject").bind_enabled(
+                config.floppy_n[drive_index].map(lambda x: x != "")
+            ).on_activate(lambda: config.floppy_n[drive_index].set(""))
+
+            # .connect_enabled(
+            #    self.config.floppy_enabled[drive_index]
+            # )
 
         # with HorizontalLayout(gap=8):
         #     TextField(f"{drive}.adf")
         #     Button("...")
         # self.text_field = TextField(f"{drive}.adf")
-
-        services = ServiceContainer.instance()
-        config = services.uae_config.config2
 
         # Hmm, maybe...
         # Hmm, maybe Spacer().expand()
@@ -319,7 +451,8 @@ class FloppyDriveWidget(Widget):
                 UaeConfigTextField(config.floppy_n[drive_index])
                 .expand()
                 # FIXME: Include this in constructor? Maybe? Maybe not?
-                .connect_enabled(self.config.floppy_enabled[drive_index])
+                # .connect_enabled(self.config.floppy_enabled[drive_index])
+                .bind_enabled(config.floppy_n_enabled[drive_index])
             )
 
         self.text_field.fill = True

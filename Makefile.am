@@ -1,14 +1,20 @@
 # Makefile.am for FS-UAE
 
+# LIBS="$PTHREAD_LIBS $LIBS"
+# AM_CFLAGS="$CFLAGS $PTHREAD_CFLAGS"
+# CXXFLAGS="$CXXFLAGS $PTHREAD_CFLAGS"
+# CC="$PTHREAD_CC"
+# CXX="$PTHREAD_CXX"
+
 SUBDIRS =
 
 WARNINGS =
 
-CM_CFLAGS =
+CM_CFLAGS = -Werror=return-type
 
-AM_CFLAGS =
+AM_CFLAGS = $(PTHREAD_CFLAGS)
 AM_CPPFLAGS =
-AM_CXXFLAGS = -std=gnu++17
+AM_CXXFLAGS = $(PTHREAD_CFLAGS) -std=gnu++17
 AM_LDFLAGS =
 
 # FIXME: DEBUG BUILDS ONLY
@@ -42,6 +48,8 @@ CM_CFLAGS += -fno-strict-aliasing
 endif
 
 CM_CFLAGS += -fvisibility=hidden
+
+# CM_CFLAGS += $PTHREAD_CFLAGS
 
 AM_CFLAGS += $(CM_CFLAGS)
 AM_CFLAGS += -std=gnu11
@@ -167,6 +175,10 @@ fs_uae_SOURCES = \
 	od-fs/fsapp/fsapp-events.h \
 	od-fs/fsapp/fsapp-main.c \
 	od-fs/fsapp/fsapp-main.h \
+	od-fs/fsapp/fsapp-mainloop.c \
+	od-fs/fsapp/fsapp-mainloop.h \
+	od-fs/fsapp/fsapp-surface.c \
+	od-fs/fsapp/fsapp-surface.h \
 	od-fs/fsapp/fsapp.h \
 	od-fs/fsapp/fsapp-pythonthread.c \
 	od-fs/fsapp/fsapp-pythonthread.h \
@@ -175,8 +187,6 @@ fs_uae_SOURCES = \
 	od-fs/fsgui/fsgui-font.h \
 	od-fs/fsgui/fsgui-image.c \
 	od-fs/fsgui/fsgui-image.h \
-	od-fs/fsgui/fsgui-surface.c \
-	od-fs/fsgui/fsgui-surface.h \
 	od-fs/fsgui/fsgui-window.c \
 	od-fs/fsgui/fsgui-window.h \
 	od-fs/fsgui/fsgui-windows.c \
@@ -225,7 +235,7 @@ if WINDOWS
 nodist_fs_uae_SOURCES += od-fs/windows/fs-uae.rc
 .rc.o:
 	cp $(srcdir)/od-fs/windows/fs-uae.ico $(builddir)/od-fs/windows/fs-uae.ico
-	windres $< -o $@ -I$(srcdir)/od-fs/include
+	$(WINDRES) $< -o $@ -I$(srcdir)/od-fs/include
 else
 AM_CPPFLAGS += -I$(srcdir)/od-fs/non-windows
 endif
@@ -745,79 +755,197 @@ libarchivers_a_SOURCES = \
 	archivers/dms/u_quick.h \
 	archivers/dms/u_rle.cpp \
 	archivers/dms/u_rle.h \
+	archivers/lha/crcio.cpp \
+	archivers/lha/dhuf.cpp \
+	archivers/lha/header.cpp \
+	archivers/lha/huf.cpp \
+	archivers/lha/larc.cpp \
+	archivers/lha/lha_macro.h \
+	archivers/lha/lha.h \
+	archivers/lha/lhamaketbl.cpp \
+	archivers/lha/lharc.cpp \
+	archivers/lha/shuf.cpp \
+	archivers/lha/shuf.cpp \
+	archivers/lha/slide.cpp \
+	archivers/lha/uae_lha.cpp \
+	archivers/lha/util.cpp \
+	archivers/lzx/unlzx.cpp \
 	archivers/mp2/kjmp2.cpp \
 	archivers/mp2/kjmp2.h \
+	archivers/wrp/warp.cpp \
 	archivers/wrp/warp.h \
 	archivers/zip/unzip.cpp \
 	archivers/zip/unzip.h
 if WITH_CHD
 # libarchivers_a_CXXFLAGS = 
 libarchivers_a_SOURCES += \
-	mame/3rdparty/lzma/C/7zAlloc.c \
-	mame/3rdparty/lzma/C/7zArcIn.c \
-	mame/3rdparty/lzma/C/7zBuf.c \
-	mame/3rdparty/lzma/C/7zBuf2.c \
-	mame/3rdparty/lzma/C/7zCrc.c \
-	mame/3rdparty/lzma/C/7zCrcOpt.c \
-	mame/3rdparty/lzma/C/7zDec.c \
-	mame/3rdparty/lzma/C/7zFile.c \
-	mame/3rdparty/lzma/C/7zStream.c \
-	mame/3rdparty/lzma/C/Aes.c \
-	mame/3rdparty/lzma/C/AesOpt.c \
-	mame/3rdparty/lzma/C/Alloc.c \
-	mame/3rdparty/lzma/C/Bcj2.c \
-	mame/3rdparty/lzma/C/Bra.c \
-	mame/3rdparty/lzma/C/Bra86.c \
-	mame/3rdparty/lzma/C/BraIA64.c \
-	mame/3rdparty/lzma/C/CpuArch.c \
-	mame/3rdparty/lzma/C/Delta.c \
-	mame/3rdparty/lzma/C/LzFind.c \
-	mame/3rdparty/lzma/C/Lzma2Dec.c \
-	mame/3rdparty/lzma/C/Lzma2Enc.c \
-	mame/3rdparty/lzma/C/Lzma86Dec.c \
-	mame/3rdparty/lzma/C/Lzma86Enc.c \
-	mame/3rdparty/lzma/C/LzmaDec.c \
-	mame/3rdparty/lzma/C/LzmaEnc.c \
-	mame/3rdparty/lzma/C/LzmaLib.c \
-	mame/3rdparty/lzma/C/Ppmd7.c \
-	mame/3rdparty/lzma/C/Ppmd7Dec.c \
-	mame/3rdparty/lzma/C/Ppmd7Enc.c \
-	mame/3rdparty/lzma/C/Sha256.c \
-	mame/3rdparty/lzma/C/Sort.c \
-	mame/3rdparty/lzma/C/Xz.c \
-	mame/3rdparty/lzma/C/XzCrc64.c \
-	mame/3rdparty/lzma/C/XzCrc64Opt.c \
-	mame/3rdparty/lzma/C/XzDec.c \
-	mame/3rdparty/lzma/C/XzEnc.c \
-	mame/3rdparty/lzma/C/XzIn.c \
+	od-fs/7z/7zAlloc.c \
+	od-fs/7z/7zAlloc.h \
+	od-fs/7z/7zArcIn.c \
+	od-fs/7z/7zBuf2.c \
+	od-fs/7z/7zBuf.c \
+	od-fs/7z/7zBuf.h \
+	od-fs/7z/7zCrc.c \
+	od-fs/7z/7zCrc.h \
+	od-fs/7z/7zCrcOpt.c \
+	od-fs/7z/7zDec.c \
+	od-fs/7z/7zFile.c \
+	od-fs/7z/7zFile.h \
+	od-fs/7z/7z.h \
+	od-fs/7z/7zStream.c \
+	od-fs/7z/7zTypes.h \
+	od-fs/7z/7zVersion.h \
+	od-fs/7z/Aes.c \
+	od-fs/7z/Aes.h \
+	od-fs/7z/AesOpt.c \
+	od-fs/7z/Alloc.c \
+	od-fs/7z/Alloc.h \
+	od-fs/7z/Bcj2.c \
+	od-fs/7z/Bcj2.h \
+	od-fs/7z/Bra86.c \
+	od-fs/7z/Bra.c \
+	od-fs/7z/Bra.h \
+	od-fs/7z/BraIA64.c \
+	od-fs/7z/Compiler.h \
+	od-fs/7z/CpuArch.c \
+	od-fs/7z/CpuArch.h \
+	od-fs/7z/Delta.c \
+	od-fs/7z/Delta.h \
+	od-fs/7z/LzFind.c \
+	od-fs/7z/LzFind.h \
+	od-fs/7z/LzHash.h \
+	od-fs/7z/Lzma2Dec.c \
+	od-fs/7z/Lzma2Dec.h \
+	od-fs/7z/Lzma2Enc.c \
+	od-fs/7z/Lzma2Enc.h \
+	od-fs/7z/Lzma86Dec.c \
+	od-fs/7z/Lzma86Enc.c \
+	od-fs/7z/Lzma86.h \
+	od-fs/7z/LzmaDec.c \
+	od-fs/7z/LzmaDec.h \
+	od-fs/7z/LzmaEnc.c \
+	od-fs/7z/LzmaEnc.h \
+	od-fs/7z/LzmaLib.c \
+	od-fs/7z/LzmaLib.h \
+	od-fs/7z/Ppmd7.c \
+	od-fs/7z/Ppmd7Dec.c \
+	od-fs/7z/Ppmd7Enc.c \
+	od-fs/7z/Ppmd7.h \
+	od-fs/7z/Ppmd.h \
+	od-fs/7z/Precomp.h \
+	od-fs/7z/RotateDefs.h \
+	od-fs/7z/Sha256.c \
+	od-fs/7z/Sha256.h \
+	od-fs/7z/Sort.c \
+	od-fs/7z/Sort.h \
+	od-fs/7z/Xz.c \
+	od-fs/7z/XzCrc64.c \
+	od-fs/7z/XzCrc64.h \
+	od-fs/7z/XzCrc64Opt.c \
+	od-fs/7z/XzDec.c \
+	od-fs/7z/XzEnc.c \
+	od-fs/7z/XzEnc.h \
+	od-fs/7z/Xz.h \
+	od-fs/7z/XzIn.c \
+	mame/3rdparty/utf8proc/utf8proc.c \
+	mame/3rdparty/utf8proc/utf8proc.h \
 	mame/src/lib/util/avhuff.cpp \
+	mame/src/lib/util/avhuff.h \
 	mame/src/lib/util/bitmap.cpp \
+	mame/src/lib/util/bitmap.h \
 	mame/src/lib/util/cdrom.cpp \
+	mame/src/lib/util/cdrom.h \
 	mame/src/lib/util/chd.cpp \
+	mame/src/lib/util/chd.h \
 	mame/src/lib/util/chdcd.cpp \
+	mame/src/lib/util/chdcd.h \
 	mame/src/lib/util/chdcodec.cpp \
+	mame/src/lib/util/chdcodec.h \
 	mame/src/lib/util/corealloc.cpp \
+	mame/src/lib/util/corealloc.h \
 	mame/src/lib/util/corefile.cpp \
+	mame/src/lib/util/corefile.h \
+	mame/src/osd/osdfile.h \
 	mame/src/lib/util/corestr.cpp \
+	mame/src/lib/util/corestr.h \
+	mame/src/lib/util/coretmpl.h \
+	mame/src/lib/util/eminline.h \
+	mame/src/lib/util/eigcc.h \
+	mame/src/lib/util/eigccarm.h \
+	mame/src/lib/util/eigccx86.h \
 	mame/src/lib/util/flac.cpp \
+	mame/src/lib/util/flac.h \
+	mame/src/lib/util/unicode.h \
+	mame/src/lib/util/path.h \
 	mame/src/lib/util/harddisk.cpp \
+	mame/src/lib/util/harddisk.h \
 	mame/src/lib/util/hashing.cpp \
+	mame/src/lib/util/hashing.h \
 	mame/src/lib/util/huffman.cpp \
+	mame/src/lib/util/huffman.h \
+	mame/src/lib/util/bitstream.h \
 	mame/src/lib/util/md5.cpp \
-	mame/src/osd/modules/lib/osdlib_unix.cpp \
-	mame/src/osd/osdsync.cpp \
+	mame/src/lib/util/md5.h \
 	mame/src/lib/util/palette.cpp \
-	mame/src/osd/modules/file/posixdir.cpp \
-	mame/src/osd/modules/file/posixfile.cpp \
-	mame/src/osd/osdcore.cpp \
-	mame/src/osd/strconv.cpp \
-	mame/src/osd/modules/file/posixdir.cpp \
-	mame/src/osd/modules/file/posixfile.cpp \
+	mame/src/lib/util/palette.h \
 	mame/src/lib/util/strformat.cpp \
 	mame/src/lib/util/unicode.cpp \
 	mame/src/lib/util/vecstream.cpp \
-	mame/3rdparty/utf8proc/utf8proc.c
+	mame/src/lib/util/utilfwd.h \
+	mame/src/lib/util/ioprocs.h \
+	mame/src/lib/util/strformat.h \
+	mame/src/lib/util/vecstream.h \
+	mame/src/osd/modules/file/posixdir.cpp \
+	mame/src/osd/modules/file/posixfile.cpp \
+	mame/src/osd/modules/file/posixfile.h \
+	mame/src/osd/modules/lib/osdlib_unix.cpp \
+	mame/src/osd/osdlib.h \
+	mame/src/osd/osdcomm.h \
+	mame/src/osd/osdcore.cpp \
+	mame/src/osd/osdcore.h \
+	mame/src/osd/osdsync.cpp \
+	mame/src/osd/osdsync.h \
+	mame/src/osd/strconv.cpp \
+	mame/src/osd/strconv.h
 
+#	mame/3rdparty/lzma/C/7zAlloc.c \
+#	mame/3rdparty/lzma/C/7zArcIn.c \
+#	mame/3rdparty/lzma/C/7zBuf.c \
+#	mame/3rdparty/lzma/C/7zBuf2.c \
+#	mame/3rdparty/lzma/C/7zCrc.c \
+#	mame/3rdparty/lzma/C/7zCrcOpt.c \
+#	mame/3rdparty/lzma/C/7zDec.c \
+#	mame/3rdparty/lzma/C/7zFile.c \
+#	mame/3rdparty/lzma/C/7zStream.c \
+#	mame/3rdparty/lzma/C/Aes.c \
+#	mame/3rdparty/lzma/C/AesOpt.c \
+#	mame/3rdparty/lzma/C/Alloc.c \
+#	mame/3rdparty/lzma/C/Bcj2.c \
+#	mame/3rdparty/lzma/C/Bra.c \
+#	mame/3rdparty/lzma/C/Bra86.c \
+#	mame/3rdparty/lzma/C/BraIA64.c \
+#	mame/3rdparty/lzma/C/CpuArch.c \
+#	mame/3rdparty/lzma/C/Delta.c \
+#	mame/3rdparty/lzma/C/LzFind.c \
+#	mame/3rdparty/lzma/C/Lzma2Dec.c \
+#	mame/3rdparty/lzma/C/Lzma2Enc.c \
+#	mame/3rdparty/lzma/C/Lzma86Dec.c \
+#	mame/3rdparty/lzma/C/Lzma86Enc.c \
+#	mame/3rdparty/lzma/C/LzmaDec.c \
+#	mame/3rdparty/lzma/C/LzmaEnc.c \
+#	mame/3rdparty/lzma/C/LzmaLib.c \
+#	mame/3rdparty/lzma/C/Ppmd7.c \
+#	mame/3rdparty/lzma/C/Ppmd7Dec.c \
+#	mame/3rdparty/lzma/C/Ppmd7Enc.c \
+#	mame/3rdparty/lzma/C/Sha256.c \
+#	mame/3rdparty/lzma/C/Sort.c \
+#	mame/3rdparty/lzma/C/Xz.c \
+#	mame/3rdparty/lzma/C/XzCrc64.c \
+#	mame/3rdparty/lzma/C/XzCrc64Opt.c \
+#	mame/3rdparty/lzma/C/XzDec.c \
+#	mame/3rdparty/lzma/C/XzEnc.c \
+#	mame/3rdparty/lzma/C/XzIn.c \
+#
 #	od-fs/archivers/7z/7zAlloc.c \
 #	od-fs/archivers/7z/7zArcIn.c \
 #	od-fs/archivers/7z/7zBuf.c \
@@ -915,6 +1043,8 @@ libarchivers_a_SOURCES += \
 #	archivers/chd/osdcore.h \
 #	archivers/chd/sha1.h
 endif
+EXTRA_DIST += \
+	mame/3rdparty/utf8proc/utf8proc_data.c
 
 # -----------------------------------------------------------------------------
 
@@ -1101,6 +1231,8 @@ libfsemu_a_SOURCES = \
 	od-fs/fsemu/fsemu-log.h \
 	od-fs/fsemu/fsemu-main.c \
 	od-fs/fsemu/fsemu-main.h \
+	od-fs/fsemu/fsemu-mainloop.c \
+	od-fs/fsemu/fsemu-mainloop.h \
 	od-fs/fsemu/fsemu-mainmenu.c \
 	od-fs/fsemu/fsemu-mainmenu.h \
 	od-fs/fsemu/fsemu-manymouse.c \
@@ -1187,14 +1319,15 @@ libfsemu_a_SOURCES = \
 	od-fs/fsemu/fsemu-xmlshader.h \
 	od-fs/fsemu/fsemu.c \
 	od-fs/fsemu/fsemu.h \
-	od-fs/gamemode/lib/gamemode_client.h \
-	od-fs/manymouse/linux_evdev.c \
-	od-fs/manymouse/macosx_hidmanager.c \
-	od-fs/manymouse/macosx_hidutilities.c \
-	od-fs/manymouse/manymouse.c \
-	od-fs/manymouse/manymouse.h \
-	od-fs/manymouse/windows_wminput.c \
-	od-fs/manymouse/x11_xinput2.c
+	od-fs/gamemode/lib/gamemode_client.h
+
+#	od-fs/manymouse/linux_evdev.c \
+#	od-fs/manymouse/macosx_hidmanager.c \
+#	od-fs/manymouse/macosx_hidutilities.c \
+#	od-fs/manymouse/manymouse.c \
+#	od-fs/manymouse/manymouse.h \
+#	od-fs/manymouse/windows_wminput.c \
+#	od-fs/manymouse/x11_xinput2.c
 
 fsemu_data_files =
 
@@ -1659,13 +1792,15 @@ fs_uae_LDADD += @X11_LIBS@
 fs_uae_LDADD += @ZLIB_LIBS@
 fs_uae_LDADD += @ZSTD_LIBS@
 
+fs_uae_LDADD += $(PTHREAD_LIBS)
+
 if WITH_LIBMPEG2
 CM_CFLAGS += @LIBMPEG2_CFLAGS@
 fs_uae_LDADD += @LIBMPEG2_LIBS@
 endif
 
 if WINDOWS
-fs_uae_LDADD += -lWininet
+fs_uae_LDADD += -lwininet
 endif
 
 # fs_uae_LDADD += @MIR_LIBS@
@@ -1975,10 +2110,274 @@ noinst_PROGRAMS += proxy
 proxy_SOURCES = od-fs/windows/proxy.c
 proxy_CFLAGS = -DUNICODE -D_UNICODE
 proxy_LDFLAGS = -mwindows -static
-proxy_LDADD = -lShlwapi
+proxy_LDADD = -lshlwapi
 nodist_proxy_SOURCES = od-fs/windows/fs-uae.rc
 
 endif
+
+# --------------------------------------------------------------------------------------------------
+
+EXTRA_DIST += \
+	od-fs/python/app/__init__.py \
+	od-fs/python/app/app_init.py \
+	od-fs/python/app/map_ports.py \
+	od-fs/python/app/testwindow.py \
+	od-fs/python/fsapp/__init__.py \
+	od-fs/python/fsapp/_frame.py \
+	od-fs/python/fsapp/constants.py \
+	od-fs/python/fsapp/event.py \
+	od-fs/python/fsapp/eventhandler.py \
+	od-fs/python/fsapp/eventname.py \
+	od-fs/python/fsapp/eventservice.py \
+	od-fs/python/fsapp/main.py \
+	od-fs/python/fsapp/signal.py \
+	od-fs/python/fsapp/surface.py \
+	od-fs/python/fsapp/tickservice.py \
+	od-fs/python/fsemu/__init__.py \
+	od-fs/python/fsemu/actions.py \
+	od-fs/python/fsemu/constants.py \
+	od-fs/python/fsemu/inputdevice.py \
+	od-fs/python/fsemu/inputdeviceservice.py \
+	od-fs/python/fsemu/inputport.py \
+	od-fs/python/fsemu/inputportmode.py \
+	od-fs/python/fsemu/inputportservice.py \
+	od-fs/python/fsemu/signal.py \
+	od-fs/python/fsgui/__init__.py \
+	od-fs/python/fsgui/_frame.py \
+	od-fs/python/fsgui/borderlesswindow.py \
+	od-fs/python/fsgui/button.py \
+	od-fs/python/fsgui/checkbox.py \
+	od-fs/python/fsgui/choice.py \
+	od-fs/python/fsgui/container.py \
+	od-fs/python/fsgui/dataimage.py \
+	od-fs/python/fsgui/decoratedwindow.py \
+	od-fs/python/fsgui/drawingcontext.py \
+	od-fs/python/fsgui/filedialog.py \
+	od-fs/python/fsgui/font.py \
+	od-fs/python/fsgui/fontmanager.py \
+	od-fs/python/fsgui/heading.py \
+	od-fs/python/fsgui/image.py \
+	od-fs/python/fsgui/imagelabel.py \
+	od-fs/python/fsgui/internal/__init__.py \
+	od-fs/python/fsgui/internal/bridge.py \
+	od-fs/python/fsgui/internal/flags.py \
+	od-fs/python/fsgui/internal/id.py \
+	od-fs/python/fsgui/internal/surface.py \
+	od-fs/python/fsgui/item.py \
+	od-fs/python/fsgui/label.py \
+	od-fs/python/fsgui/layout.py \
+	od-fs/python/fsgui/lineheightwidget.py \
+	od-fs/python/fsgui/listview.py \
+	od-fs/python/fsgui/mainwindow.py \
+	od-fs/python/fsgui/mainwindowborder.py \
+	od-fs/python/fsgui/mainwindowtitlebar.py \
+	od-fs/python/fsgui/parentstack.py \
+	od-fs/python/fsgui/slider.py \
+	od-fs/python/fsgui/spacer.py \
+	od-fs/python/fsgui/specialwindow.py \
+	od-fs/python/fsgui/style.py \
+	od-fs/python/fsgui/test/__init__.py \
+	od-fs/python/fsgui/test/widgettestwindow.py \
+	od-fs/python/fsgui/textfield.py \
+	od-fs/python/fsgui/transparentwindow.py \
+	od-fs/python/fsgui/types.py \
+	od-fs/python/fsgui/valuewidget.py \
+	od-fs/python/fsgui/widget.py \
+	od-fs/python/fsgui/widgetorlayout.py \
+	od-fs/python/fsgui/widgetpainter.py \
+	od-fs/python/fsgui/window.py \
+	od-fs/python/fsgui/windowmanager.py \
+	od-fs/python/fsgui/windowtitlebar.py \
+	od-fs/python/fsuae/__init__.py \
+	od-fs/python/fsuae/aboutwindow.py \
+	od-fs/python/fsuae/actions.py \
+	od-fs/python/fsuae/advchipsetwindow.py \
+	od-fs/python/fsuae/amigacontext.py \
+	od-fs/python/fsuae/chipsetwindow.py \
+	od-fs/python/fsuae/config/__init__.py \
+	od-fs/python/fsuae/cpuwindow.py \
+	od-fs/python/fsuae/displaywindow.py \
+	od-fs/python/fsuae/emulatorwindow.py \
+	od-fs/python/fsuae/f12window.py \
+	od-fs/python/fsuae/floppycontrolwindow.py \
+	od-fs/python/fsuae/fsuaemainwindow.py \
+	od-fs/python/fsuae/init.py \
+	od-fs/python/fsuae/input/__init__.py \
+	od-fs/python/fsuae/input/devicerobotservice.py \
+	od-fs/python/fsuae/input/inputcontrolwindow.py \
+	od-fs/python/fsuae/input/inputdeviceselector.py \
+	od-fs/python/fsuae/input/inputdevicewindow.py \
+	od-fs/python/fsuae/input/inputmodeselector.py \
+	od-fs/python/fsuae/message.py \
+	od-fs/python/fsuae/message2.py \
+	od-fs/python/fsuae/messages.py \
+	od-fs/python/fsuae/misc/__init__.py \
+	od-fs/python/fsuae/misc/clockapp.py \
+	od-fs/python/fsuae/pathservice.py \
+	od-fs/python/fsuae/quickstartwindow.py \
+	od-fs/python/fsuae/reactive.py \
+	od-fs/python/fsuae/reactive2.py \
+	od-fs/python/fsuae/roms/__init__.py \
+	od-fs/python/fsuae/roms/rom.py \
+	od-fs/python/fsuae/roms/rommanagerwindow.py \
+	od-fs/python/fsuae/roms/romscanner.py \
+	od-fs/python/fsuae/roms/romservice.py \
+	od-fs/python/fsuae/servicecontainer.py \
+	od-fs/python/fsuae/shortcutswindow.py \
+	od-fs/python/fsuae/uaeconfig.py \
+	od-fs/python/fsuae/uaeconfig2.py \
+	od-fs/python/fsuae/uaeconfigservice.py \
+	od-fs/python/fsuae/uaeconfigwidgets.py \
+	od-fs/python/fsuae/var.py \
+	od-fs/python/fsuae/vfs/__init__.py \
+	od-fs/python/fsuae/vfs/vfsicon.py \
+	od-fs/python/fsuae/vfs/vfsservice.py \
+	od-fs/python/fsuae/workspace/__init__.py \
+	od-fs/python/fsuae/workspace/fsuaedirectorywindow.py \
+	od-fs/python/fsuae/workspace/shellwindow.py \
+	od-fs/python/fsuae/workspace/systemicon.py \
+	od-fs/python/fsuae/workspace/systemwindow.py \
+	od-fs/python/sdl3/__doc__.py \
+	od-fs/python/sdl3/__init__.py \
+	od-fs/python/sdl3/SDL_assert.py \
+	od-fs/python/sdl3/SDL_asyncio.py \
+	od-fs/python/sdl3/SDL_atomic.py \
+	od-fs/python/sdl3/SDL_audio.py \
+	od-fs/python/sdl3/SDL_bits.py \
+	od-fs/python/sdl3/SDL_blendmode.py \
+	od-fs/python/sdl3/SDL_camera.py \
+	od-fs/python/sdl3/SDL_clipboard.py \
+	od-fs/python/sdl3/SDL_cpuinfo.py \
+	od-fs/python/sdl3/SDL_dialog.py \
+	od-fs/python/sdl3/SDL_endian.py \
+	od-fs/python/sdl3/SDL_error.py \
+	od-fs/python/sdl3/SDL_events.py \
+	od-fs/python/sdl3/SDL_filesystem.py \
+	od-fs/python/sdl3/SDL_gamepad.py \
+	od-fs/python/sdl3/SDL_gpu.py \
+	od-fs/python/sdl3/SDL_guid.py \
+	od-fs/python/sdl3/SDL_haptic.py \
+	od-fs/python/sdl3/SDL_hidapi.py \
+	od-fs/python/sdl3/SDL_hints.py \
+	od-fs/python/sdl3/SDL_image.py \
+	od-fs/python/sdl3/SDL_init.py \
+	od-fs/python/sdl3/SDL_iostream.py \
+	od-fs/python/sdl3/SDL_joystick.py \
+	od-fs/python/sdl3/SDL_keyboard.py \
+	od-fs/python/sdl3/SDL_keycode.py \
+	od-fs/python/sdl3/SDL_loadso.py \
+	od-fs/python/sdl3/SDL_locale.py \
+	od-fs/python/sdl3/SDL_log.py \
+	od-fs/python/sdl3/SDL_main_impl.py \
+	od-fs/python/sdl3/SDL_main.py \
+	od-fs/python/sdl3/SDL_messagebox.py \
+	od-fs/python/sdl3/SDL_metal.py \
+	od-fs/python/sdl3/SDL_misc.py \
+	od-fs/python/sdl3/SDL_mixer.py \
+	od-fs/python/sdl3/SDL_mouse.py \
+	od-fs/python/sdl3/SDL_mutex.py \
+	od-fs/python/sdl3/SDL_net.py \
+	od-fs/python/sdl3/SDL_pen.py \
+	od-fs/python/sdl3/SDL_pixels.py \
+	od-fs/python/sdl3/SDL_platform.py \
+	od-fs/python/sdl3/SDL_power.py \
+	od-fs/python/sdl3/SDL_process.py \
+	od-fs/python/sdl3/SDL_properties.py \
+	od-fs/python/sdl3/SDL_rect.py \
+	od-fs/python/sdl3/SDL_render.py \
+	od-fs/python/sdl3/SDL_rtf.py \
+	od-fs/python/sdl3/SDL_scancode.py \
+	od-fs/python/sdl3/SDL_sensor.py \
+	od-fs/python/sdl3/SDL_shadercross.py \
+	od-fs/python/sdl3/SDL_stdinc.py \
+	od-fs/python/sdl3/SDL_storage.py \
+	od-fs/python/sdl3/SDL_surface.py \
+	od-fs/python/sdl3/SDL_system.py \
+	od-fs/python/sdl3/SDL_textengine.py \
+	od-fs/python/sdl3/SDL_thread.py \
+	od-fs/python/sdl3/SDL_time.py \
+	od-fs/python/sdl3/SDL_timer.py \
+	od-fs/python/sdl3/SDL_touch.py \
+	od-fs/python/sdl3/SDL_tray.py \
+	od-fs/python/sdl3/SDL_ttf.py \
+	od-fs/python/sdl3/SDL_version.py \
+	od-fs/python/sdl3/SDL_video.py \
+	od-fs/python/sdl3/SDL_vulkan.py \
+	od-fs/python/sdl3/SDL.py \
+	od-fs/python/uae/__init__.py \
+	od-fs/python/uae/config/__init__.py \
+	od-fs/python/uae/configkey.py \
+	od-fs/python/uae/configurations/a1000.py \
+	od-fs/python/uae/configurations/a1200.py \
+	od-fs/python/uae/configurations/a3000.py \
+	od-fs/python/uae/configurations/a4000.py \
+	od-fs/python/uae/configurations/a4000t.py \
+	od-fs/python/uae/configurations/a500.py \
+	od-fs/python/uae/configurations/a500p.py \
+	od-fs/python/uae/configurations/a600.py \
+	od-fs/python/uae/configurations/cd32.py \
+	od-fs/python/uae/configurations/cdtv.py \
+	od-fs/python/uae/configurations/default.py \
+	od-fs/python/uae/inputevent.py \
+	od-fs/python/uae/options/__init__.py \
+	od-fs/python/uae/options/blacklisted.py \
+	od-fs/python/uae/options/known.py \
+	od-fs/python/uae/options/ordered.py \
+	od-fs/python/uae/xconfig.py
+
+# --------------------------------------------------------------------------------------------------
+
+EXTRA_DIST += \
+	od-fs/resources/Fonts/other/AdwaitaSans-Regular.ttf \
+	od-fs/resources/Fonts/other/Roboto-Medium.ttf \
+	od-fs/resources/Fonts/other/SairaCondensed-Bold.ttf \
+	od-fs/resources/Fonts/other/SairaCondensed-Medium.ttf \
+	od-fs/resources/Fonts/other/SairaCondensed-Regular.ttf \
+	od-fs/resources/Fonts/other/SairaCondensed-SemiBold.ttf \
+	od-fs/resources/Fonts/Roboto-Bold.ttf \
+	od-fs/resources/Fonts/Roboto-Regular.ttf \
+	od-fs/resources/Fonts/Roboto-SemiBold.ttf \
+	od-fs/resources/Images/widgets/button_disabled.9p.png \
+	od-fs/resources/Images/widgets/button-pressed.9p.png \
+	od-fs/resources/Images/widgets/button.9p.png \
+	od-fs/resources/Images/widgets/choice-arrow-disabled.png \
+	od-fs/resources/Images/widgets/choice-arrow.png \
+	od-fs/resources/Images/window/close.png \
+	od-fs/resources/Images/window/maximize.png \
+	od-fs/resources/Images/window/menu.png \
+	od-fs/resources/Images/window/minimize.png
+
+# --------------------------------------------------------------------------------------------------
+
+#EXTRA_DIST += \
+#	debian/changelog \
+#	debian/compat \
+#	debian/control \
+#	debian/copyright \
+#	debian/rules \
+#	debian/source \
+#	debian/source/format
+
+# --------------------------------------------------------------------------------------------------
+
+install-data-local:
+#	mkdir -p $(DESTDIR)$(datadir)/applications
+
+	mkdir -p $(DESTDIR)$(datadir)/@SHARE_DIR_NAME@
+
+	mkdir -p $(DESTDIR)$(datadir)/@SHARE_DIR_NAME@/python
+	cp -r $(srcdir)/od-fs/python/* $(DESTDIR)$(datadir)/@SHARE_DIR_NAME@/python
+#	python3 -m compileall $(DESTDIR)$(datadir)/@SHARE_DIR_NAME@/python
+	$(PYTHON) -m compileall $(DESTDIR)$(datadir)/@SHARE_DIR_NAME@/python
+#	FIXME: compileall
+
+	mkdir -p $(DESTDIR)$(datadir)/@SHARE_DIR_NAME@/resources
+
+	mkdir -p $(DESTDIR)$(datadir)/@SHARE_DIR_NAME@/resources/Fonts
+	cp -r $(srcdir)/od-fs/resources/Fonts/* $(DESTDIR)$(datadir)/@SHARE_DIR_NAME@/resources/Fonts
+
+	mkdir -p $(DESTDIR)$(datadir)/@SHARE_DIR_NAME@/resources/Images
+	cp -r $(srcdir)/od-fs/resources/Images/* $(DESTDIR)$(datadir)/@SHARE_DIR_NAME@/resources/Images
 
 # --------------------------------------------------------------------------------------------------
 

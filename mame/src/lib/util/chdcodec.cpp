@@ -16,8 +16,13 @@
 #include "flac.h"
 #include "hashing.h"
 
+#ifdef FSUAE
+#include "7z/LzmaDec.h"
+#include "7z/LzmaEnc.h"
+#else
 #include "lzma/C/LzmaDec.h"
 #include "lzma/C/LzmaEnc.h"
+#endif
 
 #include <zlib.h>
 #ifdef USE_ZSTD
@@ -1170,7 +1175,7 @@ chd_lzma_allocator::chd_lzma_allocator()
 	memset(m_allocptr, 0, sizeof(m_allocptr));
 
 	// set our pointers
-#ifdef FSUAE
+#ifdef FSUAE_XXX
 	Alloc = (void *(*)(ISzAllocPtr p, size_t size)) &chd_lzma_allocator::fast_alloc;
 	Free = (void (*)(ISzAllocPtr p, void *address)) &chd_lzma_allocator::fast_free;
 #else
@@ -1178,9 +1183,6 @@ chd_lzma_allocator::chd_lzma_allocator()
 	Free = &chd_lzma_allocator::fast_free;
 #endif
 }
-
-  void *(*Alloc)(ISzAllocPtr p, size_t size);
-  void (*Free)(ISzAllocPtr p, void *address); /* address can be 0 */
 
 //-------------------------------------------------
 //  ~chd_lzma_allocator - constructor

@@ -52,6 +52,8 @@ static struct {
     fsemu_mutex_t* mutex;
 } fsemu_input;
 
+bool fsemu_input_reconfigure_needed = false;
+
 // ----------------------------------------------------------------------------
 
 void fsemu_input_add_port(fsemu_inputport_t* port) {
@@ -74,7 +76,7 @@ int fsemu_input_port_count(void) {
     return fsemu_input.num_ports;
 }
 
-// ----------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 
 fsemu_inputport_t* fsemu_input_port_by_index(int index) {
     // fsemu_thread_assert_main();
@@ -83,7 +85,20 @@ fsemu_inputport_t* fsemu_input_port_by_index(int index) {
     return fsemu_input.ports[index];
 }
 
-// ----------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
+
+fsemu_inputport_t* fsemu_input_find_port_by_instance_id(int instance_id) {
+    int port_count = fsemu_input_port_count();
+    for (int i = 0; i < port_count; i++) {
+        fsemu_inputport_t* port = fsemu_input_port_by_index(i);
+        if (port->instance_id == instance_id) {
+            return port;
+        }
+    }
+    return NULL;
+}
+
+// -------------------------------------------------------------------------------------------------
 
 static void fsemu_input_log_port_summary(void) {
     fsemu_input_log_debug("----------\n");
@@ -113,8 +128,10 @@ static void fsemu_input_push_event(const char* event_type, fsemu_inputdevice_t* 
     // }
 
     // FIXME: Add some kind of unique device id ... ???
-    fsapp_events_push("FSEMU_INPUTDEVICE_ADDED", fsemu_inputdevice_name(device), NULL, type, 0, 0.0,
-                      0.0);
+    // fsapp_events_push("FSEMU_INPUTDEVICE_ADDED", fsemu_inputdevice_name(device), NULL, type, 0,
+    // 0.0,
+    //                   0.0);
+    // FIXME: Removed...
 }
 
 fsemu_error_t fsemu_input_add_device(fsemu_inputdevice_t* device) {
@@ -138,12 +155,13 @@ fsemu_error_t fsemu_input_add_device(fsemu_inputdevice_t* device) {
     device->index = device_index;
     fsemu_input.devices[device_index] = device;
 
-    fsemu_input_log_debug("Added input device %s\n", fsemu_inputdevice_name(device));
+    // fsemu_input_log_debug("Added input device %s\n", fsemu_inputdevice_name(device));
     fsemu_inputdevice_ref(device);
 
     // FIXME: Maybe postpone to module update
-    fsemu_input_autofill_devices();
-    fsemu_input_reconfigure();
+    // fsemu_input_autofill_devices();
+    // fsemu_input_reconfigure();
+    fsemu_input_reconfigure_needed = true;
 
     fsemu_input_push_event("FSEMU_INPUTDEVICE_ADDED", device);
 
@@ -200,7 +218,8 @@ void fsemu_input_remove_device(fsemu_inputdevice_t* device) {
     fsemu_inputdevice_unref(device);
 
     // FIXME: Maybe postpone to module update
-    fsemu_input_reconfigure();
+    // fsemu_input_reconfigure();
+    fsemu_input_reconfigure_needed = true;
 }
 
 // ----------------------------------------------------------------------------
@@ -246,7 +265,8 @@ void fsemu_input_configure_keyboard(fsemu_input_configure_keyboard_t mapping[]) 
         }
     }
 
-    fsemu_input_reconfigure();
+    // fsemu_input_reconfigure();
+    fsemu_input_reconfigure_needed = true;
 }
 
 // ----------------------------------------------------------------------------
@@ -545,7 +565,7 @@ void fsemu_input_add_actions(fsemu_input_action_t actions[]) {
     }
 }
 
-// ----------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 
 fsemu_inputdevice_t* fsemu_input_get_device(int index) {
     // fsemu_thread_assert_main();
@@ -554,7 +574,23 @@ fsemu_inputdevice_t* fsemu_input_get_device(int index) {
     return fsemu_input.devices[index];
 }
 
-// ----------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
+
+fsemu_inputdevice_t* fsemu_input_find_device_by_type_and_instance_id(int type, int instance_id) {
+    for (int i = 0; i < FSEMU_INPUT_MAX_DEVICES; i++) {
+        fsemu_inputdevice_t* device = fsemu_input_get_device(i);
+        if (device == NULL) {
+            continue;
+        }
+        printf("Check %d, %d\n", device->type, device->instance_id);
+        if (fsemu_inputdevice_matches(device, type, instance_id)) {
+            return device;
+        }
+    }
+    return NULL;
+}
+
+// -------------------------------------------------------------------------------------------------
 
 static fsemu_inputdevice_t* fsemu_input_find_available_device(bool mouse) {
     // FIXME: If device_index is going to be persistent when other devices
@@ -600,7 +636,7 @@ static fsemu_inputdevice_t* fsemu_input_find_available_device(bool mouse) {
 }
 
 // ----------------------------------------------------------------------------
-
+#if 0
 void fsemu_input_autofill_devices(void) {
     fsemu_input_log("Autofill devices\n");
     for (int i = 0; i < fsemu_input.num_ports; i++) {
@@ -626,7 +662,7 @@ void fsemu_input_autofill_devices(void) {
         }
     }
 }
-
+#endif
 // ----------------------------------------------------------------------------
 
 void fsemu_input_reconfigure(void) {
@@ -775,7 +811,7 @@ static PyMethodDef fsemu_input_python_methods[] = {
 // ----------------------------------------------------------------------------
 
 static PyModuleDef fsemu_input_python_module = {PyModuleDef_HEAD_INIT,
-                                                "fsemu_input",
+                                                "_fsemu_input",
                                                 NULL,
                                                 -1,
                                                 fsemu_input_python_methods,
@@ -824,5 +860,5 @@ void fsemu_input_init_module(void) {
     //     fsemu_control_set_warp(true);
     // }
 
-    PyImport_AppendInittab("fsemu_input", &fsemu_input_python_init);
+    PyImport_AppendInittab("_fsemu_input", &fsemu_input_python_init);
 }

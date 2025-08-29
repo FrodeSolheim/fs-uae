@@ -39,6 +39,7 @@ void fsemu_input_add_actions(fsemu_input_action_t actions[]);
 fsemu_error_t fsemu_input_add_device(fsemu_inputdevice_t* device);
 
 fsemu_inputdevice_t* fsemu_input_get_device(int index);
+fsemu_inputdevice_t* fsemu_input_find_device_by_type_and_instance_id(int type, int instance_id);
 
 void fsemu_input_remove_device(fsemu_inputdevice_t* device);
 
@@ -49,9 +50,10 @@ void fsemu_input_add_port(fsemu_inputport_t* port);
 int fsemu_input_port_count(void);
 
 fsemu_inputport_t* fsemu_input_port_by_index(int index);
+fsemu_inputport_t* fsemu_input_find_port_by_instance_id(int instance_id);
 
 // FIXME: Possibly temporary function
-void fsemu_input_autofill_devices(void);
+// void fsemu_input_autofill_devices(void);
 
 void fsemu_input_configure_keyboard(fsemu_input_configure_keyboard_t mapping[]);
 
@@ -80,6 +82,8 @@ void fsemu_input_unpack_action_state(fsemu_action_and_state_t action_and_state, 
                                      int16_t* state);
 
 void fsemu_input_work(int timeout);
+
+extern bool fsemu_input_reconfigure_needed;
 
 // ----------------------------------------------------------------------------
 // Logging

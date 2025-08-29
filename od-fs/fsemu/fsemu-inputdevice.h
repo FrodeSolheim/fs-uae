@@ -25,6 +25,11 @@ fsemu_inputdevice_t* fsemu_inputdevice_new(void);
 void fsemu_inputdevice_ref(fsemu_inputdevice_t* device);
 void fsemu_inputdevice_unref(fsemu_inputdevice_t* device);
 
+int fsemu_inputdevice_get_instance_id(fsemu_inputdevice_t* device);
+void fsemu_inputdevice_set_instance_id(fsemu_inputdevice_t* device, int instance_id);
+
+bool fsemu_inputdevice_matches(fsemu_inputdevice_t* device, int type, int instance_id);
+
 int fsemu_inputdevice_type(fsemu_inputdevice_t* device);
 void fsemu_inputdevice_set_type(fsemu_inputdevice_t* device, int type);
 
@@ -475,12 +480,18 @@ enum {
 
 #ifdef FSEMU_INTERNAL
 
+#include <SDL3/SDL.h>
+
 struct fsemu_inputdevice {
     FSLIB_REFABLE;
     int index;
     int port_index;
     int type;
     char* name;
+    int instance_id;
+
+    SDL_Joystick* joystick;
+    SDL_Gamepad* gamepad;
 };
 
 #endif  // FSEMU_INTERNAL

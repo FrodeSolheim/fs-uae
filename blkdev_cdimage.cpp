@@ -48,11 +48,14 @@
 #define chd_error std::error_condition
 #define CHDERR_NONE std::error_condition()
 
+#include "chd.h"
+#include "chdcd.h"
+
 #else
 #include "archivers/chd/chdtypes.h"
-#endif
 #include "archivers/chd/chd.h"
 #include "archivers/chd/chdcd.h"
+#endif
 #endif
 
 #define scsi_log write_log

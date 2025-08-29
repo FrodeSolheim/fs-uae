@@ -2,10 +2,11 @@ import logging
 import sys
 from typing import Self
 
-from fsuae.eventservice import (
+from fsapp.eventservice import (
     Event,
     EventService,
 )
+
 from fsuae.uaeconfig import UAEConfig
 from fsuae.uaeconfig2 import UAEConfig2
 
@@ -50,7 +51,7 @@ class UAEConfigService:
 
     def __init__(self, event_service: EventService) -> None:
         self.event_service = event_service
-        self.event_service.add_listener(self.__uae_config, "UAE_CONFIG")
+        self.event_service.add_listener("UAE_CONFIG", self.__uae_config)
 
         self.uae_config = UAEConfig()
 

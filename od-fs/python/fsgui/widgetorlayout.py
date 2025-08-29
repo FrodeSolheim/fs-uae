@@ -21,6 +21,8 @@ class WidgetOrLayout:
     def __init_subclass__(cls, **kwargs: Any):
         # print("__init_subclass begin", cls, kwargs)
 
+        super().__init_subclass__(**kwargs)  # <<< crucial
+
         # cls.__init__2 = cls.__init__
         original_init: Callable[..., None] = cls.__init__
 
@@ -76,6 +78,11 @@ class WidgetOrLayout:
     def expand(self, expand: float = 1.0) -> Self:
         self._expand = expand
         return self
+
+    @property
+    def none(self) -> None:
+        """Use at end of chain when it is important that the expression result is None"""
+        pass
 
     def fill(self, fill: bool = True) -> Self:
         self._fill = fill

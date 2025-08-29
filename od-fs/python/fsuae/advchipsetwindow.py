@@ -1,11 +1,12 @@
 from typing import Self
 
 from fsgui.choice import Choice
+from fsgui.item import Item
 from fsgui.layout import VerticalLayout
 from fsgui.window import Window
-from fsuae.floppycontrolwindow import MenuItem
+
 from fsuae.servicecontainer import ServiceContainer
-from fsuae.uaeconfig import UAEConfig
+from fsuae.uaeconfig2 import UAEConfig2
 
 
 class AdvChipsetWindow(Window):
@@ -27,18 +28,16 @@ class AdvChipsetWindow(Window):
         VerticalLayout()
 
         services = ServiceContainer().instance()
-        uae_config = services.uae_config.uae_config
-
-        ChipsetCompatibleChoice(uae_config)
+        ChipsetCompatibleChoice(services.uae_config.config2)
 
 
 class ChipsetCompatibleChoice(Choice):
-    def __init__(self, config: UAEConfig) -> None:
+    def __init__(self, config: UAEConfig2) -> None:
         # self.config = UAEConfig()
         self.state = config.chipset_compatible
 
         items = [
-            MenuItem(str(x), data=x)
+            Item(str(x), data=x)
             for x in [
                 "-",
                 "Generic",
@@ -65,9 +64,10 @@ class ChipsetCompatibleChoice(Choice):
 
         # FIXME: set_enabled?
         # self.connect_enabled(config.floppy_enabled[drive_index])
-        self.connect(self.state, self.__config)
+        # self.connect(self.state, self.__config)
+        self.on(self.state, self.__config)
 
-    def __config(self, value) -> None:
+    def __config(self, value: str) -> None:
         # value = str(value)
         for item in self.items:
             if item.data == value:

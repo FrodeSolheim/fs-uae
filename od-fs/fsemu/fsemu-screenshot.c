@@ -242,11 +242,11 @@ void fsemu_screenshot_capture_video_frame(fsemu_video_frame_t* frame) {
     fsemu_image_save_png_file_from_rgba_data(path, dst->pixels, frame->width, frame->height);
     SDL_DestroySurface(src);
     SDL_DestroySurface(dst);
-
+#if 0
     char buffer[32];
     g_snprintf(buffer, 32, "%s_%02d", fsemu_screenshot.time_str, fsemu_screenshot.last_counter);
     fsemu_hud_notify(FSEMU_HUD_ID("SSHOTTED"), "camera", "Screenshot captured", buffer);
-
+#endif
     fsemu_screenshot.capture = false;
     free(fsemu_screenshot.time_str);
     fsemu_screenshot.time_str = NULL;

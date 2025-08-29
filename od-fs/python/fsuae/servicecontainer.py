@@ -1,9 +1,11 @@
 from typing import Self
 
+from fsapp.eventservice import EventService
+from fsapp.tickservice import TickService
 from fsemu.inputdeviceservice import InputDeviceService
 from fsemu.inputportservice import InputPortService
 
-from fsuae.eventservice import EventService
+from fsuae.input.devicerobotservice import DeviceRobotService
 from fsuae.pathservice import PathService
 from fsuae.roms.romservice import ROMService
 from fsuae.uaeconfigservice import UAEConfigService
@@ -25,12 +27,14 @@ class ServiceContainer:
         self._set_instance(self)
         return self
 
+    device_robot: DeviceRobotService
     event: EventService
-    uae_config: UAEConfigService
     input_devices: InputDeviceService
     input_ports: InputPortService
     path: PathService
     rom: ROMService
+    tick: TickService
+    uae_config: UAEConfigService
 
     def __init__(self) -> None:
         pass

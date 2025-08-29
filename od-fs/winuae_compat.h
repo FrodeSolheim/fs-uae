@@ -3,13 +3,14 @@
 
 #include <stdint.h>
 
-#ifdef WINDOWS
+#ifdef _WIN32
 
 // Include windef.h now to get RECT and DWORD defined (and not collide with
 // later includes of windows.h
 
-#include <windef.h>
+#include <winsock2.h>
 #include <windows.h>
+#include <windef.h>
 
 #else
 
@@ -39,16 +40,17 @@ typedef void * HWND;
 
 //#define _timezone timezone
 //#define _daylight daylight
-#ifdef WINDOWS
+
+#ifdef _WIN32
 
 #else
 extern int _timezone;
 extern int _daylight;
-#endif
 
 #define _tzset tzset
-
 #define _istalnum isalnum
+
+#endif
 
 // needed by e.g drawing.cpp
 

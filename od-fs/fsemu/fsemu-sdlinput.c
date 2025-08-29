@@ -27,11 +27,14 @@ static struct {
     // fsemu_controller_t controllers[FSEMU_CONTROLLER_MAX_COUNT];
     // SDL_Gamepad *sdl_controllers[FSEMU_CONTROLLER_MAX_COUNT];
 
-    struct fsemu_sdlinput_gamepad_state gamepads[FSEMU_INPUT_MAX_DEVICES];
+    struct fsemu_sdlinput_gamepad_state gamepad_state[FSEMU_INPUT_MAX_DEVICES];
     // Lookup table for instance id -> index for most common occurrences, if
     // this table is exhausted, a search is performed instead.
     // Signed byte should be sufficient.
     int8_t sdl_instance_id_to_index[FSEMU_INPUT_MAX_SDL_INSTANCE_IDS];
+
+    // SDL_Joystick *joystick[FSEMU_INPUT_MAX_DEVICES];
+    // SDL_Gamepad *gamepad[FSEMU_INPUT_MAX_DEVICES];
 } fsemu_sdlinput;
 
 static int fsemu_sdlinput_device_index_from_instance_id(int instance_id) {
@@ -39,14 +42,16 @@ static int fsemu_sdlinput_device_index_from_instance_id(int instance_id) {
         return fsemu_sdlinput.sdl_instance_id_to_index[instance_id];
     }
     for (int i = 0; i < FSEMU_INPUT_MAX_DEVICES; i++) {
-        if (instance_id == fsemu_sdlinput.gamepads[i].instance_id) {
+        if (instance_id == fsemu_sdlinput.gamepad_state[i].instance_id) {
             return i;
         }
     }
     return -1;
 }
 
-static void fsemu_sdlinput_add_controller(SDL_Gamepad* sdl_controller) {
+// -------------------------------------------------------------------------------------------------
+
+void fsemu_sdlinput_add_controller(SDL_Gamepad* sdl_controller) {
     // fsemu_input_log_debug(
     //     "input Opening SDL game controller %d -> %p\n", i, sdl_controller);
     // fsemu_controller.sdl_controllers[i] = sdl_controller;
@@ -63,12 +68,14 @@ static void fsemu_sdlinput_add_controller(SDL_Gamepad* sdl_controller) {
             instance_id, device_index);
         // We have already opened this device twice now, so we call close
         // once now.
+        SDL_Log("Closing gamepad\n");
         SDL_CloseGamepad(sdl_controller);
         return;
     }
 
     fsemu_inputdevice_t* device = fsemu_inputdevice_new();
     fsemu_inputdevice_set_type(device, FSEMU_INPUTDEVICE_TYPE_CONTROLLER);
+    fsemu_inputdevice_set_instance_id(device, instance_id);
     const char* name = SDL_GetGamepadName(sdl_controller);
     fsemu_inputdevice_set_name(device, name);
     int error;
@@ -85,7 +92,7 @@ static void fsemu_sdlinput_add_controller(SDL_Gamepad* sdl_controller) {
     // The input module holds a reference to this one now
     fsemu_inputdevice_unref(device);
 
-    fsemu_sdlinput.gamepads[device->index].instance_id = instance_id;
+    fsemu_sdlinput.gamepad_state[device->index].instance_id = instance_id;
     if (instance_id < FSEMU_INPUT_MAX_SDL_INSTANCE_IDS) {
         fsemu_input_log_debug("sdl_instance_id_to_index[%d] <- %d\n", instance_id, device_index);
         fsemu_sdlinput.sdl_instance_id_to_index[instance_id] = device_index;
@@ -93,11 +100,135 @@ static void fsemu_sdlinput_add_controller(SDL_Gamepad* sdl_controller) {
 
     // Clear state history
     for (int i = 0; i < FSEMU_CONTROLLER_MAX_SLOTS; i++) {
-        fsemu_sdlinput.gamepads[device->index].history[i] = 0;
+        fsemu_sdlinput.gamepad_state[device->index].history[i] = 0;
     }
 }
 
+// -------------------------------------------------------------------------------------------------
+
+static bool find_joystick_or_gamepad(int instance_id, fsemu_inputdevice_t** device) {
+    for (int i = 0; i < FSEMU_INPUT_MAX_DEVICES; i++) {
+        fsemu_inputdevice_t* d = fsemu_input_get_device(i);
+        if (d == NULL) {
+            continue;
+        }
+        if (d->type == FSEMU_INPUTDEVICE_TYPE_JOYSTICK && d->instance_id == instance_id) {
+            // if (fsemu_sdlinput.gamepads[i].instance_id == instance_id) {
+            *device = d;
+            return true;
+        }
+    }
+    return false;
+}
+
+// -------------------------------------------------------------------------------------------------
+
+static fsemu_inputdevice_t* ensure_device_exists(int instance_id) {
+    // int device_index = 0;
+    fsemu_inputdevice_t* device;
+    if (find_joystick_or_gamepad(instance_id, &device)) {
+        return device;
+    }
+
+    device = fsemu_inputdevice_new();
+    // fsemu_inputdevice_set_type(device, FSEMU_INPUTDEVICE_TYPE_CONTROLLER);
+    fsemu_inputdevice_set_type(device, FSEMU_INPUTDEVICE_TYPE_JOYSTICK);
+    fsemu_inputdevice_set_instance_id(device, instance_id);
+    // const char* name = SDL_GetGamepadName(sdl_controller);
+    // fsemu_inputdevice_set_name(device, name);
+    int error;
+    if ((error = fsemu_input_add_device(device)) != 0) {
+        fsemu_input_log_warning("Device could not be registered - error %d\n", error);
+        fsemu_inputdevice_unref(device);
+        return NULL;
+    }
+
+    // The device index is now available, set by  fsemu_input_add_device
+    // device_index = device->index;
+    fsemu_input_log_debug("Registered device - index %d\n", device->index);
+
+    // The input module holds a reference to this one now
+    fsemu_inputdevice_unref(device);
+
+    fsemu_sdlinput.gamepad_state[device->index].instance_id = instance_id;
+    if (instance_id < FSEMU_INPUT_MAX_SDL_INSTANCE_IDS) {
+        fsemu_input_log_debug("sdl_instance_id_to_index[%d] <- %d\n", instance_id, device->index);
+        fsemu_sdlinput.sdl_instance_id_to_index[instance_id] = device->index;
+    }
+
+    // Clear state history
+    for (int i = 0; i < FSEMU_CONTROLLER_MAX_SLOTS; i++) {
+        fsemu_sdlinput.gamepad_state[device->index].history[i] = 0;
+    }
+
+    return device;
+}
+
+// -------------------------------------------------------------------------------------------------
+
+static bool fsemu_sdlinput_handle_joystick_added(SDL_Event* event) {
+    int instance_id = event->jdevice.which;
+    SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "fsemu_sdlinput_handle_joystick_added which=%d\n",
+                 instance_id);
+
+    fsemu_inputdevice_t* device = ensure_device_exists(instance_id);
+    SDL_assert_release(device != NULL);
+
+    if (device->joystick == NULL) {
+        SDL_Log("Opening joystick (%d)", instance_id);
+        device->joystick = SDL_OpenJoystick(instance_id);
+    } else {
+        SDL_Log("Joystick (%d) was already opened", instance_id);
+    }
+
+    const char* name = SDL_GetJoystickName(device->joystick);
+    fsemu_inputdevice_set_name(device, name);
+
+    // fsemu_input_log_debug("input joystick added joystick_index=%d\n", joystick_index);
+    return true;
+}
+
+// -------------------------------------------------------------------------------------------------
+
+static bool fsemu_sdlinput_handle_gamepad_added(SDL_Event* event) {
+    int instance_id = event->gdevice.which;
+    SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "fsemu_sdlinput_handle_gamepad_added which=%d\n",
+                 instance_id);
+    fsemu_inputdevice_t* device = ensure_device_exists(instance_id);
+    SDL_assert_release(device != NULL);
+
+    if (device->gamepad == NULL) {
+        SDL_Log("Opening gamepad (%d)", instance_id);
+        device->gamepad = SDL_OpenGamepad(instance_id);
+    } else {
+        SDL_Log("Gamepad (%d) was already opened", instance_id);
+    }
+
+    const char* name = SDL_GetGamepadName(device->gamepad);
+    fsemu_inputdevice_set_name(device, name);
+
+    // const char* name = SDL_GetGamepadName(sdl_controller);
+
+#if 0
+    // printf(
+    //     "\n-------------------------------------------------------------------"
+    //     "-------------\n");
+    int joystick_index = event->gdevice.which;
+    fsemu_input_log_debug("input controller added joystick_index=%d\n", joystick_index);
+    // We need to open the controller in order to get a
+    // SDL_CONTROLLERDEVICEREMOVED event. Can we do without this event?
+    // Iterate over devices instead when needing list of devices?
+    SDL_Gamepad* sdl_controller = SDL_OpenGamepad(joystick_index);
+    fsemu_sdlinput_add_controller(sdl_controller);
+    // printf("\n");
+#endif
+    return true;
+}
+
+// -------------------------------------------------------------------------------------------------
+
 static void fsemu_sdlinput_add_gamepads(void) {
+#if 0
     int sdl_joystick_count;
     SDL_JoystickID* sdl_joystick_ids;
     sdl_joystick_ids = SDL_GetJoysticks(&sdl_joystick_count);
@@ -122,6 +253,7 @@ static void fsemu_sdlinput_add_gamepads(void) {
             fsemu_sdlinput_add_controller(sdl_controller);
         }
     }
+#endif
 }
 
 static void fsemu_sdlinput_handle_gamepad_event_2(int instance_id, int slot, int16_t state) {
@@ -129,18 +261,32 @@ static void fsemu_sdlinput_handle_gamepad_event_2(int instance_id, int slot, int
     if (device_index < 0) {
         return;  // true;
     }
-    if (fsemu_sdlinput.gamepads[device_index].history[slot] == state) {
+    if (fsemu_sdlinput.gamepad_state[device_index].history[slot] == state) {
         // State hasn't actually changed
         return;  // true;
     }
     fsemu_input_log_debug("state change slot %d: %d -> %d\n", slot,
-                          fsemu_sdlinput.gamepads[device_index].history[slot], state);
-    fsemu_sdlinput.gamepads[device_index].history[slot] = state;
+                          fsemu_sdlinput.gamepad_state[device_index].history[slot], state);
+    fsemu_sdlinput.gamepad_state[device_index].history[slot] = state;
 
     if (state == -32768) {
         // Need to clamp state so it can be inverted to positive. Gives us a
         // nice range from [-32767, 32767] inclusive.
         state = -32767;
+    }
+
+    // FIXME: Hack for M30 controller which has -1 on Y axes when dpad is "centered", but also
+    // presumable for dead zones on axises in general. Find better solution for deadzone handling?
+    if (state > -1000 && state < 1000) {
+        state = 0;
+    }
+
+    // Actually, for now, we're only using axes for digital inputs, so let's have a much larger
+    // "deadzone". Might have to something more clever once we need analog input.
+    // FIXME: Check if "slot" is digital
+    // FIXME: Make the digital threshold configurable
+    if (state > -10000 && state < 10000) {
+        state = 0;
     }
 
     fsemu_input_handle_controller(device_index, slot, state);
@@ -191,69 +337,69 @@ static bool fsemu_sdlinput_handle_gamepad_event(SDL_Event* event) {
         int16_t state = event->gbutton.down ? FSEMU_ACTION_STATE_MAX : 0;
         // fsemu_input_log_debug("controller button event instance id %d\n",
         // instance_id);
+        // printf("button: %d\n", instance_id);
+        printf("%d:%d (%d)-> %d\n", instance_id, event->gbutton.button, state, slot);
         fsemu_sdlinput_handle_gamepad_event_2(instance_id, slot, state);
     }
     // FIXME: return true here?
     return true;
 }
 
-// ----------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 
-static bool fsemu_sdlinput_handle_gamepad_added(SDL_Event* event) {
-    // printf(
-    //     "\n-------------------------------------------------------------------"
-    //     "-------------\n");
-    int joystick_index = event->cdevice.which;
-    fsemu_input_log_debug("input controller added joystick_index=%d\n", joystick_index);
-    // We need to open the controller in order to get a
-    // SDL_CONTROLLERDEVICEREMOVED event. Can we do without this event?
-    // Iterate over devices instead when needing list of devices?
-    SDL_Gamepad* sdl_controller = SDL_OpenGamepad(joystick_index);
-    fsemu_sdlinput_add_controller(sdl_controller);
-    // printf("\n");
-    return true;
+static void fsemu_sdlinput_close_and_remove_device(fsemu_inputdevice_t* device) {
+    if (device->gamepad != NULL) {
+        SDL_CloseGamepad(device->gamepad);
+        device->gamepad = NULL;
+    }
+    if (device->joystick != NULL) {
+        SDL_CloseJoystick(device->joystick);
+        device->joystick = NULL;
+    }
+    fsemu_input_remove_device_by_index(device->index);
 }
 
-// ----------------------------------------------------------------------------
+static void fsemu_sdlinput_remove_instance_id(const char* type, int instance_id) {
+    fsemu_inputdevice_t* device;
+    SDL_Log("Removing %s (%d)", type, instance_id);
+    if (find_joystick_or_gamepad(instance_id, &device)) {
+        fsemu_sdlinput_close_and_remove_device(device);
+    } else {
+        SDL_Log("Remove %s: did not find device (already removed?)", type);
+    }
+}
 
 static bool fsemu_sdlinput_handle_gamepad_removed(SDL_Event* event) {
-    // printf(
-    //     "\n-------------------------------------------------------------------"
-    //     "-------------\n");
-    int instance_id = event->cdevice.which;
-    fsemu_input_log_debug("input controller removed instance_id=%d\n", instance_id);
-    int device_index = fsemu_sdlinput_device_index_from_instance_id(instance_id);
-    // FIXME: Do we need to close the gamecontroller when it was removed?
-    if (device_index >= 0) {
-        // fsemu_input_device_t *device = fsemu_input_ref_device(device_index);
-        // fsemu_input_remove_device(device);
-        // fsemu_inputdevice_unref(device);
-        fsemu_input_remove_device_by_index(device_index);
-    } else {
-        // Device was not used
-    }
-    // printf("\n");
+    fsemu_sdlinput_remove_instance_id("gamepad", event->gdevice.which);
+    // fsemu_inputdevice_t* device;
+    // int instance_id = event->gdevice.which;
+    // SDL_Log("Removing gamepad (%d)", instance_id);
+    // if (find_joystick_or_gamepad(instance_id, &device)) {
+    //     fsemu_sdlinput_close_and_remove_device(device);
+    // } else {
+    //     SDL_Log("Remove gamepad: did not find device (already removed?)");
+    // }
     return true;
 }
-
-// ----------------------------------------------------------------------------
-
-static bool fsemu_sdlinput_handle_joystick_added(SDL_Event* event) {
-    int joystick_index = event->cdevice.which;
-    fsemu_input_log_debug("input joystick added joystick_index=%d\n", joystick_index);
-    return true;
-}
-
-// ----------------------------------------------------------------------------
 
 static bool fsemu_sdlinput_handle_joystick_removed(SDL_Event* event) {
-    int instance_id = event->cdevice.which;
-    fsemu_input_log_debug("input joystick removed instance_id=%d\n", instance_id);
-    // FIXME: Do we need to close the joystick when it was removed?
+    fsemu_sdlinput_remove_instance_id("joystick", event->jdevice.which);
+    // fsemu_inputdevice_t* device;
+    // int instance_id = event->jdevice.which;
+    // SDL_Log("Removing joystick (%d)", instance_id);
+    // if (find_joystick_or_gamepad(instance_id, &device)) {
+    //     fsemu_sdlinput_close_and_remove_device(device);
+    // } else {
+    //     SDL_Log("Remove joystick: did not find device (already removed?)");
+    // }
+
+    // int instance_id = event->jdevice.which;
+    // fsemu_input_log_debug("input joystick removed instance_id=%d\n", instance_id);
+    // // FIXME: Do we need to close the joystick when it was removed?
     return true;
 }
 
-// ----------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 
 void fsemu_sdlinput_work(void) {
     //
@@ -281,6 +427,9 @@ static bool fsemu_sdlinput_handle_key_event(SDL_Event* event) {
 // ----------------------------------------------------------------------------
 
 bool fsemu_sdlinput_handle_event(SDL_Event* event) {
+    if (event->type) {
+        // printf("Event %d\n", event->type);
+    }
     // if (event->type == SDL_KEYDOWN || event->type == SDL_KEYUP) {
     //     return fsemu_sdlinput_handle_key_event(event);
     // }
@@ -292,7 +441,19 @@ bool fsemu_sdlinput_handle_event(SDL_Event* event) {
         case SDL_EVENT_GAMEPAD_AXIS_MOTION:
         case SDL_EVENT_GAMEPAD_BUTTON_DOWN:
         case SDL_EVENT_GAMEPAD_BUTTON_UP:
+            printf("GAMEPAD EVENT: %d\n", event->type);
             return fsemu_sdlinput_handle_gamepad_event(event);
+
+        case SDL_EVENT_JOYSTICK_BUTTON_DOWN:
+        case SDL_EVENT_JOYSTICK_BUTTON_UP:
+            printf("JOYSTICK EVENT: %d\n", event->type);
+            break;
+
+        case SDL_EVENT_JOYSTICK_ADDED:
+            return fsemu_sdlinput_handle_joystick_added(event);
+        case SDL_EVENT_JOYSTICK_REMOVED:
+            return fsemu_sdlinput_handle_joystick_removed(event);
+
         case SDL_EVENT_GAMEPAD_ADDED:
             return fsemu_sdlinput_handle_gamepad_added(event);
         case SDL_EVENT_GAMEPAD_REMAPPED:
@@ -300,10 +461,6 @@ bool fsemu_sdlinput_handle_event(SDL_Event* event) {
             break;
         case SDL_EVENT_GAMEPAD_REMOVED:
             return fsemu_sdlinput_handle_gamepad_removed(event);
-        case SDL_EVENT_JOYSTICK_ADDED:
-            return fsemu_sdlinput_handle_joystick_added(event);
-        case SDL_EVENT_JOYSTICK_REMOVED:
-            return fsemu_sdlinput_handle_joystick_removed(event);
     }
 
     return false;
@@ -363,7 +520,7 @@ void fsemu_sdlinput_init(void) {
         fsemu_sdlinput.sdl_instance_id_to_index[i] = -1;
     }
     for (int i = 0; i < FSEMU_INPUT_MAX_DEVICES; i++) {
-        fsemu_sdlinput.gamepads[i].instance_id = -1;
+        fsemu_sdlinput.gamepad_state[i].instance_id = -1;
     }
 
     fsemu_sdlinput_add_gamepad_mappings();

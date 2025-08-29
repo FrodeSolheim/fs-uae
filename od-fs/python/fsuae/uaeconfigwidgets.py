@@ -1,5 +1,6 @@
 from fsgui.checkbox import CheckBox
 from fsgui.textfield import TextField
+
 from fsuae.uaeconfig2 import UaeString
 
 
@@ -42,7 +43,9 @@ class UaeConfigTextField(TextField):
         super().__init__("")
 
         self.state = state
-        self.connect(self.state, self._on_state)
+        # self.connect(self.state, self._on_state)
+
+        self.connect_str(state, self.set_text)
 
     def _on_state(self, value: str) -> None:
         self.set_text(value)

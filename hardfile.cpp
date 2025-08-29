@@ -41,11 +41,14 @@
 #define CHDERR_NONE std::error_condition()
 #define CHDERR_FILE_NOT_WRITEABLE chd_file::error::FILE_NOT_WRITEABLE
 
+#include "chd.h"
+#include "harddisk.h"
+
 #else
 #include "archivers/chd/chdtypes.h"
-#endif
 #include "archivers/chd/chd.h"
 #include "archivers/chd/harddisk.h"
+#endif
 #endif
 
 #define HDF_SUPPORT_NSD 1

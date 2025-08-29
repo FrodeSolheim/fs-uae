@@ -59,6 +59,13 @@ extern FILE *g_fs_uae_sync_debug_file;
 // FIXME: OK?
 // #define _stat64 stat
 
+// Include winsock2.h / windows.h first, then define INVALID_SOCKET (etc) if it is missing
+
+#ifdef _WIN32
+#include "winsock2.h"
+#include "windows.h"
+#endif
+
 #ifndef INVALID_SOCKET
 #define INVALID_SOCKET -1
 #endif
@@ -152,6 +159,7 @@ typedef unsigned short USHORT;
 #endif
 #endif
 
+#if 0
 #ifdef WINDOWS
 #ifdef __MINGW64_VERSION_MAJOR
 #define _argc __argc
@@ -172,6 +180,7 @@ int _uae_main(int argc, char *argv[]);
         return _uae_main(_argc, _argv);     \
     }                                       \
     int _uae_main(int argc, char *argv[])
+#endif
 #endif
 
 #endif  // EXTRA_DEFINES_H

@@ -1,51 +1,54 @@
 import logging
-from typing import Callable
+
+from fsuae.reactive import MappedVar, State, Var
+from fsuae.var import StrVar
 
 logger = logging.getLogger(__name__)
 
 
-class StateVar:
-    def __init__(self) -> None:
-        self.listeners: list[Callable] = []
+# class StateVar:
+#     def __init__(self) -> None:
+#         self.listeners: list[Callable] = []
 
-    # FIXME: add filter to connect/listener
-    def connect(self, listener: Callable) -> None:
-        self.listeners.append(listener)
+#     # FIXME: add filter to connect/listener
+#     def connect(self, listener: Callable) -> None:
+#         self.listeners.append(listener)
 
-    def disconnect(self, listener: Callable) -> None:
-        self.listeners.remove(listener)
+#     def disconnect(self, listener: Callable) -> None:
+#         self.listeners.remove(listener)
 
-    def get(self):
-        return self.value
+#     def get(self):
+#         return self.value
 
-    def set(self, value):
-        if value == self.value:
-            return
-        logger.debug("(UAECONFIG2) SET  %r", value)
-        self.value = value
-        logger.debug("calling %r", self.listeners)
-        for listener in self.listeners:
-            listener(value)
-
-
-class StrStateVar(StateVar):
-    def __init__(self, value: str = "") -> None:
-        super().__init__()
-        self.value = value
+#     def set(self, value):
+#         if value == self.value:
+#             return
+#         logger.debug("(UAECONFIG2) SET  %r", value)
+#         self.value = value
+#         logger.debug("calling %r", self.listeners)
+#         for listener in self.listeners:
+#             listener(value)
 
 
-class UaeString(StrStateVar):
+# class StrStateVar(StateVar):
+#     def __init__(self, value: str = "") -> None:
+#         super().__init__()
+#         self.value = value
+
+
+class UaeString(Var[str]):
     def __init__(self, config: "UAEConfig2", name: str, value: str = "") -> None:
-        super().__init__()
+        super().__init__(value)
         self.config = config
         self.name = name
-        self.value = value
+        # self.value = value
 
     def set(self, value: str, internal: bool = False) -> None:
         if value == self.value:
             return
         super().set(value)
         # self.config.set_value(self.name, self.value)
+
         self.config._config[self.name] = self.value
 
         if not internal:
@@ -56,16 +59,35 @@ class UaeString(StrStateVar):
 
 
 class UAEConfig2:
-    def __init__(self):
-        self._config = {}
+    def __init__(self) -> None:
+        self._config: dict[str, str] = {}
 
-        self.cpu_model = UaeString(self, "cpu_model")
+        # FIXME: Decide how to handle FS-UAE vs UAE config (introduce uae_ prefix?)
+        # self.joystick_port_0 = UaeString(self, "x_fs_joystick_port_0")
+        # self.joystick_port_1 = UaeString(self, "x_fs_joystick_port_1")
+
+        self.joystick_port_0 = Var("")
+        self.joystick_port_1 = Var("")
+        self.joystick_port_2 = Var("")
+        self.joystick_port_3 = Var("")
+
         self.chipset_compatible = UaeString(self, "chipset_compatible")
-
+        self.cpu_model = UaeString(self, "cpu_model")
         self.floppy0 = UaeString(self, "floppy0")
+        self.floppy0type = UaeString(self, "floppy0type")
+        self.floppy0wp = UaeString(self, "floppy0wp")
         self.floppy1 = UaeString(self, "floppy1")
+        self.floppy1type = UaeString(self, "floppy1type")
+        self.floppy1wp = UaeString(self, "floppy1wp")
         self.floppy2 = UaeString(self, "floppy2")
+        self.floppy2type = UaeString(self, "floppy2type")
+        self.floppy2wp = UaeString(self, "floppy2wp")
         self.floppy3 = UaeString(self, "floppy3")
+        self.floppy3type = UaeString(self, "floppy3type")
+        self.floppy3wp = UaeString(self, "floppy2wp")
+        self.gfx_center_horizontal = UaeString(self, "gfx_center_horizontal")
+        self.gfx_center_vertical = UaeString(self, "gfx_center_vertical")
+        self.mmu_model = UaeString(self, "mmu_model")
 
         self.floppy_n = [
             self.floppy0,
@@ -74,10 +96,31 @@ class UAEConfig2:
             self.floppy3,
         ]
 
-        self.mmu_model = UaeString(self, "mmu_model")
+        self.floppy_n_type = [
+            self.floppy0type,
+            self.floppy1type,
+            self.floppy2type,
+            self.floppy3type,
+        ]
 
-        self.gfx_center_vertical = UaeString(self, "gfx_center_vertical")
-        self.gfx_center_horizontal = UaeString(self, "gfx_center_horizontal")
+        def is_floppy_enabled(value: str) -> bool:
+            print("is_floppy_enabled", value != "-1")
+            return value != "-1"
+
+        self.floppy_n_enabled = [
+            self.floppy0type.map(is_floppy_enabled),
+            self.floppy1type.map(is_floppy_enabled),
+            self.floppy2type.map(is_floppy_enabled),
+            self.floppy3type.map(is_floppy_enabled),
+            # MappedVar[bool, str](self.floppy0type, is_floppy_enabled)
+        ]
+
+        self.floppy_n_wp = [
+            self.floppy0wp,
+            self.floppy1wp,
+            self.floppy2wp,
+            self.floppy3wp,
+        ]
 
     def _update(self) -> None:
         for key in sorted(self._config):
@@ -87,7 +130,7 @@ class UAEConfig2:
                 if state_var.value != value:
                     state_var.set(value, internal=True)
 
-    def warning(self, message) -> None:
+    def warning(self, message: str) -> None:
         logger.warning("%s", message)
 
     # The following functions are called whenever the corresponding config key

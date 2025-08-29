@@ -12,7 +12,8 @@
 #undef SERIAL_ENET
 
 #ifdef _WIN32
-#include <Ws2tcpip.h>
+#include <winsock2.h>
+#include <ws2tcpip.h>
 #include <windows.h>
 #include <winspool.h>
 #include <stdlib.h>
@@ -26,7 +27,7 @@
 #include <sys/stat.h>
 #include <io.h>
 #include <setupapi.h>
-#include <Ntddpar.h>
+#include <ntddpar.h>
 #endif
 
 #include "config.h"

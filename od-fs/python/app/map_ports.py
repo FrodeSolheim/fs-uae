@@ -1,6 +1,9 @@
 import logging
 from typing import Any
 
+import _fsemu_input  # type: ignore
+import _fsemu_inputport  # type: ignore
+import fsemu
 from fsemu.inputport import InputPort
 from fsuae.servicecontainer import ServiceContainer
 from uae.inputevent import InputEvent
@@ -16,14 +19,16 @@ joystick_port_0_none: Any = None
 joystick_port_0_mouse: Any = None
 joystick_port_0_joystick: Any = None
 
+joystick_port_2: Any = None
+joystick_port_2_none: Any = None
+joystick_port_3: Any = None
+joystick_port_3_none: Any = None
+
 
 def map_ports(services: ServiceContainer):
-    import fsemu_input  # type: ignore
-    import fsemu_inputport  # type: ignore
-    import uae
+    # import uae
 
-    import fsemu
-    import fsuae
+    # import fsuae
 
     # import fsemu.constants
 
@@ -36,6 +41,12 @@ def map_ports(services: ServiceContainer):
     global joystick_port_0_none
     global joystick_port_0_mouse
     global joystick_port_0_joystick
+
+    global joystick_port_2
+    global joystick_port_2_none
+
+    global joystick_port_3
+    global joystick_port_3_none
 
     # The main thread will push input events to the inputport system, while the python
     # thread here will/might change settings. We might need mutexes to protect the
@@ -59,6 +70,14 @@ def map_ports(services: ServiceContainer):
     joystick_port_0_joystick = joystick_port_0.create_mode("Joystick")
     joystick_port_0_mouse = joystick_port_0.create_mode("Mouse")
     services.input_ports.add_port(joystick_port_0)
+
+    joystick_port_2 = InputPort("Joystick Port 2")
+    joystick_port_2_none = joystick_port_2.create_mode("None")
+    services.input_ports.add_port(joystick_port_2)
+
+    joystick_port_3 = InputPort("Joystick Port 3")
+    joystick_port_3_none = joystick_port_3.create_mode("None")
+    services.input_ports.add_port(joystick_port_3)
 
     # joystick_port_1 = fsemu_inputport.new()
     # fsemu_inputport.set_name(joystick_port_1, "Joystick Port 1")
@@ -119,10 +138,15 @@ def map_ports(services: ServiceContainer):
         # (fsemu.INPUTDEVICE_KEY_RALT, InputEvent.JOY2_2ND_BUTTON),
         # mac hasn't got right ctrl - FIXME...
         (fsemu.INPUTDEVICE_KEY_RALT, InputEvent.JOY2_FIRE_BUTTON),
-        (fsemu.INPUTDEVICE_BUTTON_DPAD_UP, InputEvent.JOY2_UP),
-        (fsemu.INPUTDEVICE_BUTTON_DPAD_RIGHT, InputEvent.JOY2_RIGHT),
-        (fsemu.INPUTDEVICE_BUTTON_DPAD_DOWN, InputEvent.JOY2_DOWN),
+        (fsemu.INPUTDEVICE_KEY_RSHIFT, InputEvent.JOY2_2ND_BUTTON),
         (fsemu.INPUTDEVICE_BUTTON_DPAD_LEFT, InputEvent.JOY2_LEFT),
+        (fsemu.INPUTDEVICE_BUTTON_DPAD_RIGHT, InputEvent.JOY2_RIGHT),
+        (fsemu.INPUTDEVICE_BUTTON_DPAD_UP, InputEvent.JOY2_UP),
+        (fsemu.INPUTDEVICE_BUTTON_DPAD_DOWN, InputEvent.JOY2_DOWN),
+        (fsemu.INPUTDEVICE_LEFTXNEG, InputEvent.JOY2_LEFT),
+        (fsemu.INPUTDEVICE_LEFTXPOS, InputEvent.JOY2_RIGHT),
+        (fsemu.INPUTDEVICE_LEFTYNEG, InputEvent.JOY2_UP),
+        (fsemu.INPUTDEVICE_LEFTYPOS, InputEvent.JOY2_DOWN),
         (fsemu.INPUTDEVICE_BUTTON_SOUTH, InputEvent.JOY2_FIRE_BUTTON),
         (fsemu.INPUTDEVICE_BUTTON_EAST, InputEvent.JOY2_UP),
         # ??? Should be right trigger or right bumper?
@@ -197,8 +221,8 @@ def map_ports(services: ServiceContainer):
     # Maybe joystick mode
 
     logger.warning("NOT SETTING PORT MODES...!!!")
-    fsemu_inputport.set_mode_by_index(joystick_port_1._port, 1)
-    fsemu_inputport.set_mode_by_index(joystick_port_0._port, 2)
+    _fsemu_inputport.set_mode_by_index(joystick_port_1._port, 1)  # type: ignore
+    _fsemu_inputport.set_mode_by_index(joystick_port_0._port, 2)  # type: ignore
 
     # # # FSEMU port 0 is Amiga port 1 - set to joystick mode (2) by default
     # fsemu.post(fsemu.ACTION_PORT0TYPE2)
@@ -209,11 +233,12 @@ def map_ports(services: ServiceContainer):
     # fsemu_inputport.set_device(joystick_port_0, mouse_device)
 
     # fsemu_inputport.set_device_by_index(joystick_port_1, 0)
-    fsemu_inputport.set_device_by_index(joystick_port_1._port, 0)
 
-    fsemu_inputport.set_device_by_index(joystick_port_0._port, 1)
+    # Handled by InputDeviceRoboService instead
+    # _fsemu_inputport.set_device_by_index(joystick_port_1._port, 0)
+    # _fsemu_inputport.set_device_by_index(joystick_port_0._port, 1)
 
-    keyboard_mapping = [
+    keyboard_mapping: list[tuple[int, int]] = [
         (fsemu.INPUTDEVICE_KEY_ESCAPE, InputEvent.KEY_ESC),
         (fsemu.INPUTDEVICE_KEY_F1, InputEvent.KEY_F1),
         (fsemu.INPUTDEVICE_KEY_F2, InputEvent.KEY_F2),
@@ -225,6 +250,13 @@ def map_ports(services: ServiceContainer):
         (fsemu.INPUTDEVICE_KEY_F8, InputEvent.KEY_F8),
         (fsemu.INPUTDEVICE_KEY_F9, InputEvent.KEY_F9),
         (fsemu.INPUTDEVICE_KEY_F10, InputEvent.KEY_F10),
+        # F11
+        # F12
+        # Print screen
+        # Scroll lock
+        # Pause/break
+        # ------------------------------------------------------------------------------------------
+        (fsemu.INPUTDEVICE_KEY_GRAVE, InputEvent.KEY_BACKQUOTE ),
         (fsemu.INPUTDEVICE_KEY_1, InputEvent.KEY_1),
         (fsemu.INPUTDEVICE_KEY_2, InputEvent.KEY_2),
         (fsemu.INPUTDEVICE_KEY_3, InputEvent.KEY_3),
@@ -235,100 +267,108 @@ def map_ports(services: ServiceContainer):
         (fsemu.INPUTDEVICE_KEY_8, InputEvent.KEY_8),
         (fsemu.INPUTDEVICE_KEY_9, InputEvent.KEY_9),
         (fsemu.INPUTDEVICE_KEY_0, InputEvent.KEY_0),
+        (fsemu.INPUTDEVICE_KEY_MINUS, InputEvent.KEY_SUB),
+        (fsemu.INPUTDEVICE_KEY_EQUALS, InputEvent.KEY_EQUALS),
+        (fsemu.INPUTDEVICE_KEY_BACKSPACE, InputEvent.KEY_BACKSPACE),
+        (fsemu.INPUTDEVICE_KEY_INSERT, InputEvent.KEY_2B),
+        (fsemu.INPUTDEVICE_KEY_HOME, InputEvent.KEY_NP_LPAREN),
+        (fsemu.INPUTDEVICE_KEY_PAGEUP, InputEvent.KEY_NP_RPAREN),
+        # Num lock
+        (fsemu.INPUTDEVICE_KEY_KP_DIVIDE, InputEvent.KEY_NP_DIV),
+        (fsemu.INPUTDEVICE_KEY_KP_MULTIPLY, InputEvent.KEY_NP_MUL),
+        (fsemu.INPUTDEVICE_KEY_KP_MINUS, InputEvent.KEY_NP_SUB),
+        # ------------------------------------------------------------------------------------------
         (fsemu.INPUTDEVICE_KEY_TAB, InputEvent.KEY_TAB),
-        (fsemu.INPUTDEVICE_KEY_A, InputEvent.KEY_A),
-        (fsemu.INPUTDEVICE_KEY_B, InputEvent.KEY_B),
-        (fsemu.INPUTDEVICE_KEY_C, InputEvent.KEY_C),
-        (fsemu.INPUTDEVICE_KEY_D, InputEvent.KEY_D),
+        (fsemu.INPUTDEVICE_KEY_Q, InputEvent.KEY_Q),
+        (fsemu.INPUTDEVICE_KEY_W, InputEvent.KEY_W),
         (fsemu.INPUTDEVICE_KEY_E, InputEvent.KEY_E),
+        (fsemu.INPUTDEVICE_KEY_R, InputEvent.KEY_R),
+        (fsemu.INPUTDEVICE_KEY_T, InputEvent.KEY_T),
+        (fsemu.INPUTDEVICE_KEY_Y, InputEvent.KEY_Y),
+        (fsemu.INPUTDEVICE_KEY_U, InputEvent.KEY_U),
+        (fsemu.INPUTDEVICE_KEY_I, InputEvent.KEY_I),
+        (fsemu.INPUTDEVICE_KEY_O, InputEvent.KEY_O),
+        (fsemu.INPUTDEVICE_KEY_P, InputEvent.KEY_P),
+        (fsemu.INPUTDEVICE_KEY_LEFTBRACKET, InputEvent.KEY_LEFTBRACKET),
+        (fsemu.INPUTDEVICE_KEY_RIGHTBRACKET, InputEvent.KEY_RIGHTBRACKET),
+        (fsemu.INPUTDEVICE_KEY_RETURN, InputEvent.KEY_RETURN),
+        (fsemu.INPUTDEVICE_KEY_DELETE, InputEvent.KEY_DEL),
+        (fsemu.INPUTDEVICE_KEY_END, InputEvent.KEY_HELP),
+        (fsemu.INPUTDEVICE_KEY_PAGEDOWN, InputEvent.KEY_AMIGA_RIGHT),
+        (fsemu.INPUTDEVICE_KEY_KP_7, InputEvent.KEY_NP_7),
+        (fsemu.INPUTDEVICE_KEY_KP_8, InputEvent.KEY_NP_8),
+        (fsemu.INPUTDEVICE_KEY_KP_9, InputEvent.KEY_NP_9),
+        (fsemu.INPUTDEVICE_KEY_KP_PLUS, InputEvent.KEY_NP_ADD),
+        # ------------------------------------------------------------------------------------------
+        # FIXME: ID_FLAG_TOGGLE
+        (fsemu.INPUTDEVICE_KEY_CAPSLOCK, InputEvent.KEY_CAPS_LOCK),
+        (fsemu.INPUTDEVICE_KEY_A, InputEvent.KEY_A),
+        (fsemu.INPUTDEVICE_KEY_S, InputEvent.KEY_S),
+        (fsemu.INPUTDEVICE_KEY_D, InputEvent.KEY_D),
         (fsemu.INPUTDEVICE_KEY_F, InputEvent.KEY_F),
         (fsemu.INPUTDEVICE_KEY_G, InputEvent.KEY_G),
         (fsemu.INPUTDEVICE_KEY_H, InputEvent.KEY_H),
-        (fsemu.INPUTDEVICE_KEY_I, InputEvent.KEY_I),
         (fsemu.INPUTDEVICE_KEY_J, InputEvent.KEY_J),
         (fsemu.INPUTDEVICE_KEY_K, InputEvent.KEY_K),
         (fsemu.INPUTDEVICE_KEY_L, InputEvent.KEY_L),
-        (fsemu.INPUTDEVICE_KEY_M, InputEvent.KEY_M),
-        (fsemu.INPUTDEVICE_KEY_N, InputEvent.KEY_N),
-        (fsemu.INPUTDEVICE_KEY_O, InputEvent.KEY_O),
-        (fsemu.INPUTDEVICE_KEY_P, InputEvent.KEY_P),
-        (fsemu.INPUTDEVICE_KEY_Q, InputEvent.KEY_Q),
-        (fsemu.INPUTDEVICE_KEY_R, InputEvent.KEY_R),
-        (fsemu.INPUTDEVICE_KEY_S, InputEvent.KEY_S),
-        (fsemu.INPUTDEVICE_KEY_T, InputEvent.KEY_T),
-        (fsemu.INPUTDEVICE_KEY_U, InputEvent.KEY_U),
-        (fsemu.INPUTDEVICE_KEY_W, InputEvent.KEY_W),
-        (fsemu.INPUTDEVICE_KEY_V, InputEvent.KEY_V),
-        (fsemu.INPUTDEVICE_KEY_X, InputEvent.KEY_X),
-        (fsemu.INPUTDEVICE_KEY_Y, InputEvent.KEY_Y),
+        (fsemu.INPUTDEVICE_KEY_SEMICOLON, InputEvent.KEY_SEMICOLON),
+        (fsemu.INPUTDEVICE_KEY_APOSTROPHE, InputEvent.KEY_SINGLEQUOTE),
+        (fsemu.INPUTDEVICE_KEY_BACKSLASH, InputEvent.KEY_BACKSLASH),
+        (fsemu.INPUTDEVICE_KEY_KP_4, InputEvent.KEY_NP_4),
+        (fsemu.INPUTDEVICE_KEY_KP_5, InputEvent.KEY_NP_5),
+        (fsemu.INPUTDEVICE_KEY_KP_6, InputEvent.KEY_NP_6),
+        # ------------------------------------------------------------------------------------------
+        (fsemu.INPUTDEVICE_KEY_LSHIFT, InputEvent.KEY_SHIFT_LEFT),
+        (fsemu.INPUTDEVICE_KEY_NONUSBACKSLASH, InputEvent.KEY_30 ),
         (fsemu.INPUTDEVICE_KEY_Z, InputEvent.KEY_Z),
-        #     /* FIXME:  ID_FLAG_TOGGLE */
-        #     { FSEMU_KEYBOARD_CAPSLOCK, ALL, ACTION_KEY_CAPSLOCK },
-        #     { FSEMU_KEYBOARD_KP1, ALL, ACTION_KEY_KP1 },
-        #     { FSEMU_KEYBOARD_KP2, ALL, ACTION_KEY_KP2 },
-        #     { FSEMU_KEYBOARD_KP3, ALL, ACTION_KEY_KP3 },
-        #     { FSEMU_KEYBOARD_KP4, ALL, ACTION_KEY_KP4 },
-        #     { FSEMU_KEYBOARD_KP5, ALL, ACTION_KEY_KP5 },
-        #     { FSEMU_KEYBOARD_KP6, ALL, ACTION_KEY_KP6 },
-        #     { FSEMU_KEYBOARD_KP7, ALL, ACTION_KEY_KP7 },
-        #     { FSEMU_KEYBOARD_KP8, ALL, ACTION_KEY_KP8 },
-        #     { FSEMU_KEYBOARD_KP9, ALL, ACTION_KEY_KP9 },
-        #     { FSEMU_KEYBOARD_KP0, ALL, ACTION_KEY_KP0 },
-        #     { FSEMU_KEYBOARD_KPPERIOD, ALL, ACTION_KEY_KPPERIOD },
-        #     { FSEMU_KEYBOARD_KPPLUS, ALL, ACTION_KEY_KPPLUS },
-        #     { FSEMU_KEYBOARD_KPMINUS, ALL, ACTION_KEY_KPMINUS },
-        #     { FSEMU_KEYBOARD_KPMULTIPLY, ALL, ACTION_KEY_KPMUL },
-        #     { FSEMU_KEYBOARD_KPDIVIDE, ALL, ACTION_KEY_KPDIV },
-        #     { FSEMU_KEYBOARD_KPENTER, ALL, ACTION_KEY_KPENTER },
-        # ( fsemu.INPUTDEVICE_KEY_MINUS, InputEvent.KEY_MINUS ),
-        # ( fsemu.INPUTDEVICE_KEY_EQUALS, InputEvent.KEY_EQUALS ),
-        # ( fsemu.INPUTDEVICE_KEY_BACKSPACE, InputEvent.KEY_BACKSPACE ),
-        (fsemu.INPUTDEVICE_KEY_RETURN, InputEvent.KEY_RETURN),
+        (fsemu.INPUTDEVICE_KEY_X, InputEvent.KEY_X),
+        (fsemu.INPUTDEVICE_KEY_C, InputEvent.KEY_C),
+        (fsemu.INPUTDEVICE_KEY_V, InputEvent.KEY_V),
+        (fsemu.INPUTDEVICE_KEY_B, InputEvent.KEY_B),
+        (fsemu.INPUTDEVICE_KEY_N, InputEvent.KEY_N),
+        (fsemu.INPUTDEVICE_KEY_M, InputEvent.KEY_M),
+        (fsemu.INPUTDEVICE_KEY_COMMA, InputEvent.KEY_COMMA),
+        (fsemu.INPUTDEVICE_KEY_PERIOD, InputEvent.KEY_PERIOD),
+        (fsemu.INPUTDEVICE_KEY_SLASH, InputEvent.KEY_DIV),
+        (fsemu.INPUTDEVICE_KEY_RSHIFT, InputEvent.KEY_SHIFT_RIGHT),
+        (fsemu.INPUTDEVICE_KEY_UP, InputEvent.KEY_CURSOR_UP),
+        (fsemu.INPUTDEVICE_KEY_KP_1, InputEvent.KEY_NP_1),
+        (fsemu.INPUTDEVICE_KEY_KP_2, InputEvent.KEY_NP_2),
+        (fsemu.INPUTDEVICE_KEY_KP_3, InputEvent.KEY_NP_3),
+        (fsemu.INPUTDEVICE_KEY_KP_ENTER, InputEvent.KEY_ENTER),
+        # ------------------------------------------------------------------------------------------
+        (fsemu.INPUTDEVICE_KEY_LCTRL, InputEvent.KEY_CTRL),
+        (fsemu.INPUTDEVICE_KEY_LGUI, InputEvent.KEY_AMIGA_LEFT),
+        (fsemu.INPUTDEVICE_KEY_LALT, InputEvent.KEY_ALT_LEFT),
         (fsemu.INPUTDEVICE_KEY_SPACE, InputEvent.KEY_SPACE),
-        # ( fsemu.INPUTDEVICE_KEY_LSHIFT, InputEvent.KEY_LSHIFT ),
-        # ( fsemu.INPUTDEVICE_KEY_RSHIFT, InputEvent.KEY_RSHIFT ),
-        # ( fsemu.INPUTDEVICE_KEY_LCTRL, InputEvent.KEY_CTRL ),
-        #     { FSEMU_KEYBOARD_COMMA, ALL, ACTION_KEY_COMMA },
-        #     { FSEMU_KEYBOARD_PERIOD, ALL, ACTION_KEY_PERIOD },
-        #     { FSEMU_KEYBOARD_SLASH, ALL, ACTION_KEY_SLASH },
-        #     { FSEMU_KEYBOARD_UP, ALL, ACTION_KEY_UP },
-        #     { FSEMU_KEYBOARD_DOWN, ALL, ACTION_KEY_DOWN },
-        #     { FSEMU_KEYBOARD_LEFT, ALL, ACTION_KEY_LEFT },
-        #     { FSEMU_KEYBOARD_RIGHT, ALL, ACTION_KEY_RIGHT },
-        #     { FSEMU_KEYBOARD_HOME, ALL, ACTION_KEY_KPLPAREN },
-        #     { FSEMU_KEYBOARD_PAGEUP, ALL, ACTION_KEY_KPRPAREN },
-        #     { FSEMU_KEYBOARD_DELETE, ALL, ACTION_KEY_DEL },
-        #     { FSEMU_KEYBOARD_END, ALL, ACTION_KEY_HELP },
-        #     { FSEMU_KEYBOARD_PAGEDOWN, ALL, ACTION_KEY_RAMIGA },
-        #     { FSEMU_KEYBOARD_LEFTBRACKET, ALL, ACTION_KEY_LBRACKET },
-        #     { FSEMU_KEYBOARD_RIGHTBRACKET, ALL, ACTION_KEY_RBRACKET },
-        #     { FSEMU_KEYBOARD_SEMICOLON, ALL, ACTION_KEY_SEMICOLON },
-        #     { FSEMU_KEYBOARD_APOSTROPHE,
+        (fsemu.INPUTDEVICE_KEY_RALT, InputEvent.KEY_ALT_RIGHT),
+        (fsemu.INPUTDEVICE_KEY_RGUI, InputEvent.KEY_AMIGA_RIGHT),
+        (fsemu.INPUTDEVICE_KEY_APPLICATION, InputEvent.KEY_AMIGA_RIGHT),
+        # Many keyboards lack right super/gui/menu whatever, but have right ctrl, so it makes
+        # sense to map that to amiga right.
+        (fsemu.INPUTDEVICE_KEY_RCTRL, InputEvent.KEY_AMIGA_RIGHT),
+        (fsemu.INPUTDEVICE_KEY_LEFT, InputEvent.KEY_CURSOR_LEFT),
+        (fsemu.INPUTDEVICE_KEY_DOWN, InputEvent.KEY_CURSOR_DOWN),
+        (fsemu.INPUTDEVICE_KEY_RIGHT, InputEvent.KEY_CURSOR_RIGHT),
+        (fsemu.INPUTDEVICE_KEY_KP_0, InputEvent.KEY_NP_0),
+        (fsemu.INPUTDEVICE_KEY_KP_PERIOD, InputEvent.KEY_NP_PERIOD),
+        # ------------------------------------------------------------------------------------------
+        # (     { FSEMU_KEYBOARD_APOSTROPH),
         #       ALL,
         #       ACTION_KEY_HASH },  // FIXME: ACTION_KEY_SINGLEQUOTE ?
-        #     { FSEMU_KEYBOARD_GRAVE, ALL, ACTION_KEY_BACKTICK },  // FIXME
         #     /* FIXME */
-        #     { FSEMU_KEYBOARD_LGUI, ALL, ACTION_KEY_LAMIGA },
         # #if 0
         #     { FS_ML_KEY_LMETA,        ALL, INPUTEVENT_KEY_AMIGA_LEFT },
         # #endif
-        #     { FSEMU_KEYBOARD_LALT, ALL, ACTION_KEY_LALT },
-        #     { FSEMU_KEYBOARD_RALT, ALL, ACTION_KEY_LALT },
         #     /* FIXME */
-        #     { FSEMU_KEYBOARD_RGUI, ALL, ACTION_KEY_RAMIGA },
         # #if 0
         #     { FS_ML_KEY_RMETA,        ALL, INPUTEVENT_KEY_AMIGA_RIGHT },
         # #endif
-        #     { FSEMU_KEYBOARD_MENU, ALL, ACTION_KEY_RAMIGA },
         # #if 0
-        #     { FSEMU_KEYBOARD_RCTRL,        ALL, INPUTEVENT_KEY_CTRL_RIGHT },
         # #endif
         # #if 1
         #     // 0x2B is the number (hash) key on some international keyboards.
-        #     { FSEMU_KEYBOARD_INSERT, ALL, ACTION_KEY_2B },
-        #     { FSEMU_KEYBOARD_BACKSLASH, ALL, ACTION_KEY_BACKSLASH },
         # #else
-        #     { FSEMU_KEYBOARD_INSERT, ALL, INPUTEVENT_KEY_BACKSLASH },
         #     { FSEMU_KEYBOARD_BACKSLASH, ALL, ACTION_KEY_2B },
         # #endif
         #     // 0x30 is the key to the left of Z.
@@ -339,4 +379,4 @@ def map_ports(services: ServiceContainer):
         #         0,
         #     },
     ]
-    fsemu_input.map_keyboard(keyboard_mapping)
+    _fsemu_input.map_keyboard(keyboard_mapping)  # type: ignore

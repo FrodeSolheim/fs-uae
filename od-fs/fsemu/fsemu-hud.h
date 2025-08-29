@@ -1,3 +1,5 @@
+#if 0
+
 #ifndef FSEMU_HUD_H_
 #define FSEMU_HUD_H_
 
@@ -50,3 +52,5 @@ void fs_emu_deprecated(const char* format, ...);
 #endif
 
 #endif  // FSEMU_HUD_H_
+
+#endif

@@ -18,8 +18,10 @@ class Image:
         image = Image(fsgui_image.load(image_path))
         return image
 
-    def __init__(self, _image):
+    def __init__(self, _image) -> None:
         self._image = _image
+        self.width: int
+        self.height: int
         self.width, self.height = fsgui_image.get_size(self._image)
 
     # def get_size(self) -> tuple[int, int]:

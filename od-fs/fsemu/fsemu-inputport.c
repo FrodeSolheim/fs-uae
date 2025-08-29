@@ -14,6 +14,8 @@ static fsemu_inputport_t* fsemu_inputport_alloc(void) {
     return (fsemu_inputport_t*)malloc(sizeof(fsemu_inputport_t));
 }
 
+static int g_last_instance_id = 0;
+
 fsemu_inputport_t* fsemu_inputport_new(void) {
     fsemu_inputport_t* port = fsemu_inputport_alloc();
     fsemu_inputport_init(port);
@@ -25,6 +27,7 @@ void fsemu_inputport_init(fsemu_inputport_t* port) {
     port->name = strdup("Unnamed port");
     port->index = -1;
     port->device_index = -1;
+    port->instance_id = ++g_last_instance_id;
 }
 
 int fsemu_inputport_index(fsemu_inputport_t* port) {
@@ -236,9 +239,20 @@ void fsemu_inputport_set_device_by_index(fsemu_inputport_t* port, int device_ind
     fsemu_input_reconfigure();
 }
 
-// ----------------------
+// -------------------------------------------------------------------------------------------------
 
 #include <Python.h>
+
+static void* pycapsule_getpointer_checked(PyObject* capsule, const char* name) {
+    void* pointer = PyCapsule_GetPointer(capsule, name);
+    SDL_assert(pointer != NULL);
+    return pointer;
+}
+
+#define FSEMU_INPUT_PORT_T(capsule) \
+    (fsemu_inputport_t*)pycapsule_getpointer_checked(capsule, "fsemu_inputport_t");
+
+// -------------------------------------------------------------------------------------------------
 
 static void fsemu_inputport_python_destructor(PyObject* object) {
     SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION,
@@ -251,14 +265,22 @@ static PyObject* fsemu_inputport_python_new(PyObject* self, PyObject* args) {
     return capsule;
 }
 
-static PyObject* fsemu_inputport_python_set_name(PyObject* self, PyObject* args) {
-    PyObject* capsule;
-    const char* name;
-    if (!PyArg_ParseTuple(args, "Os:set_name", &capsule, &name)) {
+static PyObject* fsemu_inputport_python_get_instance_id(PyObject* self, PyObject* args) {
+    PyObject* port_capsule;
+    if (!PyArg_ParseTuple(args, "O:get_instance_id", &port_capsule)) {
         return NULL;
     }
-    fsemu_inputport_t* port =
-        (fsemu_inputport_t*)PyCapsule_GetPointer(capsule, "fsemu_inputport_t");
+    fsemu_inputport_t* port = FSEMU_INPUT_PORT_T(port_capsule);
+    return PyLong_FromLong(port->instance_id);
+}
+
+static PyObject* fsemu_inputport_python_set_name(PyObject* self, PyObject* args) {
+    PyObject* port_capsule;
+    const char* name;
+    if (!PyArg_ParseTuple(args, "Os:set_name", &port_capsule, &name)) {
+        return NULL;
+    }
+    fsemu_inputport_t* port = FSEMU_INPUT_PORT_T(port_capsule);
     fsemu_inputport_set_name(port, name);
     Py_RETURN_NONE;
 }
@@ -269,8 +291,7 @@ static PyObject* fsemu_inputport_python_add_mode(PyObject* self, PyObject* args)
     if (!PyArg_ParseTuple(args, "OO:add_mode", &port_capsule, &mode_capsule)) {
         return NULL;
     }
-    fsemu_inputport_t* port =
-        (fsemu_inputport_t*)PyCapsule_GetPointer(port_capsule, "fsemu_inputport_t");
+    fsemu_inputport_t* port = FSEMU_INPUT_PORT_T(port_capsule);
     fsemu_inputmode_t* mode =
         (fsemu_inputmode_t*)PyCapsule_GetPointer(mode_capsule, "fsemu_inputmode_t");
     fsemu_inputport_add_mode(port, mode);
@@ -283,8 +304,7 @@ static PyObject* fsemu_inputport_python_set_device(PyObject* self, PyObject* arg
     if (!PyArg_ParseTuple(args, "OO:set_device", &port_capsule, &device_capsule)) {
         return NULL;
     }
-    fsemu_inputport_t* port =
-        (fsemu_inputport_t*)PyCapsule_GetPointer(port_capsule, "fsemu_inputport_t");
+    fsemu_inputport_t* port = FSEMU_INPUT_PORT_T(port_capsule);
     fsemu_inputdevice_t* device =
         (fsemu_inputdevice_t*)PyCapsule_GetPointer(device_capsule, "fsemu_inputdevice_t");
     fsemu_inputport_set_device(port, device);
@@ -297,20 +317,46 @@ static PyObject* fsemu_inputport_python_set_device_by_index(PyObject* self, PyOb
     if (!PyArg_ParseTuple(args, "Oi:set_device_by_index", &port_capsule, &device_index)) {
         return NULL;
     }
-    fsemu_inputport_t* port =
-        (fsemu_inputport_t*)PyCapsule_GetPointer(port_capsule, "fsemu_inputport_t");
+    fsemu_inputport_t* port = FSEMU_INPUT_PORT_T(port_capsule);
     fsemu_inputport_set_device_by_index(port, device_index);
     Py_RETURN_NONE;
 }
 
-static PyObject* fsemu_inputport_python_set_mode_by_index(PyObject* self, PyObject* args) {
-    PyObject* capsule;
-    int mode_index;
-    if (!PyArg_ParseTuple(args, "Oi:set_mode_by_index", &capsule, &mode_index)) {
+static PyObject* fsemu_inputport_python_set_device_by_type_and_instance_id(PyObject* self,
+                                                                           PyObject* args) {
+    PyObject* port_capsule;
+    int device_type;
+    int instance_id;
+    if (!PyArg_ParseTuple(args, "Oi:set_device_by_type_and_instance_id", &port_capsule,
+                          &device_type, &instance_id)) {
         return NULL;
     }
-    fsemu_inputport_t* port =
-        (fsemu_inputport_t*)PyCapsule_GetPointer(capsule, "fsemu_inputport_t");
+    fsemu_inputport_t* port = FSEMU_INPUT_PORT_T(port_capsule);
+    int device_index = -1;
+    for (int i = 0; i < FSEMU_INPUT_MAX_DEVICES; i++) {
+        fsemu_inputdevice_t* device = fsemu_input_get_device(port->device_index);
+        if (device != NULL) {
+            if (device->type == device_type && device->instance_id == instance_id) {
+                device_index = i;
+                break;
+            }
+        }
+    }
+    if (device_index > -1) {
+        fsemu_inputport_set_device_by_index(port, device_index);
+    } else {
+        SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION, "Could not find device to insert");
+    }
+    Py_RETURN_NONE;
+}
+
+static PyObject* fsemu_inputport_python_set_mode_by_index(PyObject* self, PyObject* args) {
+    PyObject* port_capsule;
+    int mode_index;
+    if (!PyArg_ParseTuple(args, "Oi:set_mode_by_index", &port_capsule, &mode_index)) {
+        return NULL;
+    }
+    fsemu_inputport_t* port = FSEMU_INPUT_PORT_T(port_capsule);
     fsemu_inputport_set_mode_by_index(port, mode_index);
     Py_RETURN_NONE;
 }
@@ -365,15 +411,18 @@ static PyObject *fsemu_inputmode_python_map(PyObject *self, PyObject *args)
 static PyMethodDef fsemu_inputport_python_methods[] = {
     // FIXME: Rename to create?
     {"new", fsemu_inputport_python_new, METH_VARARGS, "..."},
+    {"get_instance_id", fsemu_inputport_python_get_instance_id, METH_VARARGS, "..."},
     {"set_name", fsemu_inputport_python_set_name, METH_VARARGS, "..."},
     {"add_mode", fsemu_inputport_python_add_mode, METH_VARARGS, "..."},
     {"set_device", fsemu_inputport_python_set_device, METH_VARARGS, "..."},
     {"set_device_by_index", fsemu_inputport_python_set_device_by_index, METH_VARARGS, "..."},
+    {"set_device_by_type_and_instance_id",
+     fsemu_inputport_python_set_device_by_type_and_instance_id, METH_VARARGS, "..."},
     {"set_mode_by_index", fsemu_inputport_python_set_mode_by_index, METH_VARARGS, "..."},
     {NULL, NULL, 0, NULL}};
 
 static PyModuleDef fsemu_inputport_python_module = {PyModuleDef_HEAD_INIT,
-                                                    "fsemu_inputport",
+                                                    "_fsemu_inputport",
                                                     NULL,
                                                     -1,
                                                     fsemu_inputport_python_methods,
@@ -393,5 +442,5 @@ void fsemu_inputport_init_module(void) {
     }
     initialized = true;
 
-    PyImport_AppendInittab("fsemu_inputport", &fsemu_inputport_python_init);
+    PyImport_AppendInittab("_fsemu_inputport", &fsemu_inputport_python_init);
 }

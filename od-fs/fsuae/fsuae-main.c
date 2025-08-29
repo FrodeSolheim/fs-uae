@@ -2,6 +2,7 @@
 
 #include <Python.h>
 #include <SDL3/SDL.h>
+#include <SDL3/SDL_main.h>
 #include <glib.h>
 #include <glib/genviron.h>
 #include <glib/gstdio.h>
@@ -127,6 +128,10 @@ void fsuae_main_init(void) {
 // -------------------------------------------------------------------------------------------------
 
 int main(int argc, char* argv[]) {
+#ifdef _WIN32
+    //OutputDebugStringA("FS-UAE main");
+#endif
+    SDL_Log("SDL_Log: FS-UAE main");
     printf("FS-UAE main\n");
     fsuae_extras(argc, argv);
 
@@ -141,7 +146,11 @@ int main(int argc, char* argv[]) {
 
     // fsgui_window_create();
 
-    // Must register custom events before starting Python thread
+    // Must register custom events before starting Python thread.
+    // SDL_EVENT_FSAPP_CUSTOM MUST BE first at this point!!
+    SDL_EVENT_FSAPP_CUSTOM = SDL_RegisterEvents(1);
+
+    // Control event types from GUI thread to main thread
     SDL_EVENT_FSAPP_WINDOW = SDL_RegisterEvents(1);
 
     // // The Python UI thread must be initialized before starting the main loop - an important

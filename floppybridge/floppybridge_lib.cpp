@@ -54,7 +54,7 @@ struct FloppyBridgeProfileInformationDLL {
 };
 
 #ifdef _WIN32
-#include <Windows.h>
+#include <windows.h>
 #ifdef WINUAE
 HMODULE WIN32_LoadLibrary(const TCHAR*);
 #endif

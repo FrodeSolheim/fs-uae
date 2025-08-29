@@ -68,7 +68,7 @@ class Button(BaseButton):
         self,
         text: str,
         *,
-        on_activate: Any = None,
+        on_activate: Callable[[], None] | None = None,
         parent: Widget | None = None,
         size: Size | None = None,
     ) -> None:

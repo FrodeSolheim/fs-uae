@@ -94,15 +94,21 @@ void (*D3D_flushtexture)(int, int, int) = xD3D11_flushtexture;
 
 void D3D_getpixelformat (int *rb, int *gb, int *bb, int *rs, int *gs, int *bs, int *ab, int *as, int *a)
 {
+	// Bits
 	*rb = 8;
 	*gb = 8;
 	*bb = 8;
 	*ab = 8;
+
+	// Shift values
 	*rs = 16;
 	*gs = 8;
 	*bs = 0;
 	*as = 24;
-	*a = 0;
+
+	// Important that alpha is 255, so rendering works if OpenGL renderer actually uses the alpha
+	// value (observed in VMs) and not ignores in when alpha blending is disabled.
+	*a = 255;
 }
 
 static int xD3D11_isenabled(int monid)

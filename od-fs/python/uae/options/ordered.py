@@ -403,6 +403,13 @@ ordered_uae_options = [
     "warp_limit",
     "warpboot",
     "warpboot_delay",
+    # ----------------------------------------------------------------------------------------------
+    # write_filesys_config - FIXME, can make hardfile2 / filesystem2 work
+    "hardfile2",
+    "uaehf0" "filesystem2",
+    "uaehf1",
+    # ----------------------------------------------------------------------------------------------
+    "filesys_no_fsdb",  # not always present
     "filesys_max_size",
     "filesys_max_name_length",
     "filesys_max_file_size",

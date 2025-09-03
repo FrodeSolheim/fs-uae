@@ -168,20 +168,25 @@ AM_CPPFLAGS += -I$(srcdir)/od-fs/fsuae
 EXTRA_DIST =
 
 fs_uae_SOURCES = \
+	od-fs/FS/FS.c \
+	od-fs/FS/FS.h \
 	od-fs/fsapp/fsapp-channel.c \
+	od-fs/fsapp/fsapp-channel.h \
 	od-fs/fsapp/fsapp-channel.h \
 	od-fs/fsapp/fsapp-config.h \
 	od-fs/fsapp/fsapp-events.c \
 	od-fs/fsapp/fsapp-events.h \
+	od-fs/fsapp/fsapp-instance.c \
+	od-fs/fsapp/fsapp-instance.h \
 	od-fs/fsapp/fsapp-main.c \
 	od-fs/fsapp/fsapp-main.h \
 	od-fs/fsapp/fsapp-mainloop.c \
 	od-fs/fsapp/fsapp-mainloop.h \
+	od-fs/fsapp/fsapp-pythonthread.c \
+	od-fs/fsapp/fsapp-pythonthread.h \
 	od-fs/fsapp/fsapp-surface.c \
 	od-fs/fsapp/fsapp-surface.h \
 	od-fs/fsapp/fsapp.h \
-	od-fs/fsapp/fsapp-pythonthread.c \
-	od-fs/fsapp/fsapp-pythonthread.h \
 	od-fs/fsgui/fsgui-config.h \
 	od-fs/fsgui/fsgui-font.c \
 	od-fs/fsgui/fsgui-font.h \

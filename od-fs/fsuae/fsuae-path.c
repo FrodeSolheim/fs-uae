@@ -39,7 +39,7 @@ const char* fsuae_path_base_dir(void) {
 //     if (!path) {
 //         char temp[FSLIB_PATH_MAX];
 
-//         if (fsapp_development_mode) {
+//         if (fsapp_development_dir) {
 //             fslib_path_executable_dir(temp, FSLIB_PATH_MAX);
 //             path = g_build_filename(temp, "od-fs", "python", NULL);
 //         } else {
@@ -93,7 +93,7 @@ const char* fsuae_path_system_dir(void) {
     if (!path) {
         char temp[FSLIB_PATH_MAX];
 
-        if (fsapp_development_mode) {
+        if (fsapp_development_dir) {
             fslib_path_executable_dir(temp, FSLIB_PATH_MAX);
             path = g_build_filename(temp, "System", NULL);
         } else {

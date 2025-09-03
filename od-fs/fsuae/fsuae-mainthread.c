@@ -153,6 +153,11 @@ static void handle_mouse_grab(void) {
 
         if (desired_state) {
             SDL_GetMouseState(&last_mouse_x, &last_mouse_y);
+
+            // float warp_to_x = g_window_width / 2;
+            // float warp_to_y = g_window_height / 2;
+            // SDL_WarpMouseInWindow(g_window, warp_to_x, warp_to_y);
+
             SDL_Log("Storing mouse coordinates %f,%f", last_mouse_x, last_mouse_y);
         } else {
             // When ungrabbing in fullscreen, it is possible that the mouse pointer is at the top

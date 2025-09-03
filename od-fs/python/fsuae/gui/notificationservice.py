@@ -1,0 +1,2 @@
+class NotificationService:
+    pass

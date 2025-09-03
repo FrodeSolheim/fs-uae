@@ -66,10 +66,9 @@ int caps_init (void)
 
 	if (init)
 		return 1;
-#ifdef FSUAE
-	UAE_DLHANDLE h = uae_dlopen_plugin(_T("capsimg"));
-#else
 	UAE_DLHANDLE h = uae_dlopen_plugin(_T("CAPSImg"));
+#ifdef FSUAE
+#else
 	if (!h) {
 		TCHAR tmp[MAX_DPATH];
 		if (SUCCEEDED (SHGetFolderPath (NULL, CSIDL_PROGRAM_FILES_COMMON, NULL, 0, tmp))) {

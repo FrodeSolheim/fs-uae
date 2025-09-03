@@ -12,17 +12,16 @@ else
 OS = UNKNOWN
 endif
 
-SUBDIR = _build
+BUILD_DIR = ../.build/fs-uae
 
-all: fs-uae
+all: build
 
-_build:
-	$(MAKE) -C $(SUBDIR)
+build:
+	$(MAKE) -C $(BUILD_DIR)
+	$(MAKE) fs-uae
 
-fs-uae: _build _build/fs-uae
-# FIXME: try to make it so that fs-uae is only copied when changed while also forcing make in
-# subdirectory
-	cp -a _build/fs-uae fs-uae
+fs-uae: $(BUILD_DIR)/fs-uae
+	cp -a $(BUILD_DIR)/fs-uae fs-uae
 
 # --------------------------------------------------------------------------------------------------
 
@@ -76,12 +75,19 @@ endif
 # --------------------------------------------------------------------------------------------------
 
 dist:
-	$(MAKE) -C $(SUBDIR) dist
+	$(MAKE) -C $(BUILD_DIR) dist
 
 # --------------------------------------------------------------------------------------------------
 
 flatpak: dist
 	make -C dist/flatpak
+
+# --------------------------------------------------------------------------------------------------
+
+release:
+	cd dist/env && make arm64-apple-darwin x86_64-apple-darwin
+	cd dist/docker && make x86_64-linux-gnu aarch64-linux-gnu arm-linux-gnueabihf
+	cd dist/docker && make x86_64-w64-mingw32
 
 # --------------------------------------------------------------------------------------------------
 
@@ -97,6 +103,6 @@ format:
 # --------------------------------------------------------------------------------------------------
 
 .DEFAULT:
-	$(MAKE) -C $(SUBDIR) $@
+	$(MAKE) -C $(BUILD_DIR) $@
 
-.PHONY: bindist default default-target dist format _build
+.PHONY: bindist build default default-target dist format

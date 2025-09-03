@@ -2490,11 +2490,54 @@ void toggle_fullscreen(int monid, int mode)
 
 #include "fsemu-video.h"
 
+void debug_print_custom_limits(struct vidbuf_description *avidinfo) 
+{
+	// Static variables to track previous custom limits for change detection
+	static int prev_custom_x = -1, prev_custom_y = -1, prev_custom_w = -1, prev_custom_h = -1;
+	static int prev_raw_x = -1, prev_raw_y = -1, prev_raw_w = -1, prev_raw_h = -1;
+
+	// Check custom limits for changes and log if different
+	if (avidinfo->outbuffer) {
+		int custom_w, custom_h, custom_x, custom_y, custom_realh, custom_hres, custom_vres;
+		int raw_w, raw_h, raw_x, raw_y;
+
+		get_custom_limits(&custom_w, &custom_h, &custom_x, &custom_y, &custom_realh, &custom_hres, &custom_vres);
+		get_custom_raw_limits(&raw_w, &raw_h, &raw_x, &raw_y);
+
+		const char* changed = NULL;
+		// Check if custom limits changed
+		if (custom_x != prev_custom_x || custom_y != prev_custom_y || custom_w != prev_custom_w || custom_h != prev_custom_h) {
+			changed = "custom";
+			prev_custom_x = custom_x;
+			prev_custom_y = custom_y;
+			prev_custom_w = custom_w;
+			prev_custom_h = custom_h;
+		}
+		// Check if raw limits changed (in case custom limits didn't change but raw did)
+		else if (raw_x != prev_raw_x || raw_y != prev_raw_y || raw_w != prev_raw_w || raw_h != prev_raw_h) {
+			changed = "raw   ";
+			prev_raw_x = raw_x;
+			prev_raw_y = raw_y;
+			prev_raw_w = raw_w;
+			prev_raw_h = raw_h;
+		}
+
+		if (changed != NULL) {
+			const char *padding = "             ";
+			printf(" -- changed: %s %s raw: %03d %03d %03d %03d / custom: %3d %3d %3d %3d\n",
+				changed, padding,
+				raw_x, raw_y, raw_w, raw_h, custom_x, custom_y, custom_w, custom_h);
+		}
+	}
+}
+
 bool uae_fsvideo_renderframe(int monid, int mode, bool immediate)
 {
 	struct AmigaMonitor *mon = &AMonitors[monid];
 	struct amigadisplay *ad = &adisplays[monid];
 	struct vidbuf_description *avidinfo = &adisplays[0].gfxvidinfo;
+
+	debug_print_custom_limits(avidinfo);
 
 	// printf("%d\n", avidinfo->drawbuffer.last_drawn_line);
 	// printf("%d\n", avidinfo->outbuffer->last_drawn_line);

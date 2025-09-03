@@ -12,7 +12,8 @@ from fsuae.amigacontext import AmigaContext
 from fsuae.f12window import F12Window
 from fsuae.fsuaemainwindow import FSUAEMainWindow
 from fsuae.input.devicerobotservice import DeviceRobotService
-from fsuae.input.inputdevicewindow import InputDeviceWindow
+
+# from fsuae.input.inputdevicewindow import InputDeviceWindow
 from fsuae.messages import (
     FSUAE_MESSAGE_ADD_ROM,
     FSUAE_MESSAGE_EARLY_STOP,
@@ -21,9 +22,9 @@ from fsuae.messages import (
     set_fsuae_channel,
     # process_fsuae_messages,
 )
-from fsuae.pathservice import PathService
 from fsuae.roms.romservice import ROMService
 from fsuae.servicecontainer import ServiceContainer
+from fsuae.services.pathservice import PathService
 from fsuae.uaeconfigservice import UAEConfigService
 from fsuae.workspace import init_fsuae_workspace
 from uae.options.blacklisted import blacklisted_uae_options
@@ -75,7 +76,7 @@ def app_init() -> None:
     services.rom = ROMService(services.path)
     services.tick = TickService().get()
 
-    services.rom.scan_kickstarts_dir()
+    services.rom.scan_kickstart_dirs()
 
     for rom in services.rom.roms:
         post_fsuae_message(FSUAE_MESSAGE_ADD_ROM, f"{rom.crc32},{rom.sha1},{rom.path}")
@@ -127,7 +128,7 @@ def app_init() -> None:
     setup_clock_app(services)
 
     # InputDeviceService must have been created first
-    InputDeviceWindow().instance().show()
+    # InputDeviceWindow.instance().show()
 
     last_arg = sys.argv[-1]
     if last_arg.endswith(".uae"):
@@ -166,3 +167,5 @@ def app_init() -> None:
             FSUAE_MESSAGE_RESTART_WITH_CONFIG,
             "".join(new_config_str),
         )
+    else:
+        F12Window.instance().show()

@@ -1,5 +1,9 @@
 #include "fsuae-main.h"
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <Python.h>
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
@@ -7,8 +11,8 @@
 #include <glib/genviron.h>
 #include <glib/gstdio.h>
 
-#include "config.h"
 #include "fsapp-channel.h"
+#include "fsapp-instance.h"
 #include "fsapp-main.h"
 #include "fsapp-pythonthread.h"
 #include "fsemu-sdlwindow.h"
@@ -127,13 +131,32 @@ void fsuae_main_init(void) {
 
 // -------------------------------------------------------------------------------------------------
 
+enum {
+    FSUAE_RETURN_OK = 0,
+    FSUAE_RETURN_ERROR = 1,
+    FSUAE_RETURN_ALREADY_RUNNING = 2,
+};
+
 int main(int argc, char* argv[]) {
 #ifdef _WIN32
-    //OutputDebugStringA("FS-UAE main");
+    // OutputDebugStringA("FS-UAE main");
 #endif
-    SDL_Log("SDL_Log: FS-UAE main");
-    printf("FS-UAE main\n");
     fsuae_extras(argc, argv);
+
+    SDL_Log("FS-UAE version %s starting...", PACKAGE_VERSION);
+
+    // Might reconsider this (or make it optional), but for now, let's check if FS-UAE is already
+    // running, and fail with a message box it if is.
+
+    fsapp_instance_result_t instance_result = fsapp_instance_acquire_lock("FS-UAE");
+    if (instance_result == FSAPP_INSTANCE_ALREADY_RUNNING) {
+        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_INFORMATION, "FS-UAE", "FS-UAE is already running",
+                                 NULL);
+        return FSUAE_RETURN_ALREADY_RUNNING;
+    } else if (instance_result == FSAPP_INSTANCE_ERROR) {
+        SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION, "Error occured during single instance locking");
+        // Continue anyway
+    }
 
     // Must set version in environment before calling fsuae_init
     SDL_setenv_unsafe("FSAPP_PACKAGE_VERSION", PACKAGE_VERSION, 1);
@@ -171,4 +194,9 @@ int main(int argc, char* argv[]) {
 
     // FIXME: Not thread safe...
     // fsuae_init_close_log_file();
+
+    // FIXME: Maybe wait until emulation thread is properly stopped
+    // fsapp_instance_release_lock();
+
+    return 0;
 }

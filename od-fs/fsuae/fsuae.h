@@ -3,6 +3,8 @@
 
 #include <stdbool.h>
 
-extern bool fsapp_development_mode;
+extern const char* fsapp_development_dir;
+extern const char* fsapp_cache_directory;
+extern const char* fsapp_data_directory;
 
 #endif  // FSUAE_H

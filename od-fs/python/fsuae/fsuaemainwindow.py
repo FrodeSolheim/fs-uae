@@ -1,3 +1,4 @@
+import sys
 from fsapp.tickservice import TickService
 from fsgui.mainwindow import MainWindow
 from fsgui.windowmanager import WindowManager
@@ -26,7 +27,10 @@ class FSUAEMainWindow(MainWindow):
         delim = "  \u00b7  "
         # space = " " * 20
         f12_help = "F12 to toggle menu"
-        mouse_help = "Alt+G or middle click to toggle mouse"
+
+        shortcut_mod = "Cmd" if sys.platform == "darwin" else "Alt"
+        mouse_help = f"{shortcut_mod}+G or middle click to toggle mouse"
+
         extra_title = f"{f12_help}{delim}{mouse_help}"
 
         title = f"FS-UAE  {version} ALPHA"
@@ -105,6 +109,7 @@ class FSUAEMainWindow(MainWindow):
         off_y = border
 
         ratio = 4 / 3
+        # ratio = 692 / 540
 
         if fit_w / fit_h > ratio:
             eh = fit_h

@@ -12,6 +12,7 @@
 #include <string.h>
 #include <uae/uae.h>
 
+#include "FS/FS.h"
 #include "fsemu-module.h"
 #include "fslib-path.h"
 #include "fsuae-path.h"
@@ -59,16 +60,47 @@ static const char* os_arch_name() {
 }
 #endif
 
+static char* lookup_plugin_in_dir(const char* name, const char* module_name,
+                                        const char* path);
+
+/**
+ * @brief This function will be called from UAE it tries to load a plugin library.
+ *
+ * @param name Name of the library (without .dll or .so extension)
+ * @return Returns the full path of the library (or NULL if not found)
+ */
 static const char* lookup_plugin(const char* name) {
-    SDL_Log("[PLUGINS] Looking up \"%s\"\n", name);
-    gchar* module_name = g_strconcat(name, LT_MODULE_EXT, NULL);
+    char* result;
+
+    char module_name[FS_MAX_PATH];
+    FS_CopyPath(module_name, name);
+    FS_AppendPath(module_name, LT_MODULE_EXT);
+    SDL_Log("[PLUGINS] Looking up module \"%s\"\n", name);
+
+    char path[FS_MAX_PATH];
+    FS_CopyPath(path, fsapp_data_directory);
+    FS_AppendDirName(path, "Plugins");
+    result = lookup_plugin_in_dir(name, module_name, path);
+    if (result) {
+        return result;
+    }
+
+    FS_CopyPath(path, FS_GetApplicationDir());
+    result = lookup_plugin_in_dir(name, module_name, path);
+    if (result) {
+        return result;
+    }
+
+#if 0
+    // gchar* module_name = g_strconcat(name, LT_MODULE_EXT, NULL);
     char executable_dir[FS_PATH_MAX];
     // fs_get_application_exe_dir(executable_dir, FS_PATH_MAX);
     fslib_path_application_dir(executable_dir, FS_PATH_MAX);
-    gchar* path;
+    gchar* path2;
 
+#if 0
     // Check side-by-side development directory
-    if (fsapp_development_mode) {
+    if (fsapp_development_dir) {
         path = g_build_filename(executable_dir, "..", name, module_name, NULL);
         SDL_Log("[PLUGINS] Checking \"%s\"\n", path);
         if (g_file_test(path, G_FILE_TEST_EXISTS)) {
@@ -78,6 +110,7 @@ static const char* lookup_plugin(const char* name) {
         }
         g_free(path);
     }
+#endif
 
 #ifndef NEW_PLUGINS
     void* data = g_hash_table_lookup(provides, module_name);
@@ -111,29 +144,29 @@ static const char* lookup_plugin(const char* name) {
     // First check within plugin os/arch directories
     for (int i = 0; i < g_plugin_count; i++) {
 #ifdef NEW_PLUGINS
-        path = g_build_filename(g_plugin_ver_dirs[i], OS_NAME_3, ARCH_NAME, module_name, NULL);
+        path2 = g_build_filename(g_plugin_ver_dirs[i], OS_NAME_3, ARCH_NAME, module_name, NULL);
 #else
-        path = g_build_filename(g_plugin_ver_dirs[i], os_arch_name(), module_name, NULL);
+        path2 = g_build_filename(g_plugin_ver_dirs[i], os_arch_name(), module_name, NULL);
 #endif
-        SDL_Log("[PLUGINS] Checking \"%s\"\n", path);
-        if (g_file_test(path, G_FILE_TEST_EXISTS)) {
-            g_free(module_name);
-            // FIXME: resource leak, should cache the path
-            return (const char*)path;
+        SDL_Log("[PLUGINS] Checking \"%s\"\n", path2);
+        if (g_file_test(path2, G_FILE_TEST_EXISTS)) {
+            // g_free(module_name);
+            //  FIXME: resource leak, should cache the path
+            return (const char*)path2;
         }
-        g_free(path);
+        g_free(path2);
     }
 
     // Check outside arch directories
     for (int i = 0; i < g_plugin_count; i++) {
-        path = g_build_filename(g_plugin_ver_dirs[i], module_name, NULL);
-        SDL_Log("[PLUGINS] Checking \"%s\"\n", path);
-        if (g_file_test(path, G_FILE_TEST_EXISTS)) {
-            g_free(module_name);
-            // FIXME: resource leak, should cache the path
-            return (const char*)path;
+        path2 = g_build_filename(g_plugin_ver_dirs[i], module_name, NULL);
+        SDL_Log("[PLUGINS] Checking \"%s\"\n", path2);
+        if (g_file_test(path2, G_FILE_TEST_EXISTS)) {
+            // g_free(module_name);
+            //  FIXME: resource leak, should cache the path
+            return (const char*)path2;
         }
-        g_free(path);
+        g_free(path2);
     }
 
     // Directly in old plugins dir
@@ -147,28 +180,104 @@ static const char* lookup_plugin(const char* name) {
     // g_free(path);
 
     // Directly in (System)/Plugins/ (FIXME)
-    path = g_build_filename(executable_dir, "Plugins", module_name, NULL);
-    SDL_Log("[PLUGINS] Checking \"%s\"\n", path);
-    if (g_file_test(path, G_FILE_TEST_EXISTS)) {
-        g_free(module_name);
-        // FIXME: resource leak if called more than once for the same
-        // plugin, should cache the path
-        return (const char*)path;
+    path2 = g_build_filename(executable_dir, "Plugins", module_name, NULL);
+    SDL_Log("[PLUGINS] Checking \"%s\"\n", path2);
+    if (g_file_test(path2, G_FILE_TEST_EXISTS)) {
+        // g_free(module_name);
+        //  FIXME: resource leak if called more than once for the same
+        //  plugin, should cache the path
+        return (const char*)path2;
     }
-    g_free(path);
+    g_free(path2);
 
     // Sideloaded with executable
-    path = g_build_filename(executable_dir, module_name, NULL);
+    path2 = g_build_filename(executable_dir, module_name, NULL);
     SDL_Log("[PLUGINS] Checking \"%s\"\n", path);
-    if (g_file_test(path, G_FILE_TEST_EXISTS)) {
-        g_free(module_name);
-        // FIXME: resource leak if called more than once for the same
-        // plugin, should cache the path
-        return (const char*)path;
+    if (g_file_test(path2, G_FILE_TEST_EXISTS)) {
+        // g_free(module_name);
+        //  FIXME: resource leak if called more than once for the same
+        //  plugin, should cache the path
+        return (const char*)path2;
     }
-    g_free(path);
+    g_free(path2);
 
-    g_free(module_name);
+    // g_free(module_name);
+#endif
+
+    // printf("\nEXIT\n");
+    // exit(1);
+    return NULL;
+}
+
+static char* lookup_plugin_in_dir(const char* name, const char* module_name,
+                                  const char* directory) {
+    SDL_Log("[PLUGINS] Looking up module \"%s\" in \"%s\"", name, directory);
+
+    char path[FS_MAX_PATH];
+    FS_CopyPath(path, directory);
+    int reset = strlen(path);
+    FS_AppendDirName(path, name);
+    FS_AppendDirName(path, OS_NAME_3);
+    FS_AppendDirName(path, ARCH_NAME);
+    int reset2 = strlen(path);
+    FS_AppendFileName(path, module_name);
+
+    SDL_Log("Checking %s", path);
+    if (FS_PathExists(path)) {
+        return strdup(path);
+    }
+
+#if defined(_WIN32) || defined(__DARWIN__)
+    // Case insensitive
+#else
+    char *c = path + reset2;
+    while (*c) {
+        *c = SDL_tolower(*c);
+        c++;
+    }
+    SDL_Log("Checking %s", path);
+    if (FS_PathExists(path)) {
+        return strdup(path);
+    }
+
+#endif
+
+    path[reset] = '\0';
+
+#ifdef _WIN64
+    // Special case for WinUAE compatibility (can share DLLs), prefer name_x64.dll on 64-bit
+    // Windows (name.dll might be 32-bit if name_x64.dll is present).
+    FS_AppendFileName(path, name);
+    FS_AppendPath(path, "_x64.dll");
+    SDL_Log("Checking %s", path);
+    if (FS_PathExists(path)) {
+        return strdup(path);
+    }
+    path[reset] = '\0';
+#endif
+
+    FS_AppendFileName(path, module_name);
+    SDL_Log("Checking %s", path);
+    if (FS_PathExists(path)) {
+        return strdup(path);
+    }
+
+#if defined(_WIN32) || defined(__DARWIN__)
+    // Case insensitive
+#else
+    c = path + reset;
+    while (*c) {
+        *c = SDL_tolower(*c);
+        c++;
+    }
+
+    SDL_Log("Checking %s", path);
+    if (FS_PathExists(path)) {
+        return strdup(path);
+    }
+
+#endif
+
     return NULL;
 }
 

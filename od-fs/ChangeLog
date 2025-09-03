@@ -1,10 +1,17 @@
-Version 5.0.4
+Version 5.0.6:
+
+* Default data/cache paths updated. Improved portable mode and document.
+* Changed distribution layout and added a README.txt.
+* Documentation updated (some new FS-UAE 5-specific docs).
+* Can now run ./fs-uae in dev mode from project root directory and not just `od-fs`.
+
+Version 5.0.4:
 
 * Remember cursor position when grabbing mouse, and restore when ungrabbing.
 * Added support for more UAE archivers (7z, lha, lzx, wrp).
 * Fixed loading .cue/.bin images from archives (zip).
 
-Version 5.0.3
+Version 5.0.3:
 
 * CHD support.
 * Support CD audio encoded as mp3 audio.

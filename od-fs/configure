@@ -3,7 +3,16 @@
 set -e
 
 PROJECT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+echo "PROJECT_DIR: $PROJECT_DIR"
+cd "$PROJECT_DIR"
 
-mkdir -p "$PROJECT_DIR/od-fs/_build"
-cd "$PROJECT_DIR/od-fs/_build"
+BUILD_DIR="$PROJECT_DIR/.build/fs-uae"
+echo "BUILD_DIR: $BUILD_DIR"
+
+echo
+echo Running "$PROJECT_DIR/configure" "$@"
+echo
+
+mkdir -p "$BUILD_DIR"
+cd "$BUILD_DIR"
 "$PROJECT_DIR/configure" "$@"

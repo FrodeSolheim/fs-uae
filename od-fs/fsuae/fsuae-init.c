@@ -13,6 +13,7 @@
 #include <glib.h>
 #include <glib/gstdio.h>
 
+#include "FS/FS.h"
 #include "fsapp-main.h"
 #include "fsemu-python.h"
 #include "fslib-path.h"
@@ -25,119 +26,94 @@ SDL_Mutex* g_log_file_mutex;
 
 // -------------------------------------------------------------------------------------------------
 
-bool fsapp_development_mode;
+const char* fsapp_development_dir = NULL;
 
 static void init_development_mode(void) {
-    const char* sdl_base_path = SDL_GetBasePath();
-    SDL_assert_release(sdl_base_path != NULL);
-    SDL_Log("SDL_GetBasePath() = %s\n", sdl_base_path);
-
-    char check_path[FSLIB_PATH_MAX];
-    int size = FSLIB_PATH_MAX;
-    int pos = 0;
-    pos += SDL_utf8strlcpy(check_path, SDL_GetBasePath(), size - pos);
-    SDL_utf8strlcpy(check_path + pos, "fsuae/fsuae-main.c", size - pos);
-    SDL_Log("Check for development mode (does %s exist?)", check_path);
-    fsapp_development_mode = SDL_GetPathInfo(check_path, NULL);
-
-    if (fsapp_development_mode) {
-        SDL_Log("Yes, using development paths");
-    } else {
-        SDL_Log("No, using production mode paths");
+    char path[FS_MAX_PATH];
+    FS_CopyPath(path, SDL_GetBasePath());
+    SDL_Log("SDL_GetBasePath() = %s\n", path);
+    int reset = strlen(path);
+    FS_AppendDirName(path, "od-fs");
+    if (!FS_PathExists(path)) {
+        // Try one level up
+        path[reset] = '\0';
+        FS_ParentDir(path);
+        reset = strlen(path);
+        FS_AppendDirName(path, "od-fs");
     }
-    SDL_setenv_unsafe("FSAPP_DEV_MODE", fsapp_development_mode ? "1" : "0", 1);
+
+    if (FS_PathExists(path)) {
+        path[reset] = '\0';
+        fsapp_development_dir = strdup(path);
+        // SDL_setenv_unsafe("FSAPP_DEVELOPMENT_DIR", path, 1);
+    }
 }
 
 // -------------------------------------------------------------------------------------------------
 
-char* fsapp_data_directory;
+const char* fsapp_cache_directory = NULL;
+const char* fsapp_data_directory = NULL;
 
-static void init_data_directory(void) {
-    // char buffer[FSLIB_PATH_MAX];
-    // int size = FSLIB_PATH_MAX;
-    // int pos = 0;
-    // pos += SDL_utf8strlcpy(buffer, SDL_GetBasePath(), size - pos);
-    // SDL_strlcat
-
-    // SDL_utf8strlcpy(check_path + pos, "fsuae/fsuae-main.c", size - pos);
-
-    // SDL_strlcpy(buffer, SDL_GetBasePath(), FSLIB_PATH_MAX);
-
-    // char *test_path = SDL_GetBasePath();
-
-    // gchar *fsapp_data_directory;
-
-    gchar* dir = g_canonicalize_filename(SDL_GetBasePath(), NULL);
-    while (true) {
-        gchar* portable_ini = g_build_filename(dir, "Portable.ini", NULL);
-        SDL_Log("Checking path %s", portable_ini);
-        bool found = g_file_test(portable_ini, G_FILE_TEST_EXISTS);
-        if (found) {
-            SDL_Log("Found potential portable directory!");
-            FILE* f = g_fopen(portable_ini, "r");
-            if (f != NULL) {
-                char buffer[9];
-                int read = fread(buffer, 1, 8, f);
-                buffer[8] = '\0';
-                if (read == 8 && strcmp(buffer, "# FS-UAE") == 0) {
-                    SDL_Log("Portable.ini starts with # FS-UAE");
-                    fsapp_data_directory = g_build_filename(dir, "Data", NULL);
-                } else {
-                    SDL_Log("Portable.ini does not start with # FS-UAE");
-                }
-            } else {
-                SDL_Log("Could not open Portable.ini for reading");
-            }
-            g_free(portable_ini);
-            break;
+static bool check_portable_ini(const char* path) {
+    FILE* f = g_fopen(path, "r");
+    if (f != NULL) {
+        char buffer[9];
+        int read = fread(buffer, 1, 8, f);
+        buffer[8] = '\0';
+        if (read == 8 && strcmp(buffer, "# FS-UAE") == 0) {
+            SDL_Log("Portable.ini starts with # FS-UAE");
+            return true;
+        } else {
+            SDL_Log("Portable.ini does not start with # FS-UAE");
         }
-        g_free(portable_ini);
-        gchar* old_dir = dir;
-        dir = g_path_get_dirname(old_dir);
-        bool toplevel = strcmp(dir, old_dir) == 0;
-        g_free(old_dir);
-        if (toplevel) {
-            break;
-        }
-        // printf("'%s' vs '%s'\n", dir, old_dir);
-        // if (strcmp(dir, old_dir) == 0) {
-        //     break;
-        // }
+    } else {
+        SDL_Log("Could not open Portable.ini for reading");
     }
-    g_free(dir);
+    return false;
+}
+
+static void use_base_directory(char* path) {
+    int reset = strlen(path);
+    FS_AppendDirName(path, "Data");
+    fsapp_data_directory = strdup(path);
+    path[reset] = '\0';
+    FS_AppendDirName(path, "Cache");
+    fsapp_cache_directory = strdup(path);
+}
+
+static void init_data_and_cache_directories(void) {
+    char path[FS_MAX_PATH];
+    FS_CopyPath(path, SDL_GetBasePath());  // Path ends with /
+    while (true) {
+        int reset = strlen(path);
+        FS_AppendFileName(path, "Portable.ini");
+        SDL_Log("Checking %s", path);
+        if (FS_PathExists(path)) {
+            SDL_Log("Found potential portable directory!");
+            if (check_portable_ini(path)) {
+                path[reset] = '\0';
+                use_base_directory(path);
+                break;
+            }
+        }
+        path[reset] = '\0';
+        if (!FS_ParentDir(path)) {
+            // Got to top level
+            break;
+        }
+    }
 
     if (fsapp_data_directory == NULL) {
-        const char* sdl_pref_path = SDL_GetPrefPath("", "FS-UAE");
-        SDL_assert_release(sdl_pref_path != NULL);
-        SDL_Log("SDL_GetPrefPath(...) = %s\n", sdl_pref_path);
-        fsapp_data_directory = g_build_filename(sdl_pref_path, "Data", NULL);
+        FS_CopyPath(path, SDL_GetPrefPath("", "FS-UAE"));
+        SDL_Log("SDL_GetPrefPath(...) = %s\n", path);
+        use_base_directory(path);
     }
 
-#if 0
-    if (fsapp_development_mode) {
-        fsapp_data_directory = g_build_filename(SDL_GetBasePath(), "Data", NULL);
-    } else {
-#ifdef MACOS
-        fsapp_data_directory = g_build_filename(sdl_pref_path, "Data", NULL);
-#else
-#ifdef WINDOWS
-        gchar* base_dir_temp = g_build_filename(SDL_GetBasePath(), "..", "..", "..", NULL);
-#else
-        gchar* base_dir_temp = g_build_filename(SDL_GetBasePath(), "..", NULL);
-#endif
-        gchar* base_dir = g_canonicalize_filename(base_dir_temp, NULL);
-        g_free(base_dir_temp);
-
-        SDL_Log("Base dir: %s", base_dir);
-
-        fsapp_data_directory = g_build_filename(base_dir, "Data", NULL);
-        g_free(base_dir);
-#endif
-    }
-#endif
-
-    SDL_Log("Data dir: %s", fsapp_data_directory);
+    SDL_Log("   Data dir: %s", fsapp_data_directory);
     SDL_setenv_unsafe("FSAPP_DATA_DIR", fsapp_data_directory, 1);
+
+    SDL_Log("  Cache dir: %s", fsapp_cache_directory);
+    SDL_setenv_unsafe("FSAPP_CACHE_DIR", fsapp_cache_directory, 1);
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -153,9 +129,6 @@ void SDLCALL sdl_log_output_function(void* userdata, int category, SDL_LogPriori
         return;
     }
 
-    // fprintf(f, "%s\n", message);
-
-    // fwrite
     fputs(message, f);
     fputc('\n', f);
 
@@ -194,7 +167,7 @@ static bool init_python(int argc, char* argv[]) {
     char* resources_dir = NULL;
 
     // FIXME: fslib_misc / fslib_path ?
-    if (fsapp_development_mode) {
+    if (fsapp_development_dir) {
         SDL_Log("Development mode\n");
 #ifdef _WIN32
         const char* dll_directory = "C:\\msys64\\mingw64\\bin";
@@ -202,9 +175,9 @@ static bool init_python(int argc, char* argv[]) {
         SetDllDirectoryA(dll_directory);
         python_home = g_strdup("C:\\msys64\\mingw64");
 #endif
-        python_dir = g_build_filename(SDL_GetBasePath(), "python", NULL);
+        python_dir = g_build_filename(fsapp_development_dir, "od-fs", "python", NULL);
         python_home = NULL;
-        resources_dir = g_build_filename(SDL_GetBasePath(), "resources", NULL);
+        resources_dir = g_build_filename(fsapp_development_dir, "od-fs", "resources", NULL);
     } else {
 #ifdef PORTABLE_MODE
 
@@ -352,6 +325,29 @@ static bool init_python(int argc, char* argv[]) {
 
 // -------------------------------------------------------------------------------------------------
 
+void init_logging(void) {
+    char path[FS_MAX_PATH];
+    FS_CopyPath(path, fsapp_cache_directory);
+    FS_AppendDirName(path, "Log");
+    SDL_Log("Log dir: %s", path);
+    if (!FS_PathExists(path)) {
+        SDL_Log("Log directory does not exist, creating!");
+        if (!SDL_CreateDirectory(path)) {
+            SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Could not create directory '%s'", path);
+        }
+    }
+
+    FS_AppendFileName(path, "FS-UAE.log.txt");
+    SDL_Log("Log file: %s", path);
+    g_log_file_mutex = SDL_CreateMutex();
+    g_fsuae_init_log_file = g_fopen(path, "w");
+    if (g_fsuae_init_log_file != NULL) {
+        SDL_SetLogOutputFunction(sdl_log_output_function, NULL);
+    } else {
+        SDL_Log("Could not open log file %s", path);
+    }
+}
+
 bool fsuae_init(int argc, char* argv[], int* error) {
     if (error != NULL) {
         *error = 0;
@@ -364,27 +360,11 @@ bool fsuae_init(int argc, char* argv[], int* error) {
     // Determine development mode and directory/file structure
 
     init_development_mode();
-    init_data_directory();
+    init_data_and_cache_directories();
 
     // Enable logging to file
 
-    gchar* logs_dir = g_build_filename(fsapp_data_directory, "Logs", NULL);
-    SDL_Log("Logs dir: %s", logs_dir);
-    if (!fslib_path_exists(logs_dir)) {
-        SDL_Log("Logs directory does not exist, creating!");
-        if (!SDL_CreateDirectory(logs_dir)) {
-            SDL_Log("Could not create logs directory '%s'", logs_dir);
-        }
-    }
-    gchar* log_file = g_build_filename(logs_dir, "FS-UAE.log.txt", NULL);
-    SDL_Log("Log file: %s", log_file);
-    g_log_file_mutex = SDL_CreateMutex();
-    g_fsuae_init_log_file = g_fopen(log_file, "w");
-    if (g_fsuae_init_log_file != NULL) {
-        SDL_SetLogOutputFunction(sdl_log_output_function, NULL);
-    } else {
-        SDL_Log("Could not open log file %s", log_file);
-    }
+    init_logging();
 
     // Modules must be initialized before calling fsemu_init, because that will
     // create the Python interpreter and Python module definitions must be

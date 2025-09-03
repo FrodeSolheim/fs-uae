@@ -8,6 +8,7 @@
 
 .~*
 *.DS_Store
+*.swp
 *~
 
 # Files created by bootstrap
@@ -23,14 +24,15 @@ windows/fs-uae.rc
 
 # Files created by make
 
-_build/
-.deps/
+#_build/
+#.deps/
 /fs-uae
 /FS-UAE.app/
 
 # Files created by running FS-UAE
 
 __pycache__
+/Cache
 /Data
 
 # Other directories used for testing
@@ -39,9 +41,9 @@ __pycache__
 
 # Files created by dist scripts
 
-_dist/
-.flatpak-builder/
-repo/
+#_dist/
+#.flatpak-builder/
+#repo/
 
 # Files created by running WinUAE
 

@@ -6,8 +6,8 @@ from fsemu.inputdeviceservice import InputDeviceService
 from fsemu.inputportservice import InputPortService
 
 from fsuae.input.devicerobotservice import DeviceRobotService
-from fsuae.pathservice import PathService
 from fsuae.roms.romservice import ROMService
+from fsuae.services.pathservice import PathService
 from fsuae.uaeconfigservice import UAEConfigService
 
 

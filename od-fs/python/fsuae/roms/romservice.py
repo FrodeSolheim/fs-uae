@@ -4,8 +4,8 @@ import os
 import time
 import zlib
 
-from fsuae.pathservice import PathService
 from fsuae.roms.rom import ROM
+from fsuae.services.pathservice import PathService
 
 logger = logging.getLogger(__name__)
 
@@ -22,27 +22,12 @@ class ROMService:
         # roms_by_crc32 ?
         # roms_by_... ?
 
-    def _scan_rom(self, rom_path: str) -> None:
-        # with rom_path.open("rb") as f:
-        #     data = f.read(1024*1024)
+    def scan_kickstart_dirs(self) -> None:
+        for dir_path in self.path_service.get_kickstart_dirs():
+            self._scan_kickstart_dir(dir_path)
 
-        with open(rom_path, "rb") as f:
-            data = f.read()
-        crc32 = "{:08x}".format(zlib.crc32(data))
-        sha1 = hashlib.sha1(data).hexdigest()
-        print(crc32)
-        print(sha1)
-
-        rom = ROM(path=str(rom_path), sha1=sha1, crc32=crc32)
-        # FIXME: Check if path already exists in roms list?
-        self.roms.append(rom)
-
-    def scan_kickstarts_dir(self) -> None:
-        for dir_ in self.path_service.get_roms_dirs():
-            self.scan_roms_dir_2(dir_)
-
-    def scan_roms_dir_2(self, roms_dir: str) -> None:
-        logger.debug("scan_kickstarts_dir: %s", roms_dir)
+    def _scan_kickstart_dir(self, dir_path: str) -> None:
+        logger.debug("_scan_kickstart_dir %r", dir_path)
 
         lowercased_rom_extensions = {
             ".a1200",
@@ -69,7 +54,7 @@ class ROMService:
 
         t1 = time.monotonic()
 
-        for root, _dirs, files in os.walk(roms_dir):
+        for root, _dirs, files in os.walk(dir_path):
             # It is not important to sort the files, but doing it to make it
             # (a tiy bit) easier to look through logs.
             for file in sorted(files):
@@ -89,3 +74,18 @@ class ROMService:
 
         t2 = time.monotonic()
         logger.debug("Scanned Kickstart ROMs in %0.1f ms", (t2 - t1) * 1000)
+
+    def _scan_rom(self, rom_path: str) -> None:
+        # with rom_path.open("rb") as f:
+        #     data = f.read(1024*1024)
+
+        with open(rom_path, "rb") as f:
+            data = f.read()
+        crc32 = "{:08x}".format(zlib.crc32(data))
+        sha1 = hashlib.sha1(data).hexdigest()
+        print(crc32)
+        print(sha1)
+
+        rom = ROM(path=str(rom_path), sha1=sha1, crc32=crc32)
+        # FIXME: Check if path already exists in roms list?
+        self.roms.append(rom)

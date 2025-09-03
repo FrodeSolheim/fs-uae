@@ -1042,7 +1042,7 @@ static void fsapp_main_toggle_fullscreen(void) {
     SDL_SetWindowFullscreen(g_window, window->fullscreen);
 }
 
-extern bool g_fsapp_mouse_grab = false;
+bool g_fsapp_mouse_grab = false;
 
 static void fsapp_main_toggle_mouse_grab(void) {
     if (g_fsapp_force_ui_cursor) {

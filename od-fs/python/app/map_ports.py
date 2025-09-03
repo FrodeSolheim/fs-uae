@@ -256,7 +256,7 @@ def map_ports(services: ServiceContainer):
         # Scroll lock
         # Pause/break
         # ------------------------------------------------------------------------------------------
-        (fsemu.INPUTDEVICE_KEY_GRAVE, InputEvent.KEY_BACKQUOTE ),
+        (fsemu.INPUTDEVICE_KEY_GRAVE, InputEvent.KEY_BACKQUOTE),
         (fsemu.INPUTDEVICE_KEY_1, InputEvent.KEY_1),
         (fsemu.INPUTDEVICE_KEY_2, InputEvent.KEY_2),
         (fsemu.INPUTDEVICE_KEY_3, InputEvent.KEY_3),
@@ -319,7 +319,7 @@ def map_ports(services: ServiceContainer):
         (fsemu.INPUTDEVICE_KEY_KP_6, InputEvent.KEY_NP_6),
         # ------------------------------------------------------------------------------------------
         (fsemu.INPUTDEVICE_KEY_LSHIFT, InputEvent.KEY_SHIFT_LEFT),
-        (fsemu.INPUTDEVICE_KEY_NONUSBACKSLASH, InputEvent.KEY_30 ),
+        (fsemu.INPUTDEVICE_KEY_NONUSBACKSLASH, InputEvent.KEY_30),
         (fsemu.INPUTDEVICE_KEY_Z, InputEvent.KEY_Z),
         (fsemu.INPUTDEVICE_KEY_X, InputEvent.KEY_X),
         (fsemu.INPUTDEVICE_KEY_C, InputEvent.KEY_C),

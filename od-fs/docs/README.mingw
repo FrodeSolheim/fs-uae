@@ -1,0 +1,16 @@
+pacman -S mingw-w64-x86_64-python3
+pacman -S mingw-w64-x86_64-sdl3
+pacman -S mingw-w64-x86_64-sdl3-ttf
+pacman -S mingw-w64-x86_64-sdl3-image
+pacman -S mingw-w64-x86_64-portmidi
+pacman -S mingw-w64-x86_64-glib2
+pacman -S mingw-w64-x86_64-freetype
+pacman -S mingw-w64-x86_64-freetype
+pacman -S mingw-w64-x86_64-harfbuzz
+pacman -S mingw-w64-x86_64-libmpeg2
+
+For development, must copy at least some DLLs to source dir, e.g.
+cp /mingw64/bin/zlib1.dll .
+cp /mingw64/bin/libffi-8.dll .
+
+(For Python modules)

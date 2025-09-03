@@ -16,11 +16,11 @@ Under the data directory you will typically find the following sub-directories.
 
 - `Config` - FS-UAE stored configuration files here.
 - `Plugins` - This is where FS-UAE expects to find Plugins.
-- `ROMs/Kickstarts` - Put Amiga Kickstart ROMs in this directory.
-- `ROMs/MT-32` - If you want to use MT-32 emulation, you need to put the MT-32 ROMs in this directory.
-- `ROMs/accelerator`
-- `ROMs/harddrive`
-- `ROMs/x86`
+- `ROM/Kickstart` - Put Amiga Kickstart ROMs in this directory.
+- `ROM/MT-32` - If you want to use MT-32 emulation, you need to put the MT-32 ROMs in this directory.
+- `ROM/accelerator`
+- `ROM/harddrive`
+- `ROM/x86`
 - `Screenshots` - FS-UAE will store screenshots where when you use the builtin screenshot function.
 
 ### Alternative data directory locations

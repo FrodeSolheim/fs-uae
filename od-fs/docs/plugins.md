@@ -17,7 +17,7 @@ Data/Plugins/CAPSImg/Windows/x86-64/CAPSImg.dll
 
 ## Plugin library search path
 
-Plugins are looked up first in `Data/Plugins`, and then in `(ApplicationDir)`, where `(ApplicationDir)` represents the directory containing the FS-UAE executable.
+Plugins are looked up first in `Data/Plugins`, and then in `(AppDir)`, where `(AppDir)` represents the directory containing the FS-UAE executable, and  `Data/Plugins` is the Plugins directory in your [Data](directories.md#Data) directory.
 
 Plugin libraries can be wrapped in plugin directories (`CAPSImg/Windows/x86-64/CAPSImg.dll`) - which is what you get if you download the plugins from [fs-uae.net](https://fs-uae.net) - or not.
 
@@ -28,19 +28,19 @@ Data/Plugins/CAPSImg/Linux/x86-64/CAPSImg.so
 Data/Plugins/CAPSImg/Linux/x86-64/capsimg.so
 Data/Plugins/CAPSImg.so
 Data/Plugins/capsimg.so
-(ApplicationDir)/CAPSImg/Linux/x86-64/CAPSImg.so
-(ApplicationDir)/CAPSImg/Linux/x86-64/capsimg.so
-(ApplicationDir)/CAPSImg.so
-(ApplicationDir)/capsimg.so
+(AppDir)/CAPSImg/Linux/x86-64/CAPSImg.so
+(AppDir)/CAPSImg/Linux/x86-64/capsimg.so
+(AppDir)/CAPSImg.so
+(AppDir)/capsimg.so
 ```
 
-To provide some compatibility with WinUAE, on 64-bit Windows, `CAPSImg_x64.dll` is preferred over `CAPSImg.dll` when looking in  `Data/Plugins/` and `(ApplicationDir)`. So on 64-bit Windows, the search order is:
+To provide some compatibility with WinUAE, on 64-bit Windows, `CAPSImg_x64.dll` is preferred over `CAPSImg.dll` when looking in  `Data/Plugins/` and `(AppDir)`. So on 64-bit Windows, the search order is:
 
 ```
 Data/Plugins/CAPSImg/Windows/x86-64/CAPSImg.dll
 Data/Plugins/CAPSImg_x64.dll
 Data/Plugins/CAPSImg.dll
-(ApplicationDir)/CAPSImg/Windows/x86-64/CAPSImg.dll
-(ApplicationDir)/CAPSImg_x64.dll
-(ApplicationDir)/CAPSImg.dll
+(AppDir)/CAPSImg/Windows/x86-64/CAPSImg.dll
+(AppDir)/CAPSImg_x64.dll
+(AppDir)/CAPSImg.dll
 ```

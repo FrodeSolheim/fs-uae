@@ -61,5 +61,9 @@ class FSApp:
     def data_dir(self) -> str:
         return self._data_dir
 
+    @property
+    def resources_dir(self) -> str:
+        return self._resources_dir
+
 
 fsapp = FSApp()

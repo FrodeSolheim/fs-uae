@@ -9,7 +9,8 @@
  * Copyright 2012 Frode Solheim
  */
 
-#include <fs/fs.h>
+#include "libfsemu/include/fs/fs.h"
+
 #include <fs/filesys.h>
 #include <fs/time.h>
 #include <fs/util.h>

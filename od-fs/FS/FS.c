@@ -1,6 +1,6 @@
 #include "FS/FS.h"
 
-void FS_AppendDirNameOrFileName(char* dst, const char* src, bool dir)
+void FS_AppendDirSeparator(char* dst)
 {
     int len = strlen(dst);
 #ifdef _WIN32
@@ -11,6 +11,16 @@ void FS_AppendDirNameOrFileName(char* dst, const char* src, bool dir)
     if (!isdelim(dst[len - 1])) {
         SDL_strlcat(dst, delim, FS_MAX_PATH);
     }
+}
+
+void FS_AppendDirNameOrFileName(char* dst, const char* src, bool dir)
+{
+    FS_AppendDirSeparator(dst);
+#ifdef _WIN32
+    const char* delim = "\\";
+#else
+    const char* delim = "/";
+#endif
     SDL_strlcat(dst, src, FS_MAX_PATH);
     if (dir) {
         SDL_strlcat(dst, delim, FS_MAX_PATH);

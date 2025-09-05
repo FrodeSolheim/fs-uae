@@ -1610,7 +1610,7 @@ void compute_framesync(void)
 	updateextblk();
 
 	hsync_end_left_border = display_hstart_cyclewait_end + display_hstart_cyclewait;
-
+printf("%d + %d = %d\n", display_hstart_cyclewait_end, display_hstart_cyclewait, hsync_end_left_border);
 	int res = GET_RES_AGNUS(bplcon0);
 	int eres = 0;
 
@@ -1643,6 +1643,8 @@ void compute_framesync(void)
 		vb->inwidth = current_linear_hpos_short << (res2 + 1);
 	} else {
 		vb->inwidth = (current_linear_hpos_short - (display_hstart_cyclewait_skip + display_hstart_cyclewait_skip2)) << (res2 + 1);
+		printf("current_linear_hpos_short %d - (display_hstart_cyclewait_skip %d + display_hstart_cyclewait_skip2) %d\n", current_linear_hpos_short, display_hstart_cyclewait_skip, display_hstart_cyclewait_skip2);
+		printf("vb->inwidth = %d\n", vb->inwidth);
 	}
 	vb->inwidth2 = vb->inwidth;
 	vb->extrawidth = -2;

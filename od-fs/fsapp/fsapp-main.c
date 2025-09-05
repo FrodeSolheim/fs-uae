@@ -575,6 +575,17 @@ static PyObject* fsapp_main_python_quit(PyObject* self, PyObject* args) {
     Py_RETURN_NONE;
 }
 
+static PyObject* fsapp_main_python_get_mouse_grab(PyObject* self, PyObject* args) {
+    if (!PyArg_ParseTuple(args, ":get_mouse_grab")) {
+        return NULL;
+    }
+    if (g_fsapp_mouse_grab) {
+        Py_RETURN_TRUE;
+    } else {
+        Py_RETURN_FALSE;
+    }
+}
+
 // -------------------------------------------------------------------------------------------------
 
 static void fsapp_event_capsule_destructor(PyObject* capsule) {
@@ -673,6 +684,7 @@ static PyMethodDef EmbMethods[] = {
     {"set_fullscreen", fsapp_py_set_fullscreen, METH_VARARGS, "..."},
     {"wait", fsapp_py_wait, METH_VARARGS, "..."},
     {"quit", fsapp_main_python_quit, METH_VARARGS, "..."},
+    {"get_mouse_grab", fsapp_main_python_get_mouse_grab, METH_VARARGS, "..."},
     {"get_events", fsapp_main_python_get_events, METH_VARARGS, "..."},
     {"get_event_pointer", fsapp_main_python_get_event_pointer, METH_VARARGS, "..."},
     {"get_main_channel", fsapp_main_python_get_main_channel, METH_VARARGS, "..."},
@@ -1172,7 +1184,7 @@ void fsapp_main_handle_event(SDL_Event* event) {
             break;
 
         case SDL_EVENT_KEY_DOWN:
-            printf("%d\n", event->key.scancode);
+            // printf("%d\n", event->key.scancode);
             // if (event->key.key == SDLK_ESCAPE) {
             //     SDL_Log("Escape pressed\n");
             //     fsapp.quitting = true;

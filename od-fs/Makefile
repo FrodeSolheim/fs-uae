@@ -12,7 +12,7 @@ else
 OS = UNKNOWN
 endif
 
-BUILD_DIR = ../.build/fs-uae
+BUILD_DIR = ../.build/dev
 
 all: build
 

@@ -7,9 +7,9 @@ The `Data` directory - or one of its sub-directories - is where FS-UAE will stor
 
 The data directory is (`*`):
 
-- `C:\Users\<*username*>\AppData\Roaming\FS-UAE\Data` on Windows.
-- `/home/<username>/.local/share/FS-UAE/Data` on Linux (`*`).
-- `/Users/<username>/Library/Application Support/FS-UAE/` on macOS.
+- `C:\Users\<username>\AppData\Roaming\FS-UAE\Data` on Windows.
+- `/home/<username>/.local/share/FS-UAE/Data` on Linux.
+- `/Users/<username>/Library/Application Support/FS-UAE/Data` on macOS.
 - `Data`  inside the portable directory if you are using FS-UAE in [portable mode](docs/portable.md).
 
 Under the data directory you will typically find the following sub-directories.
@@ -18,8 +18,8 @@ Under the data directory you will typically find the following sub-directories.
 - `Plugins` - This is where FS-UAE expects to find Plugins.
 - `ROM/Kickstart` - Put Amiga Kickstart ROMs in this directory.
 - `ROM/MT-32` - If you want to use MT-32 emulation, you need to put the MT-32 ROMs in this directory.
-- `ROM/accelerator`
-- `ROM/harddrive`
+- `ROM/Accelerator` or `ROM/accelerator`
+- `ROM/HardDrive` or `ROM/harddrive`
 - `ROM/x86`
 - `Screenshots` - FS-UAE will store screenshots where when you use the builtin screenshot function.
 
@@ -34,8 +34,8 @@ On Linux, it could also be something else if you have overridden `XDG_DATA_HOME`
 The cache directory is:
 
 - `C:\Users\<*username*>\AppData\Roaming\FS-UAE\Cache` on Windows.
-- `/home/<username>/.local/share/FS-UAE/Cache on Linux (`*`).
-- `/Users/<username>/Library/Application Support/FS-UAE/` on macOS.
+- `/home/<username>/.local/share/FS-UAE/Cache` on Linux.
+- `/Users/<username>/Library/Application Support/FS-UAE/Cache` on macOS.
 - `Cache`  inside the portable directory if you are using FS-UAE in [portable mode](docs/portable.md).
 
 The cache directory contains the follow sub-directories:

@@ -3,7 +3,7 @@
 
 AC_PREREQ([2.67])
 
-AC_INIT([FS-UAE], [5.0.6], [frode@fs-uae.net], [fs-uae], [https://fs-uae.net])
+AC_INIT([FS-UAE], [5.0.7], [frode@fs-uae.net], [fs-uae], [https://fs-uae.net])
 
 AC_CONFIG_AUX_DIR([od-fs/build/build-aux])
 AC_CANONICAL_HOST

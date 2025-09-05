@@ -234,7 +234,16 @@ void fsuae_renderer_render_textures() {
 
 // -------------------------------------------------------------------------------------------------
 
+#include "fsuae-hack.h"
+
 void fsuae_renderer_render_video(void) {
+    hack_window_width = g_window_width;
+    hack_window_height = g_window_height;
+    hack_window_rect_x = g_uae_rect.x;
+    hack_window_rect_y = g_uae_rect.y;
+    hack_window_rect_w = g_uae_rect.w;
+    hack_window_rect_h = g_uae_rect.h;
+
     fsemu_video_render(g_window_width, g_window_height, g_uae_rect.x, g_uae_rect.y, g_uae_rect.w,
                        g_uae_rect.h);
 }

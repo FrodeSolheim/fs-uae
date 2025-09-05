@@ -215,6 +215,8 @@ fs_uae_SOURCES = \
 	od-fs/fsuae/fsuae-events.h \
 	od-fs/fsuae/fsuae-extras.cpp \
 	od-fs/fsuae/fsuae-extras.h \
+	od-fs/fsuae/fsuae-hack.c \
+	od-fs/fsuae/fsuae-hack.h \
 	od-fs/fsuae/fsuae-init.c \
 	od-fs/fsuae/fsuae-init.h \
 	od-fs/fsuae/fsuae-main.c \
@@ -1176,6 +1178,7 @@ libfsemu_a_SOURCES = \
 	od-fs/fsemu/fsemu-compat.h \
 	od-fs/fsemu/fsemu-config.c \
 	od-fs/fsemu/fsemu-config.h \
+	od-fs/fsemu/fsemu-constants.h \
 	od-fs/fsemu/fsemu-control.c \
 	od-fs/fsemu/fsemu-control.h \
 	od-fs/fsemu/fsemu-controller.c \
@@ -2164,7 +2167,6 @@ EXTRA_DIST += \
 	od-fs/python/fsgui/image.py \
 	od-fs/python/fsgui/imagelabel.py \
 	od-fs/python/fsgui/internal/__init__.py \
-	od-fs/python/fsgui/internal/bridge.py \
 	od-fs/python/fsgui/internal/flags.py \
 	od-fs/python/fsgui/internal/id.py \
 	od-fs/python/fsgui/internal/surface.py \
@@ -2206,6 +2208,8 @@ EXTRA_DIST += \
 	od-fs/python/fsuae/f12window.py \
 	od-fs/python/fsuae/floppycontrolwindow.py \
 	od-fs/python/fsuae/fsuaemainwindow.py \
+	od-fs/python/fsuae/gui/notificationservice.py \
+	od-fs/python/fsuae/gui/notificationtype.py \
 	od-fs/python/fsuae/init.py \
 	od-fs/python/fsuae/input/__init__.py \
 	od-fs/python/fsuae/input/devicerobotservice.py \
@@ -2218,7 +2222,6 @@ EXTRA_DIST += \
 	od-fs/python/fsuae/messages.py \
 	od-fs/python/fsuae/misc/__init__.py \
 	od-fs/python/fsuae/misc/clockapp.py \
-	od-fs/python/fsuae/pathservice.py \
 	od-fs/python/fsuae/quickstartwindow.py \
 	od-fs/python/fsuae/reactive.py \
 	od-fs/python/fsuae/reactive2.py \
@@ -2228,7 +2231,12 @@ EXTRA_DIST += \
 	od-fs/python/fsuae/roms/romscanner.py \
 	od-fs/python/fsuae/roms/romservice.py \
 	od-fs/python/fsuae/servicecontainer.py \
+	od-fs/python/fsuae/services/__init__.py \
+	od-fs/python/fsuae/services/amigaforeverservice.py \
+	od-fs/python/fsuae/services/pathservice.py \
+	od-fs/python/fsuae/services/windowsservice.py \
 	od-fs/python/fsuae/shortcutswindow.py \
+	od-fs/python/fsuae/svgicon.py \
 	od-fs/python/fsuae/uaeconfig.py \
 	od-fs/python/fsuae/uaeconfig2.py \
 	od-fs/python/fsuae/uaeconfigservice.py \

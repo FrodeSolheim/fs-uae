@@ -137,6 +137,150 @@ fsgui_image_t* fsgui_image_load(const char* name) {
     return image;
 }
 
+fsgui_image_t* fsgui_image_load_sized_svg(const char* name, int width, int height) {
+    fsgui_image_t* image = FSEMU_UTIL_MALLOC0(fsgui_image_t);
+    fslib_refable_init_with_finalizer(image, fsgui_image_finalize);
+
+    const char* path = name;
+
+    // Open the file as an IO stream for SDL_image
+    SDL_IOStream* io = SDL_IOFromFile(path, "rb");
+    if (!io) {
+        fsgui_image_log_error("Could not open SVG file %s: %s", path, SDL_GetError());
+        free(image);
+        return NULL;
+    }
+
+    // Use IMG_LoadSizedSVG_IO to load the SVG at the specified size
+    SDL_Surface* surface = IMG_LoadSizedSVG_IO(io, width, height);
+    SDL_CloseIO(io);
+
+    if (!surface) {
+        fsgui_image_log_error("Could not load sized SVG %s: %s", path, SDL_GetError());
+        free(image);
+        return NULL;
+    }
+
+    image->surface = surface;
+
+    if (surface->format == SDL_PIXELFORMAT_RGBA32) {
+        fsgui_image_log_debug("Sized SVG pixel format RGBA32!\n");
+    } else if (surface->format == SDL_PIXELFORMAT_BGRA32) {
+        fsgui_image_log_debug("Sized SVG pixel format BGRA32!\n");
+    } else {
+        SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Sized SVG pixel format (0x%x) is not RGBA32",
+                     surface->format);
+        fsgui_image_log_warning("Sized SVG neither ARGB32 nor RGBA32!\n");
+    }
+
+    if (image->surface->pitch != image->surface->w * 4) {
+        SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Sized SVG pitch is not width * 4");
+    }
+
+    // SVG files don't use 9-patch format
+    image->left = 0;
+    image->top = 0;
+    image->bottom = 0;
+    image->right = 0;
+
+    fsgui_image_log_debug("Loaded sized SVG %s (%dx%d)\n", name, width, height);
+
+    return image;
+}
+
+void fsgui_image_tint(fsgui_image_t* image, uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
+    if (!image || !image->surface) {
+        fsgui_image_log_error("Cannot tint null image or surface\n");
+        return;
+    }
+
+    SDL_Surface* surface = image->surface;
+
+    // Lock the surface for direct pixel access (if needed)
+    bool surface_was_locked = false;
+    if (SDL_MUSTLOCK(surface)) {
+        if (SDL_LockSurface(surface) != 0) {
+            fsgui_image_log_error("Could not lock surface for tinting: %s\n", SDL_GetError());
+            return;
+        }
+        surface_was_locked = true;
+        fsgui_image_log("Surface locked for tinting\n");
+    } else {
+        fsgui_image_log("Surface does not require locking\n");
+    }
+
+    int width = surface->w;
+    int height = surface->h;
+    uint32_t* pixels = (uint32_t*)surface->pixels;
+
+    fsgui_image_log("Tinting %dx%d image with RGBA(%d, %d, %d, %d)\n", width, height, r, g, b, a);
+
+    // Get pixel format details for SDL3 API
+    const SDL_PixelFormatDetails* format_details = SDL_GetPixelFormatDetails(surface->format);
+    if (!format_details) {
+        fsgui_image_log_error("Could not get pixel format details: %s\n", SDL_GetError());
+        if (surface_was_locked) {
+            SDL_UnlockSurface(surface);
+        }
+        return;
+    }
+
+    // Tint each pixel
+    int pixels_processed = 0;
+    int non_transparent_pixels = 0;
+
+    for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++) {
+            uint32_t pixel = pixels[y * width + x];
+            uint8_t pixel_r, pixel_g, pixel_b, pixel_a;
+
+            // Extract RGBA components (SDL3 API)
+            SDL_GetRGBA(pixel, format_details, NULL, &pixel_r, &pixel_g, &pixel_b, &pixel_a);
+
+            // Debug first few pixels
+            if (pixels_processed < 5 && pixel_a > 0) {
+                fsgui_image_log("Pixel %d: Original RGBA(%d, %d, %d, %d)\n", pixels_processed,
+                                pixel_r, pixel_g, pixel_b, pixel_a);
+            }
+
+            // Only tint non-transparent pixels
+            if (pixel_a > 0) {
+                non_transparent_pixels++;
+
+                // Apply tint color - use replacement tinting for better results
+                // For white tint (255,255,255), replace the color but keep the shape
+                uint8_t new_r = r;
+                uint8_t new_g = g;
+                uint8_t new_b = b;
+                uint8_t new_a = pixel_a;  // Keep original alpha for shape
+
+                // Debug first few pixels after tinting
+                if (pixels_processed < 5) {
+                    fsgui_image_log("Pixel %d: Tinted RGBA(%d, %d, %d, %d)\n", pixels_processed,
+                                    new_r, new_g, new_b, new_a);
+                }
+
+                // Create new pixel and set it back
+                uint32_t new_pixel = SDL_MapRGBA(format_details, NULL, new_r, new_g, new_b, new_a);
+                pixels[y * width + x] = new_pixel;
+
+                pixels_processed++;
+            }
+        }
+    }
+
+    fsgui_image_log("Processed %d non-transparent pixels out of %d total pixels\n",
+                    non_transparent_pixels, width * height);
+
+    // Unlock surface only if we locked it
+    if (surface_was_locked) {
+        SDL_UnlockSurface(surface);
+        fsgui_image_log("Surface unlocked after tinting\n");
+    }
+
+    fsgui_image_log("Tinted image with color (%d, %d, %d, %d)\n", r, g, b, a);
+}
+
 // ----------------------------------------------------------------------------
 
 static void fsgui_image_python_destructor(PyObject* image_capsule) {
@@ -161,6 +305,42 @@ static PyObject* fsgui_image_python_load(PyObject* self, PyObject* args) {
 
     PyObject* capsule = PyCapsule_New(image, "fsgui_image_t", fsgui_image_python_destructor);
     return capsule;
+}
+
+static PyObject* fsgui_image_python_load_sized_svg(PyObject* self, PyObject* args) {
+    const char* name;
+    int width, height;
+    if (!PyArg_ParseTuple(args, "sii:load_sized_svg", &name, &width, &height)) {
+        return NULL;
+    }
+
+    fsgui_image_t* image = fsgui_image_load_sized_svg(name, width, height);
+    if (image == NULL) {
+        SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Could not load sized SVG %s: %s", name,
+                     SDL_GetError());
+        return NULL;
+    }
+
+    PyObject* capsule = PyCapsule_New(image, "fsgui_image_t", fsgui_image_python_destructor);
+    return capsule;
+}
+
+static PyObject* fsgui_image_python_tint(PyObject* self, PyObject* args) {
+    PyObject* image_capsule;
+    int r, g, b, a;
+    if (!PyArg_ParseTuple(args, "Oiiii:tint", &image_capsule, &r, &g, &b, &a)) {
+        return NULL;
+    }
+
+    fsgui_image_t* image = (fsgui_image_t*)PyCapsule_GetPointer(image_capsule, "fsgui_image_t");
+    if (!image) {
+        SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Invalid image capsule for tinting");
+        return NULL;
+    }
+
+    fsgui_image_tint(image, (uint8_t)r, (uint8_t)g, (uint8_t)b, (uint8_t)a);
+
+    Py_RETURN_NONE;
 }
 
 // ----------------------------------------------------------------------------
@@ -241,6 +421,8 @@ static PyMethodDef fsgui_image_python_methods[] = {
     {"draw", fsgui_image_python_draw, METH_VARARGS, "..."},
     {"draw_stretched", fsgui_image_python_draw_stretched, METH_VARARGS, "..."},
     {"load", fsgui_image_python_load, METH_VARARGS, "..."},
+    {"load_sized_svg", fsgui_image_python_load_sized_svg, METH_VARARGS, "..."},
+    {"tint", fsgui_image_python_tint, METH_VARARGS, "..."},
     {"get_size", fsgui_image_python_get_size, METH_VARARGS, "..."},
     {NULL, NULL, 0, NULL}};
 

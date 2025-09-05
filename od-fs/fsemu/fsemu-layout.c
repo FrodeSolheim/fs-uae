@@ -166,6 +166,8 @@ double fsemu_layout_pixel_aspect(void) {
     return fsemu_layout.pixel_aspect;
 }
 
+#include "fsuae-hack.h"
+
 void fsemu_layout_client_area(fsemu_rect_t* rect) {
     // fsemu_size size;
     // fsemu_window_size(&size);
@@ -175,6 +177,12 @@ void fsemu_layout_client_area(fsemu_rect_t* rect) {
     rect->y = titlebar;
     rect->w = fsemu_layout.width;
     rect->h = fsemu_layout.height - titlebar;
+
+    // FIXME: HACK
+    rect->x = hack_window_rect_x;
+    rect->y = hack_window_rect_y;
+    rect->w = hack_window_rect_w;
+    rect->h = hack_window_rect_h;
 
     // printf("%d %d (layout)\n", fsemu_layout.width, fsemu_layout.height);
 }
@@ -333,14 +341,14 @@ void fsemu_layout_video_rect(fsemu_rect_t* rect) {
            temp_drect.h);
 #endif
 
-    int video_w = fsemu_layout.video_width;
-    int video_h = fsemu_layout.video_height;
+    int input_w = fsemu_layout.video_width;
+    int input_h = fsemu_layout.video_height;
 
-    if (video_w == 0 || video_h == 0) {
+    if (input_w == 0 || input_h == 0) {
         // FIXME:
         // printf("WARNING: Layout video size not set\n");
-        video_w = 4;
-        video_h = 3;
+        input_w = 4;
+        input_h = 3;
     }
 
     // fsemu_assert(video_w > 0);
@@ -367,24 +375,27 @@ void fsemu_layout_video_rect(fsemu_rect_t* rect) {
     // video_w = 320;
     // video_h = 200;
 
-    double video_a;
+    double video_aspect;
     // if (fsemu_likely(fsemu_layout.video_height)) {
     // video_a =
     //     (double) fsemu_layout.video_width / fsemu_layout.video_height;
-    video_a = (double)video_w / video_h;
+    video_aspect = (double)input_w / input_h;
     // printf("video_a = %0.2f\n", video_a);
     // } else {
     //     video_a = 1.0;
     // }
 
     if (fsemu_layout.zoom_mode >= 2) {
-        video_a = (double)src_crop.w / src_crop.h;
+        video_aspect = (double)src_crop.w / src_crop.h;
     }
 
     double scale_x = 1.0;
     double scale_y = 1.0;
 
     int stretch_mode = fsemu_layout_stretch_mode();
+
+    // stretch_mode = FSEMU_STRETCH_MODE_SQUARE_PIXELS;
+    // printf("%d\n", stretch_mode);
 
     if (stretch_mode == FSEMU_STRETCH_MODE_FILL_SCREEN) {
     } else {
@@ -395,13 +406,21 @@ void fsemu_layout_video_rect(fsemu_rect_t* rect) {
         } else {
             pixel_aspect = fsemu_layout_pixel_aspect();
         }
+
+        // FIXME: Overriding
+        if (hack_ntsc_mode) {
+            pixel_aspect = 1.2;
+        } else {
+            pixel_aspect = 1.0;
+        }
+
         double initial_aspect;
         // if (fsemu_likely(video_area.h)) {
         initial_aspect = (double)video_area.w / video_area.h;
         // } else {
         //     initial_aspect = 1.0;
         // }
-        double aspect = video_a / pixel_aspect;
+        double aspect = video_aspect / pixel_aspect;
         if (aspect < initial_aspect) {
             scale_x = aspect / initial_aspect;
         } else {
@@ -423,19 +442,74 @@ void fsemu_layout_video_rect(fsemu_rect_t* rect) {
 
     // printf("%d %f, %d %f\n", video_area.w, scale_x, video_area.h, scale_y);
 
-    int scaled_w = video_area.w * scale_x;
-    int scaled_h = video_area.h * scale_y;
+    int output_w = video_area.w * scale_x;
+    int output_h = video_area.h * scale_y;
 
+    bool ntsc_aspect_ratio = hack_ntsc_mode;
+
+    // if (ntsc_aspect_ratio) {
+    //     scale_y = max_y_iscale < (int) max_x_iscale ? max_y_iscale : max_x_iscale;
+    //     scale_x = scale_y;
+    // } else {
+    //     scale_y = max_y_iscale < max_x_iscale ? max_y_iscale : max_x_iscale;
+    //     scale_x = scale_y;
+    // }
+
+    int area_w = video_area.w;
+    int area_h = video_area.h;
+
+    // ---------------------------------------------------------------------------------------------
+    // FIXME: For now overriding with simple integer scaling
+
+    if (hack_integer_scaling_mode) {
+        // Assuming low-res / non-interlaced for calculation. This will effectively give integer
+        // scaling for low-res / non-interlaced, and half-integer scaling for high-res / interlaced
+        // graphics modes.
+
+        int max_x_iscale = area_w / (input_w / 2);
+        int max_y_iscale = area_h / (input_h / 2);
+
+        if (ntsc_aspect_ratio) {
+            // Account for ~ 6:5 pixel aspect ratio while having integer / half-integer scaling.
+            // This will effectively leave scale_x the same as scale_y when scale_y <= 3; scale_x
+            // will be one less then scale_y when scale_y <= 9, (etc).
+            scale_y = max_y_iscale;
+            scale_x = round(scale_y / 1.2);
+            // Looping here, while not the most efficient approach perhaps, might avoid some edge
+            // cases due to the relationship between scale_x and scale_y at different sizes.
+            while (scale_x > max_x_iscale) {
+                scale_y -= 1;
+                scale_x = round(scale_y / 1.2);
+            }
+        } else {
+            scale_y = max_y_iscale < max_x_iscale ? max_y_iscale : max_x_iscale;
+            scale_x = scale_y;
+        }
+
+        scale_x /= 2.0;  // Correction for low-res in calculation while pixel doubling
+        scale_y /= 2.0;
+        output_w = input_w * scale_x;
+        output_h = input_h * scale_y;
+    }
+
+    // ---------------------------------------------------------------------------------------------
+
+    // printf("ntsc? %d, scale_x %0.1f scale_y %0.1f scaled_w %d scaled_h %d\n", ntsc_aspect_ratio,
+    //        scale_x * 2, scale_y * 2, output_w, output_h);
+
+#if 1
+
+    rect->w = output_w;
+    rect->h = output_h;
+    rect->x = video_area.x + (video_area.w - output_w) / 2;
+    rect->y = video_area.y + (video_area.h - output_h) / 2;
+
+#else
     // Calculating borders first to get consistent rounding (down) and use
     // borders to recalculate width to get equal borders on opposite sides.
 
     int x_border = (video_area.w - scaled_w) / 2;
     int y_border = (video_area.h - scaled_h) / 2;
-
-    // rect->w = w;
-    // rect->h = h;
-    // rect->x = video_area.x + (video_area.w - w) / 2;
-    // rect->y = video_area.y + (video_area.h - h) / 2;
 
     // We should now have a nice video rect with integer size and position.
 
@@ -456,12 +530,14 @@ void fsemu_layout_video_rect(fsemu_rect_t* rect) {
     rect->x = video_area.x + x_border;
     rect->y = video_area.y + y_border;
 
+#endif
+
     if (fsemu_layout.zoom_mode >= 2) {
         fsemu_rect_t src_rect;
         src_rect.x = 0;
         src_rect.y = 0;
-        src_rect.w = video_w;
-        src_rect.h = video_h;
+        src_rect.w = input_w;
+        src_rect.h = input_h;
         fsemu_rect_t dst_rect;
         dst_rect_from_dst_crop(&src_rect, &src_crop, rect, &dst_rect);
 
@@ -479,8 +555,6 @@ void fsemu_layout_video_rect(fsemu_rect_t* rect) {
 
     // printf("%d %d\n", x_border, y_border);
     // printf("%d %d %d %d\n", rect->x, rect->y, rect->w, rect->h);
-    // exit(1);
-    // printf("2 --------------- %d\n", video_h);
 }
 
 int fsemu_scale_mode(void) {

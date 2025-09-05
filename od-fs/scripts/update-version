@@ -22,7 +22,7 @@ def update_rpm_spec(path: str, version: str) -> None:
         lines = f.readlines()
     for i, line in enumerate(lines):
         if line.startswith("%define version"):
-            lines[i] = f"%define version {version}"
+            lines[i] = f"%define version {version}\n"
             break
     with open(path, "w") as f:
         f.writelines(lines)

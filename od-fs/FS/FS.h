@@ -34,6 +34,13 @@ static inline bool isdelim(char c)
 }
 
 /**
+ * @brief Append dir separator (it it's not already there)
+ * 
+ * @param dst 
+ */
+void FS_AppendDirSeparator(char* dst);
+
+/**
  * @brief FS_AppendDirName appends a name and a trailing directory slash
  */
 void FS_AppendDirNameOrFileName(char* dst, const char* src, bool dir);

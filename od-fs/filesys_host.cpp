@@ -5,7 +5,7 @@
 #include "sysconfig.h"
 #include "sysdeps.h"
 
-#include <fs/fs.h>
+#include "libfsemu/include/fs/fs.h"
 
 #include "fsdb.h"
 #include "uae/fs.h"

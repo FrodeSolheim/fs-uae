@@ -39,8 +39,7 @@ class PathService:
         # FIXME: Do we want to run an early python init in the main thread before getting too far?
         # Then we can calculate plugin dir(s) in Python and report that back to C/C++ code...
 
-        # FIXME:
-        # self._cache = os.environ["FSAPP_CACHE_DIR"]
+        self._cache_dir = os.environ["FSAPP_CACHE_DIR"]
         self._data_dir = os.environ["FSAPP_DATA_DIR"]
 
         logger.info("Data: %r", self._data_dir)
@@ -69,6 +68,12 @@ class PathService:
         self._rom = os.path.join(self._data_dir, "ROM")
         print("ROM directory:", self._rom)
         # sys.exit(1)
+
+        # Create the Plugins dir so users can see where they should put plugins
+
+        self._plugins_dirs = [os.path.join(self._data_dir, "Plugins")]
+        if not os.path.exists(self._plugins_dirs[0]):
+            os.makedirs(self._plugins_dirs[0])
 
     def _find_dirs(
         self, parent_dirs: list[str], names: list[str], include_lowercase: bool = True

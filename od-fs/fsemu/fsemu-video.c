@@ -494,7 +494,7 @@ void fsemu_video_render_gui_early(fsemu_gui_item_t* items) {
     if (fsemu_video.renderer == FSEMU_VIDEO_RENDERER_SDL) {
         fsemu_sdlvideo_render_gui_early(items);
     } else if (fsemu_video.renderer == FSEMU_VIDEO_RENDERER_GL) {
-        fsemu_glvideo_render_gui_early(items);
+        // fsemu_glvideo_render_gui_early(items);
     }
 }
 
@@ -511,7 +511,7 @@ void fsemu_video_render_gui(fsemu_gui_item_t* items) {
     if (fsemu_video.renderer == FSEMU_VIDEO_RENDERER_SDL) {
         fsemu_sdlvideo_render_gui(items);
     } else if (fsemu_video.renderer == FSEMU_VIDEO_RENDERER_GL) {
-        fsemu_glvideo_render_gui(items);
+        // fsemu_glvideo_render_gui(items);
     }
 }
 

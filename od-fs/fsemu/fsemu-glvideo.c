@@ -348,17 +348,22 @@ void fsemu_glvideo_work(int timeout_us) {
     // }
 }
 
+#include "fsuae-hack.h"
+
 static void fsemu_glvideo_convert_coordinates(fsemu_drect_t* out, fsemu_rect_t* in,
                                               int coordinates) {
     // FIXME: Use copy of window size? Layout?
     fsemu_size_t window_size;
     fsemu_window_size(&window_size);
 
-    // FIXME:
-    window_size.w = 1280;
-    window_size.h = 720;
-
     int titlebar = fsemu_titlebar_static_height();
+
+    // FIXME: HACK
+    window_size.w = hack_window_width;
+    window_size.h = hack_window_height;
+    titlebar = hack_window_rect_y;
+    titlebar = 0;
+
     fsemu_size_t client_size;
     client_size.w = window_size.w;
     client_size.h = window_size.h - titlebar;
@@ -482,17 +487,34 @@ void fsemu_glvideo_render(int window_width, int window_height, int x, int y, int
     }
 
     SDL_Rect src;
-    src.x = 0;
-    src.y = 0;
-    src.w = fsemu_glvideo.rect.w;
-    src.h = fsemu_glvideo.rect.h;
+    // src.x = 0;
+    // src.y = 0;
+    // src.w = fsemu_glvideo.rect.w;
+    // src.h = fsemu_glvideo.rect.h;
+
     // src.w = 692;
     // src.h = 540;
 
+#if 1
+    // Hack, for now check auto crop mode earlier and ajust limits. It isn't enough to "fix it"
+    // here, the sub texture upload code also needs to upload the right part (or all?)
     src.x = fsemu_glvideo.limits_rect.x;
     src.y = fsemu_glvideo.limits_rect.y;
     src.w = fsemu_glvideo.limits_rect.w;
     src.h = fsemu_glvideo.limits_rect.h;
+#else
+    if (hack_auto_crop_mode) {
+        src.x = fsemu_glvideo.limits_rect.x;
+        src.y = fsemu_glvideo.limits_rect.y;
+        src.w = fsemu_glvideo.limits_rect.w;
+        src.h = fsemu_glvideo.limits_rect.h;
+    } else {
+        src.x = 0;
+        src.y = 0;
+        src.w = fsemu_glvideo.rect.w;
+        src.h = fsemu_glvideo.rect.h;
+    }
+#endif
 
     // printf("%d %d %d %d\n", src.x, src.y, src.w, src.h);
 
@@ -503,6 +525,10 @@ void fsemu_glvideo_render(int window_width, int window_height, int x, int y, int
     src.w += 1;
     src.h += 1;
 #endif
+
+    // printf("window size: %d %d\n", w, h);
+    // fsemu_layout_set_c
+    fsemu_layout_set_size_2(w, h);
 
     fsemu_layout_set_video_size(src.w, src.h);
     fsemu_layout_set_pixel_aspect(((double)src.w / src.h) / (4.0 / 3.0));
@@ -518,20 +544,12 @@ void fsemu_glvideo_render(int window_width, int window_height, int x, int y, int
     fsemu_drect_t dr;
     fsemu_glvideo_convert_coordinates(&dr, &dst, FSEMU_COORD_REAL);
 
-    // int x = 0;
-    // int y = 36;
-    // int w = 692 * 1.5;
-    // int h = 540 * 1.5;
-    // int w = width;
-    // int h = height;
-
-    int ww = window_width;
-    int wh = window_height;
-
-    dr.x = (float)(-1.0 + 2.0 * x / ww);
-    dr.y = (float)(-1.0 + 2.0 * (wh - h - y) / wh);
-    dr.w = (float)(2.0 * w / ww);
-    dr.h = (float)(2.0 * h / wh);
+    // int ww = window_width;
+    // int wh = window_height;
+    // dr.x = (float)(-1.0 + 2.0 * x / ww);
+    // dr.y = (float)(-1.0 + 2.0 * (wh - h - y) / wh);
+    // dr.w = (float)(2.0 * w / ww);
+    // dr.h = (float)(2.0 * h / wh);
 
 #if 0
     printf("%d %d %d %d -> %0.2f %0.2f %0.2f %0.2f\n",
@@ -797,465 +815,6 @@ void fsemu_glvideo_display(void) {
     glVertex2f(-1.0, 1.0);
     glEnd();
 #endif
-}
-
-static void fsemu_glvideo_convert_coordinate_2(double* out, fsemu_gui_coord_t* coord,
-                                               fsemu_widget_t* widget, bool horizontal) {
-#if 0
-    printf("coordinates %d %0.2f\n", coord->anchor, coord->offset);
-#endif
-    double anchor;
-    double scale;
-
-    // int client_top = 80;
-    // double offset_scale_x = 1920;
-    // double offset_scale_y = 1080 + client_top;
-
-    // FIXME: Do this calculation once for each pass through the render
-    // tree, not for every item...
-    fsemu_size_t window_size;
-    fsemu_window_size(&window_size);
-
-    int titlebar = fsemu_titlebar_static_height();
-    fsemu_size_t client_size;
-    client_size.w = window_size.w;
-    client_size.h = window_size.h - titlebar;
-    double yoff = 1.0 * titlebar / window_size.h;
-
-    double scale_x = (1920.0 / 1080.0) / ((double)client_size.w / client_size.h) / 1920.0;
-    double scale_y = (double)client_size.h / window_size.h / 1080.0;
-
-    if (coord->anchor == FSEMU_WIDGET_VIDEO_TOP) {
-        anchor = fsemu_glvideo_temp.video_rect.y;
-        scale = scale_y;
-    } else if (coord->anchor == FSEMU_WIDGET_VIDEO_RIGHT) {
-        anchor = fsemu_glvideo_temp.video_rect.x + fsemu_glvideo_temp.video_rect.w;
-        scale = scale_x;
-    } else if (coord->anchor == FSEMU_WIDGET_VIDEO_BOTTOM) {
-        anchor = fsemu_glvideo_temp.video_rect.y + fsemu_glvideo_temp.video_rect.h;
-        scale = scale_y;
-    } else if (coord->anchor == FSEMU_WIDGET_VIDEO_LEFT) {
-        anchor = fsemu_glvideo_temp.video_rect.x;
-        scale = scale_x;
-    } else if (coord->anchor == FSEMU_WIDGET_SCREEN_TOP) {
-        anchor = yoff;
-        scale = scale_y;
-    } else if (coord->anchor == FSEMU_WIDGET_SCREEN_RIGHT) {
-        anchor = 1.0;
-        scale = scale_x;
-    } else if (coord->anchor == FSEMU_WIDGET_SCREEN_BOTTOM) {
-        anchor = 1.0;
-        scale = scale_y;
-    } else if (coord->anchor == FSEMU_WIDGET_SCREEN_LEFT) {
-        anchor = 0.0;
-        scale = scale_x;
-
-    } else if (coord->anchor == FSEMU_WIDGET_PARENT_TOP) {
-        if (widget->parent) {
-            anchor = widget->parent->render_rect.y;
-            scale = scale_y;
-            // printf("anchor %f + offset %f * scale %f\n",
-            //        anchor,
-            //        coord->offset,
-            //        scale);
-        } else {
-            // FIXME: Use FSEMU_WIDGET_SCREEN_TOP fallback
-            anchor = 0.0;
-            scale = 1;
-        }
-    } else if (coord->anchor == FSEMU_WIDGET_PARENT_BOTTOM) {
-        if (widget->parent) {
-            anchor = widget->parent->render_rect.y + widget->parent->render_rect.h;
-            scale = scale_y;
-        } else {
-            // FIXME: Use fallback
-            anchor = 0.0;
-            scale = 1;
-        }
-    } else if (coord->anchor == FSEMU_WIDGET_PARENT_LEFT) {
-        if (widget->parent) {
-            anchor = widget->parent->render_rect.x;
-            scale = scale_x;
-        } else {
-            // FIXME: Use fallback
-            anchor = 0.0;
-            scale = 1;
-        }
-    } else if (coord->anchor == FSEMU_WIDGET_PARENT_RIGHT) {
-        if (widget->parent) {
-            anchor = widget->parent->render_rect.x + widget->parent->render_rect.w;
-            scale = scale_x;
-        } else {
-            // FIXME: Use fallback
-            anchor = 0.0;
-            scale = 1;
-        }
-    } else if (coord->anchor == FSEMU_WIDGET_PARENT_CENTER) {
-        // FIXME: Need to know if we're doing vertical or horizontal
-        if (widget->parent) {
-            if (horizontal) {
-                anchor = widget->parent->render_rect.x + widget->parent->render_rect.w / 2;
-            } else {
-                anchor = widget->parent->render_rect.y + widget->parent->render_rect.h / 2;
-            }
-            scale = scale_x;
-        } else {
-            // FIXME: Use fallback
-            anchor = 0.0;
-            scale = 1;
-        }
-    } else {
-        anchor = 0.0;
-        scale = 1;
-    }
-    *out = anchor + coord->offset * scale;
-}
-
-static void fsemu_glvideo_convert_coordinates_2(fsemu_drect_t* out, fsemu_widget_t* widget) {
-    double x2, y2;
-    fsemu_glvideo_convert_coordinate_2(&out->x, &widget->left, widget, true);
-    fsemu_glvideo_convert_coordinate_2(&out->y, &widget->top, widget, false);
-    fsemu_glvideo_convert_coordinate_2(&x2, &widget->right, widget, true);
-    fsemu_glvideo_convert_coordinate_2(&y2, &widget->bottom, widget, false);
-
-#if 0
-    printf("-> %f %f %f (x2) %f (y2)\n", out->x, out->y, x2, y2);
-#endif
-    out->w = x2 - out->x;
-    out->h = y2 - out->y;
-#if 0
-    printf("-> -> %f %f %f %f\n", out->x, out->y, out->w, out->h);
-#endif
-}
-
-static void fsemu_glvideo_render_rect(fsemu_drect_t* dr, fsemu_widget_t* widget) {
-    // New style coordinates
-    dr->x = -1.0 + 2.0 * widget->render_rect.x;
-    dr->y = 1.0 - 2.0 * (widget->render_rect.y + widget->render_rect.h);
-    dr->w = 2.0 * widget->render_rect.w;
-    dr->h = 2.0 * widget->render_rect.h;
-
-#if 0
-    if (widget->left.anchor) {
-        printf("%f %f %f %f -> %f %f %f %f\n",
-               widget->render_rect.x,
-               widget->render_rect.y,
-               widget->render_rect.w,
-               widget->render_rect.h,
-               dr->x,
-               dr->y,
-               dr->w,
-               dr->h);
-    }
-#endif
-
-    if (!widget->left.anchor) {
-#if 0
-        // New style coordinates
-        dr->x = -1.0 + 2.0 * widget->render_rect.x;
-        dr->y = 1.0 - 2.0 * widget->render_rect.y;
-        dr->w = 2.0 * widget->render_rect.w;
-        dr->h = 2.0 * widget->render_rect.h;
-#if 0
-        fsemu_glvideo_convert_coordinates_2(dr, widget);
-
-        printf("Render image to %0.2f, %0.2f %0.2f x %0.2f\n",
-               dr->x,
-               dr->y,
-               dr->w,
-               dr->h);
-#endif
-    } else {
-#endif
-        // Old style coordinates
-        fsemu_glvideo_convert_coordinates(dr, &widget->rect, widget->coordinates);
-    }
-}
-
-static void fsemu_glvideo_render_text(fsemu_gui_item_t* widget) {
-    fsemu_drect_t dr;
-    fsemu_glvideo_render_rect(&dr, widget);
-    uint8_t r, g, b, a;
-    fsemu_color_decode(widget->color, &r, &g, &b, &a);
-
-#if 1
-    // FIXME: Inefficient, temporary
-    fsemu_size_t window_size;
-    fsemu_window_size(&window_size);
-    int titlebar = fsemu_titlebar_static_height();
-    fsemu_size_t client_size;
-    client_size.w = window_size.w;
-    client_size.h = window_size.h - titlebar;
-#endif
-
-    // printf("dr.h = %0.1f\n", dr.h);
-    // Vertical text alignment
-    double text_h = 2.0 * widget->textimage->height / 1080.0;
-    double text_w = 2.0 * widget->textimage->width * client_size.h / client_size.w / 1080.0;
-    dr.x = dr.x + (dr.w - text_w) * widget->text_halign;
-    dr.y = dr.y + (dr.h - text_h) * (1.0 - widget->text_valign);
-
-    dr.h = text_h;
-    // FIXME: Clamp with to original dr.w plus adjust tx to achieve clipping?
-    dr.w = text_w;
-    // printf("dr.h = %0.1f\n", dr.h);
-    dr.w = text_w;
-
-    // FIXME: Inefficient
-    GLuint texture;
-    glGenTextures(1, &texture);
-    fsemu_opengl_log_error_maybe();
-    glBindTexture(GL_TEXTURE_2D, texture);
-    fsemu_opengl_log_error_maybe();
-
-    fsemu_image_t* image = widget->textimage;
-    // image->depth,
-    // image->stride,
-
-    if (image->stride == image->width * 4) {
-        fsemu_opengl_unpack_row_length(0);
-    } else {
-        fsemu_opengl_unpack_row_length(image->stride / 4);
-    }
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image->width, image->height, 0, GL_RGBA,
-                 GL_UNSIGNED_BYTE, image->data);
-    fsemu_opengl_log_error_maybe();
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    fsemu_opengl_log_error_maybe();
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    fsemu_opengl_log_error_maybe();
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    fsemu_opengl_log_error_maybe();
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    fsemu_opengl_log_error_maybe();
-
-    float tx1 = 0.0f, tx2 = 1.0f;
-    float ty1 = 1.0f, ty2 = 0.0f;
-    if (widget->flags & FSEMU_WIDGET_FLAG_FLIPX) {
-        tx1 = 1.0f;
-        tx2 = 0.0f;
-    }
-
-    // fsemu_opengl_blend(false);
-    fsemu_opengl_blend(true);
-    // fsemu_opengl_color4f(1.0f, 1.0f, 1.0f, 1.0f);
-    fsemu_opengl_depth_test(false);
-#if FSEMU_OPENGL_SHOW_TEXT_DEBUG_RECTANGLE
-    fsemu_opengl_texture_2d(false);
-    fsemu_opengl_color4f(1.0, 0.0, 0.0, 0.5);
-    glBegin(GL_QUADS);
-    glVertex3f(dr.x, dr.y, 0);
-    glVertex3f(dr.x + dr.w, dr.y, 0);
-    glVertex3f(dr.x + dr.w, dr.y + dr.h, 0);
-    glVertex3f(dr.x, dr.y + dr.h, 0);
-    glEnd();
-#endif
-    fsemu_opengl_color4f(r / 255.0, g / 255.0, b / 255.0, a / 255.0);
-    fsemu_opengl_texture_2d(true);
-
-    glBegin(GL_QUADS);
-    glTexCoord2f(tx1, ty1);
-    glVertex3f(dr.x, dr.y, 0);
-    glTexCoord2f(tx2, ty1);
-    glVertex3f(dr.x + dr.w, dr.y, 0);
-    glTexCoord2f(tx2, ty2);
-    glVertex3f(dr.x + dr.w, dr.y + dr.h, 0);
-    glTexCoord2f(tx1, ty2);
-    glVertex3f(dr.x, dr.y + dr.h, 0);
-    glEnd();
-    fsemu_opengl_log_error_maybe();
-
-    // fsemu_video_log_debug("Render image to %0.2f,%0.2f %0.2fx%0.2f\n",
-    //                 dr.x, dr.y, dr.w, dr.h);
-    glDeleteTextures(1, &texture);
-    fsemu_opengl_log_error_maybe();
-}
-
-static void fsemu_glvideo_render_image(fsemu_gui_item_t* widget) {
-    fsemu_drect_t dr;
-#if 0
-    if (item->left.anchor) {
-        fsemu_glvideo_convert_coordinates_2(&dr, item);
-
-        printf("Render image to %0.2f, %0.2f %0.2f x %0.2f\n",
-               dr.x,
-               dr.y,
-               dr.w,
-               dr.h);
-    } else {
-        fsemu_glvideo_convert_coordinates(&dr, &item->rect, item->coordinates);
-    }
-#endif
-    fsemu_glvideo_render_rect(&dr, widget);
-    uint8_t r, g, b, a;
-    fsemu_color_decode(widget->color, &r, &g, &b, &a);
-
-    // FIXME: Inefficient
-    GLuint texture;
-    glGenTextures(1, &texture);
-    fsemu_opengl_log_error_maybe();
-    glBindTexture(GL_TEXTURE_2D, texture);
-    fsemu_opengl_log_error_maybe();
-
-    fsemu_image_t* image = widget->image;
-    // image->depth,
-    // image->stride,
-
-    // fsemu_opengl_unpack_row_length(4);
-    if (image->stride == image->width * 4) {
-        fsemu_opengl_unpack_row_length(0);
-    } else {
-        fsemu_opengl_unpack_row_length(image->stride / 4);
-    }
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image->width, image->height, 0, GL_RGBA,
-                 GL_UNSIGNED_BYTE, image->data);
-    fsemu_opengl_log_error_maybe();
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    fsemu_opengl_log_error_maybe();
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    fsemu_opengl_log_error_maybe();
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    fsemu_opengl_log_error_maybe();
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    fsemu_opengl_log_error_maybe();
-
-    float tx1 = 0.0f, tx2 = 1.0f;
-    float ty1 = 1.0f, ty2 = 0.0f;
-    if (widget->flags & FSEMU_WIDGET_FLAG_FLIPX) {
-        tx1 = 1.0f;
-        tx2 = 0.0f;
-    }
-
-    // fsemu_opengl_blend(false);
-    fsemu_opengl_blend(true);
-    // fsemu_opengl_color4f(1.0f, 1.0f, 1.0f, 1.0f);
-    fsemu_opengl_color4f(r / 255.0, g / 255.0, b / 255.0, a / 255.0);
-    fsemu_opengl_depth_test(false);
-    fsemu_opengl_texture_2d(true);
-
-    glBegin(GL_QUADS);
-    glTexCoord2f(tx1, ty1);
-    glVertex3f(dr.x, dr.y, 0);
-    glTexCoord2f(tx2, ty1);
-    glVertex3f(dr.x + dr.w, dr.y, 0);
-    glTexCoord2f(tx2, ty2);
-    glVertex3f(dr.x + dr.w, dr.y + dr.h, 0);
-    glTexCoord2f(tx1, ty2);
-    glVertex3f(dr.x, dr.y + dr.h, 0);
-    glEnd();
-    fsemu_opengl_log_error_maybe();
-
-    // fsemu_video_log_debug("Render image to %0.2f,%0.2f %0.2fx%0.2f\n",
-    //                 dr.x, dr.y, dr.w, dr.h);
-    glDeleteTextures(1, &texture);
-    fsemu_opengl_log_error_maybe();
-}
-
-static void fsemu_glvideo_render_rectangle(fsemu_gui_item_t* widget) {
-    fsemu_drect_t dr;
-    fsemu_glvideo_render_rect(&dr, widget);
-    uint8_t r, g, b, a;
-    fsemu_color_decode(widget->color, &r, &g, &b, &a);
-
-    if (a == 0) {
-        // Optimization: No need to render fully transparent rectangle.
-        return;
-    }
-
-    // printf("%0.2f %0.2f   %0.2fx%0.2f\n", dr.x, dr.y, dr.w, dr.h);
-
-    fsemu_opengl_blend(a < 255);
-    fsemu_opengl_depth_test(false);
-    fsemu_opengl_texture_2d(false);
-
-    fsemu_opengl_color4f(r / 255.0, g / 255.0, b / 255.0, a / 255.0);
-
-    glBegin(GL_QUADS);
-    glVertex3f(dr.x, dr.y, 0);
-    glVertex3f(dr.x + dr.w, dr.y, 0);
-    glVertex3f(dr.x + dr.w, dr.y + dr.h, 0);
-    glVertex3f(dr.x, dr.y + dr.h, 0);
-    glEnd();
-    fsemu_opengl_log_error_maybe();
-}
-
-// void fsemu_glvideo_render_item(fsemu_gui_item_t *item);
-
-static void fsemu_glvideo_update_render_rect(fsemu_widget_t* widget) {
-    fsemu_glvideo_convert_coordinates_2(&widget->render_rect, widget);
-#if 0
-    if (widget->flags & FSEMU_WIDGET_FLAG_DEBUG) {
-        fsemu_drect_t *r = &widget->render_rect;
-        printf("Widget %f %f %f %f\n",
-               widget->top.offset,
-               widget->right.offset,
-               widget->bottom.offset,
-               widget->left.offset);
-        printf("Widget %f %f %f %f\n", r->x, r->y, r->w, r->h);
-    }
-#endif
-}
-
-static void fsemu_glvideo_render_item(fsemu_gui_item_t* item) {
-    if (item->visible) {
-        if (item->textimage) {
-            fsemu_glvideo_render_text(item);
-        } else if (item->image) {
-            fsemu_glvideo_render_image(item);
-        } else {
-            fsemu_glvideo_render_rectangle(item);
-        }
-
-        // if (item->first_child) {
-        //     printf("render rect: %f %f %f %f\n",
-        //            item->render_rect.x,
-        //            item->render_rect.y,
-        //            item->render_rect.w,
-        //            item->render_rect.h);
-        // }
-        for (fsemu_widget_t* child = item->first_child; child; child = child->next) {
-            if (child->parent != item) {
-                fsemu_error(
-                    "Incorrect parent relationship in %s. Child %p (%s) "
-                    "parent %p (%s) (Expected parent: %p (%s))\n",
-                    __func__, child, fsemu_widget_name(child), child->parent,
-                    fsemu_widget_name(child->parent), item, fsemu_widget_name(item));
-            }
-            // printf("child->parent render rect: %f %f %f %f\n",
-            //        child->parent->render_rect.x,
-            //        child->parent->render_rect.y,
-            //        child->parent->render_rect.w,
-            //        child->parent->render_rect.h);
-            fsemu_glvideo_update_render_rect(child);
-            fsemu_glvideo_render_item(child);
-        }
-    }
-}
-
-static void fsemu_glvideo_render_gui_2(fsemu_gui_item_t* items, bool early) {
-    for (fsemu_gui_item_t* item = items; item; item = item->next) {
-        if (early && item->z_index >= 0) {
-            continue;
-        }
-        if (!early && item->z_index < 0) {
-            continue;
-        }
-        if (!item->visible) {
-            continue;
-        }
-        if (item->left.anchor) {
-            fsemu_glvideo_update_render_rect(item);
-        }
-        fsemu_glvideo_render_item(item);
-    }
-}
-
-void fsemu_glvideo_render_gui_early(fsemu_gui_item_t* items) {
-    fsemu_glvideo_render_gui_2(items, true);
-}
-
-void fsemu_glvideo_render_gui(fsemu_gui_item_t* items) {
-    fsemu_glvideo_render_gui_2(items, false);
 }
 
 void fsemu_glvideo_init_gl_state(void) {

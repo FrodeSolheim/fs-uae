@@ -1,7 +1,13 @@
-Version 5.0.6:
+Version 5.0.7:
 
+* Correct pixel aspect (5:6) when displaying NTSC.
+* Approximately correct pixel aspect (5:6) with NTSC and integer scaling (#372).
+* Use Alt/Cmd+S to toogle integer scaling on/off. Shortcut is subject to change.
+* Use Alt/Cmd+C to toogle auto-crop ("auto-scale"). Shortcut is subject to change.
+* On-screen notification system, show notification when mouse is grabbed.
+* Can load and draw .svg icons.
 * Default data/cache paths updated. Improved portable mode and document.
-* Changed distribution layout and added a README.txt.
+* Changed layout of binary distributions (no portable mode by default) and added a README.txt.
 * Documentation updated (some new FS-UAE 5-specific docs).
 * Can now run ./fs-uae in dev mode from project root directory and not just `od-fs`.
 

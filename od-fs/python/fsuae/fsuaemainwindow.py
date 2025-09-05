@@ -1,4 +1,5 @@
 import sys
+
 from fsapp.tickservice import TickService
 from fsgui.mainwindow import MainWindow
 from fsgui.windowmanager import WindowManager
@@ -20,7 +21,11 @@ class FSUAEMainWindow(MainWindow):
         # height = int((512 + 16) * 1.5)
 
         height = int(540 * 1.5)
-        width = int(height * (4 / 3))
+        # width = int(height * (4 / 3))
+        width = int(692 * 1.5)
+
+        # UAE_RECT FULL
+        # width, height = 756, 576
 
         print("FS-UAE desired window client size", width, height)
 
@@ -109,7 +114,8 @@ class FSUAEMainWindow(MainWindow):
         off_y = border
 
         ratio = 4 / 3
-        # ratio = 692 / 540
+        ratio = 692 / 540
+        # ratio = 752 / 572
 
         if fit_w / fit_h > ratio:
             eh = fit_h
@@ -120,6 +126,9 @@ class FSUAEMainWindow(MainWindow):
 
         ex = off_x + (fit_w - ew) // 2
         ey = off_y + (fit_h - eh) // 2
+
+        # Nevermind, just override and stretch (adaption/fill is being moved to C code)
+        ex, ey, ew, eh = 0, 0, ww, wh
 
         print("Emulator window at", (ex, ey), "size", (ew, eh))
         self.emulator_window.move((ex, ey))

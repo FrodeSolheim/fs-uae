@@ -2488,48 +2488,8 @@ void toggle_fullscreen(int monid, int mode)
 
 #endif
 
+#include "fsuae-hack.h"
 #include "fsemu-video.h"
-
-void debug_print_custom_limits(struct vidbuf_description *avidinfo) 
-{
-	// Static variables to track previous custom limits for change detection
-	static int prev_custom_x = -1, prev_custom_y = -1, prev_custom_w = -1, prev_custom_h = -1;
-	static int prev_raw_x = -1, prev_raw_y = -1, prev_raw_w = -1, prev_raw_h = -1;
-
-	// Check custom limits for changes and log if different
-	if (avidinfo->outbuffer) {
-		int custom_w, custom_h, custom_x, custom_y, custom_realh, custom_hres, custom_vres;
-		int raw_w, raw_h, raw_x, raw_y;
-
-		get_custom_limits(&custom_w, &custom_h, &custom_x, &custom_y, &custom_realh, &custom_hres, &custom_vres);
-		get_custom_raw_limits(&raw_w, &raw_h, &raw_x, &raw_y);
-
-		const char* changed = NULL;
-		// Check if custom limits changed
-		if (custom_x != prev_custom_x || custom_y != prev_custom_y || custom_w != prev_custom_w || custom_h != prev_custom_h) {
-			changed = "custom";
-			prev_custom_x = custom_x;
-			prev_custom_y = custom_y;
-			prev_custom_w = custom_w;
-			prev_custom_h = custom_h;
-		}
-		// Check if raw limits changed (in case custom limits didn't change but raw did)
-		else if (raw_x != prev_raw_x || raw_y != prev_raw_y || raw_w != prev_raw_w || raw_h != prev_raw_h) {
-			changed = "raw   ";
-			prev_raw_x = raw_x;
-			prev_raw_y = raw_y;
-			prev_raw_w = raw_w;
-			prev_raw_h = raw_h;
-		}
-
-		if (changed != NULL) {
-			const char *padding = "             ";
-			printf(" -- changed: %s %s raw: %03d %03d %03d %03d / custom: %3d %3d %3d %3d\n",
-				changed, padding,
-				raw_x, raw_y, raw_w, raw_h, custom_x, custom_y, custom_w, custom_h);
-		}
-	}
-}
 
 bool uae_fsvideo_renderframe(int monid, int mode, bool immediate)
 {
@@ -2537,7 +2497,41 @@ bool uae_fsvideo_renderframe(int monid, int mode, bool immediate)
 	struct amigadisplay *ad = &adisplays[monid];
 	struct vidbuf_description *avidinfo = &adisplays[0].gfxvidinfo;
 
-	debug_print_custom_limits(avidinfo);
+	// Static variables to track previous custom limits for change detection
+	static int prev_custom_x = -1, prev_custom_y = -1, prev_custom_w = -1, prev_custom_h = -1;
+	static int prev_raw_x = -1, prev_raw_y = -1, prev_raw_w = -1, prev_raw_h = -1;
+
+	// Check custom limits for changes and log if different
+	int custom_w, custom_h, custom_x, custom_y, custom_realh, custom_hres, custom_vres;
+	int raw_w, raw_h, raw_x, raw_y;
+
+	get_custom_limits(&custom_w, &custom_h, &custom_x, &custom_y, &custom_realh, &custom_hres, &custom_vres);
+	get_custom_raw_limits(&raw_w, &raw_h, &raw_x, &raw_y);
+
+	const char* changed = NULL;
+	// Check if custom limits changed
+	if (custom_x != prev_custom_x || custom_y != prev_custom_y || custom_w != prev_custom_w || custom_h != prev_custom_h) {
+		changed = "custom";
+		prev_custom_x = custom_x;
+		prev_custom_y = custom_y;
+		prev_custom_w = custom_w;
+		prev_custom_h = custom_h;
+	}
+	// Check if raw limits changed (in case custom limits didn't change but raw did)
+	else if (raw_x != prev_raw_x || raw_y != prev_raw_y || raw_w != prev_raw_w || raw_h != prev_raw_h) {
+		changed = "raw   ";
+		prev_raw_x = raw_x;
+		prev_raw_y = raw_y;
+		prev_raw_w = raw_w;
+		prev_raw_h = raw_h;
+	}
+
+	if (changed != NULL) {
+		const char *padding = "             ";
+		printf(" -- changed: %s %s raw: %3d %3d %3d %3d / custom: %3d %3d %3d %3d\n",
+			changed, padding,
+			raw_x, raw_y, raw_w, raw_h, custom_x, custom_y, custom_w, custom_h);
+	}
 
 	// printf("%d\n", avidinfo->drawbuffer.last_drawn_line);
 	// printf("%d\n", avidinfo->outbuffer->last_drawn_line);
@@ -2653,168 +2647,186 @@ bool uae_fsvideo_renderframe(int monid, int mode, bool immediate)
 	// int cw;
 	// int ch;
 	// int crealh;
-	int AMIGA_WIDTH = 752;
-	int AMIGA_HEIGHT = 574;
+	//int AMIGA_WIDTH = 752;
+	//int AMIGA_HEIGHT = 574;
 	int g_amiga_video_bpp = 4;
 
-	if (fsemu) {
 #ifdef FSUAE_FRAME_DEBUG
-		uae_fsvideo_log("send frame to fsemu (draw)\n");
+	uae_fsvideo_log("send frame to fsemu (draw)\n");
 #endif
-		// printf("ALLOCATE FRAME!\n");
-		fsemu_video_frame_t *frame = fsemu_video_alloc_frame();
-		frame->layer = 0;
-		frame->flags = 0;
-		frame->depth = g_amiga_video_bpp * 8;
-		if (currprefs.turbo_emulation) {
-			frame->flags |= FSEMU_FRAME_FLAG_TURBO;
-		}
-		if (mon->screen_is_picasso) {
+	// printf("ALLOCATE FRAME!\n");
+	fsemu_video_frame_t *frame = fsemu_video_alloc_frame();
+	frame->layer = 0;
+	frame->flags = 0;
+	frame->depth = g_amiga_video_bpp * 8;
+	if (currprefs.turbo_emulation) {
+		frame->flags |= FSEMU_FRAME_FLAG_TURBO;
+	}
+	if (mon->screen_is_picasso) {
 #if 0
-			frame->buffer = uae_fsvideo.picasso_framebuffer;
-			frame->stride =
-				uae_fsvideo.picasso_width * g_amiga_video_bpp;  // FIXME
-			frame->width = uae_fsvideo.picasso_width;
-			frame->height = uae_fsvideo.picasso_height;
-			frame->partial = 0;
+		frame->buffer = uae_fsvideo.picasso_framebuffer;
+		frame->stride =
+			uae_fsvideo.picasso_width * g_amiga_video_bpp;  // FIXME
+		frame->width = uae_fsvideo.picasso_width;
+		frame->height = uae_fsvideo.picasso_height;
+		frame->partial = 0;
 
-			frame->limits.x = 0;
-			frame->limits.y = 0;
-			frame->limits.w = frame->width;
-			frame->limits.h = frame->height;
+		frame->limits.x = 0;
+		frame->limits.y = 0;
+		frame->limits.w = frame->width;
+		frame->limits.h = frame->height;
 #endif
+	} else {
+#ifdef FSUAE_FRAME_DEBUG
+		uae_fsvideo_log("\n\nsend frame to fsemu last_drawn_line %d\n",
+						avidinfo->drawbuffer.last_drawn_line);
+#endif
+
+		frame->buffer = video_memory;
+		// frame->buffer = uae_fsvideo.chipset_framebuffer;
+		// frame->stride = AMIGA_WIDTH * g_amiga_video_bpp;
+		frame->stride = 2048 * 4;
+		// frame->stride = AMIGA_WIDTH * 4;
+		
+		// FIXME: AMIGA_WIDTH / HEIGHT ARE NOT ALWAYS CORRECT ANY MORE...?
+		// frame->width = AMIGA_WIDTH;
+		// frame->height = AMIGA_HEIGHT;
+		frame->width = avidinfo->outbuffer->outwidth;
+		frame->height = avidinfo->outbuffer->outheight;
+
+		// Compensate for (Win)UAE adding 2 pixels to the left and the right of the "Overscan"
+		// buffer (don't know why it's there), and make the "full frame" also compatible with
+		// older FS-UAE versions and viewport specifications.
+
+		if (frame->width == 756) {
+			// printf("width 756 - \"correcting\" to 752\n");
+			frame->buffer += 2 * 4; // Advance 2 pixels
+			frame->width = 752; // Stride is already correct
+
+			if (custom_x >= 2) {
+				custom_x -= 2;
+			}
+		}
+		if (frame->height >= 574) {
+			// printf("height %d - \"correcting\" to 752\n", frame->height);
+			frame->height = 572;
+		}
+
+		//printf("%d x %d\n", frame->width, frame->height);
+
+		// printf("%d %d %d %p\n", frame->width, frame->height, g_amiga_video_bpp, frame->buffer);
+		//memset(frame->buffer, 0xff, frame->width * frame->height * g_amiga_video_bpp);
+		for (int i = 0; i < frame->width * frame->height * g_amiga_video_bpp; i+=4) {
+		//     //printf("%\n", frame->buffer[i]);
+				//((unsigned char*) frame->buffer)[i + 0] = 0xff;
+				//((unsigned char*) frame->buffer)[i + 1] = 0x00;
+				//((unsigned char*) frame->buffer)[i + 2] = 0x00;
+				//((unsigned char*) frame->buffer)[i + 3] = 0xff;
+		}
+
+		if (mode == 1) {
+			frame->partial = frame->height;
+		} else if (mode == 2) {
+			frame->partial = avidinfo->drawbuffer.last_drawn_line;
 		} else {
-#ifdef FSUAE_FRAME_DEBUG
-			uae_fsvideo_log("\n\nsend frame to fsemu last_drawn_line %d\n",
-							avidinfo->drawbuffer.last_drawn_line);
-#endif
-			frame->buffer = video_memory;
-			// frame->buffer = uae_fsvideo.chipset_framebuffer;
-			// frame->stride = AMIGA_WIDTH * g_amiga_video_bpp;
-			frame->stride = 2048 * 4;
-			// frame->stride = AMIGA_WIDTH * 4;
-			
-			// FIXME: AMIGA_WIDTH / HEIGHT ARE NOT ALWAYS CORRECT ANY MORE...?
-			frame->width = AMIGA_WIDTH;
-			frame->height = AMIGA_HEIGHT;
-
-			// printf("%d %d %d %p\n", frame->width, frame->height, g_amiga_video_bpp, frame->buffer);
-			//memset(frame->buffer, 0xff, frame->width * frame->height * g_amiga_video_bpp);
-			for (int i = 0; i < frame->width * frame->height * g_amiga_video_bpp; i+=4) {
-			//     //printf("%\n", frame->buffer[i]);
-				 //((unsigned char*) frame->buffer)[i + 0] = 0xff;
-				 //((unsigned char*) frame->buffer)[i + 1] = 0x00;
-				 //((unsigned char*) frame->buffer)[i + 2] = 0x00;
-				 //((unsigned char*) frame->buffer)[i + 3] = 0xff;
-			}
-
-			if (mode == 1) {
-				frame->partial = frame->height;
-			} else if (mode == 2) {
-				frame->partial = avidinfo->drawbuffer.last_drawn_line;
-			} else {
-				uae_fsvideo_log("WARNING: Expected mode to be 1 or 2\n");
-			}
-
-			// { "692x540", NULL, 48, 22, 692, 540 },
-
-			// frame->buffer = uae_fsvideo.chipset_framebuffer; + 22 *
-			// frame->stride + 48 * g_amiga_video_bpp; frame->width = 692;
-			// frame->height = 540;
-
-			// frame->limits.x = cx;
-			// frame->limits.y = cy;
-			// frame->limits.w = cw;
-			// frame->limits.h = ch;
-
-			// frame->limits.x = 48;
-			// frame->limits.y = 22;
-			// frame->limits.w = 692;
-			// frame->limits.h = 540;
-
-			int center_x = 394;
-			int center_y = 292;
-
-			// 540 - 512 = 28 - 14
-
-			// After WinUAE 6 merge?
-			center_x += 2;
-
-			// 16 / 3 * (4 * 480 / 512) = 20
-			//frame->limits.w = 672; // 640 + 16 * 2
-			//frame->limits.w = 640 + 16; // 656
-
-			// UAE_RECT - defining crop limits here
-			// Maybe just show 8 * 2 pixels, might be a better crop rect, and the aspect ratio
-			// wil just be a tiny bit off.
-			// frame->limits.w = 640 + 16; // 656
-			// frame->limits.h = 512 + 16; // 528
-
-			frame->limits.w = 692;
-			frame->limits.h = 540;
-
-			frame->limits.x = center_x - frame->limits.w / 2;
-			frame->limits.y = center_y- frame->limits.h / 2;
-
+			uae_fsvideo_log("WARNING: Expected mode to be 1 or 2\n");
 		}
 
-		frame->frequency = 0;  // FIXME
-
-#if 0
-		printf("FIXME: SENDING BUFFER COPY\n");
-		static void *frame_copy;
-		if (frame_copy == NULL) {
-			frame_copy = malloc(AMIGA_WIDTH * AMIGA_HEIGHT * g_amiga_video_bpp);
-		}
-		memcpy(frame_copy, frame->buffer, AMIGA_WIDTH * AMIGA_HEIGHT * g_amiga_video_bpp);
-		memset(frame->buffer, 0, AMIGA_WIDTH * AMIGA_HEIGHT * g_amiga_video_bpp);
-		frame->buffer = frame_copy;
-#endif
-
-		// { "704x540", NULL, 42, 22, 704, 540 },
 		// { "692x540", NULL, 48, 22, 692, 540 },
 
+		// frame->buffer = uae_fsvideo.chipset_framebuffer; + 22 *
+		// frame->stride + 48 * g_amiga_video_bpp; frame->width = 692;
+		// frame->height = 540;
 		// frame->limits.x = 48;
 		// frame->limits.y = 22;
 		// frame->limits.w = 692;
 		// frame->limits.h = 540;
 
-		// fsemu_video_post_partial_frame(avidinfo->);
-		fsemu_video_post_frame(frame);
-		// notice_screen_contents_lost(monid);
+		// 540 - 512 = 28 - 14
 
-	} else {  // !fsemu
-#if 0
-		// FIXME: Need to do this right now to fix rendering, this
-		// causes some slowdown, most likely
-		// memset(g_renderdata.line, 0, AMIGA_MAX_LINES);
+		// After WinUAE 6 merge?
+		// center_x += 2;
 
-		if (g_libamiga_callbacks.render) {
-#if 0
-			uae_log("rendering with %p\n", g_renderdata.pixels);
-			uae_log("%dx%d (flags 0x%x)\n", g_renderdata.width, g_renderdata.height, g_renderdata.flags);
-#endif
-			g_libamiga_callbacks.render(&g_renderdata);
-		}
-#if 0
-		g_has_flushed_line = 0;
-		g_has_flushed_block = 0;
-		g_has_flushed_screen = 0;
-#endif
+		// 16 / 3 * (4 * 480 / 512) = 20
+		//frame->limits.w = 672; // 640 + 16 * 2
+		//frame->limits.w = 640 + 16; // 656
 
-#ifdef FSUAE_LEGACY
-		if (fse_drivers()) {
-			notice_screen_contents_lost(monid);
+		// UAE_RECT - defining crop limits here
+		// Maybe just show 8 * 2 pixels, might be a better crop rect, and the aspect ratio
+		// wil just be a tiny bit off.
+		// frame->limits.w = 640 + 16; // 656
+		// frame->limits.h = 512 + 16; // 528
+
+		// frame->limits.w = 692;
+		// frame->limits.h = 540;
+		// frame->limits.x = center_x - frame->limits.w / 2;
+		// frame->limits.y = center_y - frame->limits.h / 2;
+
+		// UAE_RECT FULL
+		// frame->limits.x = 0;
+		// frame->limits.y = 0;
+		// frame->limits.w = frame->width;
+		// frame->limits.h = frame->height;
+
+
+		if (hack_auto_crop_mode) {
+			frame->limits.x = custom_x;
+			frame->limits.y = custom_y;
+			frame->limits.w = custom_w;
+			frame->limits.h = custom_h;
 		} else {
-			// FIXME: Need to do this right now to fix rendering, this
-			// causes some slowdown, most likely
-			notice_screen_contents_lost(monid);
+
+			int center_x = 74 + 640 / 2;
+			int center_y;
+
+			if (hack_ntsc_mode) {
+				center_y = 46 + 400 / 2;
+
+				frame->limits.w = 692;
+				frame->limits.h = 432; // 216 divides 1080 nicely
+
+				// frame->limits.x = 74 - 10;
+				// frame->limits.y = 46 - 14;
+			} else {
+				center_y = 36 + 512 / 2;
+
+				frame->limits.w = 692;
+				frame->limits.h = 540;
+			}
+
+			frame->limits.x = center_x - frame->limits.w / 2;
+			frame->limits.y = center_y - frame->limits.h / 2;
 		}
-#else
-		notice_screen_contents_lost(monid);
-#endif
-#endif
 	}
+
+	frame->frequency = 0;  // FIXME
+
+#if 0
+	printf("FIXME: SENDING BUFFER COPY\n");
+	static void *frame_copy;
+	if (frame_copy == NULL) {
+		frame_copy = malloc(AMIGA_WIDTH * AMIGA_HEIGHT * g_amiga_video_bpp);
+	}
+	memcpy(frame_copy, frame->buffer, AMIGA_WIDTH * AMIGA_HEIGHT * g_amiga_video_bpp);
+	memset(frame->buffer, 0, AMIGA_WIDTH * AMIGA_HEIGHT * g_amiga_video_bpp);
+	frame->buffer = frame_copy;
+#endif
+
+	// { "704x540", NULL, 42, 22, 704, 540 },
+	// { "692x540", NULL, 48, 22, 692, 540 },
+
+	// frame->limits.x = 48;
+	// frame->limits.y = 22;
+	// frame->limits.w = 692;
+	// frame->limits.h = 540;
+
+	int isntsc = (beamcon0 & BEAMCON0_PAL) ? 0 : 1;		
+	hack_ntsc_mode = isntsc == 1;
+
+	// fsemu_video_post_partial_frame(avidinfo->);
+	fsemu_video_post_frame(frame);
+	// notice_screen_contents_lost(monid);
+
 	return 1;
 }
 

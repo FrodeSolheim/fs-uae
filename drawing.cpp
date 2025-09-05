@@ -956,9 +956,18 @@ int get_custom_limits(int *pw, int *ph, int *pdx, int *pdy, int *prealh, int *hr
 
 	w = diwlast - diwfirst;
 	dx = diwfirst - (hdisplay_left_border << (RES_MAX + 1)) + (1 << RES_MAX);
+	// printf("dx (%d) = diwfirst[%d] - (hdisplay_left_border[%d] << (RES_MAX + 1)[[%d])) + (1 << RES_MAX)[%d]\n",
+	// 	dx, diwfirst, hdisplay_left_border, RES_MAX + 1, 1 << RES_MAX);
+	// printf("dx = %d - (%d << %d) + (%d) -> %d\n",
+	// 	diwfirst, hdisplay_left_border, RES_MAX + 1, 1 << RES_MAX, dx);
+	// printf("dx = %d - %d + (%d) -> %d\n",
+	// 	diwfirst, (hdisplay_left_border << (RES_MAX + 1)), (1 << RES_MAX), dx);
+
 
 	w >>= (RES_MAX - hresolution);
 	dx >>= (RES_MAX - hresolution);
+	// printf("dx >>= (RES_MAX[%d] - hresolution[%d]); -> dx = %d\n",
+	// 	RES_MAX, hresolution, dx);
 
 	y2 = plflastline_total;
 	y1 = plffirstline_total;

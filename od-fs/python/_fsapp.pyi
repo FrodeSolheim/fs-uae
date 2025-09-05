@@ -14,4 +14,12 @@ Raises:
     RuntimeError: If the operation fails at runtime (implementation-dependent).
 """
 
-__all__: Final = ["set_fullscreen"]
+def get_mouse_grab() -> bool: ...
+
+"""Get the current mouse grab state.
+
+Returns:
+    True if mouse is currently grabbed, False otherwise.
+"""
+
+__all__: Final = ["set_fullscreen", "get_mouse_grab"]

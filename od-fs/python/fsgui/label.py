@@ -1,7 +1,7 @@
 import fsgui_font  # type: ignore
 
 from fsgui.font import Font
-from fsgui.types import Size
+from fsgui.types import Size, TColour
 from fsgui.widget import Widget
 
 
@@ -14,10 +14,12 @@ class Label(Widget):
         parent: Widget | None = None,
         size: Size | None = None,
         wrap: bool = False,
+        text_color: TColour | None = None,
     ):
         super().__init__(font=font, parent=parent, size=size)
         self._text = text
         self.wrap = wrap
+        self._text_color = text_color
 
         # Maybe a good idea, maybe not
         if self.wrap:
@@ -78,6 +80,11 @@ class Label(Widget):
 
     def on_paint(self):
         dc = self.create_dc()
+
+        # Set text color if specified
+        if self._text_color is not None:
+            dc.set_text_colour(self._text_color)
+
         _, th = dc.measure_text(self._text)
         # print(self._text, self.font.size)
         if self.wrap:
@@ -88,6 +95,10 @@ class Label(Widget):
 
     def set_text(self, text: str):
         self._text = text
+
+    def set_text_color(self, color: TColour | None):
+        """Set the text color for this label."""
+        self._text_color = color
 
     def set_size_internal(self, size):
         # if self.wrap:

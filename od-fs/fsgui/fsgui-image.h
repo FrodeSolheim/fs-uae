@@ -23,6 +23,10 @@ void fsgui_image_unref(fsgui_image_t* font);
 
 fsgui_image_t* fsgui_image_load(const char* name);
 
+fsgui_image_t* fsgui_image_load_sized_svg(const char* name, int width, int height);
+
+void fsgui_image_tint(fsgui_image_t* image, uint8_t r, uint8_t g, uint8_t b, uint8_t a);
+
 #include <SDL3_image/SDL_image.h>
 
 struct fsgui_image {

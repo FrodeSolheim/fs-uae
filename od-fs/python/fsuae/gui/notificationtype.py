@@ -1,6 +1,6 @@
-from enum import Enum
+from enum import StrEnum, auto
 
 
-class NotificationType(Enum):
-    ASPECT_RATIO = 1
-    MOUSE_GRABBED = 2
+class NotificationType(StrEnum):
+    ASPECT_RATIO = auto()
+    MOUSE_GRABBED = auto()

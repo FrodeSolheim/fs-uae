@@ -6,7 +6,7 @@ PROJECT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 echo "PROJECT_DIR: $PROJECT_DIR"
 cd "$PROJECT_DIR"
 
-BUILD_DIR="$PROJECT_DIR/.build/fs-uae"
+BUILD_DIR="$PROJECT_DIR/.build/dev"
 echo "BUILD_DIR: $BUILD_DIR"
 
 echo

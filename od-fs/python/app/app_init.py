@@ -1,4 +1,5 @@
 import atexit
+import os
 import sys
 
 import _fsapp_channel  # type: ignore
@@ -11,6 +12,8 @@ from fsgui.windowmanager import WindowManager
 from fsuae.amigacontext import AmigaContext
 from fsuae.f12window import F12Window
 from fsuae.fsuaemainwindow import FSUAEMainWindow
+from fsuae.gui.notificationservice import NotificationService
+from fsuae.gui.notificationtype import NotificationType
 from fsuae.input.devicerobotservice import DeviceRobotService
 
 # from fsuae.input.inputdevicewindow import InputDeviceWindow
@@ -25,6 +28,7 @@ from fsuae.messages import (
 from fsuae.roms.romservice import ROMService
 from fsuae.servicecontainer import ServiceContainer
 from fsuae.services.pathservice import PathService
+from fsuae.svgicon import SvgIcon
 from fsuae.uaeconfigservice import UAEConfigService
 from fsuae.workspace import init_fsuae_workspace
 from uae.options.blacklisted import blacklisted_uae_options
@@ -132,40 +136,68 @@ def app_init() -> None:
 
     last_arg = sys.argv[-1]
     if last_arg.endswith(".uae"):
-        config: list[tuple[str, str]] = []
-        with open(last_arg, "r") as f:
-            for line in f.readlines():
-                line = line.strip()
-                try:
-                    key, value = line.split("=", 1)
-                except ValueError:
-                    continue
-                key = key.lower().strip()
-                value = value.replace("\\", "/")
-                config.append((key, value))
+        if os.path.exists(last_arg):
+            load_config(last_arg)
+    # else:
+    #     F12Window.instance().show()
 
-        # for key, value in config:
-        #     import fsemu
+    # Initialize notification service
+    notification_service = NotificationService().set_instance()
 
-        #     if key == "input.joymouse_speed_analog":
-        #         continue
+    shortcut_mod = "Cmd" if sys.platform == "darwin" else "Alt"
 
-        #     fsemu.set(key, value)
-        # fsemu.post(uae.INPUTEVENT_SPC_HARDRESET)
+    print("---------------------------------------------------------------------------------------")
 
-        new_config: list[str] = []
-        for key, value in config:
-            # if key == "input.joymouse_speed_analog":
-            #     continue
-            if key in blacklisted_uae_options:
+    notification_service.create_notification(
+        NotificationType.MOUSE_GRABBED,
+        "Mouse cursor grabbed",
+        f"{shortcut_mod}+G or middle click to release",
+        SvgIcon("svg-custom/mouse-locked.svg"),
+    )
+
+    # notification_service.show_notification(NotificationType.MOUSE_GRABBED)
+    print("---------------------------------------------------------------------------------------")
+
+
+def load_config(path: str) -> None:
+
+    config: list[tuple[str, str]] = []
+    with open(path, "r") as f:
+        for line in f.readlines():
+            line = line.strip()
+            try:
+                key, value = line.split("=", 1)
+            except ValueError:
                 continue
-            new_config.append(f"{key}={value}\n")
+            key = key.lower().strip()
+            value = value.replace("\\", "/")
+            config.append((key, value))
 
-        new_config_str = "".join(new_config)
+    # FIXME: Temporary hack to make relative references from .uae work! (Needs to be done after
+    # loading the .uae config, which might itself be given as a relative path).
+    os.chdir(os.path.dirname(path))
 
-        post_fsuae_message(
-            FSUAE_MESSAGE_RESTART_WITH_CONFIG,
-            "".join(new_config_str),
-        )
-    else:
-        F12Window.instance().show()
+
+    # for key, value in config:
+    #     import fsemu
+
+    #     if key == "input.joymouse_speed_analog":
+    #         continue
+
+    #     fsemu.set(key, value)
+    # fsemu.post(uae.INPUTEVENT_SPC_HARDRESET)
+
+    new_config: list[str] = []
+    for key, value in config:
+        # if key == "input.joymouse_speed_analog":
+        #     continue
+        if key in blacklisted_uae_options:
+            continue
+        new_config.append(f"{key}={value}\n")
+
+    new_config_str = "".join(new_config)
+
+    post_fsuae_message(
+        FSUAE_MESSAGE_RESTART_WITH_CONFIG,
+        "".join(new_config_str),
+    )

@@ -60,8 +60,7 @@ static const char* os_arch_name() {
 }
 #endif
 
-static char* lookup_plugin_in_dir(const char* name, const char* module_name,
-                                        const char* path);
+static char* lookup_plugin_in_dir(const char* name, const char* module_name, const char* path);
 
 /**
  * @brief This function will be called from UAE it tries to load a plugin library.
@@ -216,10 +215,28 @@ static char* lookup_plugin_in_dir(const char* name, const char* module_name,
     char path[FS_MAX_PATH];
     FS_CopyPath(path, directory);
     int reset = strlen(path);
+
     FS_AppendDirName(path, name);
     FS_AppendDirName(path, OS_NAME_3);
     FS_AppendDirName(path, ARCH_NAME);
     int reset2 = strlen(path);
+
+#ifdef __DARWIN__
+
+    FS_AppendPath(path, name);
+    FS_AppendPath(path, ".framework");
+    FS_AppendDirSeparator(path);
+    FS_AppendFileName(path, name);
+
+    SDL_Log("Checking %s", path);
+    if (FS_PathExists(path)) {
+        return strdup(path);
+    }
+
+    path[reset2] = '\0';
+
+#endif
+
     FS_AppendFileName(path, module_name);
 
     SDL_Log("Checking %s", path);
@@ -230,7 +247,7 @@ static char* lookup_plugin_in_dir(const char* name, const char* module_name,
 #if defined(_WIN32) || defined(__DARWIN__)
     // Case insensitive
 #else
-    char *c = path + reset2;
+    char* c = path + reset2;
     while (*c) {
         *c = SDL_tolower(*c);
         c++;

@@ -33,7 +33,7 @@ On Linux, it could also be something else if you have overridden `XDG_DATA_HOME`
 
 The cache directory is:
 
-- `C:\Users\<*username*>\AppData\Roaming\FS-UAE\Cache` on Windows.
+- `C:\Users\<username>\AppData\Roaming\FS-UAE\Cache` on Windows.
 - `/home/<username>/.local/share/FS-UAE/Cache` on Linux.
 - `/Users/<username>/Library/Application Support/FS-UAE/Cache` on macOS.
 - `Cache`  inside the portable directory if you are using FS-UAE in [portable mode](docs/portable.md).

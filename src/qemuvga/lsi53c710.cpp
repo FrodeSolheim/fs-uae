@@ -1432,6 +1432,17 @@ again:
         }
     }
     if (insn_processed > 10000 && !s->waiting) {
+#if 1
+        /*
+         * XXX: cdh hack to work around case where SCSI inquiry failure
+         *      can cause FS-UAE assert in lsi_do_command() because
+         *      (s->current != NULL)
+         */
+        if (s->current != NULL) {
+            s->current = NULL;
+            fprintf(stderr, "clobbered current LSI op because inf. loop in script at %p insn=%08x addr %08x phase=%x processed=%d active=%u ssm=%u dbc=0x%x dnad=0x%x\n", s->dsp, insn, addr, s->sstat2 & 0x7, insn_processed, s->script_active, s->dcntl & LSI_DCNTL_SSM, s->dbc, s->dnad);
+        }
+#endif
         /* Some windows drivers make the device spin waiting for a memory
            location to change.  If we have been executed a lot of code then
            assume this is the case and force an unexpected device disconnect.
@@ -1641,7 +1652,7 @@ static uint8_t lsi_reg_readb2(LSIState710 *s, int offset)
     case addr + 2: return (s->name >> 16) & 0xff; \
     case addr + 3: return (s->name >> 24) & 0xff;
 
-    switch (offset)
+    switch (offset & 0x3f)
 	{
     case 0x00: /* SCNTL0 */
         return s->scntl0;
@@ -1761,7 +1772,7 @@ static void lsi_reg_writeb(LSIState710 *s, int offset, uint8_t val)
 #ifdef DEBUG_LSI_REG
     DPRINTF("Write reg %x = %02x\n", offset, val);
 #endif
-    switch (offset) {
+    switch (offset & 0x3f) {
     case 0x00: /* SCNTL0 */
         s->scntl0 = val;
         if (val & LSI_SCNTL0_START) {
@@ -1828,6 +1839,7 @@ static void lsi_reg_writeb(LSIState710 *s, int offset, uint8_t val)
         s->istat = (s->istat & 0x0f) | (val & 0xf0);
         if (val & LSI_ISTAT_ABRT) {
             lsi_script_dma_interrupt(s, LSI_DSTAT_ABRT);
+	    break;
         }
         if (s->waiting == 1 && (val & LSI_ISTAT_SIGP)) {
             DPRINTF("Woken by SIGP\n");

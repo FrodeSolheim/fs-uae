@@ -818,9 +818,15 @@ static int command_play (int unitnum, int startlsn, int endlsn, int scan, play_s
 	cdu->cdda_subfunc = subfunc;
 	cdu->cdda_statusfunc = statusfunc;
 	cdu->cdda_scan = scan > 0 ? 10 : (scan < 0 ? 10 : 0);
-	cdu->cdda_delay = setstate (cdu, -1, -1);
-	cdu->cdda_delay_frames = setstate (cdu, -2, -1);
-	setstate (cdu, cdu->cdda_delay > 0 || cdu->cdda_delay_frames ? AUDIO_STATUS_NOT_SUPPORTED : AUDIO_STATUS_IN_PROGRESS, -1);
+	if (currprefs.deterministic) {
+    	cdu->cdda_delay = 0;
+    	cdu->cdda_delay_frames = 0;
+    	setstate (cdu, AUDIO_STATUS_IN_PROGRESS, -1);
+	} else {
+    	cdu->cdda_delay = setstate (cdu, -1, -1);
+    	cdu->cdda_delay_frames = setstate (cdu, -2, -1);
+    	setstate (cdu, cdu->cdda_delay > 0 || cdu->cdda_delay_frames ? AUDIO_STATUS_NOT_SUPPORTED : AUDIO_STATUS_IN_PROGRESS, -1);
+	}
 	if (!isaudiotrack (&cdu->di.toc, startlsn)) {
 		setstate (cdu, AUDIO_STATUS_PLAY_ERROR, -1);
 		return 0;

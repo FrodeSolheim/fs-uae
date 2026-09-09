@@ -388,8 +388,10 @@ static void mapsockoptreturn(int level, int optname, uae_u32 optval, void *buf)
 /*
  * Map amiga (s|g)etsockopt value from amiga to the appropriate value
  */
-static void mapsockoptvalue(int level, int optname, uae_u32 optval, void *buf)
+static void mapsockoptvalue(int level, int optname, uae_u32 optval, void *buf, uae_u32 len)
 {
+	uae_u32 i;
+
 	switch (level) {
 
 	case SOL_SOCKET:
@@ -432,11 +434,16 @@ static void mapsockoptvalue(int level, int optname, uae_u32 optval, void *buf)
 		case IP_RECVOPTS:
 		//case IP_RECVRETOPTS:
 		//case IP_RETOPTS:
-		case IP_MULTICAST_IF:
+			*((int *)buf) = get_long (optval);
+			break;
 		case IP_MULTICAST_TTL:
 		case IP_MULTICAST_LOOP:
+			*((uae_u8 *)buf) = get_byte (optval);
+			break;
+		case IP_MULTICAST_IF:
 		case IP_ADD_MEMBERSHIP:
-			*((int *)buf) = get_long (optval);
+			for (i = 0; i < len; i++)
+				((uae_u8 *)buf)[i] = get_byte (optval + i);
 			break;
 
 		default:
@@ -1277,10 +1284,18 @@ void host_setsockopt(SB, uae_u32 sd, uae_u32 level, uae_u32 optname, uae_u32 opt
 		bsdsocklib_seterrno (ctx, sb, 9); /* EBADF */;
 		return;
 	}
+	if (nativelevel == IPPROTO_IP &&
+		(((nativeoptname == IP_MULTICAST_TTL || nativeoptname == IP_MULTICAST_LOOP) && len != sizeof(uae_u8)) ||
+		 (nativeoptname == IP_MULTICAST_IF && len != sizeof(struct in_addr)) ||
+		 (nativeoptname == IP_ADD_MEMBERSHIP && len != sizeof(struct ip_mreq)))) {
+		sb->resultval = -1;
+		bsdsocklib_seterrno (ctx, sb, EINVAL);
+		return;
+	}
 
 	if (optval) {
 		buf = malloc(len);
-		mapsockoptvalue(nativelevel, nativeoptname, optval, buf);
+		mapsockoptvalue(nativelevel, nativeoptname, optval, buf, len);
 	} else {
 		buf = NULL;
 	}

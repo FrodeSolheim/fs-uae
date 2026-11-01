@@ -332,9 +332,6 @@ void do_leave_program (void)
 #ifdef USE_SDL
 	SDL_Quit ();
 #endif
-#ifdef AUTOCONFIG
-	expansion_cleanup ();
-#endif
 #ifdef WITH_PCI
 	pci_free();
 #endif
@@ -346,6 +343,9 @@ void do_leave_program (void)
 #endif
 #ifdef BSDSOCKET
 	bsdlib_reset ();
+#endif
+#ifdef AUTOCONFIG
+	expansion_cleanup ();
 #endif
 	gayle_free ();
 	idecontroller_free();

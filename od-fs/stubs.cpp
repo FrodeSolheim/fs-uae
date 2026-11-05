@@ -90,17 +90,6 @@ void target_addtorecent (const TCHAR *name, int t) {
 
 // --- win32gui.cpp ---
 
-// Cfgfile callback to save target-specific options to config file
-void target_save_options (struct zfile *f, struct uae_prefs *p) {
-    // LOG_STUB("zfile=%p p=%p", f, p);
-}
-
-int target_parse_option(struct uae_prefs *p, const TCHAR *option, const TCHAR *value, int type)
-{
-    STUB("p=%p\n, option=\"%s\"", p, option);
-    return 0;
-}
-
 uae_u8 *target_load_keyfile (struct uae_prefs *p, const TCHAR *path, int *sizep, TCHAR *name) {
     STUB("");
     return NULL;

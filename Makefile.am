@@ -522,6 +522,7 @@ libuae_a_SOURCES = \
 	mame/mameglue.h \
 	mame/tm34010/tms34010.cpp \
 	mame/tm34010/tms34010.h \
+	midiemu.cpp \
 	memory.cpp \
 	mos6502.cpp \
 	native2amiga.cpp \
@@ -577,7 +578,8 @@ libuae_a_SOURCES = \
 	od-fs/mouse-fs.cpp \
 	od-fs/mp3decoder.cpp \
 	od-fs/non-windows/tchar.h \
-	od-fs/parser.cpp \
+	od-fs/options-fs.cpp \
+	od-fs/parser-fs.cpp \
 	od-fs/paths.cpp \
 	od-fs/random.cpp \
 	od-fs/roms.cpp \
@@ -1778,6 +1780,47 @@ libudis86_a_SOURCES = \
 	od-fs/libudis86/src/udint.h \
 	od-fs/libudis86/src/udis86.c
 endif
+
+# -----------------------------------------------------------------------------
+
+noinst_LIBRARIES += libmt32emu.a
+AM_CPPFLAGS += -I$(srcdir)/od-fs/mt32emu/src
+# libmt32emu_a_CXXFLAGS = -I$(srcdir)/od-fs/mt32emu/include/mt32emu
+libmt32emu_a_CXXFLAGS = -DMT32EMU_WITH_INTERNAL_RESAMPLER
+fs_uae_LDADD += libmt32emu.a
+libmt32emu_a_SOURCES = \
+	od-fs/mt32emu/src/Analog.cpp \
+	od-fs/mt32emu/src/BReverbModel.cpp \
+	od-fs/mt32emu/src/c_interface/c_interface.cpp \
+	od-fs/mt32emu/src/Display.cpp \
+	od-fs/mt32emu/src/File.cpp \
+	od-fs/mt32emu/src/FileStream.cpp \
+	od-fs/mt32emu/src/LA32FloatWaveGenerator.cpp \
+	od-fs/mt32emu/src/LA32Ramp.cpp \
+	od-fs/mt32emu/src/LA32WaveGenerator.cpp \
+	od-fs/mt32emu/src/MidiStreamParser.cpp \
+	od-fs/mt32emu/src/Part.cpp \
+	od-fs/mt32emu/src/Partial.cpp \
+	od-fs/mt32emu/src/PartialManager.cpp \
+	od-fs/mt32emu/src/Poly.cpp \
+	od-fs/mt32emu/src/ROMInfo.cpp \
+	od-fs/mt32emu/src/SampleRateConverter.cpp \
+	od-fs/mt32emu/src/sha1/sha1.cpp \
+	od-fs/mt32emu/src/srchelper/InternalResampler.cpp \
+	od-fs/mt32emu/src/srchelper/srctools/src/FIRResampler.cpp \
+	od-fs/mt32emu/src/srchelper/srctools/src/IIR2xResampler.cpp \
+	od-fs/mt32emu/src/srchelper/srctools/src/LinearResampler.cpp \
+	od-fs/mt32emu/src/srchelper/srctools/src/ResamplerModel.cpp \
+	od-fs/mt32emu/src/srchelper/srctools/src/SincResampler.cpp \
+	od-fs/mt32emu/src/Synth.cpp \
+	od-fs/mt32emu/src/Tables.cpp \
+	od-fs/mt32emu/src/TVA.cpp \
+	od-fs/mt32emu/src/TVF.cpp \
+	od-fs/mt32emu/src/TVP.cpp \
+	od-fs/mt32emu/src/VersionTagging.cpp
+
+#	od-fs/mt32emu/src/srchelper/SamplerateAdapter.cpp
+#	od-fs/mt32emu/src/srchelper/SoxrAdapter.cpp
 
 # --------------------------------------------------------------------------------------------------
 

@@ -57,6 +57,9 @@ static bool check_rom(const TCHAR *path, const TCHAR *name)
 
 static bool load_rom(const TCHAR *path, const TCHAR *name)
 {
+#ifdef FSUAE
+	write_log("midiemu load_rom path=%s name=%s\n", path, name);
+#endif
 	mt32emu_return_code err;
 	TCHAR rpath[MAX_DPATH];
 	_tcscpy(rpath, path);
@@ -82,6 +85,24 @@ static bool load_rom(const TCHAR *path, const TCHAR *name)
 			xfree(n);
 		}
 	}
+#ifdef FSUAE
+	// Check uppercase version
+	if (err < 0) {
+		_tcscpy(rpath, path);
+		int len = strlen(rpath);
+		_tcscat(rpath, name);
+		_tcscat(rpath, _T(".ROM"));
+		char *n = ua(rpath);
+		char *p = n + len;
+		while (*p) {
+			*p = toupper(*p);
+			p++;
+		}
+		write_log(_T("Trying %s\n"), n);
+		err = mt32emu_add_rom_file(mt32context, n);
+		xfree(n);
+	}
+#endif
 	write_log("-> %d\n", err);
 	return err >= 0;
 }
@@ -90,7 +111,15 @@ static void midi_emu_add_roms(void)
 {
 	TCHAR path[MAX_DPATH];
 	fetch_rompath(path, sizeof(path) / sizeof(TCHAR));
+#ifdef FSUAE
+	_tcscat(path, _T("MT-32/"));
+	if (!my_existsdir(path)) {
+		fetch_rompath(path, sizeof(path) / sizeof(TCHAR));
+		_tcscat(path, _T("mt32-roms/"));
+	}
+#else
 	_tcscat(path, _T("mt32-roms\\"));
+#endif
 	if (!my_existsdir(path)) {
 		_tcscpy(path, _T("c:\\mt32-rom-data\\"));
 	}
@@ -120,6 +149,9 @@ static void midi_emu_add_roms(void)
 		}
 	}
 }
+
+#ifdef FSUAE
+#else
 
 bool midi_emu_available(const TCHAR *id)
 {
@@ -168,6 +200,8 @@ bool midi_emu_available(const TCHAR *id)
 	}
 	return false;
 }
+
+#endif
 
 void midi_update_sound(float v)
 {
@@ -226,7 +260,12 @@ int midi_emu_open(const TCHAR *id)
 	}
 	const char *s = mt32emu_get_library_version_string();
 	write_log("mt32emu version: %s\n", s);
+#ifdef FSUAE
+	const mt32emu_report_handler_i NULL_REPORT_HANDLER = { NULL };
+	mt32context = mt32emu_create_context(NULL_REPORT_HANDLER, NULL);
+#else
 	mt32context = mt32emu_create_context((mt32emu_report_handler_i)NULL, NULL);
+#endif
 	if (!mt32context) {
 		write_log("mt32emu_create_context() failed\n");
 		return 0;
@@ -257,12 +296,16 @@ void midi_emu_reopen(void)
 {
 	if (midi_emu) {
 		midi_emu_close();
+#ifdef FSUAE
+
+#else
 		if (currprefs.win32_midioutdev >= 0) {
 			TCHAR *name = midioutportinfo[currprefs.win32_midioutdev]->name;
 			if (!_tcsncmp(name, _T("Munt "), 5)) {
 				midi_emu_open(name);
 			}
 		}
+#endif
 	}
 }
 

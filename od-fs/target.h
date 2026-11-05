@@ -9,7 +9,7 @@
   * Copyright Frode Solheim
   */
 
-#define TARGET_NAME _T("fsuae")
+#define TARGET_NAME _T("fs")
 
 #define NO_MAIN_IN_MAIN_C
 

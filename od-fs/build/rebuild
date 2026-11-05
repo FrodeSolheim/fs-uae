@@ -1,6 +1,0 @@
-#!/bin/sh
-
-od-fs/bootstrap
-od-fs/build/configure-debug
-make clean
-make -j8

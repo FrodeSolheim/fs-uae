@@ -878,6 +878,13 @@ struct uae_prefs {
 
 	TCHAR luafiles[MAX_LUA_STATES][MAX_DPATH];
 
+#ifdef FSUAE
+
+	TCHAR midioutdev[256];
+	TCHAR midiindev[256];
+
+#endif
+
 	/* Target specific options */
 
 	bool win32_logfile;

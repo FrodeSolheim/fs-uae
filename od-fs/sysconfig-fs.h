@@ -22,6 +22,7 @@
 #define ECS_DENISE /* ECS DENISE new features */
 #define MMUEMU /* Aranym 68040 MMU */
 #define FULLMMU /* Aranym 68040 MMU */
+#define WITH_MIDIEMU
 
 // Sound boards support
 #define WITH_SNDBOARD

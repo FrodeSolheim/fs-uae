@@ -52,6 +52,9 @@
 #include "ahidsound_new.h"
 #include "xwin.h"
 #include "drawing.h"
+#ifdef WITH_MIDIEMU
+#include "midiemu.h"
+#endif
 #include "vpar.h"
 #include "midi.h"
 
@@ -512,6 +515,11 @@ void writeser (int c)
 				tcp_disconnect ();
 			}
 		}
+#ifdef WITH_MIDIEMU
+	} else if (midi_emu) {
+		uae_u8 b = (uae_u8)c;
+		midi_emu_parse(&b, 1);
+#endif
 #ifdef WITH_MIDI
 	} else if (midi_ready) {
 		midi_send_byte((uint8_t)c);
@@ -811,8 +819,29 @@ void setserstat (int mask, int onoff)
 #endif
 }
 
-int setbaud(int baud, int origbaud)
+int setbaud(int baud, int org_baud)
 {
+	printf("currprefs.midioutdev %s\n", currprefs.midioutdev);
+
+	if(org_baud == 31400 && currprefs.midioutdev[0]) {
+		/* MIDI baud-rate */
+#ifdef WITH_MIDIEMU
+		if (currprefs.midioutdev[0]) {
+			TCHAR *name = currprefs.midioutdev;
+			if (!_tcsncmp(name, _T("Munt "), 5)) {
+				midi_emu_open(name);
+				return 1;
+			}
+		}
+#endif
+	} else {
+#ifdef WITH_MIDIEMU
+		if (midi_emu) {
+			midi_emu_close();
+		}
+#endif
+	}
+
 	// Note: Ignoring origbaud parameter for now
 	if (!currprefs.use_serial) {
 		return 1;

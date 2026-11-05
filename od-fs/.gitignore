@@ -17,7 +17,7 @@ config.h.in
 
 # Files created by configure script
 
-config.h
+/config.h
 macos/Info.plist
 stamp-h1
 windows/fs-uae.rc

@@ -6,9 +6,9 @@ set -e
 "$BUILD_ENV_DIR/packages/libpng"
 "$BUILD_ENV_DIR/packages/sdl3"
 
-PACKAGE=SDL3_image-3.2.4
-PACKAGE_REVISION=0
-CHECKSUM=a725bd6d04261fdda0dd8d950659e1dc15a8065d025275ef460d32ae7dcfc182
+PACKAGE=SDL3_image-3.4.8
+PACKAGE_REVISION=1
+CHECKSUM=e8223b424bc7541cf84ffff5cf7e4f24ec3711c60462cb1bd6dc1d7bd7f25477
 
 # --------------------------------------------------------------------------------------------------
 . "$PACKAGE_PRE"
@@ -22,6 +22,7 @@ tar xf "$BUILD_ENV_DIR/_sources/$PACKAGE.tar.gz"
 cd $PACKAGE
 
 cmake \
+-DSDLIMAGE_ANI=OFF \
 -DSDLIMAGE_AVIF=OFF \
 -DSDLIMAGE_BMP=OFF \
 -DSDLIMAGE_GIF=OFF \
@@ -30,7 +31,7 @@ cmake \
 -DSDLIMAGE_PCX=OFF \
 -DSDLIMAGE_PNM=OFF \
 -DSDLIMAGE_QOI=OFF \
--DSDLIMAGE_SVG=OFF \
+-DSDLIMAGE_SVG=ON \
 -DSDLIMAGE_TGA=OFF \
 -DSDLIMAGE_TIF=OFF \
 -DSDLIMAGE_WEBP=OFF \

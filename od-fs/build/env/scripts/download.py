@@ -2,6 +2,8 @@
 
 import hashlib
 import os
+import shutil
+import subprocess
 import sys
 from typing import Any
 
@@ -44,14 +46,23 @@ def main():
         print("Removing archive", archive)
         os.remove(archive)
 
-    # FIXME: Replace use of wget, just use python instead
-    # if os.system(f'cd {build_env_dir}/_sources && curl "{url}" -o {archive}') != 0:
-
-    print("Using --no-check-certificate due to missing certificates in the build process")
+    print("Not checking certificates due to missing certificates in the build process")
     print("The downloads are verified using SHA-256")
 
-    if os.system(f'cd {build_env_dir}/_sources && wget --no-check-certificate "{url}"') != 0:
+    # Prefer curl (always available on macOS), fall back to wget
+    if shutil.which("curl"):
+        args = ["curl", "--fail", "--location", "--insecure", "--output", archive, url]
+    elif shutil.which("wget"):
+        args = ["wget", "--no-check-certificate", "--output-document", archive, url]
+    else:
+        print("Neither curl nor wget found")
+        sys.exit(1)
+
+    print(" ".join(args))
+    if subprocess.call(args) != 0:
         print("Failed to download")
+        if os.path.exists(archive):
+            os.remove(archive)
         sys.exit(1)
 
     if not verify(archive, h, checksum):

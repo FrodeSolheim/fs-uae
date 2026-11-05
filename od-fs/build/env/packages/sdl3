@@ -6,9 +6,9 @@ set -e
 # Dependency: pulseaudio?
 # Dependency: wayland?
 
-PACKAGE=SDL3-3.2.20
+PACKAGE=SDL3-3.4.20
 PACKAGE_REVISION=0
-CHECKSUM=467600ae090dd28616fa37369faf4e3143198ff1da37729b552137e47f751a67
+CHECKSUM=f3bb06f55bed9557227a700af2ea62e49497ebdf58037732a731a5fb3ef8581f
 
 # --------------------------------------------------------------------------------------------------
 . "$PACKAGE_PRE"

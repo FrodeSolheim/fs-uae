@@ -82,8 +82,8 @@ Install dependencies for bootstrapping and building FS-UAE:
 FIXME: Write new instructions for the fsdeps/ fsbuild scripts. Some build-time
 dependencies must be installed separately, for example via Homebrew:
 
-    brew install autoconf automake cmake dos2unix libtool m4 meson pkg-config \
-    wget
+    brew install autoconf automake cmake dos2unix libtool m4 meson ninja \
+    pkgconf
 
 Install homebrew from https://brew.sh (follow their instructions) and then open
 a new terminal.

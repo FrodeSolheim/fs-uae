@@ -109,6 +109,11 @@ fsgui_image_t* fsgui_image_load(const char* name) {
 
     const char* path = name;
     SDL_Surface* surface = IMG_Load(path);
+    if (!surface) {
+        fsgui_image_log_error("Could not load image %s: %s", path, SDL_GetError());
+        free(image);
+        return NULL;
+    }
     image->surface = surface;
 
     if (surface->format == SDL_PIXELFORMAT_RGBA32) {
@@ -151,7 +156,9 @@ fsgui_image_t* fsgui_image_load_sized_svg(const char* name, int width, int heigh
         return NULL;
     }
 
-    // Use IMG_LoadSizedSVG_IO to load the SVG at the specified size
+    // Use IMG_LoadSizedSVG_IO to load the SVG at the specified size. When SDL_image is built
+    // without SVG support, this returns NULL without setting an error, so clear any stale error.
+    SDL_ClearError();
     SDL_Surface* surface = IMG_LoadSizedSVG_IO(io, width, height);
     SDL_CloseIO(io);
 
@@ -300,6 +307,7 @@ static PyObject* fsgui_image_python_load(PyObject* self, PyObject* args) {
     fsgui_image_t* image = fsgui_image_load(name);
     if (image == NULL) {
         SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Could not load image %s: %s", name, SDL_GetError());
+        PyErr_Format(PyExc_RuntimeError, "Could not load image %s: %s", name, SDL_GetError());
         return NULL;
     }
 
@@ -317,6 +325,8 @@ static PyObject* fsgui_image_python_load_sized_svg(PyObject* self, PyObject* arg
     fsgui_image_t* image = fsgui_image_load_sized_svg(name, width, height);
     if (image == NULL) {
         SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Could not load sized SVG %s: %s", name,
+                     SDL_GetError());
+        PyErr_Format(PyExc_RuntimeError, "Could not load sized SVG %s: %s", name,
                      SDL_GetError());
         return NULL;
     }

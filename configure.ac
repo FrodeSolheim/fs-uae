@@ -788,6 +788,8 @@ AS_IF([test "x$enable_jit" != xno], [
 AM_CONDITIONAL([JIT],
 [test x$enable_jit != xno])
 
+# JIT compilation of FPU instructions requires the JIT
+AS_IF([test "x$enable_jit" = xno], [enable_jit_fpu=no])
 OPT_FEATURE([USE_JIT_FPU], [jit_fpu], [jit-fpu], [JIT compilation of FPU instructions])
 OPT_FEATURE([WITH_NETPLAY], [netplay], [netplay], [netplay support])
 OPT_FEATURE([NCR], [ncr], [ncr], [A4000T/A4091, 53C710/53C770 SCSI])

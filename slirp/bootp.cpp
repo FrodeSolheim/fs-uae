@@ -40,6 +40,11 @@ BOOTPClient bootp_clients[NB_ADDR];
 
 static const uint8_t rfc1533_cookie[] = { RFC1533_COOKIE };
 
+void bootp_reset(void)
+{
+    memset(bootp_clients, 0, sizeof bootp_clients);
+}
+
 static BOOTPClient *get_new_addr(struct in_addr *paddr)
 {
     BOOTPClient *bc;
@@ -100,6 +105,9 @@ static void dhcp_decode(const uint8_t *buf, int size,
             if (p >= p_end)
                 break;
             len = *p++;
+            if (p + len > p_end) {
+                break;
+            }
 
             switch(tag) {
             case RFC2132_MSG_TYPE:
@@ -114,18 +122,17 @@ static void dhcp_decode(const uint8_t *buf, int size,
     }
 }
 
-static void bootp_reply(struct bootp_t *bp)
+static void bootp_reply(struct bootp_t *bp, int vend_len)
 {
     BOOTPClient *bc;
     struct mbuf *m;
     struct bootp_t *rbp;
     struct sockaddr_in saddr, daddr;
-    struct in_addr dns_addr;
     int dhcp_msg_type, val;
     uint8_t *q;
 
     /* extract exact DHCP msg type */
-    dhcp_decode(bp->bp_vend, DHCP_OPT_LEN, &dhcp_msg_type);
+    dhcp_decode(bp->bp_vend, vend_len, &dhcp_msg_type);
     
     if (dhcp_msg_type == 0)
         dhcp_msg_type = DHCPREQUEST; /* Force reply for old BOOTP clients */
@@ -144,10 +151,15 @@ static void bootp_reply(struct bootp_t *bp)
     memset(rbp, 0, sizeof(struct bootp_t));
 
     if (dhcp_msg_type == DHCPDISCOVER) {
+        bc = find_addr(&daddr.sin_addr, bp->bp_hwaddr);
+        if (bc)
+            goto have_addr;
     new_addr:
         bc = get_new_addr(&daddr.sin_addr);
-        if (!bc)
+        if (!bc) {
+            m_free(m);
             return;
+        }
         memcpy(bc->macaddr, client_ethaddr, 6);
     } else {
         bc = find_addr(&daddr.sin_addr, bp->bp_hwaddr);
@@ -157,6 +169,7 @@ static void bootp_reply(struct bootp_t *bp)
             goto new_addr;
         }
     }
+have_addr:
 
     saddr.sin_addr.s_addr = htonl(ntohl(special_addr.s_addr) | CTL_ALIAS);
     saddr.sin_port = htons(BOOTP_SERVER);
@@ -205,11 +218,14 @@ static void bootp_reply(struct bootp_t *bp)
         memcpy(q, &saddr.sin_addr, 4);
         q += 4;
         
-        *q++ = RFC1533_DNS;
-        *q++ = 4;
-        dns_addr.s_addr = htonl(ntohl(special_addr.s_addr) | CTL_DNS);
-        memcpy(q, &dns_addr, 4);
-        q += 4;
+        if (dns_addr_valid) {
+            struct in_addr guest_dns_addr;
+            *q++ = RFC1533_DNS;
+            *q++ = 4;
+            guest_dns_addr.s_addr = htonl(ntohl(special_addr.s_addr) | CTL_DNS);
+            memcpy(q, &guest_dns_addr, 4);
+            q += 4;
+        }
 
         *q++ = RFC2132_LEASE_TIME;
         *q++ = 4;
@@ -236,7 +252,11 @@ void bootp_input(struct mbuf *m)
 {
     struct bootp_t *bp = mtod(m, struct bootp_t *);
 
+    /* the vendor area is optional, the fixed part must be there */
+    if (m->m_len < offsetof(struct bootp_t, bp_vend)) {
+        return;
+    }
     if (bp->bp_op == BOOTP_REQUEST) {
-        bootp_reply(bp);
+        bootp_reply(bp, (int)(m->m_len - offsetof(struct bootp_t, bp_vend)));
     }
 }

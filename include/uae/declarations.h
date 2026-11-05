@@ -16,7 +16,7 @@
 // (ideally none), so library code (PCem, etc) which include this does not pull
 // in conflicting header declarations from UAE.
 
-// clipboard_win32.cpp
+// od-fs/clipboard-fs.cpp
 
 void clipboard_init(void);
 void clipboard_reset(void);

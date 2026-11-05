@@ -21,6 +21,7 @@ extern void a1000_reset(void);
 extern int special_mem;
 extern int special_mem_default;
 extern int jit_n_addr_unsafe;
+extern int jit_n_addr_bank_unsafe;
 #endif
 
 #define S_READ 1
@@ -30,6 +31,7 @@ extern int jit_n_addr_unsafe;
 bool init_shm (void);
 void free_shm (void);
 bool preinit_shm (void);
+extern bool rom_write_enabled;
 extern bool canbang;
 extern bool jit_direct_compatible_memory;
 extern uaecptr highest_ram;
@@ -56,7 +58,7 @@ typedef void (REGPARAM3 *mem_put_func)(uaecptr, uae_u32) REGPARAM;
 typedef uae_u8 *(REGPARAM3 *xlate_func)(uaecptr) REGPARAM;
 typedef int (REGPARAM3 *check_func)(uaecptr, uae_u32) REGPARAM;
 
-extern uae_u32 max_z3fastmem, max_physmem;
+extern size_t max_z3fastmem, max_physmem;
 
 extern uae_u32 wait_cpu_cycle_read (uaecptr addr, int mode);
 extern void wait_cpu_cycle_write (uaecptr addr, int mode, uae_u32 v);
@@ -524,9 +526,9 @@ extern void memory_init (void);
 extern void memory_cleanup(void);
 extern void restore_banks(void);
 extern void map_banks (addrbank *bank, int first, int count, int realsize);
-extern void map_banks_z2(addrbank *bank, int first, int count);
+extern bool map_banks_z2(addrbank *bank, int first, int count);
 extern uae_u32 map_banks_z2_autosize(addrbank *bank, int first);
-extern void map_banks_z3(addrbank *bank, int first, int count);
+extern bool map_banks_z3(addrbank *bank, int first, int count);
 extern bool validate_banks_z2(addrbank *bank, int start, int size);
 extern bool validate_banks_z3(addrbank *bank, int start, int size);
 extern void map_banks_quick (addrbank *bank, int first, int count, int realsize);
@@ -688,6 +690,8 @@ STATIC_INLINE void *get_pointer (uaecptr addr)
 # endif
 #endif
 
+void dma_put_long(uaecptr addr, uae_u32 v);
+uae_u32 dma_get_long(uaecptr addr);
 void dma_put_word(uaecptr addr, uae_u16 v);
 uae_u16 dma_get_word(uaecptr addr);
 void dma_put_byte(uaecptr addr, uae_u8 v);
@@ -882,7 +886,8 @@ extern shmpiece *shm_start;
 
 extern uae_u8* natmem_offset;
 extern uae_u8 *natmem_reserved;
-extern uae_u32 natmem_reserved_size;
+extern size_t natmem_reserved_size;
+void commit_natmem_gaps(void);
 
 #endif
 

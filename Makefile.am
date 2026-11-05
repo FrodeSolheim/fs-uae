@@ -298,6 +298,7 @@ libuae_a_SOURCES = \
 	cdrom.cpp \
 	cdtv.cpp \
 	cdtvcr.cpp \
+	cda_play.cpp \
 	cfgfile.cpp \
 	cia.cpp \
 	consolehook.cpp \
@@ -359,7 +360,9 @@ libuae_a_SOURCES = \
 	include/cdtv.h \
 	include/cdtvcr.h \
 	include/cia.h \
+	include/cda_play.h \
 	include/clipboard.h \
+	include/clipboard_common.h \
 	include/commpipe.h \
 	include/consolehook.h \
 	include/cpu_prefetch.h \
@@ -530,6 +533,11 @@ libuae_a_SOURCES = \
 	ncr9x_scsi.cpp \
 	newcpu_common.cpp \
 	newcpu.cpp \
+	od-fs/clipboard-fs.cpp \
+	od-fs/mman-fs.cpp \
+	od-generic/clipboard.cpp \
+	od-generic/mman.cpp \
+	od-generic/mman_host.h \
 	od-fs/blkdev-linux.cpp \
 	od-fs/bridge.cpp \
 	od-fs/bsdsocket_posix.cpp \
@@ -610,16 +618,11 @@ libuae_a_SOURCES = \
 	od-win32/caps/caps_win32.h \
 	od-win32/caps/CapsAPI.h \
 	od-win32/caps/Comtype.h \
-	od-win32/cda_play.cpp \
-	od-win32/cda_play.h \
-	od-win32/clipboard_win32.cpp \
-	od-win32/clipboard_win32.h \
 	od-win32/darkmode.h \
 	od-win32/debug_win32.h \
 	od-win32/direct3d.h \
 	od-win32/lcd.h \
 	od-win32/midi.h \
-	od-win32/mman.cpp \
 	od-win32/mp3decoder.h \
 	od-win32/parser.h \
 	od-win32/picasso96_win.cpp \
@@ -688,9 +691,10 @@ libuae_a_SOURCES = \
 	uaeresource.cpp \
 	uaeserial.cpp \
 	vm.cpp \
-	x86.cpp \
 	zfile_archive.cpp \
 	zfile.cpp
+# Headers in include/ are not all listed individually above
+EXTRA_DIST += include
 EXTRA_DIST += \
 	aks.def \
 	filesys_bootrom.cpp \
@@ -1107,23 +1111,57 @@ endif
 noinst_LIBRARIES += libjit.a
 fs_uae_LDADD += libjit.a
 libjit_a_SOURCES = \
-	jit/codegen_udis86.h \
-	jit/codegen_x86.h \
 	jit/compemu_fpp.cpp \
-	jit/compemu_midfunc_arm.h \
-	jit/compemu_midfunc_x86.h \
 	jit/compemu_support.cpp \
 	jit/compemu.cpp \
 	jit/compemu.h \
 	jit/compstbl.cpp \
-	jit/comptbl.h \
-	jit/flags_x86.h \
-	jit/memory-uae.h
+	jit/comptbl.h
 EXTRA_DIST += \
-	jit/codegen_x86.cpp \
-	jit/compemu_midfunc_x86.cpp \
+	od-win32/clipboard_win32.cpp \
+	od-win32/clipboard_win32.h \
+	jit/arm/aarch64.h \
+	jit/arm/codegen_arm.cpp \
+	jit/arm/codegen_arm.h \
+	jit/arm/codegen_arm64.cpp \
+	jit/arm/codegen_arm64.h \
+	jit/arm/compemu_arm.cpp \
+	jit/arm/compemu_arm.h \
+	jit/arm/compemu_fpp_arm.cpp \
+	jit/arm/compemu_midfunc_arm.cpp \
+	jit/arm/compemu_midfunc_arm.h \
+	jit/arm/compemu_midfunc_arm2.cpp \
+	jit/arm/compemu_midfunc_arm2.h \
+	jit/arm/compemu_midfunc_arm64.cpp \
+	jit/arm/compemu_midfunc_arm64_2.cpp \
+	jit/arm/compemu_support_arm.cpp \
+	jit/arm/compstbl_arm.cpp \
+	jit/arm/comptbl_arm.h \
+	jit/arm/flags_arm.h \
+	jit/arm/gencomp_arm.c \
+	jit/codegen_udis86.h \
 	jit/compemu_prefs.cpp \
-	jit/exception_handler.cpp
+	jit/x86/codegen_x86.cpp \
+	jit/x86/codegen_x86.h \
+	jit/x86/compemu_fpp_x86.cpp \
+	jit/x86/compemu_midfunc_x86.cpp \
+	jit/x86/compemu_midfunc_x86.h \
+	jit/x86/compemu_support_x86.cpp \
+	jit/x86/compemu_x86.cpp \
+	jit/x86/compemu_x86.h \
+	jit/x86/compstbl_x86.cpp \
+	jit/x86/comptbl_x86.h \
+	jit/x86/exception_handler.cpp \
+	jit/x86/flags_x86.h \
+	jit/x86/gencomp.cpp \
+	jit/x86/memory-uae.h \
+	jit/codegen_arm.cpp \
+	jit/codegen_arm.h \
+	jit/compemu_midfunc_arm.cpp \
+	jit/compemu_midfunc_arm.h \
+	jit/compemu_midfunc_arm2.cpp \
+	jit/compemu_midfunc_arm2.h \
+	jit/flags_arm.h
 
 # fsemu0 ----------------------------------------------------------------------
 
@@ -1391,173 +1429,408 @@ if BUILTIN_MANYMOUSE
 # 	manymouse/x11_xinput2.c
 endif
 
-# pcem ------------------------------------------------------------------------
+# 86box -----------------------------------------------------------------------
+
+# The 86Box sources include many headers which are not listed individually;
+# distribute the whole directory.
+EXTRA_DIST += 86box
+#
+# Imported 86Box code (replaces the old pcem library). It is third-party code,
+# built as C++20 with 86Box's include layout and without WinUAE's headers
+# (so these libraries do not use AM_CPPFLAGS). UAE= enables the few WinUAE
+# hooks in the 86Box sources.
+
+# WinUAE glue and the WinUAE files which include 86Box headers by their
+# 86box/... path. These are built with the normal WinUAE flags.
+lib86box_glue_a_CPPFLAGS = $(AM_CPPFLAGS) -I$(srcdir)/86box/winuae -I$(srcdir)/86box/winuae/include -I$(srcdir)/86box/include
+
+# 86Box video cards for the RTG boards in gfxboard.cpp. Memory, I/O, timer
+# and device calls are renamed to the RTG versions in 86box_video.cpp.
+noinst_LIBRARIES += lib86box_video.a
+fs_uae_LDADD += lib86box_video.a
+lib86box_video_a_CPPFLAGS = -DUAE= -D_Static_assert=static_assert -I$(srcdir)/86box/winuae/include -I$(srcdir)/86box/include -I$(srcdir)/86box/cpu -I$(srcdir)/86box -include $(srcdir)/86box/winuae/86box_video_redirect.h
+lib86box_video_a_CXXFLAGS = $(PTHREAD_CFLAGS) -std=gnu++20 -w
+lib86box_video_a_SOURCES = \
+	86box/device/i2c.cpp \
+	86box/device/i2c_gpio.cpp \
+	86box/mem/i2c_eeprom.cpp \
+	86box/mem/nmc93cxx.cpp \
+	86box/video/clockgen/vid_clockgen_av9194.cpp \
+	86box/video/clockgen/vid_clockgen_ch9204.cpp \
+	86box/video/clockgen/vid_clockgen_icd2061.cpp \
+	86box/video/clockgen/vid_clockgen_ics2494.cpp \
+	86box/video/ramdac/vid_ramdac_att20c49x.cpp \
+	86box/video/ramdac/vid_ramdac_att2xc498.cpp \
+	86box/video/ramdac/vid_ramdac_bt48x.cpp \
+	86box/video/ramdac/vid_ramdac_ibm_rgb528.cpp \
+	86box/video/ramdac/vid_ramdac_mu9c1880.cpp \
+	86box/video/ramdac/vid_ramdac_sc1148x.cpp \
+	86box/video/ramdac/vid_ramdac_sc1502x.cpp \
+	86box/video/ramdac/vid_ramdac_sdac.cpp \
+	86box/video/ramdac/vid_ramdac_stg1702.cpp \
+	86box/video/ramdac/vid_ramdac_tvp3026.cpp \
+	86box/video/vid_cl54xx.cpp \
+	86box/video/vid_ddc.cpp \
+	86box/video/vid_et4000.cpp \
+	86box/video/vid_et4000w32.cpp \
+	86box/video/vid_mga.cpp \
+	86box/video/vid_s3.cpp \
+	86box/video/vid_s3_virge.cpp \
+	86box/video/vid_svga.cpp \
+	86box/video/vid_svga_render.cpp \
+	86box/video/vid_voodoo.cpp \
+	86box/video/vid_voodoo_banshee.cpp \
+	86box/video/vid_voodoo_banshee_blitter.cpp \
+	86box/video/vid_voodoo_blitter.cpp \
+	86box/video/vid_voodoo_display.cpp \
+	86box/video/vid_voodoo_fb.cpp \
+	86box/video/vid_voodoo_fifo.cpp \
+	86box/video/vid_voodoo_reg.cpp \
+	86box/video/vid_voodoo_render.cpp \
+	86box/video/vid_voodoo_setup.cpp \
+	86box/video/vid_voodoo_texture.cpp \
+	86box/winuae/vid_inmos.cpp \
+	86box/winuae/vid_ncr.cpp \
+	86box/winuae/vid_permedia2.cpp \
+	86box/winuae/vid_ramdac_bt482.cpp
+
+noinst_LIBRARIES += lib86box_glue.a
+fs_uae_LDADD += lib86box_glue.a
+lib86box_glue_a_SOURCES = \
+	86box/winuae/86box_video.cpp
 
 if WITH_X86
-noinst_LIBRARIES += libpcem.a
-fs_uae_LDADD += libpcem.a
-libpcem_a_SOURCES = \
-	pcem/386_common.cpp \
-	pcem/386_common.h \
-	pcem/386_dynarec.cpp \
-	pcem/386_ops.h \
-	pcem/386.cpp \
-	pcem/8087.h \
-	pcem/808x.cpp \
-	pcem/codegen_backend_arm_defs.h \
-	pcem/codegen_backend_arm.h \
-	pcem/codegen_backend_arm64_defs.h \
-	pcem/codegen_backend_arm64.h \
-	pcem/codegen_backend_x86_defs.h \
-	pcem/codegen_backend_x86-64_defs.h \
-	pcem/codegen_backend_x86-64.h \
-	pcem/codegen_backend_x86.h \
-	pcem/codegen_backend.h \
-	pcem/codegen.h \
-	pcem/config.h \
-	pcem/cpu.cpp \
-	pcem/cpu.h \
-	pcem/device.h \
-	pcem/dma.cpp \
-	pcem/dma.h \
-	pcem/dosbox/dbopl.cpp \
-	pcem/dosbox/dbopl.h \
-	pcem/dosbox/nukedopl.cpp \
-	pcem/dosbox/nukedopl.h \
-	pcem/f82c710_upc.h \
-	pcem/fdc.h \
-	pcem/filters.h \
-	pcem/i440bx.h \
-	pcem/ibm.h \
-	pcem/io.h \
-	pcem/keyboard_at.cpp \
-	pcem/keyboard_at.h \
-	pcem/keyboard.cpp \
-	pcem/keyboard.h \
-	pcem/mca.h \
-	pcem/mem.cpp \
-	pcem/mem.h \
-	pcem/model.h \
-	pcem/mouse_ps2.cpp \
-	pcem/mouse_ps2.h \
-	pcem/mouse_serial.cpp \
-	pcem/mouse_serial.h \
-	pcem/mouse.h \
-	pcem/nmi.h \
-	pcem/nvr_tc8521.h \
-	pcem/nvr.cpp \
-	pcem/nvr.h \
-	pcem/paths.h \
-	pcem/pcemglue.cpp \
-	pcem/pcemglue.h \
-	pcem/pcemrtc.cpp \
-	pcem/pci.h \
-	pcem/pic.cpp \
-	pcem/pic.h \
-	pcem/pit.cpp \
-	pcem/pit.h \
-	pcem/plat-keyboard.h \
-	pcem/plat-midi.h \
-	pcem/plat-mouse.h \
-	pcem/ps2_mca.h \
-	pcem/rom.h \
-	pcem/rtc.h \
-	pcem/serial.cpp \
-	pcem/serial.h \
-	pcem/sound_cms.cpp \
-	pcem/sound_cms.h \
-	pcem/sound_dbopl.cpp \
-	pcem/sound_dbopl.h \
-	pcem/sound_emu8k.h \
-	pcem/sound_mpu401_uart.cpp \
-	pcem/sound_mpu401_uart.h \
-	pcem/sound_opl.cpp \
-	pcem/sound_opl.h \
-	pcem/sound_sb_dsp.cpp \
-	pcem/sound_sb_dsp.h \
-	pcem/sound_sb.cpp \
-	pcem/sound_sb.h \
-	pcem/sound_speaker.cpp \
-	pcem/sound_speaker.h \
-	pcem/sound.h \
-	pcem/t1000.h \
-	pcem/t3100e.h \
-	pcem/thread.h \
-	pcem/timer.cpp \
-	pcem/timer.h \
-	pcem/vid_cl5429.cpp \
-	pcem/vid_cl5429.h \
-	pcem/vid_et4000.h \
-	pcem/vid_et4000.h \
-	pcem/vid_inmos.h \
-	pcem/vid_ncr.h \
-	pcem/vid_permedia2.cpp \
-	pcem/vid_permedia2.h \
-	pcem/vid_s3_virge.cpp \
-	pcem/vid_s3_virge.h \
-	pcem/vid_s3.cpp \
-	pcem/vid_s3.h \
-	pcem/vid_sdac_ramdac.cpp \
-	pcem/vid_sdac_ramdac.h \
-	pcem/vid_svga_render_remap.h \
-	pcem/vid_svga_render.cpp \
-	pcem/vid_svga_render.h \
-	pcem/vid_svga.cpp \
-	pcem/vid_svga.h \
-	pcem/vid_unk_ramdac.h \
-	pcem/vid_vga.h \
-	pcem/vid_voodoo_banshee.h \
-	pcem/video.h \
-	pcem/x86_flags.h \
-	pcem/x86_ops_3dnow.h \
-	pcem/x86_ops_arith.h \
-	pcem/x86_ops_atomic.h \
-	pcem/x86_ops_bcd.h \
-	pcem/x86_ops_bit.h \
-	pcem/x86_ops_bitscan.h \
-	pcem/x86_ops_call.h \
-	pcem/x86_ops_cyrix.h \
-	pcem/x86_ops_flag.h \
-	pcem/x86_ops_fpu.h \
-	pcem/x86_ops_inc_dec.h \
-	pcem/x86_ops_int.h \
-	pcem/x86_ops_io.h \
-	pcem/x86_ops_jump.h \
-	pcem/x86_ops_misc.h \
-	pcem/x86_ops_mmx_arith.h \
-	pcem/x86_ops_mmx_cmp.h \
-	pcem/x86_ops_mmx_logic.h \
-	pcem/x86_ops_mmx_mov.h \
-	pcem/x86_ops_mmx_pack.h \
-	pcem/x86_ops_mmx_shift.h \
-	pcem/x86_ops_mmx.h \
-	pcem/x86_ops_mov_ctrl.h \
-	pcem/x86_ops_mov_seg.h \
-	pcem/x86_ops_mov.h \
-	pcem/x86_ops_movx.h \
-	pcem/x86_ops_msr.h \
-	pcem/x86_ops_mul.h \
-	pcem/x86_ops_pmode.h \
-	pcem/x86_ops_prefix.h \
-	pcem/x86_ops_rep.h \
-	pcem/x86_ops_ret.h \
-	pcem/x86_ops_set.h \
-	pcem/x86_ops_shift.h \
-	pcem/x86_ops_stack.h \
-	pcem/x86_ops_string.h \
-	pcem/x86_ops_xchg.h \
-	pcem/x86_ops.h \
-	pcem/x86.h \
-	pcem/x86seg.cpp \
-	pcem/x87_ops_arith.h \
-	pcem/x87_ops_loadstore.h \
-	pcem/x87_ops_misc.h \
-	pcem/x87_ops.h \
-	pcem/x87_timings.cpp \
-	pcem/x87_timings.h \
-	pcem/x87.cpp \
-	pcem/x87.h \
-	pcem/xi8088.h
+# x86 CPU, PC chipset, keyboard, mouse, serial and ISA sound for the
+# bridgeboards and ATonce.
+noinst_LIBRARIES += lib86box.a
+fs_uae_LDADD += lib86box.a
+lib86box_a_CPPFLAGS = -DUAE= -D_Static_assert=static_assert -I$(srcdir)/86box/winuae/include -I$(srcdir)/86box/include -I$(srcdir)/86box/cpu -I$(srcdir)/86box -I$(srcdir)/86box/cpu/softfloat3e -I$(srcdir)/86box/codegen
+lib86box_a_CXXFLAGS = $(PTHREAD_CFLAGS) -std=gnu++20 -w
+lib86box_a_SOURCES = \
+	86box/cpu/386_common.cpp \
+	86box/cpu/386_dynarec.cpp \
+	86box/cpu/386.cpp \
+	86box/cpu/808x_common.cpp \
+	86box/cpu/808x_marty_86box.cpp \
+	86box/cpu/808x.cpp \
+	86box/cpu/cache_as_ram.cpp \
+	86box/cpu/cpu.cpp \
+	86box/cpu/fpu.cpp \
+	86box/cpu/i8080.cpp \
+	86box/cpu/softfloat3e/consts.cpp \
+	86box/cpu/softfloat3e/extF80_addsub.cpp \
+	86box/cpu/softfloat3e/extF80_class.cpp \
+	86box/cpu/softfloat3e/extF80_compare.cpp \
+	86box/cpu/softfloat3e/extF80_div.cpp \
+	86box/cpu/softfloat3e/extF80_extract.cpp \
+	86box/cpu/softfloat3e/extF80_mul.cpp \
+	86box/cpu/softfloat3e/extF80_rem.cpp \
+	86box/cpu/softfloat3e/extF80_roundToInt.cpp \
+	86box/cpu/softfloat3e/extF80_scale.cpp \
+	86box/cpu/softfloat3e/extF80_sqrt.cpp \
+	86box/cpu/softfloat3e/extF80_to_f128.cpp \
+	86box/cpu/softfloat3e/extF80_to_f16.cpp \
+	86box/cpu/softfloat3e/extF80_to_f32.cpp \
+	86box/cpu/softfloat3e/extF80_to_f64.cpp \
+	86box/cpu/softfloat3e/extF80_to_i32_r_minMag.cpp \
+	86box/cpu/softfloat3e/extF80_to_i32.cpp \
+	86box/cpu/softfloat3e/extF80_to_i64_r_minMag.cpp \
+	86box/cpu/softfloat3e/extF80_to_i64.cpp \
+	86box/cpu/softfloat3e/extF80_to_ui32_r_minMag.cpp \
+	86box/cpu/softfloat3e/extF80_to_ui32.cpp \
+	86box/cpu/softfloat3e/extF80_to_ui64_r_minMag.cpp \
+	86box/cpu/softfloat3e/extF80_to_ui64.cpp \
+	86box/cpu/softfloat3e/f128_addsub.cpp \
+	86box/cpu/softfloat3e/f128_div.cpp \
+	86box/cpu/softfloat3e/f128_mul.cpp \
+	86box/cpu/softfloat3e/f128_mulAdd.cpp \
+	86box/cpu/softfloat3e/f128_roundToInt.cpp \
+	86box/cpu/softfloat3e/f128_to_extF80.cpp \
+	86box/cpu/softfloat3e/f128_to_f32.cpp \
+	86box/cpu/softfloat3e/f128_to_f64.cpp \
+	86box/cpu/softfloat3e/f128_to_i32_r_minMag.cpp \
+	86box/cpu/softfloat3e/f128_to_i32.cpp \
+	86box/cpu/softfloat3e/f128_to_i64_r_minMag.cpp \
+	86box/cpu/softfloat3e/f128_to_i64.cpp \
+	86box/cpu/softfloat3e/f128_to_ui32_r_minMag.cpp \
+	86box/cpu/softfloat3e/f128_to_ui32.cpp \
+	86box/cpu/softfloat3e/f128_to_ui64_r_minMag.cpp \
+	86box/cpu/softfloat3e/f128_to_ui64.cpp \
+	86box/cpu/softfloat3e/f16_addsub.cpp \
+	86box/cpu/softfloat3e/f16_class.cpp \
+	86box/cpu/softfloat3e/f16_compare.cpp \
+	86box/cpu/softfloat3e/f16_div.cpp \
+	86box/cpu/softfloat3e/f16_getExp.cpp \
+	86box/cpu/softfloat3e/f16_getMant.cpp \
+	86box/cpu/softfloat3e/f16_minmax.cpp \
+	86box/cpu/softfloat3e/f16_mul.cpp \
+	86box/cpu/softfloat3e/f16_mulAdd.cpp \
+	86box/cpu/softfloat3e/f16_range.cpp \
+	86box/cpu/softfloat3e/f16_roundToInt.cpp \
+	86box/cpu/softfloat3e/f16_sqrt.cpp \
+	86box/cpu/softfloat3e/f16_to_extF80.cpp \
+	86box/cpu/softfloat3e/f16_to_f32.cpp \
+	86box/cpu/softfloat3e/f16_to_f64.cpp \
+	86box/cpu/softfloat3e/f16_to_i32_r_minMag.cpp \
+	86box/cpu/softfloat3e/f16_to_i32.cpp \
+	86box/cpu/softfloat3e/f16_to_i64_r_minMag.cpp \
+	86box/cpu/softfloat3e/f16_to_i64.cpp \
+	86box/cpu/softfloat3e/f16_to_ui32_r_minMag.cpp \
+	86box/cpu/softfloat3e/f16_to_ui32.cpp \
+	86box/cpu/softfloat3e/f16_to_ui64_r_minMag.cpp \
+	86box/cpu/softfloat3e/f16_to_ui64.cpp \
+	86box/cpu/softfloat3e/f2xm1.cpp \
+	86box/cpu/softfloat3e/f32_addsub.cpp \
+	86box/cpu/softfloat3e/f32_class.cpp \
+	86box/cpu/softfloat3e/f32_compare.cpp \
+	86box/cpu/softfloat3e/f32_div.cpp \
+	86box/cpu/softfloat3e/f32_frc.cpp \
+	86box/cpu/softfloat3e/f32_getExp.cpp \
+	86box/cpu/softfloat3e/f32_getMant.cpp \
+	86box/cpu/softfloat3e/f32_minmax.cpp \
+	86box/cpu/softfloat3e/f32_mul.cpp \
+	86box/cpu/softfloat3e/f32_mulAdd.cpp \
+	86box/cpu/softfloat3e/f32_range.cpp \
+	86box/cpu/softfloat3e/f32_roundToInt.cpp \
+	86box/cpu/softfloat3e/f32_scalef.cpp \
+	86box/cpu/softfloat3e/f32_sqrt.cpp \
+	86box/cpu/softfloat3e/f32_to_extF80.cpp \
+	86box/cpu/softfloat3e/f32_to_f128.cpp \
+	86box/cpu/softfloat3e/f32_to_f16.cpp \
+	86box/cpu/softfloat3e/f32_to_f64.cpp \
+	86box/cpu/softfloat3e/f32_to_i32_r_minMag.cpp \
+	86box/cpu/softfloat3e/f32_to_i32.cpp \
+	86box/cpu/softfloat3e/f32_to_i64_r_minMag.cpp \
+	86box/cpu/softfloat3e/f32_to_i64.cpp \
+	86box/cpu/softfloat3e/f32_to_ui32_r_minMag.cpp \
+	86box/cpu/softfloat3e/f32_to_ui32.cpp \
+	86box/cpu/softfloat3e/f32_to_ui64_r_minMag.cpp \
+	86box/cpu/softfloat3e/f32_to_ui64.cpp \
+	86box/cpu/softfloat3e/f64_addsub.cpp \
+	86box/cpu/softfloat3e/f64_class.cpp \
+	86box/cpu/softfloat3e/f64_compare.cpp \
+	86box/cpu/softfloat3e/f64_div.cpp \
+	86box/cpu/softfloat3e/f64_frc.cpp \
+	86box/cpu/softfloat3e/f64_getExp.cpp \
+	86box/cpu/softfloat3e/f64_getMant.cpp \
+	86box/cpu/softfloat3e/f64_minmax.cpp \
+	86box/cpu/softfloat3e/f64_mul.cpp \
+	86box/cpu/softfloat3e/f64_mulAdd.cpp \
+	86box/cpu/softfloat3e/f64_range.cpp \
+	86box/cpu/softfloat3e/f64_roundToInt.cpp \
+	86box/cpu/softfloat3e/f64_scalef.cpp \
+	86box/cpu/softfloat3e/f64_sqrt.cpp \
+	86box/cpu/softfloat3e/f64_to_extF80.cpp \
+	86box/cpu/softfloat3e/f64_to_f128.cpp \
+	86box/cpu/softfloat3e/f64_to_f16.cpp \
+	86box/cpu/softfloat3e/f64_to_f32.cpp \
+	86box/cpu/softfloat3e/f64_to_i32_r_minMag.cpp \
+	86box/cpu/softfloat3e/f64_to_i32.cpp \
+	86box/cpu/softfloat3e/f64_to_i64_r_minMag.cpp \
+	86box/cpu/softfloat3e/f64_to_i64.cpp \
+	86box/cpu/softfloat3e/f64_to_ui32_r_minMag.cpp \
+	86box/cpu/softfloat3e/f64_to_ui32.cpp \
+	86box/cpu/softfloat3e/f64_to_ui64_r_minMag.cpp \
+	86box/cpu/softfloat3e/f64_to_ui64.cpp \
+	86box/cpu/softfloat3e/fpatan.cpp \
+	86box/cpu/softfloat3e/fprem.cpp \
+	86box/cpu/softfloat3e/fsincos.cpp \
+	86box/cpu/softfloat3e/fyl2x.cpp \
+	86box/cpu/softfloat3e/i32_to_extF80.cpp \
+	86box/cpu/softfloat3e/i32_to_f128.cpp \
+	86box/cpu/softfloat3e/i32_to_f16.cpp \
+	86box/cpu/softfloat3e/i32_to_f32.cpp \
+	86box/cpu/softfloat3e/i32_to_f64.cpp \
+	86box/cpu/softfloat3e/i64_to_extF80.cpp \
+	86box/cpu/softfloat3e/i64_to_f128.cpp \
+	86box/cpu/softfloat3e/i64_to_f16.cpp \
+	86box/cpu/softfloat3e/i64_to_f32.cpp \
+	86box/cpu/softfloat3e/i64_to_f64.cpp \
+	86box/cpu/softfloat3e/isNaN.cpp \
+	86box/cpu/softfloat3e/isSignalingNaN.cpp \
+	86box/cpu/softfloat3e/poly.cpp \
+	86box/cpu/softfloat3e/primitives.cpp \
+	86box/cpu/softfloat3e/s_add128.cpp \
+	86box/cpu/softfloat3e/s_add256M.cpp \
+	86box/cpu/softfloat3e/s_addMagsExtF80.cpp \
+	86box/cpu/softfloat3e/s_addMagsF128.cpp \
+	86box/cpu/softfloat3e/s_addMagsF16.cpp \
+	86box/cpu/softfloat3e/s_addMagsF32.cpp \
+	86box/cpu/softfloat3e/s_addMagsF64.cpp \
+	86box/cpu/softfloat3e/s_approxRecip_1Ks.cpp \
+	86box/cpu/softfloat3e/s_approxRecipSqrt_1Ks.cpp \
+	86box/cpu/softfloat3e/s_approxRecipSqrt32_1.cpp \
+	86box/cpu/softfloat3e/s_commonNaNToExtF80UI.cpp \
+	86box/cpu/softfloat3e/s_commonNaNToF128UI.cpp \
+	86box/cpu/softfloat3e/s_commonNaNToF16UI.cpp \
+	86box/cpu/softfloat3e/s_commonNaNToF32UI.cpp \
+	86box/cpu/softfloat3e/s_commonNaNToF64UI.cpp \
+	86box/cpu/softfloat3e/s_countLeadingZeros16.cpp \
+	86box/cpu/softfloat3e/s_countLeadingZeros32.cpp \
+	86box/cpu/softfloat3e/s_countLeadingZeros64.cpp \
+	86box/cpu/softfloat3e/s_countLeadingZeros8.cpp \
+	86box/cpu/softfloat3e/s_eq128.cpp \
+	86box/cpu/softfloat3e/s_le128.cpp \
+	86box/cpu/softfloat3e/s_lt128.cpp \
+	86box/cpu/softfloat3e/s_mul128By32.cpp \
+	86box/cpu/softfloat3e/s_mul128To256M.cpp \
+	86box/cpu/softfloat3e/s_mul64ByShifted32To128.cpp \
+	86box/cpu/softfloat3e/s_mul64To128.cpp \
+	86box/cpu/softfloat3e/s_normRoundPackToExtF80.cpp \
+	86box/cpu/softfloat3e/s_normRoundPackToF128.cpp \
+	86box/cpu/softfloat3e/s_normRoundPackToF16.cpp \
+	86box/cpu/softfloat3e/s_normRoundPackToF32.cpp \
+	86box/cpu/softfloat3e/s_normRoundPackToF64.cpp \
+	86box/cpu/softfloat3e/s_normSubnormalExtF80Sig.cpp \
+	86box/cpu/softfloat3e/s_normSubnormalF128Sig.cpp \
+	86box/cpu/softfloat3e/s_normSubnormalF16Sig.cpp \
+	86box/cpu/softfloat3e/s_normSubnormalF32Sig.cpp \
+	86box/cpu/softfloat3e/s_normSubnormalF64Sig.cpp \
+	86box/cpu/softfloat3e/s_packToExtF80.cpp \
+	86box/cpu/softfloat3e/s_propagateNaNExtF80UI.cpp \
+	86box/cpu/softfloat3e/s_propagateNaNF128UI.cpp \
+	86box/cpu/softfloat3e/s_propagateNaNF16UI.cpp \
+	86box/cpu/softfloat3e/s_propagateNaNF32UI.cpp \
+	86box/cpu/softfloat3e/s_propagateNaNF64UI.cpp \
+	86box/cpu/softfloat3e/s_roundPackToExtF80.cpp \
+	86box/cpu/softfloat3e/s_roundPackToF128.cpp \
+	86box/cpu/softfloat3e/s_roundPackToF16.cpp \
+	86box/cpu/softfloat3e/s_roundPackToF32.cpp \
+	86box/cpu/softfloat3e/s_roundPackToF64.cpp \
+	86box/cpu/softfloat3e/s_roundToI32.cpp \
+	86box/cpu/softfloat3e/s_roundToI64.cpp \
+	86box/cpu/softfloat3e/s_roundToUI32.cpp \
+	86box/cpu/softfloat3e/s_roundToUI64.cpp \
+	86box/cpu/softfloat3e/s_shiftRightJam128.cpp \
+	86box/cpu/softfloat3e/s_shiftRightJam128Extra.cpp \
+	86box/cpu/softfloat3e/s_shiftRightJam256M.cpp \
+	86box/cpu/softfloat3e/s_shiftRightJam32.cpp \
+	86box/cpu/softfloat3e/s_shiftRightJam64.cpp \
+	86box/cpu/softfloat3e/s_shiftRightJam64Extra.cpp \
+	86box/cpu/softfloat3e/s_shortShiftLeft128.cpp \
+	86box/cpu/softfloat3e/s_shortShiftRight128.cpp \
+	86box/cpu/softfloat3e/s_shortShiftRightJam64.cpp \
+	86box/cpu/softfloat3e/s_shortShiftRightJam64Extra.cpp \
+	86box/cpu/softfloat3e/s_sub128.cpp \
+	86box/cpu/softfloat3e/s_sub256M.cpp \
+	86box/cpu/softfloat3e/s_subMagsExtF80.cpp \
+	86box/cpu/softfloat3e/s_subMagsF128.cpp \
+	86box/cpu/softfloat3e/s_subMagsF16.cpp \
+	86box/cpu/softfloat3e/s_subMagsF32.cpp \
+	86box/cpu/softfloat3e/s_subMagsF64.cpp \
+	86box/cpu/softfloat3e/softfloat-specialize.cpp \
+	86box/cpu/softfloat3e/ui32_to_extF80.cpp \
+	86box/cpu/softfloat3e/ui32_to_f128.cpp \
+	86box/cpu/softfloat3e/ui32_to_f16.cpp \
+	86box/cpu/softfloat3e/ui32_to_f32.cpp \
+	86box/cpu/softfloat3e/ui32_to_f64.cpp \
+	86box/cpu/softfloat3e/ui64_to_extF80.cpp \
+	86box/cpu/softfloat3e/ui64_to_f128.cpp \
+	86box/cpu/softfloat3e/ui64_to_f16.cpp \
+	86box/cpu/softfloat3e/ui64_to_f32.cpp \
+	86box/cpu/softfloat3e/ui64_to_f64.cpp \
+	86box/cpu/vx0_biu.cpp \
+	86box/cpu/vx0.cpp \
+	86box/cpu/x86_ops_mmx.cpp \
+	86box/cpu/x86.cpp \
+	86box/cpu/x86seg_2386.cpp \
+	86box/cpu/x86seg_common.cpp \
+	86box/cpu/x86seg.cpp \
+	86box/cpu/x87_ferr.cpp \
+	86box/cpu/x87_timings.cpp \
+	86box/cpu/x87.cpp \
+	86box/device/kbc_at_dev.cpp \
+	86box/device/kbc_at.cpp \
+	86box/device/keyboard_at.cpp \
+	86box/device/keyboard.cpp \
+	86box/device/mouse_ps2.cpp \
+	86box/device/mouse_serial.cpp \
+	86box/device/serial.cpp \
+	86box/dma.cpp \
+	86box/mem/mem.cpp \
+	86box/mem/mmu_2386.cpp \
+	86box/mem/smram.cpp \
+	86box/nmi.cpp \
+	86box/nvr_at.cpp \
+	86box/nvr.cpp \
+	86box/pic.cpp \
+	86box/pit_fast.cpp \
+	86box/pit.cpp \
+	86box/port_6x.cpp \
+	86box/ppi.cpp \
+	86box/sound/snd_cms.cpp \
+	86box/sound/snd_mpu401.cpp \
+	86box/sound/snd_opl2_nuked.cpp \
+	86box/sound/snd_opl3_nuked.cpp \
+	86box/sound/snd_sb_dsp.cpp \
+	86box/sound/snd_sb.cpp \
+	86box/sound/snd_speaker.cpp \
+	86box/timer.cpp \
+	86box/utils/fifo.cpp
+lib86box_glue_a_SOURCES += \
+	atonce.cpp \
+	x86.cpp \
+	86box/winuae/86box_glue.cpp \
+	86box/winuae/86box_machine.cpp
+# USE_DYNAREC changes 86Box's CPU state, so it applies to every file that
+# includes 86Box's cpu.h.
+if X86_DYNAREC
+lib86box_a_CPPFLAGS += -DUSE_DYNAREC
+lib86box_glue_a_CPPFLAGS += -DUSE_DYNAREC
+lib86box_video_a_CPPFLAGS += -DUSE_DYNAREC
+lib86box_a_SOURCES += \
+	86box/codegen/codegen.cpp \
+	86box/codegen/codegen_accumulate.cpp \
+	86box/codegen/codegen_allocator.cpp \
+	86box/codegen/codegen_block.cpp \
+	86box/codegen/codegen_ir.cpp \
+	86box/codegen/codegen_ops.cpp \
+	86box/codegen/codegen_ops_3dnow.cpp \
+	86box/codegen/codegen_ops_arith.cpp \
+	86box/codegen/codegen_ops_branch.cpp \
+	86box/codegen/codegen_ops_fpu_arith.cpp \
+	86box/codegen/codegen_ops_fpu_constant.cpp \
+	86box/codegen/codegen_ops_fpu_loadstore.cpp \
+	86box/codegen/codegen_ops_fpu_misc.cpp \
+	86box/codegen/codegen_ops_helpers.cpp \
+	86box/codegen/codegen_ops_jump.cpp \
+	86box/codegen/codegen_ops_logic.cpp \
+	86box/codegen/codegen_ops_misc.cpp \
+	86box/codegen/codegen_ops_mmx_arith.cpp \
+	86box/codegen/codegen_ops_mmx_cmp.cpp \
+	86box/codegen/codegen_ops_mmx_loadstore.cpp \
+	86box/codegen/codegen_ops_mmx_logic.cpp \
+	86box/codegen/codegen_ops_mmx_pack.cpp \
+	86box/codegen/codegen_ops_mmx_shift.cpp \
+	86box/codegen/codegen_ops_mov.cpp \
+	86box/codegen/codegen_ops_rep.cpp \
+	86box/codegen/codegen_ops_shift.cpp \
+	86box/codegen/codegen_ops_stack.cpp \
+	86box/codegen/codegen_reg.cpp \
+	86box/cpu/386_dynarec_ops.cpp \
+	86box/cpu/codegen_timing_486.cpp \
+	86box/cpu/codegen_timing_686.cpp \
+	86box/cpu/codegen_timing_common.cpp \
+	86box/cpu/codegen_timing_k6.cpp \
+	86box/cpu/codegen_timing_p6.cpp \
+	86box/cpu/codegen_timing_pentium.cpp \
+	86box/cpu/codegen_timing_winchip.cpp \
+	86box/cpu/codegen_timing_winchip2.cpp
+if X86_DYNAREC_X86_64
+lib86box_a_SOURCES += \
+	86box/codegen/codegen_backend_x86-64.cpp \
+	86box/codegen/codegen_backend_x86-64_ops.cpp \
+	86box/codegen/codegen_backend_x86-64_ops_sse.cpp \
+	86box/codegen/codegen_backend_x86-64_uops.cpp
+endif
+if X86_DYNAREC_ARM64
+lib86box_a_SOURCES += \
+	86box/codegen/codegen_backend_arm64.cpp \
+	86box/codegen/codegen_backend_arm64_imm.cpp \
+	86box/codegen/codegen_backend_arm64_ops.cpp \
+	86box/codegen/codegen_backend_arm64_uops.cpp
+endif
+endif
 endif
 
 # ppc -------------------------------------------------------------------------
@@ -1659,7 +1932,62 @@ libprowizard_a_SOURCES = \
 	prowizard/rippers/UnicTracker2.c \
 	prowizard/rippers/WantonPacker.c \
 	prowizard/rippers/XannPlayer.c \
-	prowizard/rippers/ZenPacker.c
+	prowizard/rippers/ZenPacker.c \
+	prowizard/rippers/AMF.c \
+	prowizard/rippers/AMOS-PowerPackerBank.c \
+	prowizard/rippers/Bytekiller.c \
+	prowizard/rippers/Crunchmania-Address.c \
+	prowizard/rippers/Crunchmania-Simple.c \
+	prowizard/rippers/DM1.c \
+	prowizard/rippers/DefjamCruncher32-pro.c \
+	prowizard/rippers/DoubleAction.c \
+	prowizard/rippers/Dragpack100.c \
+	prowizard/rippers/Dragpack252.c \
+	prowizard/rippers/GNUPacker12.c \
+	prowizard/rippers/HCD.c \
+	prowizard/rippers/HQC2.c \
+	prowizard/rippers/HighPresCr.c \
+	prowizard/rippers/IFF.c \
+	prowizard/rippers/IT.c \
+	prowizard/rippers/MasterCruncher30-Address.c \
+	prowizard/rippers/MaxPacker12.c \
+	prowizard/rippers/MegaCruncher-Object.c \
+	prowizard/rippers/MegaCruncher.c \
+	prowizard/rippers/NovoTrade.c \
+	prowizard/rippers/Perfsong.c \
+	prowizard/rippers/PowerPacker23.c \
+	prowizard/rippers/PowerPacker30.c \
+	prowizard/rippers/PowerPacker40-library.c \
+	prowizard/rippers/PowerPacker40.c \
+	prowizard/rippers/RelokIt10.c \
+	prowizard/rippers/S3M.c \
+	prowizard/rippers/SA.c \
+	prowizard/rippers/SlamPacker.c \
+	prowizard/rippers/SpikeCruncher.c \
+	prowizard/rippers/StoneCracker270.c \
+	prowizard/rippers/StoneCracker299.c \
+	prowizard/rippers/StoneCracker299b.c \
+	prowizard/rippers/StoneCracker299d.c \
+	prowizard/rippers/StoneCracker300.c \
+	prowizard/rippers/StoneCracker310.c \
+	prowizard/rippers/SuperCruncher27.c \
+	prowizard/rippers/SyncroPacker46.c \
+	prowizard/rippers/THX.c \
+	prowizard/rippers/TNMCruncher.c \
+	prowizard/rippers/TetraPack102.c \
+	prowizard/rippers/TetraPack21.c \
+	prowizard/rippers/TetraPack22.c \
+	prowizard/rippers/TimeCruncher17.c \
+	prowizard/rippers/TryItCruncher101.c \
+	prowizard/rippers/TurboSqueezer61.c \
+	prowizard/rippers/bnr.c \
+	prowizard/rippers/datacrunchers.c \
+	prowizard/rippers/mosh.c \
+	prowizard/rippers/okta.c \
+	prowizard/rippers/pmd3.c \
+	prowizard/rippers/sidmon1.c \
+	prowizard/rippers/sidmon2.c \
+	prowizard/rippers/struggle.c
 endif
 
 # slirp -----------------------------------------------------------------------
@@ -1818,6 +2146,8 @@ libmt32emu_a_SOURCES = \
 	od-fs/mt32emu/src/TVF.cpp \
 	od-fs/mt32emu/src/TVP.cpp \
 	od-fs/mt32emu/src/VersionTagging.cpp
+# Headers are not listed individually above
+EXTRA_DIST += od-fs/mt32emu
 
 #	od-fs/mt32emu/src/srchelper/SamplerateAdapter.cpp
 #	od-fs/mt32emu/src/srchelper/SoxrAdapter.cpp

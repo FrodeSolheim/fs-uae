@@ -33,8 +33,6 @@
 #include "uae/ppc.h"
 #endif
 #include "uae/vm.h"
-#include "idecontrollers.h"
-#include "scsi.h"
 #include "cpummu030.h"
 #include "devices.h"
 #include "a2091.h"
@@ -381,6 +379,10 @@ static bool is_quikpak(struct uae_prefs *p)
 {
 	return ISCPUBOARDP(p, BOARD_GVP, BOARD_GVP_SUB_QUIKPAK);
 }
+static bool is_quikpakxp(struct uae_prefs *p)
+{
+	return ISCPUBOARDP(p, BOARD_GVP, BOARD_GVP_SUB_QUIKPAKXP);
+}
 
 static bool is_aca500(struct uae_prefs *p)
 {
@@ -545,6 +547,27 @@ static void REGPARAM2 blizzardram_nojit_bput(uaecptr addr, uae_u32 b)
 	blizzardram_nojit_bank.baseaddr[addr] = b;
 }
 #endif
+#else
+
+void cyberstorm_scsi_ram_put(uaecptr addr, uae_u32 v)
+{
+}
+
+uae_u32 cyberstorm_scsi_ram_get(uaecptr addr)
+{
+	return 0;
+}
+
+uae_u8 *REGPARAM2 cyberstorm_scsi_ram_xlate(uaecptr addr)
+{
+	return NULL;
+}
+
+int REGPARAM2 cyberstorm_scsi_ram_check(uaecptr a, uae_u32 b)
+{
+	return 0;
+}
+
 #endif // WITH_CPUBOARD
 
 static void no_rom_protect(void)
@@ -793,7 +816,7 @@ static uae_u32 REGPARAM2 blizzardea_bget(uaecptr addr)
 	if (is_tekmagic(&currprefs) || is_trexii(&currprefs)) {
 		cpuboard_non_byte_ea = true;
 		v = cpuboard_ncr710_io_bget(addr);
-	} else if (is_quikpak(&currprefs)) {
+	} else if (is_quikpakxp(&currprefs)) {
 		cpuboard_non_byte_ea = true;
 		v = cpuboard_ncr720_io_bget(addr);
 	} else if (is_blizzard2060(&currprefs) && addr >= BLIZZARD_2060_SCSI_OFFSET) {
@@ -851,7 +874,7 @@ static void REGPARAM2 blizzardea_bput(uaecptr addr, uae_u32 b)
 	if (is_tekmagic(&currprefs) || is_trexii(&currprefs)) {
 		cpuboard_non_byte_ea = true;
 		cpuboard_ncr710_io_bput(addr, b);
-	} else if (is_quikpak(&currprefs)) {
+	} else if (is_quikpakxp(&currprefs)) {
 		cpuboard_non_byte_ea = true;
 		cpuboard_ncr720_io_bput(addr, b);
 	} else if (is_blizzard1230mk2(&currprefs) && addr >= 0x10000 && (currprefs.cpuboard_settings & 2)) {
@@ -1381,6 +1404,7 @@ static void REGPARAM2 blizzardio_bput(uaecptr addr, uae_u32 v)
 					flash_unlocked = 1;
 				else
 					flash_unlocked &= ~2;
+#ifdef WITH_PPC
 				if (v & P5_LOCK_CPU) {
 					if (v & 0x80) {
 						if (uae_ppc_cpu_unlock())
@@ -1394,6 +1418,7 @@ static void REGPARAM2 blizzardio_bput(uaecptr addr, uae_u32 v)
 					write_log(_T("CSIII_REG_LOCK bit 0 = %d!\n"), (v & 0x80) ? 1 : 0);
 #endif
 				}
+#endif
 				io_reg[CSIII_REG_LOCK] = regval;
 			} else {
 				uae_u32 regval;
@@ -1431,6 +1456,7 @@ static void REGPARAM2 blizzardio_bput(uaecptr addr, uae_u32 v)
 							write_log(_T("CS: SCSI reset\n"));
 						map_banks(&blizzardf0_bank, 0xf00000 >> 16, 0x60000 >> 16, 0);
 					}
+#ifdef WITH_PPC
 					if (!(io_reg[CSIII_REG_SHADOW] & P5_SELF_RESET) || uae_self_is_ppc() == false) {
 						if ((oldval & P5_PPC_RESET) && !(regval & P5_PPC_RESET)) {
 							uae_ppc_cpu_stop();
@@ -1441,7 +1467,12 @@ static void REGPARAM2 blizzardio_bput(uaecptr addr, uae_u32 v)
 						io_reg[CSIII_REG_RESET] &= ~P5_PPC_RESET;
 						io_reg[CSIII_REG_RESET] |= oldval & P5_PPC_RESET;
 					}
+#endif
+#ifdef WITH_PPC
 					if (!(io_reg[CSIII_REG_SHADOW] & P5_SELF_RESET) || uae_self_is_ppc() == true) {
+#else
+					if (!(io_reg[CSIII_REG_SHADOW] & P5_SELF_RESET)) {
+#endif
 						if ((regval & P5_M68K_RESET) && !(oldval & P5_M68K_RESET)) {
 							m68k_reset();
 							write_log(_T("CS: M68K Reset\n"));
@@ -1461,7 +1492,9 @@ static void REGPARAM2 blizzardio_bput(uaecptr addr, uae_u32 v)
 					}
 					if (!(io_reg[CSIII_REG_SHADOW] & P5_SELF_RESET)) {
 						if (!(regval & P5_AMIGA_RESET)) {
+#ifdef WITH_PPC
 							uae_ppc_cpu_stop();
+#endif
 							uae_reset(0, 0);
 							write_log(_T("CS: Amiga Reset\n"));
 							io_reg[addr] |= P5_AMIGA_RESET;
@@ -1475,8 +1508,10 @@ static void REGPARAM2 blizzardio_bput(uaecptr addr, uae_u32 v)
 					regval &= ~P5_M68k_IPL_MASK;
 					regval |= oldval & P5_M68k_IPL_MASK;
 					bool active = (regval & P5_DISABLE_INT) == 0;
+#ifdef WITH_PPC
 					if (!active)
 						clear_ppc_interrupt();
+#endif
 					io_reg[addr] = regval;
 #if CPUBOARD_IRQ_LOG > 0
 					if ((regval & P5_DISABLE_INT) != (oldval & P5_DISABLE_INT))
@@ -1568,6 +1603,20 @@ static void REGPARAM2 blizzardio_lput(uaecptr addr, uae_u32 v)
 			maprom_state = 1;
 		}
 	}
+}
+
+#else
+
+void cyberstorm_mk3_ppc_irq_setonly(int id, int level)
+{
+}
+
+void cyberstorm_mk3_ppc_irq(int id, int level)
+{
+}
+
+void blizzardppc_irq(int id, int level)
+{
 }
 
 #endif //WITH_CPUBOARD
@@ -1671,9 +1720,12 @@ void cpuboard_map(void)
 			map_banks(&dummy_bank, 0xf00000 >> 16, 0x80000 >> 16, 0);
 		}
 	}
-	if (is_quikpak(&currprefs) || is_trexii(&currprefs)) {
+	if (is_quikpakxp(&currprefs) || is_trexii(&currprefs)) {
 		map_banks(&blizzardf0_bank, 0xf00000 >> 16, 131072 >> 16, 0);
 		map_banks(&blizzardea_bank, 0xf40000 >> 16, 65536 >> 16, 0);
+	}
+	if (is_quikpak(&currprefs)) {
+		map_banks(&blizzardf0_bank, 0xf00000 >> 16, 131072 >> 16, 0);
 	}
 	if (is_fusionforty(&currprefs)) {
 		map_banks(&blizzardf0_bank, 0x00f40000 >> 16, 131072 >> 16, 0);
@@ -2043,7 +2095,7 @@ static void cpuboard_init_2(void)
 		cpuboardmem1_bank.mask = cpuboardmem1_bank.reserved_size - 1;
 		mapped_malloc(&cpuboardmem1_bank);
 
-	} else if (is_quikpak(&currprefs) || is_trexii(&currprefs)) {
+	} else if (is_quikpakxp(&currprefs) || is_trexii(&currprefs)) {
 
 		blizzardf0_bank.start = 0x00f00000;
 		blizzardf0_bank.reserved_size = 131072;
@@ -2053,6 +2105,13 @@ static void cpuboard_init_2(void)
 		blizzardea_bank.reserved_size = 65536;
 		blizzardea_bank.mask = blizzardea_bank.reserved_size - 1;
 		mapped_malloc(&blizzardea_bank);
+
+	} else if (is_quikpak(&currprefs)) {
+
+		blizzardf0_bank.start = 0x00f00000;
+		blizzardf0_bank.reserved_size = 131072;
+		blizzardf0_bank.mask = blizzardf0_bank.reserved_size - 1;
+		mapped_malloc(&blizzardf0_bank);
 
 	} else if (is_blizzard1230mk2(&currprefs)) {
 
@@ -2305,7 +2364,11 @@ static void makefakeppcrom(uae_u8 *rom, int type)
 
 bool is_ppc_cpu(struct uae_prefs *p)
 {
+#ifdef WITH_PPC
 	return is_ppc(p);
+#else
+	return false;
+#endif
 }
 
 bool cpuboard_maprom(void)
@@ -2570,6 +2633,13 @@ bool cpuboard_autoconfig_init(struct autoconfig_info *aci)
 	uae_u32 romtype = 0, romtype2 = 0;
 	uae_u8 autoconfig_data[16] = { 0 };
 
+#ifndef WITH_PPC
+	if (is_ppc(p)) {
+		write_log(_T("CPU board: PPC accelerator requires PPC support.\n"));
+		return false;
+	}
+#endif
+
 	boardname = cpuboards[p->cpuboard_type].subtypes[p->cpuboard_subtype].name;
 	aci->label = boardname;
 
@@ -2706,6 +2776,9 @@ bool cpuboard_autoconfig_init(struct autoconfig_info *aci)
 				return true;
 			case BOARD_GVP_SUB_TEKMAGIC:
 				romtype = ROMTYPE_CB_TEKMAGIC;
+				break;
+			case BOARD_GVP_SUB_QUIKPAKXP:
+				romtype = ROMTYPE_CB_QUIKPAKXP;
 				break;
 			case BOARD_GVP_SUB_QUIKPAK:
 				romtype = ROMTYPE_CB_QUIKPAK;
@@ -2974,6 +3047,12 @@ bool cpuboard_autoconfig_init(struct autoconfig_info *aci)
 		aci->start = 0xf00000;
 		aci->size = f0rom_size;
 	} else if (is_quikpak(p)) {
+		f0rom_size = 65536;
+		zfile_fread(blizzardf0_bank.baseaddr, 1, f0rom_size, autoconfig_rom);
+		autoconf = false;
+		aci->start = 0xf00000;
+		aci->size = f0rom_size;
+	} else if (is_quikpakxp(p)) {
 		earom_size = 65536;
 		f0rom_size = 131072;
 		zfile_fread(blizzardf0_bank.baseaddr, 1, f0rom_size, autoconfig_rom);

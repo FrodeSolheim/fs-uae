@@ -1,0 +1,2920 @@
+cmake_minimum_required(VERSION 3.20)
+
+if(CMAKE_HOST_APPLE)
+    set(WINUAE_UNIX_DEFAULT_MACOS_DEPLOYMENT_TARGET "13.0")
+    set(WINUAE_UNIX_MACOS_DEPS_PREFIX "${CMAKE_CURRENT_SOURCE_DIR}/../winuae-macos-deps" CACHE PATH "Private macOS dependency prefix built by tools/macos-build-deps.sh")
+    set(WINUAE_QEMU_UAE_DEPS_PREFIX "${WINUAE_UNIX_MACOS_DEPS_PREFIX}" CACHE PATH "Private macOS GLib prefix for the QEMU-UAE plugin")
+    if(WINUAE_UNIX_MACOS_DEPS_PREFIX)
+        list(PREPEND CMAKE_PREFIX_PATH "${WINUAE_UNIX_MACOS_DEPS_PREFIX}")
+        list(REMOVE_DUPLICATES CMAKE_PREFIX_PATH)
+    endif()
+    if(NOT DEFINED CMAKE_OSX_DEPLOYMENT_TARGET)
+        set(CMAKE_OSX_DEPLOYMENT_TARGET "${WINUAE_UNIX_DEFAULT_MACOS_DEPLOYMENT_TARGET}" CACHE STRING "Minimum macOS version for WinUAE Unix builds")
+    elseif(CMAKE_OSX_DEPLOYMENT_TARGET STREQUAL "")
+        set(CMAKE_OSX_DEPLOYMENT_TARGET "${WINUAE_UNIX_DEFAULT_MACOS_DEPLOYMENT_TARGET}" CACHE STRING "Minimum macOS version for WinUAE Unix builds" FORCE)
+    endif()
+endif()
+
+project(winuae_unix_port LANGUAGES C CXX)
+
+include(GNUInstallDirs)
+include(CTest)
+
+set(WINUAE_UNIX_TEST_TARGETS)
+function(winuae_unix_register_test target)
+    list(APPEND WINUAE_UNIX_TEST_TARGETS "${target}")
+    set(WINUAE_UNIX_TEST_TARGETS "${WINUAE_UNIX_TEST_TARGETS}" PARENT_SCOPE)
+    if(BUILD_TESTING)
+        add_test(NAME ${target} COMMAND $<TARGET_FILE:${target}>)
+        set_tests_properties(${target} PROPERTIES LABELS "unix")
+    endif()
+endfunction()
+
+function(winuae_unix_imported_location target out_var)
+    foreach(prop IMPORTED_LOCATION_RELEASE IMPORTED_LOCATION_RELWITHDEBINFO IMPORTED_LOCATION_MINSIZEREL IMPORTED_LOCATION_DEBUG IMPORTED_LOCATION)
+        get_target_property(location "${target}" "${prop}")
+        if(location AND NOT location MATCHES "-NOTFOUND$" AND EXISTS "${location}")
+            set("${out_var}" "${location}" PARENT_SCOPE)
+            return()
+        endif()
+    endforeach()
+    set("${out_var}" "" PARENT_SCOPE)
+endfunction()
+
+function(winuae_unix_macos_find_qt_frameworks out_var)
+    set(prefix_candidates ${CMAKE_PREFIX_PATH})
+    if(WINUAE_UNIX_MACOS_DEPS_PREFIX)
+        list(APPEND prefix_candidates "${WINUAE_UNIX_MACOS_DEPS_PREFIX}")
+    endif()
+    list(REMOVE_DUPLICATES prefix_candidates)
+
+    foreach(prefix IN LISTS prefix_candidates)
+        if(EXISTS "${prefix}/lib/QtWidgets.framework/QtWidgets"
+                AND EXISTS "${prefix}/lib/QtGui.framework/QtGui"
+                AND EXISTS "${prefix}/lib/QtCore.framework/QtCore")
+            if(NOT TARGET winuae_unix_qt_frameworks)
+                add_library(winuae_unix_qt_frameworks INTERFACE)
+                target_include_directories(winuae_unix_qt_frameworks INTERFACE
+                    "${prefix}/lib/QtWidgets.framework/Headers"
+                    "${prefix}/lib/QtGui.framework/Headers"
+                    "${prefix}/lib/QtCore.framework/Headers"
+                )
+                target_compile_definitions(winuae_unix_qt_frameworks INTERFACE
+                    QT_WIDGETS_LIB
+                    QT_GUI_LIB
+                    QT_CORE_LIB
+                )
+                target_compile_options(winuae_unix_qt_frameworks INTERFACE
+                    "-F${prefix}/lib"
+                )
+                target_link_options(winuae_unix_qt_frameworks INTERFACE
+                    "-F${prefix}/lib"
+                )
+                target_link_libraries(winuae_unix_qt_frameworks INTERFACE
+                    "${prefix}/lib/QtWidgets.framework"
+                    "${prefix}/lib/QtGui.framework"
+                    "${prefix}/lib/QtCore.framework"
+                )
+            endif()
+            if(EXISTS "${prefix}/bin/macdeployqt")
+                set(MACDEPLOYQT_EXECUTABLE "${prefix}/bin/macdeployqt" CACHE FILEPATH "macdeployqt executable" FORCE)
+            endif()
+            set("${out_var}" winuae_unix_qt_frameworks PARENT_SCOPE)
+            return()
+        endif()
+    endforeach()
+
+    set("${out_var}" "" PARENT_SCOPE)
+endfunction()
+
+function(winuae_unix_find_lzma_sdk out_var)
+    # A system lzma-sdk source package (e.g. openSUSE lzma-sdk-devel) is
+    # preferred over fetching the vendored archive; it must provide the SDK
+    # C sources, not just headers.
+    set(WINUAE_LZMA_SDK_CANDIDATES
+        "${WINUAE_LZMA_SDK_DIR}/C"
+        "${WINUAE_LZMA_SDK_DIR}"
+    )
+    foreach(prefix IN LISTS WINUAE_LZMA_SDK_SYSTEM_PATHS)
+        list(APPEND WINUAE_LZMA_SDK_CANDIDATES "${prefix}/C" "${prefix}")
+    endforeach()
+    foreach(candidate IN LISTS WINUAE_LZMA_SDK_CANDIDATES)
+        if(EXISTS "${candidate}/7z/7zVersion.h" AND EXISTS "${candidate}/7z/7zCrc.c")
+            set(WINUAE_LZMA_SDK_SOURCE_DIR "${candidate}")
+            break()
+        endif()
+    endforeach()
+
+    if(NOT WINUAE_LZMA_SDK_SOURCE_DIR)
+        if(NOT WINUAE_LZMA_SDK_FETCH)
+            message(FATAL_ERROR
+                "7-Zip/LZMA SDK ${WINUAE_LZMA_SDK_VERSION} was not found in "
+                "${WINUAE_LZMA_SDK_DIR}. Enable WINUAE_LZMA_SDK_FETCH or "
+                "pre-seed WINUAE_LZMA_SDK_DIR with the SDK archive contents."
+            )
+        endif()
+
+        message(STATUS
+            "Fetching 7-Zip/LZMA SDK ${WINUAE_LZMA_SDK_VERSION} into "
+            "${WINUAE_LZMA_SDK_DIR}"
+        )
+        execute_process(
+            COMMAND sh "${CMAKE_CURRENT_SOURCE_DIR}/tools/fetch-lzma-sdk.sh"
+                    "${WINUAE_LZMA_SDK_DIR}"
+                    "${WINUAE_LZMA_SDK_URL}"
+                    "${WINUAE_LZMA_SDK_VERSION}"
+                    "${WINUAE_LZMA_SDK_SHA256}"
+            RESULT_VARIABLE WINUAE_LZMA_SDK_FETCH_RESULT
+            OUTPUT_VARIABLE WINUAE_LZMA_SDK_FETCH_OUTPUT
+            ERROR_VARIABLE WINUAE_LZMA_SDK_FETCH_ERROR
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+            ERROR_STRIP_TRAILING_WHITESPACE
+        )
+        if(NOT WINUAE_LZMA_SDK_FETCH_RESULT EQUAL 0)
+            message(FATAL_ERROR
+                "Failed to fetch 7-Zip/LZMA SDK "
+                "${WINUAE_LZMA_SDK_VERSION}: "
+                "${WINUAE_LZMA_SDK_FETCH_ERROR}\n"
+                "${WINUAE_LZMA_SDK_FETCH_OUTPUT}"
+            )
+        endif()
+
+        foreach(candidate IN LISTS WINUAE_LZMA_SDK_CANDIDATES)
+            if(EXISTS "${candidate}/7z/7zVersion.h")
+                set(WINUAE_LZMA_SDK_SOURCE_DIR "${candidate}")
+                break()
+            endif()
+        endforeach()
+    endif()
+
+    if(NOT WINUAE_LZMA_SDK_SOURCE_DIR)
+        message(FATAL_ERROR
+            "7-Zip/LZMA SDK ${WINUAE_LZMA_SDK_VERSION} was fetched, but "
+            "no 7z/7zVersion.h was found in ${WINUAE_LZMA_SDK_DIR}."
+        )
+    endif()
+
+    file(STRINGS "${WINUAE_LZMA_SDK_SOURCE_DIR}/7z/7zVersion.h"
+        WINUAE_LZMA_SDK_VERSION_LINES
+        REGEX "^#define MY_VERSION \"${WINUAE_LZMA_SDK_VERSION}\""
+    )
+    if(NOT WINUAE_LZMA_SDK_VERSION_LINES)
+        message(FATAL_ERROR
+            "Expected 7-Zip/LZMA SDK ${WINUAE_LZMA_SDK_VERSION}, but "
+            "${WINUAE_LZMA_SDK_SOURCE_DIR}/7z/7zVersion.h did not match."
+        )
+    endif()
+
+    set("${out_var}" "${WINUAE_LZMA_SDK_SOURCE_DIR}" PARENT_SCOPE)
+endfunction()
+
+function(winuae_unix_drive_sounds_fingerprint sample_dir out_var)
+    file(GLOB sample_files LIST_DIRECTORIES FALSE "${sample_dir}/*.wav")
+    list(SORT sample_files)
+
+    set(sample_manifest "")
+    foreach(sample_file IN LISTS sample_files)
+        get_filename_component(sample_name "${sample_file}" NAME)
+        file(SHA256 "${sample_file}" sample_sha256)
+        string(APPEND sample_manifest "${sample_name}\t${sample_sha256}\n")
+    endforeach()
+    string(SHA256 sample_fingerprint "${sample_manifest}")
+    set("${out_var}" "${sample_fingerprint}" PARENT_SCOPE)
+endfunction()
+
+function(winuae_unix_prepare_drive_sounds out_var)
+    set(sample_dir "${WINUAE_DRIVE_SOUNDS_DIR}/plugins/floppysounds")
+    set(archive_marker "${sample_dir}/.archive-sha256")
+    set(samples_marker "${sample_dir}/.samples-sha256")
+    string(TOLOWER "${WINUAE_DRIVE_SOUNDS_SHA256}" expected_archive_sha256)
+    execute_process(
+        COMMAND sh "${CMAKE_CURRENT_SOURCE_DIR}/tools/require-drive-sounds.sh"
+                "${sample_dir}"
+        RESULT_VARIABLE WINUAE_DRIVE_SOUNDS_CHECK_RESULT
+        OUTPUT_QUIET
+        ERROR_QUIET
+    )
+
+    set(WINUAE_DRIVE_SOUNDS_CACHE_MATCHES OFF)
+    if(WINUAE_DRIVE_SOUNDS_CHECK_RESULT EQUAL 0)
+        if(NOT WINUAE_DRIVE_SOUNDS_FETCH)
+            set(WINUAE_DRIVE_SOUNDS_CACHE_MATCHES ON)
+        elseif(EXISTS "${archive_marker}" AND EXISTS "${samples_marker}")
+            file(READ "${archive_marker}" cached_archive_sha256 LIMIT 128)
+            string(STRIP "${cached_archive_sha256}" cached_archive_sha256)
+            string(TOLOWER "${cached_archive_sha256}" cached_archive_sha256)
+            file(READ "${samples_marker}" cached_samples_sha256 LIMIT 128)
+            string(STRIP "${cached_samples_sha256}" cached_samples_sha256)
+            string(TOLOWER "${cached_samples_sha256}" cached_samples_sha256)
+            winuae_unix_drive_sounds_fingerprint("${sample_dir}" actual_samples_sha256)
+            if(cached_archive_sha256 STREQUAL expected_archive_sha256
+                AND cached_samples_sha256 STREQUAL actual_samples_sha256)
+                set(WINUAE_DRIVE_SOUNDS_CACHE_MATCHES ON)
+            endif()
+        endif()
+    endif()
+
+    if(NOT WINUAE_DRIVE_SOUNDS_CACHE_MATCHES)
+        if(NOT WINUAE_DRIVE_SOUNDS_FETCH)
+            message(FATAL_ERROR
+                "Drive sound samples were not found in ${sample_dir}. "
+                "Enable WINUAE_DRIVE_SOUNDS_FETCH or pre-seed "
+                "WINUAE_DRIVE_SOUNDS_DIR with the unpacked archive."
+            )
+        endif()
+
+        message(STATUS
+            "Fetching external floppy-drive sounds into "
+            "${WINUAE_DRIVE_SOUNDS_DIR}"
+        )
+        execute_process(
+            COMMAND sh "${CMAKE_CURRENT_SOURCE_DIR}/tools/fetch-drive-sounds.sh"
+                    "${WINUAE_DRIVE_SOUNDS_DIR}"
+                    "${WINUAE_DRIVE_SOUNDS_URL}"
+                    "${expected_archive_sha256}"
+            RESULT_VARIABLE WINUAE_DRIVE_SOUNDS_FETCH_RESULT
+            OUTPUT_VARIABLE WINUAE_DRIVE_SOUNDS_FETCH_OUTPUT
+            ERROR_VARIABLE WINUAE_DRIVE_SOUNDS_FETCH_ERROR
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+            ERROR_STRIP_TRAILING_WHITESPACE
+        )
+        if(NOT WINUAE_DRIVE_SOUNDS_FETCH_RESULT EQUAL 0)
+            message(FATAL_ERROR
+                "Failed to fetch the external floppy-drive sounds: "
+                "${WINUAE_DRIVE_SOUNDS_FETCH_ERROR}\n"
+                "${WINUAE_DRIVE_SOUNDS_FETCH_OUTPUT}"
+            )
+        endif()
+        winuae_unix_drive_sounds_fingerprint("${sample_dir}" fetched_samples_sha256)
+        file(WRITE "${samples_marker}" "${fetched_samples_sha256}\n")
+    endif()
+
+    execute_process(
+        COMMAND sh "${CMAKE_CURRENT_SOURCE_DIR}/tools/require-drive-sounds.sh"
+                "${sample_dir}"
+        RESULT_VARIABLE WINUAE_DRIVE_SOUNDS_CHECK_RESULT
+        ERROR_VARIABLE WINUAE_DRIVE_SOUNDS_CHECK_ERROR
+        ERROR_STRIP_TRAILING_WHITESPACE
+    )
+    if(NOT WINUAE_DRIVE_SOUNDS_CHECK_RESULT EQUAL 0)
+        message(FATAL_ERROR "${WINUAE_DRIVE_SOUNDS_CHECK_ERROR}")
+    endif()
+    if(WINUAE_DRIVE_SOUNDS_FETCH)
+        if(NOT EXISTS "${archive_marker}")
+            message(FATAL_ERROR
+                "Drive sound cache is missing archive checksum marker: "
+                "${archive_marker}")
+        endif()
+        if(NOT EXISTS "${samples_marker}")
+            message(FATAL_ERROR
+                "Drive sound cache is missing sample checksum marker: "
+                "${samples_marker}")
+        endif()
+        file(READ "${archive_marker}" cached_archive_sha256 LIMIT 128)
+        string(STRIP "${cached_archive_sha256}" cached_archive_sha256)
+        string(TOLOWER "${cached_archive_sha256}" cached_archive_sha256)
+        if(NOT cached_archive_sha256 STREQUAL expected_archive_sha256)
+            message(FATAL_ERROR
+                "Drive sound cache checksum marker does not match "
+                "WINUAE_DRIVE_SOUNDS_SHA256")
+        endif()
+        file(READ "${samples_marker}" cached_samples_sha256 LIMIT 128)
+        string(STRIP "${cached_samples_sha256}" cached_samples_sha256)
+        string(TOLOWER "${cached_samples_sha256}" cached_samples_sha256)
+        winuae_unix_drive_sounds_fingerprint("${sample_dir}" actual_samples_sha256)
+        if(NOT cached_samples_sha256 STREQUAL actual_samples_sha256)
+            message(FATAL_ERROR
+                "Drive sound cache contents do not match the verified archive")
+        endif()
+    endif()
+
+    # Mirror the installed plugin layout beside the build-tree executable so
+    # external samples also work before installation.
+    set(stage_dir "${CMAKE_BINARY_DIR}/plugins/floppysounds")
+    file(REMOVE_RECURSE "${stage_dir}")
+    file(MAKE_DIRECTORY "${stage_dir}")
+    file(COPY "${sample_dir}/" DESTINATION "${stage_dir}")
+    set("${out_var}" "${stage_dir}" PARENT_SCOPE)
+endfunction()
+
+option(WINUAE_UNIX_BUILD_EXECUTABLE "Link the initial Unix command-line executable" ON)
+option(WINUAE_UNIX_WITH_SDL3 "Build the Unix SDL3 video/audio backend" ON)
+option(WINUAE_UNIX_WITH_SLIRP "Build built-in SLIRP user-mode networking and A2065 Ethernet support" ON)
+option(WINUAE_UNIX_WITH_SANA2 "Build uaenet.device SANA-II networking on top of the Unix Ethernet backend" ON)
+option(WINUAE_UNIX_WITH_UAENET_PCAP "Build native libpcap and TAP/TUN packet networking for A2065 and uaenet.device" ON)
+option(WINUAE_UNIX_WITH_PROWIZARD "Build Pro-Wizard module ripper support" ON)
+option(WINUAE_UNIX_WITH_QT_UI "Build the optional Unix Qt configuration UI" ON)
+option(WINUAE_UNIX_WITH_INTEGRATED_QT_UI "Allow winuae_unix to host the Unix Qt frontend" ON)
+option(WINUAE_UNIX_WITH_QT_DEFAULT_STYLE "Default for the Qt UI desktop style setting (desktop widget style, colors, fonts, and native file dialogs)" OFF)
+option(WINUAE_UNIX_WITH_LIBPNG "Build optional PNG screenshot support when libpng is available" ON)
+option(WINUAE_UNIX_WITH_PRINTER_EMULATION "Build Epson matrix printer emulation" ON)
+option(WINUAE_FREETYPE_FETCH "Fetch FreeType for portable macOS builds" ON)
+option(WINUAE_UNIX_WITH_ARCHIVES "Build bundled ZIP/LHA/LZX/DMS/WRP archive support" ON)
+option(WINUAE_UNIX_WITH_UAENATIVE "Build uaenative.library host module support" ON)
+option(WINUAE_UNIX_WITH_LUA "Build Lua scripting support" ON)
+option(WINUAE_LUA_FETCH "Fetch Lua when no system package is available" ON)
+option(WINUAE_UNIX_WITH_CAPS "Build IPF/CAPS disk image support through the SoftPres runtime library" ON)
+option(WINUAE_UNIX_WITH_FLOPPYBRIDGE "Build real-time FloppyBridge drive support" ON)
+option(WINUAE_UNIX_BUILD_FLOPPYBRIDGE_PLUGIN "Build FloppyBridge.so for Unix packaging" ON)
+option(WINUAE_UNIX_WITH_CHD "Build CHD hardfile and CD image support" ON)
+option(WINUAE_UNIX_WITH_CHD_FLAC "Build CHD FLAC codecs; required by the bundled CHD sources" ON)
+option(WINUAE_UNIX_WITH_LIBMPEG2 "Build CD32 FMV video decode support when libmpeg2 is available" ON)
+option(WINUAE_UNIX_WITH_BSDSOCKET "Build bsdsocket.library on top of POSIX sockets" ON)
+option(WINUAE_UNIX_WITH_UAESCSI "Build uaescsi.device using the shared CD/tape SCSI emulation layer" ON)
+option(WINUAE_UNIX_WITH_UAESERIAL "Build uaeserial.device on top of the Unix serial backend" ON)
+option(WINUAE_UNIX_WITH_SAMPLER "Build SDL3 recording support for the parallel-port sampler" ON)
+option(WINUAE_UNIX_WITH_NATIVE_HARDDRIVES "Build Unix raw hard-drive enumeration and read-only open support" ON)
+option(WINUAE_UNIX_WITH_NATIVE_CD "Build Unix native CD/DVD drive access" ON)
+option(WINUAE_UNIX_WITH_NATIVE_SCSI "Build native SCSI/tape passthrough (macOS SCSITaskLib, Linux SG_IO)" ON)
+option(WINUAE_UNIX_WITH_MIDI "Build native Unix MIDI support" ON)
+option(WINUAE_UNIX_WITH_MIDIEMU "Build Munt MT-32/CM-32L MIDI emulation when mt32emu is available" ON)
+option(WINUAE_UNIX_WITH_CPUBOARD "Build shared non-PPC CPU accelerator board support" ON)
+option(WINUAE_UNIX_WITH_PPC_QEMU "Build Unix PPC accelerator support through the qemu-uae plugin ABI" ON)
+option(WINUAE_UNIX_BUILD_QEMU_UAE_PLUGIN "Build the sibling qemu-uae plugin for Unix packaging" ON)
+option(WINUAE_UNIX_EXTERNAL_QEMU_UAE_PLUGIN "Use a separately installed QEMU-UAE plugin without building or bundling it" OFF)
+option(WINUAE_UNIX_WITH_DSP "Build shared DSP3210 accelerator support" ON)
+option(WINUAE_UNIX_WITH_AVIOUTPUT "Build Unix screenshot and video/audio capture output support" ON)
+option(WINUAE_UNIX_WITH_VIDEOGRAB "Build Unix genlock video/camera frame input support" ON)
+option(WINUAE_UNIX_WITH_FFMPEG "Build FFmpeg-backed video-grab file decoding with audio" ON)
+option(WINUAE_UNIX_WITH_OPENGL_SHADER_PIPELINE "Build OpenGL-backed Unix shader/filter presentation support" ON)
+option(WINUAE_LZMA_SDK_FETCH "Fetch the 7-Zip/LZMA SDK into WINUAE_LZMA_SDK_DIR when missing" ON)
+option(WINUAE_UNIX_BUNDLE_DRIVE_SOUNDS "Bundle the external floppy-drive sound sample sets" ON)
+option(WINUAE_DRIVE_SOUNDS_FETCH "Fetch the external floppy-drive sound archive when missing" ON)
+
+set(WINUAE_LZMA_SDK_VERSION "16.04" CACHE STRING "7-Zip/LZMA SDK version used by archive and CHD support")
+set(WINUAE_LZMA_SDK_URL "https://www.7-zip.org/a/lzma1604.7z"
+    CACHE STRING "URL for the 7-Zip/LZMA SDK archive")
+set(WINUAE_LZMA_SDK_SHA256 "edf8690e9d5ae0dbe80751e3df247bb4e1b497b100c4af5b95fc50a5c2e5b04f"
+    CACHE STRING "Expected SHA-256 for the 7-Zip/LZMA SDK archive")
+set(WINUAE_LZMA_SDK_DIR "${CMAKE_BINARY_DIR}/_deps/lzma-sdk/${WINUAE_LZMA_SDK_VERSION}"
+    CACHE PATH "Local cache directory for the 7-Zip/LZMA SDK")
+set(WINUAE_LZMA_SDK_SYSTEM_PATHS
+    "/usr/share/lzma-sdk;/usr/include/lzma-sdk;/usr/src/lzma-sdk;/usr/include/lzma"
+    CACHE STRING "System prefixes probed for an installed 7-Zip/LZMA SDK source tree")
+
+set(WINUAE_DRIVE_SOUNDS_URL
+    "https://download.abime.net/winuae/stuff/drive_sounds.zip"
+    CACHE STRING "URL for the external floppy-drive sound archive")
+set(WINUAE_DRIVE_SOUNDS_SHA256
+    "2efbe66d090c50f5b58e1248a1cab5c1886c7d203bd2f1d26d1ec382b3ffb088"
+    CACHE STRING "Expected SHA-256 for the external floppy-drive sound archive")
+set(WINUAE_DRIVE_SOUNDS_DIR "${CMAKE_BINARY_DIR}/_deps/drive-sounds"
+    CACHE PATH "Cache directory containing plugins/floppysounds from drive_sounds.zip")
+
+set(WINUAE_QEMU_UAE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../qemu-uae"
+    CACHE PATH "QEMU-UAE plugin source directory")
+set(WINUAE_QEMU_UAE_PLUGIN_FILE "" CACHE FILEPATH "Prebuilt qemu-uae.so plugin to install or bundle")
+set(WINUAE_QEMU_UAE_BUILDER_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../uae-ppc-plugin"
+    CACHE PATH "uae-ppc-plugin builder checkout used to build qemu-uae.so")
+set(WINUAE_QEMU_UAE_BUILDER_URL "https://github.com/reinauer/uae-ppc-plugin.git"
+    CACHE STRING "Git URL cloned at build time when the builder checkout is missing")
+option(WINUAE_QEMU_UAE_BUILDER_FETCH "Clone the uae-ppc-plugin builder when no local copy is found" ON)
+set(WINUAE_QEMU_UAE_QEMU_TARBALL "" CACHE FILEPATH
+    "Local QEMU source tarball for offline qemu-uae plugin builds")
+set(WINUAE_FLOPPYBRIDGE_PLUGIN_FILE "" CACHE FILEPATH
+    "Prebuilt FloppyBridge.so plugin to install or bundle")
+set(WINUAE_FLOPPYBRIDGE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../FloppyDriveBridge"
+    CACHE PATH "FloppyDriveBridge source checkout")
+set(WINUAE_FLOPPYBRIDGE_URL "https://github.com/RobSmithDev/FloppyDriveBridge.git"
+    CACHE STRING "FloppyDriveBridge Git URL")
+set(WINUAE_FLOPPYBRIDGE_REVISION "710fa15cb200303f8c4bde1c931786175f301a68"
+    CACHE STRING "Pinned FloppyDriveBridge source revision")
+option(WINUAE_FLOPPYBRIDGE_FETCH "Clone FloppyDriveBridge when its source checkout is missing" ON)
+set(WINUAE_UNIX_INSTALL_PLUGINDIR_RELATIVE "${CMAKE_INSTALL_LIBDIR}/winuae/plugins"
+    CACHE STRING "Relative Unix install directory for runtime plugins")
+
+if(IS_ABSOLUTE "${WINUAE_UNIX_INSTALL_PLUGINDIR_RELATIVE}")
+    message(FATAL_ERROR "WINUAE_UNIX_INSTALL_PLUGINDIR_RELATIVE must be relative")
+endif()
+
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    if(WINUAE_UNIX_BUNDLE_DRIVE_SOUNDS)
+        winuae_unix_prepare_drive_sounds(WINUAE_DRIVE_SOUNDS_SAMPLE_DIR)
+    else()
+        file(REMOVE_RECURSE "${CMAKE_BINARY_DIR}/plugins/floppysounds")
+    endif()
+endif()
+
+set(WINUAE_UNIX_TARGET_ARCHES "${CMAKE_SYSTEM_PROCESSOR}")
+if(APPLE AND CMAKE_OSX_ARCHITECTURES)
+    set(WINUAE_UNIX_TARGET_ARCHES ${CMAKE_OSX_ARCHITECTURES})
+endif()
+
+set(WINUAE_UNIX_JIT_TARGET_SUPPORTED OFF)
+foreach(WINUAE_UNIX_TARGET_ARCH IN LISTS WINUAE_UNIX_TARGET_ARCHES)
+    if(WINUAE_UNIX_TARGET_ARCH MATCHES "^(aarch64|arm64|x86_64|amd64|AMD64)$")
+        set(WINUAE_UNIX_JIT_TARGET_SUPPORTED ON)
+    endif()
+endforeach()
+
+set(WINUAE_UNIX_WITH_JIT_DEFAULT ${WINUAE_UNIX_JIT_TARGET_SUPPORTED})
+option(WINUAE_UNIX_WITH_JIT "Build JIT support for Unix targets where a backend is available" ${WINUAE_UNIX_WITH_JIT_DEFAULT})
+
+# 86Box's x86 recompiler for the bridgeboard PCs. It has one backend per
+# binary, so multi-architecture builds keep the interpreter.
+set(WINUAE_UNIX_X86_DYNAREC_BACKEND "")
+list(LENGTH WINUAE_UNIX_TARGET_ARCHES WINUAE_UNIX_TARGET_ARCH_COUNT)
+if(WINUAE_UNIX_TARGET_ARCH_COUNT EQUAL 1)
+    if(WINUAE_UNIX_TARGET_ARCHES MATCHES "^(aarch64|arm64)$")
+        set(WINUAE_UNIX_X86_DYNAREC_BACKEND arm64)
+    elseif(WINUAE_UNIX_TARGET_ARCHES MATCHES "^(x86_64|amd64|AMD64)$")
+        set(WINUAE_UNIX_X86_DYNAREC_BACKEND x86-64)
+    endif()
+endif()
+if(WINUAE_UNIX_X86_DYNAREC_BACKEND)
+    set(WINUAE_UNIX_WITH_X86_DYNAREC_DEFAULT ON)
+else()
+    set(WINUAE_UNIX_WITH_X86_DYNAREC_DEFAULT OFF)
+endif()
+option(WINUAE_UNIX_WITH_X86_DYNAREC "Build the x86 recompiler for the bridgeboard PCs" ${WINUAE_UNIX_WITH_X86_DYNAREC_DEFAULT})
+if(WINUAE_UNIX_WITH_X86_DYNAREC AND NOT WINUAE_UNIX_X86_DYNAREC_BACKEND)
+    message(STATUS "The x86 recompiler has no backend for ${WINUAE_UNIX_TARGET_ARCHES}; the bridgeboards use the interpreter")
+    set(WINUAE_UNIX_WITH_X86_DYNAREC OFF)
+endif()
+
+set(WINUAE_UNIX_VERSION_MAJOR 0)
+set(WINUAE_UNIX_VERSION_MINOR 0)
+set(WINUAE_UNIX_VERSION_REVISION 0)
+file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/include/winuae_version.h" WINUAE_UNIX_VERSION_LINES REGEX "^#define UAE(MAJOR|MINOR|SUBREV) [0-9]+")
+foreach(WINUAE_UNIX_VERSION_LINE IN LISTS WINUAE_UNIX_VERSION_LINES)
+    if(WINUAE_UNIX_VERSION_LINE MATCHES "^#define UAEMAJOR +([0-9]+)")
+        set(WINUAE_UNIX_VERSION_MAJOR "${CMAKE_MATCH_1}")
+    elseif(WINUAE_UNIX_VERSION_LINE MATCHES "^#define UAEMINOR +([0-9]+)")
+        set(WINUAE_UNIX_VERSION_MINOR "${CMAKE_MATCH_1}")
+    elseif(WINUAE_UNIX_VERSION_LINE MATCHES "^#define UAESUBREV +([0-9]+)")
+        set(WINUAE_UNIX_VERSION_REVISION "${CMAKE_MATCH_1}")
+    endif()
+endforeach()
+set(WINUAE_UNIX_VERSION "${WINUAE_UNIX_VERSION_MAJOR}.${WINUAE_UNIX_VERSION_MINOR}.${WINUAE_UNIX_VERSION_REVISION}")
+
+set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS include/winuae_version.h)
+
+find_package(ZLIB REQUIRED)
+if(WINUAE_UNIX_WITH_LIBPNG)
+    if(APPLE AND CMAKE_PREFIX_PATH)
+        unset(PNG_LIBRARY CACHE)
+        unset(PNG_LIBRARY_RELEASE CACHE)
+        unset(PNG_LIBRARY_DEBUG CACHE)
+        unset(PNG_PNG_INCLUDE_DIR CACHE)
+    endif()
+    find_package(PNG QUIET)
+endif()
+set(PKG_CONFIG_USE_CMAKE_PREFIX_PATH ON)
+find_package(PkgConfig QUIET)
+
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS ON)
+
+add_library(winuae_core OBJECT)
+
+# winuae_unix_qt_frontend also includes core headers (options.h and friends)
+# and constructs/passes struct uae_prefs across the boundary. Several of
+# those headers gate struct members behind feature macros (e.g. WITH_SLIRP),
+# so winuae_core and winuae_unix_qt_frontend must see an identical set of
+# feature macros or the two translation units disagree on struct layout,
+# corrupting the heap. All feature macros are defined on this INTERFACE
+# target and both consumers link against it instead of setting them PRIVATE
+# on winuae_core alone.
+add_library(winuae_unix_core_defs INTERFACE)
+target_link_libraries(winuae_core PRIVATE winuae_unix_core_defs)
+
+target_compile_definitions(winuae_unix_core_defs INTERFACE
+    UAE_TARGET_UNIX=1
+    UAE_NOGUI=1
+    WITH_SPECIALMONITORS=1
+    WINUAE_UNIX_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}"
+    WINUAE_UNIX_INSTALL_DATA_DIR="${CMAKE_INSTALL_FULL_DATADIR}/winuae"
+    WINUAE_UNIX_INSTALL_DATADIR_RELATIVE="${CMAKE_INSTALL_DATADIR}/winuae"
+    WINUAE_UNIX_INSTALL_PLUGINDIR_RELATIVE="${WINUAE_UNIX_INSTALL_PLUGINDIR_RELATIVE}"
+)
+
+target_include_directories(winuae_core PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}/od-unix"
+    "${CMAKE_CURRENT_SOURCE_DIR}/od-unix/include"
+    "${CMAKE_CURRENT_SOURCE_DIR}"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include"
+    "${CMAKE_CURRENT_SOURCE_DIR}/archivers"
+    "${CMAKE_CURRENT_SOURCE_DIR}/archivers/dms"
+    "${CMAKE_CURRENT_SOURCE_DIR}/archivers/lha"
+    "${CMAKE_CURRENT_SOURCE_DIR}/archivers/lzx"
+    "${CMAKE_CURRENT_SOURCE_DIR}/archivers/mp2"
+    "${CMAKE_CURRENT_SOURCE_DIR}/archivers/wrp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/archivers/zip"
+)
+
+if(WINUAE_UNIX_WITH_ARCHIVES OR WINUAE_UNIX_WITH_CHD)
+    winuae_unix_find_lzma_sdk(WINUAE_LZMA_SDK_SOURCE_DIR)
+    set(WINUAE_LZMA_SDK_7Z_DIR "${WINUAE_LZMA_SDK_SOURCE_DIR}/7z")
+    target_include_directories(winuae_core PRIVATE "${WINUAE_LZMA_SDK_SOURCE_DIR}")
+    target_compile_definitions(winuae_unix_core_defs INTERFACE
+        _7ZIP_ST=1
+        UAE_7Z_SDK_1604=1
+    )
+endif()
+
+target_compile_options(winuae_core PRIVATE
+    $<$<COMPILE_LANGUAGE:CXX>:-Wno-c++11-narrowing>
+    $<$<COMPILE_LANG_AND_ID:CXX,GNU>:-Wno-narrowing>
+    $<$<COMPILE_LANGUAGE:CXX>:-Wno-deprecated-declarations>
+    $<$<COMPILE_LANGUAGE:CXX>:-Wno-deprecated-register>
+    $<$<COMPILE_LANGUAGE:CXX>:-Wno-format-security>
+    $<$<COMPILE_LANGUAGE:CXX>:-Wno-multichar>
+    $<$<COMPILE_LANGUAGE:CXX>:-Wno-register>
+    $<$<COMPILE_LANGUAGE:CXX>:-Wno-unused-value>
+)
+
+set(WINUAE_UNIX_EXTRA_SOURCES)
+add_executable(winuae_gdb_protocol_test EXCLUDE_FROM_ALL
+    gdb_protocol.cpp gdb_protocol_test.cpp)
+winuae_unix_register_test(winuae_gdb_protocol_test)
+set(WINUAE_UNIX_EXTRA_LIBRARIES)
+set(WINUAE_UNIX_EXTRA_LIBRARY_DIRS)
+set(WINUAE_UNIX_ENABLE_SANA2 OFF)
+set(WINUAE_UNIX_ENABLE_UAENET_PCAP OFF)
+set(WINUAE_UNIX_ENABLE_BSDSOCKET OFF)
+
+if(WINUAE_UNIX_WITH_UAENATIVE)
+    target_compile_definitions(winuae_unix_core_defs INTERFACE WITH_UAENATIVE=1)
+    list(APPEND WINUAE_UNIX_EXTRA_SOURCES uaenative.cpp)
+endif()
+
+if(WINUAE_UNIX_WITH_LUA)
+    find_package(Lua 5.4 QUIET)
+    if(LUA_FOUND)
+        target_include_directories(winuae_core PRIVATE ${LUA_INCLUDE_DIR})
+        list(APPEND WINUAE_UNIX_EXTRA_LIBRARIES ${LUA_LIBRARIES})
+    elseif(WINUAE_LUA_FETCH)
+        include(FetchContent)
+        FetchContent_Declare(lua
+            URL https://www.lua.org/ftp/lua-5.4.9.tar.gz
+            URL_HASH SHA256=2335b6c582a52654f94612bf10d2f4672805d05329aa6568b1d8cd9e5c6fb8e6
+            DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+        )
+        FetchContent_MakeAvailable(lua)
+        set(WINUAE_LUA_SOURCES
+            lapi.c lauxlib.c lbaselib.c lcode.c lcorolib.c lctype.c
+            ldblib.c ldebug.c ldo.c ldump.c lfunc.c lgc.c linit.c liolib.c
+            llex.c lmathlib.c lmem.c loadlib.c lobject.c lopcodes.c loslib.c
+            lparser.c lstate.c lstring.c lstrlib.c ltable.c ltablib.c
+            ltm.c lundump.c lutf8lib.c lvm.c lzio.c
+        )
+        list(TRANSFORM WINUAE_LUA_SOURCES PREPEND "${lua_SOURCE_DIR}/src/")
+        add_library(winuae_lua STATIC ${WINUAE_LUA_SOURCES})
+        target_include_directories(winuae_lua PUBLIC "${lua_SOURCE_DIR}/src")
+        target_compile_definitions(winuae_lua PRIVATE
+            $<$<PLATFORM_ID:Darwin>:LUA_USE_MACOSX>
+            $<$<PLATFORM_ID:Linux>:LUA_USE_LINUX>
+        )
+        target_include_directories(winuae_core PRIVATE "${lua_SOURCE_DIR}/src")
+        list(APPEND WINUAE_UNIX_EXTRA_LIBRARIES winuae_lua)
+    else()
+        message(FATAL_ERROR "Lua 5.4 was not found and WINUAE_LUA_FETCH is OFF")
+    endif()
+    target_compile_definitions(winuae_unix_core_defs INTERFACE WITH_LUA=1)
+    list(APPEND WINUAE_UNIX_EXTRA_SOURCES luascript.cpp)
+endif()
+
+
+if(WINUAE_UNIX_WITH_PRINTER_EMULATION)
+    if(APPLE AND WINUAE_FREETYPE_FETCH)
+        include(FetchContent)
+        set(FT_DISABLE_BROTLI TRUE CACHE BOOL "" FORCE)
+        set(FT_DISABLE_BZIP2 TRUE CACHE BOOL "" FORCE)
+        set(FT_DISABLE_HARFBUZZ TRUE CACHE BOOL "" FORCE)
+        set(FT_DISABLE_PNG TRUE CACHE BOOL "" FORCE)
+        set(FT_DISABLE_ZLIB TRUE CACHE BOOL "" FORCE)
+        FetchContent_Declare(freetype
+            URL
+                https://downloads.sourceforge.net/project/freetype/freetype2/2.14.3/freetype-2.14.3.tar.xz
+                https://download.savannah.gnu.org/releases/freetype/freetype-2.14.3.tar.xz
+            URL_HASH SHA256=36bc4f1cc413335368ee656c42afca65c5a3987e8768cc28cf11ba775e785a5f
+            DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+        )
+        set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
+        FetchContent_MakeAvailable(freetype)
+        set(WINUAE_FREETYPE_TARGET freetype)
+        target_include_directories(winuae_core PRIVATE
+            "${freetype_SOURCE_DIR}/include")
+    else()
+        find_package(Freetype REQUIRED)
+        set(WINUAE_FREETYPE_TARGET ${FREETYPE_LIBRARIES})
+        target_include_directories(winuae_core PRIVATE ${FREETYPE_INCLUDE_DIRS})
+    endif()
+    target_compile_definitions(winuae_unix_core_defs INTERFACE WINUAE_UNIX_WITH_PRINTER_EMULATION=1)
+    list(APPEND WINUAE_UNIX_EXTRA_LIBRARIES ${WINUAE_FREETYPE_TARGET})
+    list(APPEND WINUAE_UNIX_EXTRA_SOURCES epsonprinter.cpp)
+endif()
+
+set(WINUAE_UNIX_ENABLE_UAESCSI OFF)
+set(WINUAE_UNIX_ENABLE_UAESERIAL OFF)
+set(WINUAE_UNIX_ENABLE_SAMPLER OFF)
+set(WINUAE_UNIX_ENABLE_CAPS OFF)
+set(WINUAE_UNIX_ENABLE_NATIVE_HARDDRIVES OFF)
+set(WINUAE_UNIX_ENABLE_NATIVE_CD OFF)
+set(WINUAE_UNIX_ENABLE_NATIVE_SCSI OFF)
+set(WINUAE_UNIX_ENABLE_MIDI OFF)
+set(WINUAE_UNIX_ENABLE_MIDIEMU OFF)
+set(WINUAE_UNIX_ENABLE_CPUBOARD OFF)
+set(WINUAE_UNIX_ENABLE_PPC OFF)
+set(WINUAE_UNIX_ENABLE_DSP OFF)
+set(WINUAE_UNIX_ENABLE_SNDBOARD OFF)
+set(WINUAE_UNIX_ENABLE_PCI OFF)
+set(WINUAE_UNIX_ENABLE_GFXBOARD OFF)
+set(WINUAE_UNIX_ENABLE_X86 OFF)
+set(WINUAE_UNIX_ENABLE_DRACO OFF)
+set(WINUAE_UNIX_ENABLE_JIT OFF)
+set(WINUAE_UNIX_ENABLE_AVIOUTPUT OFF)
+set(WINUAE_UNIX_ENABLE_VIDEOGRAB OFF)
+set(WINUAE_UNIX_ENABLE_FFMPEG OFF)
+set(WINUAE_UNIX_ENABLE_SHADER_PIPELINE OFF)
+set(WINUAE_UNIX_MIDI_LIBRARIES)
+set(WINUAE_UNIX_MIDI_INCLUDE_DIRS)
+set(WINUAE_UNIX_MIDI_LIBRARY_DIRS)
+set(WINUAE_UNIX_MIDI_COMPILE_OPTIONS)
+set(WINUAE_UNIX_MIDI_QT_DEFINITIONS)
+
+# 86Box x86 CPU, PC chipset, keyboard, mouse, serial and ISA sound for the
+# bridgeboards, ATonce and DraCo. Built by winuae_86box with 86Box's own
+# include paths; the WinUAE glue is built with the core.
+set(WINUAE_UNIX_86BOX_X86_SOURCES
+    86box/cpu/386_common.cpp
+    86box/cpu/386_dynarec.cpp
+    86box/cpu/386.cpp
+    86box/cpu/808x_common.cpp
+    86box/cpu/808x_marty_86box.cpp
+    86box/cpu/808x.cpp
+    86box/cpu/cache_as_ram.cpp
+    86box/cpu/cpu.cpp
+    86box/cpu/fpu.cpp
+    86box/cpu/i8080.cpp
+    86box/cpu/softfloat3e/consts.cpp
+    86box/cpu/softfloat3e/extF80_addsub.cpp
+    86box/cpu/softfloat3e/extF80_class.cpp
+    86box/cpu/softfloat3e/extF80_compare.cpp
+    86box/cpu/softfloat3e/extF80_div.cpp
+    86box/cpu/softfloat3e/extF80_extract.cpp
+    86box/cpu/softfloat3e/extF80_mul.cpp
+    86box/cpu/softfloat3e/extF80_rem.cpp
+    86box/cpu/softfloat3e/extF80_roundToInt.cpp
+    86box/cpu/softfloat3e/extF80_scale.cpp
+    86box/cpu/softfloat3e/extF80_sqrt.cpp
+    86box/cpu/softfloat3e/extF80_to_f128.cpp
+    86box/cpu/softfloat3e/extF80_to_f16.cpp
+    86box/cpu/softfloat3e/extF80_to_f32.cpp
+    86box/cpu/softfloat3e/extF80_to_f64.cpp
+    86box/cpu/softfloat3e/extF80_to_i32_r_minMag.cpp
+    86box/cpu/softfloat3e/extF80_to_i32.cpp
+    86box/cpu/softfloat3e/extF80_to_i64_r_minMag.cpp
+    86box/cpu/softfloat3e/extF80_to_i64.cpp
+    86box/cpu/softfloat3e/extF80_to_ui32_r_minMag.cpp
+    86box/cpu/softfloat3e/extF80_to_ui32.cpp
+    86box/cpu/softfloat3e/extF80_to_ui64_r_minMag.cpp
+    86box/cpu/softfloat3e/extF80_to_ui64.cpp
+    86box/cpu/softfloat3e/f128_addsub.cpp
+    86box/cpu/softfloat3e/f128_div.cpp
+    86box/cpu/softfloat3e/f128_mul.cpp
+    86box/cpu/softfloat3e/f128_mulAdd.cpp
+    86box/cpu/softfloat3e/f128_roundToInt.cpp
+    86box/cpu/softfloat3e/f128_to_extF80.cpp
+    86box/cpu/softfloat3e/f128_to_f32.cpp
+    86box/cpu/softfloat3e/f128_to_f64.cpp
+    86box/cpu/softfloat3e/f128_to_i32_r_minMag.cpp
+    86box/cpu/softfloat3e/f128_to_i32.cpp
+    86box/cpu/softfloat3e/f128_to_i64_r_minMag.cpp
+    86box/cpu/softfloat3e/f128_to_i64.cpp
+    86box/cpu/softfloat3e/f128_to_ui32_r_minMag.cpp
+    86box/cpu/softfloat3e/f128_to_ui32.cpp
+    86box/cpu/softfloat3e/f128_to_ui64_r_minMag.cpp
+    86box/cpu/softfloat3e/f128_to_ui64.cpp
+    86box/cpu/softfloat3e/f16_addsub.cpp
+    86box/cpu/softfloat3e/f16_class.cpp
+    86box/cpu/softfloat3e/f16_compare.cpp
+    86box/cpu/softfloat3e/f16_div.cpp
+    86box/cpu/softfloat3e/f16_getExp.cpp
+    86box/cpu/softfloat3e/f16_getMant.cpp
+    86box/cpu/softfloat3e/f16_minmax.cpp
+    86box/cpu/softfloat3e/f16_mul.cpp
+    86box/cpu/softfloat3e/f16_mulAdd.cpp
+    86box/cpu/softfloat3e/f16_range.cpp
+    86box/cpu/softfloat3e/f16_roundToInt.cpp
+    86box/cpu/softfloat3e/f16_sqrt.cpp
+    86box/cpu/softfloat3e/f16_to_extF80.cpp
+    86box/cpu/softfloat3e/f16_to_f32.cpp
+    86box/cpu/softfloat3e/f16_to_f64.cpp
+    86box/cpu/softfloat3e/f16_to_i32_r_minMag.cpp
+    86box/cpu/softfloat3e/f16_to_i32.cpp
+    86box/cpu/softfloat3e/f16_to_i64_r_minMag.cpp
+    86box/cpu/softfloat3e/f16_to_i64.cpp
+    86box/cpu/softfloat3e/f16_to_ui32_r_minMag.cpp
+    86box/cpu/softfloat3e/f16_to_ui32.cpp
+    86box/cpu/softfloat3e/f16_to_ui64_r_minMag.cpp
+    86box/cpu/softfloat3e/f16_to_ui64.cpp
+    86box/cpu/softfloat3e/f2xm1.cpp
+    86box/cpu/softfloat3e/f32_addsub.cpp
+    86box/cpu/softfloat3e/f32_class.cpp
+    86box/cpu/softfloat3e/f32_compare.cpp
+    86box/cpu/softfloat3e/f32_div.cpp
+    86box/cpu/softfloat3e/f32_frc.cpp
+    86box/cpu/softfloat3e/f32_getExp.cpp
+    86box/cpu/softfloat3e/f32_getMant.cpp
+    86box/cpu/softfloat3e/f32_minmax.cpp
+    86box/cpu/softfloat3e/f32_mul.cpp
+    86box/cpu/softfloat3e/f32_mulAdd.cpp
+    86box/cpu/softfloat3e/f32_range.cpp
+    86box/cpu/softfloat3e/f32_roundToInt.cpp
+    86box/cpu/softfloat3e/f32_scalef.cpp
+    86box/cpu/softfloat3e/f32_sqrt.cpp
+    86box/cpu/softfloat3e/f32_to_extF80.cpp
+    86box/cpu/softfloat3e/f32_to_f128.cpp
+    86box/cpu/softfloat3e/f32_to_f16.cpp
+    86box/cpu/softfloat3e/f32_to_f64.cpp
+    86box/cpu/softfloat3e/f32_to_i32_r_minMag.cpp
+    86box/cpu/softfloat3e/f32_to_i32.cpp
+    86box/cpu/softfloat3e/f32_to_i64_r_minMag.cpp
+    86box/cpu/softfloat3e/f32_to_i64.cpp
+    86box/cpu/softfloat3e/f32_to_ui32_r_minMag.cpp
+    86box/cpu/softfloat3e/f32_to_ui32.cpp
+    86box/cpu/softfloat3e/f32_to_ui64_r_minMag.cpp
+    86box/cpu/softfloat3e/f32_to_ui64.cpp
+    86box/cpu/softfloat3e/f64_addsub.cpp
+    86box/cpu/softfloat3e/f64_class.cpp
+    86box/cpu/softfloat3e/f64_compare.cpp
+    86box/cpu/softfloat3e/f64_div.cpp
+    86box/cpu/softfloat3e/f64_frc.cpp
+    86box/cpu/softfloat3e/f64_getExp.cpp
+    86box/cpu/softfloat3e/f64_getMant.cpp
+    86box/cpu/softfloat3e/f64_minmax.cpp
+    86box/cpu/softfloat3e/f64_mul.cpp
+    86box/cpu/softfloat3e/f64_mulAdd.cpp
+    86box/cpu/softfloat3e/f64_range.cpp
+    86box/cpu/softfloat3e/f64_roundToInt.cpp
+    86box/cpu/softfloat3e/f64_scalef.cpp
+    86box/cpu/softfloat3e/f64_sqrt.cpp
+    86box/cpu/softfloat3e/f64_to_extF80.cpp
+    86box/cpu/softfloat3e/f64_to_f128.cpp
+    86box/cpu/softfloat3e/f64_to_f16.cpp
+    86box/cpu/softfloat3e/f64_to_f32.cpp
+    86box/cpu/softfloat3e/f64_to_i32_r_minMag.cpp
+    86box/cpu/softfloat3e/f64_to_i32.cpp
+    86box/cpu/softfloat3e/f64_to_i64_r_minMag.cpp
+    86box/cpu/softfloat3e/f64_to_i64.cpp
+    86box/cpu/softfloat3e/f64_to_ui32_r_minMag.cpp
+    86box/cpu/softfloat3e/f64_to_ui32.cpp
+    86box/cpu/softfloat3e/f64_to_ui64_r_minMag.cpp
+    86box/cpu/softfloat3e/f64_to_ui64.cpp
+    86box/cpu/softfloat3e/fpatan.cpp
+    86box/cpu/softfloat3e/fprem.cpp
+    86box/cpu/softfloat3e/fsincos.cpp
+    86box/cpu/softfloat3e/fyl2x.cpp
+    86box/cpu/softfloat3e/i32_to_extF80.cpp
+    86box/cpu/softfloat3e/i32_to_f128.cpp
+    86box/cpu/softfloat3e/i32_to_f16.cpp
+    86box/cpu/softfloat3e/i32_to_f32.cpp
+    86box/cpu/softfloat3e/i32_to_f64.cpp
+    86box/cpu/softfloat3e/i64_to_extF80.cpp
+    86box/cpu/softfloat3e/i64_to_f128.cpp
+    86box/cpu/softfloat3e/i64_to_f16.cpp
+    86box/cpu/softfloat3e/i64_to_f32.cpp
+    86box/cpu/softfloat3e/i64_to_f64.cpp
+    86box/cpu/softfloat3e/isNaN.cpp
+    86box/cpu/softfloat3e/isSignalingNaN.cpp
+    86box/cpu/softfloat3e/poly.cpp
+    86box/cpu/softfloat3e/primitives.cpp
+    86box/cpu/softfloat3e/s_add128.cpp
+    86box/cpu/softfloat3e/s_add256M.cpp
+    86box/cpu/softfloat3e/s_addMagsExtF80.cpp
+    86box/cpu/softfloat3e/s_addMagsF128.cpp
+    86box/cpu/softfloat3e/s_addMagsF16.cpp
+    86box/cpu/softfloat3e/s_addMagsF32.cpp
+    86box/cpu/softfloat3e/s_addMagsF64.cpp
+    86box/cpu/softfloat3e/s_approxRecip_1Ks.cpp
+    86box/cpu/softfloat3e/s_approxRecipSqrt_1Ks.cpp
+    86box/cpu/softfloat3e/s_approxRecipSqrt32_1.cpp
+    86box/cpu/softfloat3e/s_commonNaNToExtF80UI.cpp
+    86box/cpu/softfloat3e/s_commonNaNToF128UI.cpp
+    86box/cpu/softfloat3e/s_commonNaNToF16UI.cpp
+    86box/cpu/softfloat3e/s_commonNaNToF32UI.cpp
+    86box/cpu/softfloat3e/s_commonNaNToF64UI.cpp
+    86box/cpu/softfloat3e/s_countLeadingZeros16.cpp
+    86box/cpu/softfloat3e/s_countLeadingZeros32.cpp
+    86box/cpu/softfloat3e/s_countLeadingZeros64.cpp
+    86box/cpu/softfloat3e/s_countLeadingZeros8.cpp
+    86box/cpu/softfloat3e/s_eq128.cpp
+    86box/cpu/softfloat3e/s_le128.cpp
+    86box/cpu/softfloat3e/s_lt128.cpp
+    86box/cpu/softfloat3e/s_mul128By32.cpp
+    86box/cpu/softfloat3e/s_mul128To256M.cpp
+    86box/cpu/softfloat3e/s_mul64ByShifted32To128.cpp
+    86box/cpu/softfloat3e/s_mul64To128.cpp
+    86box/cpu/softfloat3e/s_normRoundPackToExtF80.cpp
+    86box/cpu/softfloat3e/s_normRoundPackToF128.cpp
+    86box/cpu/softfloat3e/s_normRoundPackToF16.cpp
+    86box/cpu/softfloat3e/s_normRoundPackToF32.cpp
+    86box/cpu/softfloat3e/s_normRoundPackToF64.cpp
+    86box/cpu/softfloat3e/s_normSubnormalExtF80Sig.cpp
+    86box/cpu/softfloat3e/s_normSubnormalF128Sig.cpp
+    86box/cpu/softfloat3e/s_normSubnormalF16Sig.cpp
+    86box/cpu/softfloat3e/s_normSubnormalF32Sig.cpp
+    86box/cpu/softfloat3e/s_normSubnormalF64Sig.cpp
+    86box/cpu/softfloat3e/s_packToExtF80.cpp
+    86box/cpu/softfloat3e/s_propagateNaNExtF80UI.cpp
+    86box/cpu/softfloat3e/s_propagateNaNF128UI.cpp
+    86box/cpu/softfloat3e/s_propagateNaNF16UI.cpp
+    86box/cpu/softfloat3e/s_propagateNaNF32UI.cpp
+    86box/cpu/softfloat3e/s_propagateNaNF64UI.cpp
+    86box/cpu/softfloat3e/s_roundPackToExtF80.cpp
+    86box/cpu/softfloat3e/s_roundPackToF128.cpp
+    86box/cpu/softfloat3e/s_roundPackToF16.cpp
+    86box/cpu/softfloat3e/s_roundPackToF32.cpp
+    86box/cpu/softfloat3e/s_roundPackToF64.cpp
+    86box/cpu/softfloat3e/s_roundToI32.cpp
+    86box/cpu/softfloat3e/s_roundToI64.cpp
+    86box/cpu/softfloat3e/s_roundToUI32.cpp
+    86box/cpu/softfloat3e/s_roundToUI64.cpp
+    86box/cpu/softfloat3e/s_shiftRightJam128.cpp
+    86box/cpu/softfloat3e/s_shiftRightJam128Extra.cpp
+    86box/cpu/softfloat3e/s_shiftRightJam256M.cpp
+    86box/cpu/softfloat3e/s_shiftRightJam32.cpp
+    86box/cpu/softfloat3e/s_shiftRightJam64.cpp
+    86box/cpu/softfloat3e/s_shiftRightJam64Extra.cpp
+    86box/cpu/softfloat3e/s_shortShiftLeft128.cpp
+    86box/cpu/softfloat3e/s_shortShiftRight128.cpp
+    86box/cpu/softfloat3e/s_shortShiftRightJam64.cpp
+    86box/cpu/softfloat3e/s_shortShiftRightJam64Extra.cpp
+    86box/cpu/softfloat3e/s_sub128.cpp
+    86box/cpu/softfloat3e/s_sub256M.cpp
+    86box/cpu/softfloat3e/s_subMagsExtF80.cpp
+    86box/cpu/softfloat3e/s_subMagsF128.cpp
+    86box/cpu/softfloat3e/s_subMagsF16.cpp
+    86box/cpu/softfloat3e/s_subMagsF32.cpp
+    86box/cpu/softfloat3e/s_subMagsF64.cpp
+    86box/cpu/softfloat3e/softfloat-specialize.cpp
+    86box/cpu/softfloat3e/ui32_to_extF80.cpp
+    86box/cpu/softfloat3e/ui32_to_f128.cpp
+    86box/cpu/softfloat3e/ui32_to_f16.cpp
+    86box/cpu/softfloat3e/ui32_to_f32.cpp
+    86box/cpu/softfloat3e/ui32_to_f64.cpp
+    86box/cpu/softfloat3e/ui64_to_extF80.cpp
+    86box/cpu/softfloat3e/ui64_to_f128.cpp
+    86box/cpu/softfloat3e/ui64_to_f16.cpp
+    86box/cpu/softfloat3e/ui64_to_f32.cpp
+    86box/cpu/softfloat3e/ui64_to_f64.cpp
+    86box/cpu/vx0_biu.cpp
+    86box/cpu/vx0.cpp
+    86box/cpu/x86_ops_mmx.cpp
+    86box/cpu/x86.cpp
+    86box/cpu/x86seg_2386.cpp
+    86box/cpu/x86seg_common.cpp
+    86box/cpu/x86seg.cpp
+    86box/cpu/x87_ferr.cpp
+    86box/cpu/x87_timings.cpp
+    86box/cpu/x87.cpp
+    86box/device/kbc_at_dev.cpp
+    86box/device/kbc_at.cpp
+    86box/device/keyboard_at.cpp
+    86box/device/keyboard.cpp
+    86box/device/mouse_ps2.cpp
+    86box/device/mouse_serial.cpp
+    86box/device/serial.cpp
+    86box/dma.cpp
+    86box/mem/mem.cpp
+    86box/mem/mmu_2386.cpp
+    86box/mem/smram.cpp
+    86box/nmi.cpp
+    86box/nvr_at.cpp
+    86box/nvr.cpp
+    86box/pic.cpp
+    86box/pit_fast.cpp
+    86box/pit.cpp
+    86box/port_6x.cpp
+    86box/ppi.cpp
+    86box/sound/snd_cms.cpp
+    86box/sound/snd_mpu401.cpp
+    86box/sound/snd_opl2_nuked.cpp
+    86box/sound/snd_opl3_nuked.cpp
+    86box/sound/snd_sb_dsp.cpp
+    86box/sound/snd_sb.cpp
+    86box/sound/snd_speaker.cpp
+    86box/timer.cpp
+    86box/utils/fifo.cpp
+)
+
+# The x86 recompiler, common part and backends
+set(WINUAE_UNIX_86BOX_DYNAREC_SOURCES
+    86box/codegen/codegen.cpp
+    86box/codegen/codegen_accumulate.cpp
+    86box/codegen/codegen_allocator.cpp
+    86box/codegen/codegen_block.cpp
+    86box/codegen/codegen_ir.cpp
+    86box/codegen/codegen_ops.cpp
+    86box/codegen/codegen_ops_3dnow.cpp
+    86box/codegen/codegen_ops_arith.cpp
+    86box/codegen/codegen_ops_branch.cpp
+    86box/codegen/codegen_ops_fpu_arith.cpp
+    86box/codegen/codegen_ops_fpu_constant.cpp
+    86box/codegen/codegen_ops_fpu_loadstore.cpp
+    86box/codegen/codegen_ops_fpu_misc.cpp
+    86box/codegen/codegen_ops_helpers.cpp
+    86box/codegen/codegen_ops_jump.cpp
+    86box/codegen/codegen_ops_logic.cpp
+    86box/codegen/codegen_ops_misc.cpp
+    86box/codegen/codegen_ops_mmx_arith.cpp
+    86box/codegen/codegen_ops_mmx_cmp.cpp
+    86box/codegen/codegen_ops_mmx_loadstore.cpp
+    86box/codegen/codegen_ops_mmx_logic.cpp
+    86box/codegen/codegen_ops_mmx_pack.cpp
+    86box/codegen/codegen_ops_mmx_shift.cpp
+    86box/codegen/codegen_ops_mov.cpp
+    86box/codegen/codegen_ops_rep.cpp
+    86box/codegen/codegen_ops_shift.cpp
+    86box/codegen/codegen_ops_stack.cpp
+    86box/codegen/codegen_reg.cpp
+    86box/cpu/386_dynarec_ops.cpp
+    86box/cpu/codegen_timing_486.cpp
+    86box/cpu/codegen_timing_686.cpp
+    86box/cpu/codegen_timing_common.cpp
+    86box/cpu/codegen_timing_k6.cpp
+    86box/cpu/codegen_timing_p6.cpp
+    86box/cpu/codegen_timing_pentium.cpp
+    86box/cpu/codegen_timing_winchip.cpp
+    86box/cpu/codegen_timing_winchip2.cpp
+)
+
+set(WINUAE_UNIX_86BOX_DYNAREC_ARM64_SOURCES
+    86box/codegen/codegen_backend_arm64.cpp
+    86box/codegen/codegen_backend_arm64_imm.cpp
+    86box/codegen/codegen_backend_arm64_ops.cpp
+    86box/codegen/codegen_backend_arm64_uops.cpp
+)
+
+set(WINUAE_UNIX_86BOX_DYNAREC_X86_64_SOURCES
+    86box/codegen/codegen_backend_x86-64.cpp
+    86box/codegen/codegen_backend_x86-64_ops.cpp
+    86box/codegen/codegen_backend_x86-64_ops_sse.cpp
+    86box/codegen/codegen_backend_x86-64_uops.cpp
+)
+
+set(WINUAE_UNIX_86BOX_GLUE_SOURCES
+    86box/winuae/86box_glue.cpp
+    86box/winuae/86box_machine.cpp
+)
+
+set(WINUAE_UNIX_86BOX_DRACO_SOURCES
+    86box/winuae/keyboard_at_draco.cpp
+)
+
+# 86Box video cards for the RTG boards in gfxboard.cpp. Built by
+# winuae_86box_video, the WinUAE glue is built with the core.
+set(WINUAE_UNIX_86BOX_VIDEO_SOURCES
+    86box/device/i2c.cpp
+    86box/device/i2c_gpio.cpp
+    86box/mem/i2c_eeprom.cpp
+    86box/mem/nmc93cxx.cpp
+    86box/video/clockgen/vid_clockgen_av9194.cpp
+    86box/video/clockgen/vid_clockgen_ch9204.cpp
+    86box/video/clockgen/vid_clockgen_icd2061.cpp
+    86box/video/clockgen/vid_clockgen_ics2494.cpp
+    86box/video/ramdac/vid_ramdac_att20c49x.cpp
+    86box/video/ramdac/vid_ramdac_att2xc498.cpp
+    86box/video/ramdac/vid_ramdac_bt48x.cpp
+    86box/video/ramdac/vid_ramdac_ibm_rgb528.cpp
+    86box/video/ramdac/vid_ramdac_mu9c1880.cpp
+    86box/video/ramdac/vid_ramdac_sc1148x.cpp
+    86box/video/ramdac/vid_ramdac_sc1502x.cpp
+    86box/video/ramdac/vid_ramdac_sdac.cpp
+    86box/video/ramdac/vid_ramdac_stg1702.cpp
+    86box/video/ramdac/vid_ramdac_tvp3026.cpp
+    86box/video/vid_cl54xx.cpp
+    86box/video/vid_ddc.cpp
+    86box/video/vid_et4000.cpp
+    86box/video/vid_et4000w32.cpp
+    86box/video/vid_mga.cpp
+    86box/video/vid_s3.cpp
+    86box/video/vid_s3_virge.cpp
+    86box/video/vid_svga.cpp
+    86box/video/vid_svga_render.cpp
+    86box/video/vid_voodoo.cpp
+    86box/video/vid_voodoo_banshee.cpp
+    86box/video/vid_voodoo_banshee_blitter.cpp
+    86box/video/vid_voodoo_blitter.cpp
+    86box/video/vid_voodoo_display.cpp
+    86box/video/vid_voodoo_fb.cpp
+    86box/video/vid_voodoo_fifo.cpp
+    86box/video/vid_voodoo_reg.cpp
+    86box/video/vid_voodoo_render.cpp
+    86box/video/vid_voodoo_setup.cpp
+    86box/video/vid_voodoo_texture.cpp
+    86box/winuae/vid_inmos.cpp
+    86box/winuae/vid_ncr.cpp
+    86box/winuae/vid_permedia2.cpp
+    86box/winuae/vid_ramdac_bt482.cpp
+)
+
+set(WINUAE_UNIX_86BOX_VIDEO_GLUE_SOURCES
+    86box/winuae/86box_video.cpp
+)
+
+set(WINUAE_UNIX_86BOX_SOURCES)
+
+set(WINUAE_UNIX_USE_LIBPNG OFF)
+if(WINUAE_UNIX_WITH_LIBPNG AND PNG_FOUND)
+    set(WINUAE_UNIX_USE_LIBPNG ON)
+    if(APPLE)
+        set(WINUAE_UNIX_PNG_LIBRARY "")
+        get_target_property(WINUAE_UNIX_PNG_LIBRARY_RELEASE PNG::PNG IMPORTED_LOCATION_RELEASE)
+        get_target_property(WINUAE_UNIX_PNG_LIBRARY_DEFAULT PNG::PNG IMPORTED_LOCATION)
+        if(WINUAE_UNIX_PNG_LIBRARY_RELEASE AND EXISTS "${WINUAE_UNIX_PNG_LIBRARY_RELEASE}")
+            set(WINUAE_UNIX_PNG_LIBRARY "${WINUAE_UNIX_PNG_LIBRARY_RELEASE}")
+        elseif(WINUAE_UNIX_PNG_LIBRARY_DEFAULT AND EXISTS "${WINUAE_UNIX_PNG_LIBRARY_DEFAULT}")
+            set(WINUAE_UNIX_PNG_LIBRARY "${WINUAE_UNIX_PNG_LIBRARY_DEFAULT}")
+        elseif(PNG_LIBRARY_RELEASE AND EXISTS "${PNG_LIBRARY_RELEASE}")
+            set(WINUAE_UNIX_PNG_LIBRARY "${PNG_LIBRARY_RELEASE}")
+        endif()
+        if(WINUAE_UNIX_PNG_LIBRARY)
+            execute_process(
+                COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/tools/macos-check-deployment-target.sh" "${WINUAE_UNIX_PNG_LIBRARY}" "${CMAKE_OSX_DEPLOYMENT_TARGET}"
+                RESULT_VARIABLE WINUAE_UNIX_PNG_DEPLOYMENT_RESULT
+                OUTPUT_VARIABLE WINUAE_UNIX_PNG_DEPLOYMENT_OUTPUT
+                ERROR_VARIABLE WINUAE_UNIX_PNG_DEPLOYMENT_ERROR
+                OUTPUT_STRIP_TRAILING_WHITESPACE
+                ERROR_STRIP_TRAILING_WHITESPACE
+            )
+            if(NOT WINUAE_UNIX_PNG_DEPLOYMENT_RESULT EQUAL 0)
+                message(STATUS "libpng is newer than CMAKE_OSX_DEPLOYMENT_TARGET=${CMAKE_OSX_DEPLOYMENT_TARGET}; PNG screenshots disabled. ${WINUAE_UNIX_PNG_DEPLOYMENT_ERROR}")
+                set(WINUAE_UNIX_USE_LIBPNG OFF)
+            endif()
+        else()
+            message(WARNING "libpng was found but its imported library path was not available; PNG screenshots disabled")
+            set(WINUAE_UNIX_USE_LIBPNG OFF)
+        endif()
+    endif()
+endif()
+
+if(WINUAE_UNIX_USE_LIBPNG)
+    target_compile_definitions(winuae_unix_core_defs INTERFACE WINUAE_UNIX_WITH_LIBPNG=1)
+    target_link_libraries(winuae_core PRIVATE PNG::PNG)
+    list(APPEND WINUAE_UNIX_EXTRA_LIBRARIES PNG::PNG)
+endif()
+
+if(APPLE)
+    target_compile_definitions(winuae_unix_core_defs INTERFACE WINUAE_UNIX_WITH_IMAGEIO=1)
+    list(APPEND WINUAE_UNIX_EXTRA_LIBRARIES
+        "-framework CoreFoundation"
+        "-framework CoreGraphics"
+        "-framework ImageIO"
+    )
+endif()
+
+if(WINUAE_UNIX_WITH_ARCHIVES)
+    target_compile_definitions(winuae_unix_core_defs INTERFACE
+        WINUAE_UNIX_WITH_ARCHIVES=1
+        A_ZIP=1
+        A_7Z=1
+        A_LHA=1
+        A_LZX=1
+        A_DMS=1
+        A_WRP=1
+    )
+    list(APPEND WINUAE_UNIX_EXTRA_SOURCES
+        zfile_archive.cpp
+        archivers/zip/ioapi.cpp
+        archivers/zip/unzip.cpp
+        archivers/zip/zip.cpp
+        "${WINUAE_LZMA_SDK_7Z_DIR}/7zAlloc.c"
+        "${WINUAE_LZMA_SDK_7Z_DIR}/7zArcIn.c"
+        "${WINUAE_LZMA_SDK_7Z_DIR}/7zBuf.c"
+        "${WINUAE_LZMA_SDK_7Z_DIR}/7zBuf2.c"
+        "${WINUAE_LZMA_SDK_7Z_DIR}/7zCrc.c"
+        "${WINUAE_LZMA_SDK_7Z_DIR}/7zCrcOpt.c"
+        "${WINUAE_LZMA_SDK_7Z_DIR}/7zDec.c"
+        "${WINUAE_LZMA_SDK_7Z_DIR}/7zFile.c"
+        "${WINUAE_LZMA_SDK_7Z_DIR}/7zStream.c"
+        "${WINUAE_LZMA_SDK_7Z_DIR}/Aes.c"
+        "${WINUAE_LZMA_SDK_7Z_DIR}/AesOpt.c"
+        "${WINUAE_LZMA_SDK_7Z_DIR}/Alloc.c"
+        "${WINUAE_LZMA_SDK_7Z_DIR}/Bcj2.c"
+        "${WINUAE_LZMA_SDK_7Z_DIR}/Bra.c"
+        "${WINUAE_LZMA_SDK_7Z_DIR}/Bra86.c"
+        "${WINUAE_LZMA_SDK_7Z_DIR}/BraIA64.c"
+        "${WINUAE_LZMA_SDK_7Z_DIR}/CpuArch.c"
+        "${WINUAE_LZMA_SDK_7Z_DIR}/Delta.c"
+        "${WINUAE_LZMA_SDK_7Z_DIR}/LzFind.c"
+        "${WINUAE_LZMA_SDK_7Z_DIR}/Lzma2Dec.c"
+        "${WINUAE_LZMA_SDK_7Z_DIR}/Lzma2Enc.c"
+        "${WINUAE_LZMA_SDK_7Z_DIR}/Lzma86Dec.c"
+        "${WINUAE_LZMA_SDK_7Z_DIR}/Lzma86Enc.c"
+        "${WINUAE_LZMA_SDK_7Z_DIR}/LzmaDec.c"
+        "${WINUAE_LZMA_SDK_7Z_DIR}/LzmaEnc.c"
+        "${WINUAE_LZMA_SDK_7Z_DIR}/LzmaLib.c"
+        "${WINUAE_LZMA_SDK_7Z_DIR}/Ppmd7.c"
+        "${WINUAE_LZMA_SDK_7Z_DIR}/Ppmd7Dec.c"
+        "${WINUAE_LZMA_SDK_7Z_DIR}/Ppmd7Enc.c"
+        "${WINUAE_LZMA_SDK_7Z_DIR}/Sha256.c"
+        "${WINUAE_LZMA_SDK_7Z_DIR}/Sort.c"
+        "${WINUAE_LZMA_SDK_7Z_DIR}/Xz.c"
+        "${WINUAE_LZMA_SDK_7Z_DIR}/XzCrc64.c"
+        "${WINUAE_LZMA_SDK_7Z_DIR}/XzCrc64Opt.c"
+        "${WINUAE_LZMA_SDK_7Z_DIR}/XzDec.c"
+        "${WINUAE_LZMA_SDK_7Z_DIR}/XzEnc.c"
+        "${WINUAE_LZMA_SDK_7Z_DIR}/XzIn.c"
+        archivers/lha/crcio.cpp
+        archivers/lha/dhuf.cpp
+        archivers/lha/header.cpp
+        archivers/lha/huf.cpp
+        archivers/lha/larc.cpp
+        archivers/lha/lhamaketbl.cpp
+        archivers/lha/lharc.cpp
+        archivers/lha/shuf.cpp
+        archivers/lha/slide.cpp
+        archivers/lha/uae_lha.cpp
+        archivers/lha/util.cpp
+        archivers/lzx/unlzx.cpp
+        archivers/dms/crc_csum.cpp
+        archivers/dms/getbits.cpp
+        archivers/dms/maketbl.cpp
+        archivers/dms/pfile.cpp
+        archivers/dms/tables.cpp
+        archivers/dms/u_deep.cpp
+        archivers/dms/u_heavy.cpp
+        archivers/dms/u_init.cpp
+        archivers/dms/u_medium.cpp
+        archivers/dms/u_quick.cpp
+        archivers/dms/u_rle.cpp
+        archivers/wrp/warp.cpp
+    )
+endif()
+
+if(WINUAE_UNIX_WITH_CAPS)
+    set(WINUAE_UNIX_ENABLE_CAPS ON)
+    target_compile_definitions(winuae_unix_core_defs INTERFACE
+        CAPS=1
+        WINUAE_UNIX_WITH_CAPS=1
+    )
+    list(APPEND WINUAE_UNIX_EXTRA_SOURCES
+        od-win32/caps/caps_win32.cpp
+    )
+endif()
+
+if(WINUAE_UNIX_WITH_FLOPPYBRIDGE)
+    target_compile_definitions(winuae_unix_core_defs INTERFACE
+        FLOPPYBRIDGE=1
+        WINUAE_UNIX_WITH_FLOPPYBRIDGE=1
+    )
+endif()
+
+if(WINUAE_UNIX_WITH_CHD)
+    target_compile_definitions(winuae_unix_core_defs INTERFACE
+        WINUAE_UNIX_WITH_CHD=1
+        WITH_CHD=1
+    )
+    list(APPEND WINUAE_UNIX_EXTRA_SOURCES
+        archivers/chd/astring.cpp
+        archivers/chd/chd.cpp
+        archivers/chd/chdcdrom.cpp
+        archivers/chd/chdcodec.cpp
+        archivers/chd/chdglue.cpp
+        archivers/chd/corealloc.cpp
+        archivers/chd/harddisk.cpp
+        archivers/chd/hashing.cpp
+        archivers/chd/huffman.cpp
+        archivers/chd/md5.cpp
+        archivers/chd/sha1.cpp
+        od-unix/chd_unix_time.cpp
+        od-unix/chd_unix_work.cpp
+    )
+    if(NOT WINUAE_UNIX_WITH_ARCHIVES)
+        list(APPEND WINUAE_UNIX_EXTRA_SOURCES
+            "${WINUAE_LZMA_SDK_7Z_DIR}/LzmaDec.c"
+            "${WINUAE_LZMA_SDK_7Z_DIR}/LzmaEnc.c"
+            "${WINUAE_LZMA_SDK_7Z_DIR}/LzFind.c"
+        )
+    endif()
+
+    set(WINUAE_UNIX_CHD_FLAC_OK OFF)
+    if(WINUAE_UNIX_WITH_CHD_FLAC AND PkgConfig_FOUND)
+        if(APPLE AND WINUAE_UNIX_MACOS_DEPS_PREFIX)
+            unset(__pkg_config_checked_FLAC CACHE)
+            unset(pkgcfg_lib_FLAC_FLAC CACHE)
+        endif()
+        pkg_check_modules(FLAC QUIET flac)
+        if(FLAC_FOUND)
+            set(WINUAE_UNIX_CHD_FLAC_OK ON)
+            if(APPLE)
+                unset(WINUAE_UNIX_FLAC_LIBRARY CACHE)
+                find_library(WINUAE_UNIX_FLAC_LIBRARY NAMES FLAC PATHS ${FLAC_LIBRARY_DIRS} NO_DEFAULT_PATH)
+                if(WINUAE_UNIX_FLAC_LIBRARY)
+                    execute_process(
+                        COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/tools/macos-check-deployment-target.sh" "${WINUAE_UNIX_FLAC_LIBRARY}" "${CMAKE_OSX_DEPLOYMENT_TARGET}"
+                        RESULT_VARIABLE WINUAE_UNIX_FLAC_DEPLOYMENT_RESULT
+                        OUTPUT_VARIABLE WINUAE_UNIX_FLAC_DEPLOYMENT_OUTPUT
+                        ERROR_VARIABLE WINUAE_UNIX_FLAC_DEPLOYMENT_ERROR
+                        OUTPUT_STRIP_TRAILING_WHITESPACE
+                        ERROR_STRIP_TRAILING_WHITESPACE
+                    )
+                    if(NOT WINUAE_UNIX_FLAC_DEPLOYMENT_RESULT EQUAL 0)
+                        message(STATUS "libFLAC is newer than CMAKE_OSX_DEPLOYMENT_TARGET=${CMAKE_OSX_DEPLOYMENT_TARGET}; CHD FLAC codecs unavailable. ${WINUAE_UNIX_FLAC_DEPLOYMENT_ERROR}")
+                        set(WINUAE_UNIX_CHD_FLAC_OK OFF)
+                    endif()
+                else()
+                    message(STATUS "libFLAC was found by pkg-config but not as a library path; CHD FLAC codecs unavailable")
+                    set(WINUAE_UNIX_CHD_FLAC_OK OFF)
+                endif()
+            endif()
+        endif()
+    endif()
+
+    if(NOT WINUAE_UNIX_CHD_FLAC_OK)
+        message(FATAL_ERROR
+            "CHD support in this source tree requires libFLAC headers and "
+            "library. Set WINUAE_UNIX_WITH_CHD=OFF or provide compatible "
+            "libFLAC, for example with WINUAE_FLAC_SOURCE and the "
+            "winuae_unix_macos_deps target on macOS."
+        )
+    endif()
+
+    target_compile_definitions(winuae_unix_core_defs INTERFACE WITH_CHD_FLAC=1)
+    target_include_directories(winuae_core PRIVATE ${FLAC_INCLUDE_DIRS})
+    target_compile_options(winuae_core PRIVATE ${FLAC_CFLAGS_OTHER})
+    list(APPEND WINUAE_UNIX_EXTRA_SOURCES archivers/chd/flac.cpp)
+    list(APPEND WINUAE_UNIX_EXTRA_LIBRARIES ${FLAC_LIBRARIES})
+    list(APPEND WINUAE_UNIX_EXTRA_LIBRARY_DIRS ${FLAC_LIBRARY_DIRS})
+endif()
+
+set(WINUAE_UNIX_LIBMPEG2_OK OFF)
+set(WINUAE_UNIX_LIBMPEG2_FOUND OFF)
+if(WINUAE_UNIX_WITH_LIBMPEG2 AND PkgConfig_FOUND)
+    pkg_check_modules(LIBMPEG2 QUIET libmpeg2 libmpeg2convert)
+    if(LIBMPEG2_FOUND)
+        set(WINUAE_UNIX_LIBMPEG2_FOUND ON)
+        set(WINUAE_UNIX_LIBMPEG2_OK ON)
+        if(APPLE)
+            unset(WINUAE_UNIX_LIBMPEG2_LIBRARY CACHE)
+            unset(WINUAE_UNIX_LIBMPEG2CONVERT_LIBRARY CACHE)
+            find_library(WINUAE_UNIX_LIBMPEG2_LIBRARY
+                NAMES mpeg2
+                PATHS ${LIBMPEG2_LIBRARY_DIRS}
+                NO_DEFAULT_PATH
+            )
+            find_library(WINUAE_UNIX_LIBMPEG2CONVERT_LIBRARY
+                NAMES mpeg2convert
+                PATHS ${LIBMPEG2_LIBRARY_DIRS}
+                NO_DEFAULT_PATH
+            )
+            if(WINUAE_UNIX_LIBMPEG2_LIBRARY AND WINUAE_UNIX_LIBMPEG2CONVERT_LIBRARY)
+                foreach(WINUAE_UNIX_LIBMPEG2_CHECK_LIBRARY IN ITEMS WINUAE_UNIX_LIBMPEG2_LIBRARY WINUAE_UNIX_LIBMPEG2CONVERT_LIBRARY)
+                    execute_process(
+                        COMMAND
+                            "${CMAKE_CURRENT_SOURCE_DIR}/tools/macos-check-deployment-target.sh"
+                            "${${WINUAE_UNIX_LIBMPEG2_CHECK_LIBRARY}}"
+                            "${CMAKE_OSX_DEPLOYMENT_TARGET}"
+                        RESULT_VARIABLE WINUAE_UNIX_LIBMPEG2_DEPLOYMENT_RESULT
+                        OUTPUT_VARIABLE WINUAE_UNIX_LIBMPEG2_DEPLOYMENT_OUTPUT
+                        ERROR_VARIABLE WINUAE_UNIX_LIBMPEG2_DEPLOYMENT_ERROR
+                        OUTPUT_STRIP_TRAILING_WHITESPACE
+                        ERROR_STRIP_TRAILING_WHITESPACE
+                    )
+                    if(NOT WINUAE_UNIX_LIBMPEG2_DEPLOYMENT_RESULT EQUAL 0)
+                        message(STATUS
+                            "libmpeg2 is newer than "
+                            "CMAKE_OSX_DEPLOYMENT_TARGET=${CMAKE_OSX_DEPLOYMENT_TARGET}; "
+                            "CD32 FMV video decode disabled. "
+                            "${WINUAE_UNIX_LIBMPEG2_DEPLOYMENT_ERROR}"
+                        )
+                        set(WINUAE_UNIX_LIBMPEG2_OK OFF)
+                    endif()
+                endforeach()
+            else()
+                message(STATUS
+                    "libmpeg2 was found by pkg-config but not as library "
+                    "paths; CD32 FMV video decode disabled"
+                )
+                set(WINUAE_UNIX_LIBMPEG2_OK OFF)
+            endif()
+        endif()
+    endif()
+endif()
+
+if(WINUAE_UNIX_LIBMPEG2_OK)
+    target_compile_definitions(winuae_unix_core_defs INTERFACE WITH_LIBMPEG2=1)
+    target_include_directories(winuae_core PRIVATE ${LIBMPEG2_INCLUDE_DIRS})
+    target_compile_options(winuae_core PRIVATE ${LIBMPEG2_CFLAGS_OTHER})
+    if(APPLE)
+        list(APPEND WINUAE_UNIX_EXTRA_LIBRARIES
+            "${WINUAE_UNIX_LIBMPEG2_LIBRARY}"
+            "${WINUAE_UNIX_LIBMPEG2CONVERT_LIBRARY}"
+        )
+    else()
+        list(APPEND WINUAE_UNIX_EXTRA_LIBRARIES ${LIBMPEG2_LIBRARIES})
+    endif()
+    list(APPEND WINUAE_UNIX_EXTRA_LIBRARY_DIRS ${LIBMPEG2_LIBRARY_DIRS})
+elseif(WINUAE_UNIX_WITH_LIBMPEG2 AND NOT WINUAE_UNIX_LIBMPEG2_FOUND)
+    message(STATUS "libmpeg2 development package not found; CD32 FMV video decode disabled")
+endif()
+
+set(WINUAE_UNIX_MT32EMU_OK OFF)
+set(WINUAE_UNIX_MT32EMU_FOUND OFF)
+if(WINUAE_UNIX_WITH_MIDIEMU AND PkgConfig_FOUND)
+    pkg_check_modules(MT32EMU QUIET mt32emu)
+    if(MT32EMU_FOUND)
+        set(WINUAE_UNIX_MT32EMU_FOUND ON)
+        set(WINUAE_UNIX_MT32EMU_OK ON)
+        if(APPLE)
+            unset(WINUAE_UNIX_MT32EMU_LIBRARY CACHE)
+            find_library(WINUAE_UNIX_MT32EMU_LIBRARY
+                NAMES mt32emu
+                PATHS ${MT32EMU_LIBRARY_DIRS}
+                NO_DEFAULT_PATH
+            )
+            if(WINUAE_UNIX_MT32EMU_LIBRARY)
+                execute_process(
+                    COMMAND
+                        "${CMAKE_CURRENT_SOURCE_DIR}/tools/macos-check-deployment-target.sh"
+                        "${WINUAE_UNIX_MT32EMU_LIBRARY}"
+                        "${CMAKE_OSX_DEPLOYMENT_TARGET}"
+                    RESULT_VARIABLE WINUAE_UNIX_MT32EMU_DEPLOYMENT_RESULT
+                    OUTPUT_VARIABLE WINUAE_UNIX_MT32EMU_DEPLOYMENT_OUTPUT
+                    ERROR_VARIABLE WINUAE_UNIX_MT32EMU_DEPLOYMENT_ERROR
+                    OUTPUT_STRIP_TRAILING_WHITESPACE
+                    ERROR_STRIP_TRAILING_WHITESPACE
+                )
+                if(NOT WINUAE_UNIX_MT32EMU_DEPLOYMENT_RESULT EQUAL 0)
+                    message(STATUS
+                        "libmt32emu is newer than "
+                        "CMAKE_OSX_DEPLOYMENT_TARGET=${CMAKE_OSX_DEPLOYMENT_TARGET}; "
+                        "Munt MIDI emulation disabled. "
+                        "${WINUAE_UNIX_MT32EMU_DEPLOYMENT_ERROR}"
+                    )
+                    set(WINUAE_UNIX_MT32EMU_OK OFF)
+                endif()
+            else()
+                message(STATUS
+                    "mt32emu was found by pkg-config but not as a library "
+                    "path; Munt MIDI emulation disabled"
+                )
+                set(WINUAE_UNIX_MT32EMU_OK OFF)
+            endif()
+        endif()
+    endif()
+endif()
+
+if(WINUAE_UNIX_WITH_NATIVE_HARDDRIVES)
+    set(WINUAE_UNIX_ENABLE_NATIVE_HARDDRIVES ON)
+    target_compile_definitions(winuae_unix_core_defs INTERFACE WINUAE_UNIX_WITH_NATIVE_HARDDRIVES=1)
+endif()
+
+if(WINUAE_UNIX_WITH_MIDI)
+    if(APPLE)
+        set(WINUAE_UNIX_ENABLE_MIDI ON)
+        target_compile_definitions(winuae_unix_core_defs INTERFACE WITH_MIDI=1 WINUAE_UNIX_WITH_COREMIDI=1)
+        list(APPEND WINUAE_UNIX_EXTRA_SOURCES od-unix/midi.cpp)
+        list(APPEND WINUAE_UNIX_EXTRA_LIBRARIES "-framework CoreMIDI" "-framework CoreFoundation")
+        list(APPEND WINUAE_UNIX_MIDI_LIBRARIES "-framework CoreMIDI" "-framework CoreFoundation")
+        list(APPEND WINUAE_UNIX_MIDI_QT_DEFINITIONS UAE_UNIX_WITH_COREMIDI=1)
+    elseif(PkgConfig_FOUND)
+        pkg_check_modules(ALSA QUIET alsa)
+        if(ALSA_FOUND)
+            set(WINUAE_UNIX_ENABLE_MIDI ON)
+            target_compile_definitions(winuae_unix_core_defs INTERFACE WITH_MIDI=1 WINUAE_UNIX_WITH_ALSA_MIDI=1)
+            target_include_directories(winuae_core PRIVATE ${ALSA_INCLUDE_DIRS})
+            target_compile_options(winuae_core PRIVATE ${ALSA_CFLAGS_OTHER})
+            list(APPEND WINUAE_UNIX_EXTRA_SOURCES od-unix/midi.cpp)
+            list(APPEND WINUAE_UNIX_EXTRA_LIBRARIES ${ALSA_LIBRARIES})
+            list(APPEND WINUAE_UNIX_EXTRA_LIBRARY_DIRS ${ALSA_LIBRARY_DIRS})
+            list(APPEND WINUAE_UNIX_MIDI_LIBRARIES ${ALSA_LIBRARIES})
+            list(APPEND WINUAE_UNIX_MIDI_INCLUDE_DIRS ${ALSA_INCLUDE_DIRS})
+            list(APPEND WINUAE_UNIX_MIDI_LIBRARY_DIRS ${ALSA_LIBRARY_DIRS})
+            list(APPEND WINUAE_UNIX_MIDI_COMPILE_OPTIONS ${ALSA_CFLAGS_OTHER})
+            list(APPEND WINUAE_UNIX_MIDI_QT_DEFINITIONS UAE_UNIX_WITH_ALSA_MIDI=1)
+        else()
+            message(STATUS "ALSA development package not found; native Unix MIDI disabled")
+        endif()
+    else()
+        message(STATUS "pkg-config not available; native Unix MIDI disabled")
+    endif()
+endif()
+
+if(WINUAE_UNIX_WITH_MIDIEMU AND WINUAE_UNIX_ENABLE_MIDI)
+    if(WINUAE_UNIX_MT32EMU_OK)
+        set(WINUAE_UNIX_ENABLE_MIDIEMU ON)
+        target_compile_definitions(winuae_unix_core_defs INTERFACE WITH_MIDIEMU=1)
+        target_include_directories(winuae_core PRIVATE ${MT32EMU_INCLUDE_DIRS})
+        target_compile_options(winuae_core PRIVATE ${MT32EMU_CFLAGS_OTHER})
+        list(APPEND WINUAE_UNIX_EXTRA_SOURCES midiemu.cpp)
+        if(APPLE)
+            list(APPEND WINUAE_UNIX_EXTRA_LIBRARIES "${WINUAE_UNIX_MT32EMU_LIBRARY}")
+        else()
+            list(APPEND WINUAE_UNIX_EXTRA_LIBRARIES ${MT32EMU_LIBRARIES})
+        endif()
+        list(APPEND WINUAE_UNIX_EXTRA_LIBRARY_DIRS ${MT32EMU_LIBRARY_DIRS})
+    elseif(NOT WINUAE_UNIX_MT32EMU_FOUND)
+        message(STATUS "mt32emu development package not found; Munt MIDI emulation disabled")
+    endif()
+elseif(WINUAE_UNIX_WITH_MIDIEMU AND NOT WINUAE_UNIX_ENABLE_MIDI)
+    message(STATUS "Native Unix MIDI disabled; Munt MIDI emulation disabled")
+endif()
+
+if(WINUAE_UNIX_WITH_CPUBOARD)
+    set(WINUAE_UNIX_ENABLE_CPUBOARD ON)
+    target_compile_definitions(winuae_unix_core_defs INTERFACE WITH_CPUBOARD=1)
+endif()
+
+if(WINUAE_UNIX_WITH_PPC_QEMU)
+    set(WINUAE_UNIX_ENABLE_PPC ON)
+    target_compile_definitions(winuae_unix_core_defs INTERFACE WITH_PPC=1 WITH_QEMU_CPU=1)
+    list(APPEND WINUAE_UNIX_EXTRA_SOURCES
+        ppc/ppc.cpp
+        ppc/ppcd.cpp
+        qemuvga/qemu.cpp
+    )
+endif()
+
+if(WINUAE_UNIX_WITH_DSP)
+    set(WINUAE_UNIX_ENABLE_DSP ON)
+    target_compile_definitions(winuae_unix_core_defs INTERFACE WITH_DSP=1)
+    list(APPEND WINUAE_UNIX_EXTRA_SOURCES
+        dsp3210/DSP3210_emulation.cpp
+        dsp3210/dsp_glue.cpp
+    )
+endif()
+
+set(WINUAE_UNIX_ENABLE_SNDBOARD ON)
+set(WINUAE_UNIX_ENABLE_PCI ON)
+target_compile_definitions(winuae_unix_core_defs INTERFACE
+    WITH_SNDBOARD=1
+    WITH_TOCCATA=1
+    WITH_PCI=1
+)
+list(APPEND WINUAE_UNIX_EXTRA_SOURCES
+    sndboard.cpp
+    od-unix/sndboard_host.cpp
+    pci.cpp
+    qemuvga/es1370.cpp
+    qemuvga/ne2000.cpp
+    qemuvga/qemuuaeglue.cpp
+)
+
+set(WINUAE_UNIX_ENABLE_GFXBOARD ON)
+target_compile_definitions(winuae_unix_core_defs INTERFACE GFXBOARD=1)
+list(APPEND WINUAE_UNIX_EXTRA_SOURCES
+    gfxboard.cpp
+    pci.cpp
+    mame/a2410.cpp
+    mame/tm34010/tms34010.cpp
+    qemuvga/cirrus_vga.cpp
+    qemuvga/es1370.cpp
+    qemuvga/ne2000.cpp
+    qemuvga/qemu.cpp
+    qemuvga/qemuuaeglue.cpp
+    qemuvga/vga.cpp
+    ${WINUAE_UNIX_86BOX_VIDEO_GLUE_SOURCES}
+)
+
+set(WINUAE_UNIX_ENABLE_X86 ON)
+target_compile_definitions(winuae_unix_core_defs INTERFACE WITH_X86=1)
+list(APPEND WINUAE_UNIX_EXTRA_SOURCES
+    atonce.cpp
+    x86.cpp
+    ${WINUAE_UNIX_86BOX_GLUE_SOURCES}
+)
+list(APPEND WINUAE_UNIX_86BOX_SOURCES ${WINUAE_UNIX_86BOX_X86_SOURCES})
+
+set(WINUAE_UNIX_ENABLE_DRACO ON)
+target_compile_definitions(winuae_unix_core_defs INTERFACE WITH_DRACO=1)
+list(APPEND WINUAE_UNIX_EXTRA_SOURCES
+    draco.cpp
+    ${WINUAE_UNIX_86BOX_GLUE_SOURCES}
+    ${WINUAE_UNIX_86BOX_DRACO_SOURCES}
+)
+list(APPEND WINUAE_UNIX_86BOX_SOURCES ${WINUAE_UNIX_86BOX_X86_SOURCES})
+
+# USE_DYNAREC changes 86Box's CPU state, so it applies to every file that
+# includes 86Box's cpu.h.
+set(WINUAE_UNIX_86BOX_DEFINITIONS UAE=)
+if(WINUAE_UNIX_86BOX_SOURCES AND WINUAE_UNIX_WITH_X86_DYNAREC)
+    list(APPEND WINUAE_UNIX_86BOX_SOURCES ${WINUAE_UNIX_86BOX_DYNAREC_SOURCES})
+    if(WINUAE_UNIX_X86_DYNAREC_BACKEND STREQUAL "arm64")
+        list(APPEND WINUAE_UNIX_86BOX_SOURCES ${WINUAE_UNIX_86BOX_DYNAREC_ARM64_SOURCES})
+    else()
+        list(APPEND WINUAE_UNIX_86BOX_SOURCES ${WINUAE_UNIX_86BOX_DYNAREC_X86_64_SOURCES})
+    endif()
+    list(APPEND WINUAE_UNIX_86BOX_DEFINITIONS USE_DYNAREC)
+endif()
+
+# The imported 86Box sources. They are third-party code, built as C++20 with
+# 86Box's include layout and without WinUAE's headers. UAE enables the few
+# WinUAE hooks in them.
+list(REMOVE_DUPLICATES WINUAE_UNIX_86BOX_SOURCES)
+if(WINUAE_UNIX_86BOX_SOURCES)
+    add_library(winuae_86box OBJECT ${WINUAE_UNIX_86BOX_SOURCES})
+    set_target_properties(winuae_86box PROPERTIES CXX_STANDARD 20 CXX_EXTENSIONS ON)
+    target_include_directories(winuae_86box PRIVATE
+        "${CMAKE_CURRENT_SOURCE_DIR}/86box/winuae/include"
+        "${CMAKE_CURRENT_SOURCE_DIR}/86box/include"
+        "${CMAKE_CURRENT_SOURCE_DIR}/86box/cpu"
+        "${CMAKE_CURRENT_SOURCE_DIR}/86box/cpu/softfloat3e"
+        "${CMAKE_CURRENT_SOURCE_DIR}/86box/codegen"
+        "${CMAKE_CURRENT_SOURCE_DIR}/86box"
+    )
+    target_compile_definitions(winuae_86box PRIVATE ${WINUAE_UNIX_86BOX_DEFINITIONS})
+    # C11's _Static_assert, which older GCCs don't take in C++
+    target_compile_definitions(winuae_86box PRIVATE $<$<CXX_COMPILER_ID:GNU>:_Static_assert=static_assert>)
+    target_compile_options(winuae_86box PRIVATE -w)
+    # The glue and the WinUAE files that drive the PC include 86Box headers
+    # by their 86box/... path.
+    set_source_files_properties(${WINUAE_UNIX_86BOX_GLUE_SOURCES} ${WINUAE_UNIX_86BOX_DRACO_SOURCES} atonce.cpp x86.cpp draco.cpp
+        ${WINUAE_UNIX_86BOX_VIDEO_GLUE_SOURCES}
+        PROPERTIES INCLUDE_DIRECTORIES
+            "${CMAKE_CURRENT_SOURCE_DIR}/86box/winuae;${CMAKE_CURRENT_SOURCE_DIR}/86box/winuae/include;${CMAKE_CURRENT_SOURCE_DIR}/86box/include"
+        COMPILE_DEFINITIONS "${WINUAE_UNIX_86BOX_DEFINITIONS}")
+endif()
+
+# The video cards get their memory, I/O, timer and device calls renamed to
+# the RTG versions in 86box_video.cpp.
+if(WINUAE_UNIX_ENABLE_GFXBOARD)
+    add_library(winuae_86box_video OBJECT ${WINUAE_UNIX_86BOX_VIDEO_SOURCES})
+    set_target_properties(winuae_86box_video PROPERTIES CXX_STANDARD 20 CXX_EXTENSIONS ON)
+    target_include_directories(winuae_86box_video PRIVATE
+        "${CMAKE_CURRENT_SOURCE_DIR}/86box/winuae/include"
+        "${CMAKE_CURRENT_SOURCE_DIR}/86box/include"
+        "${CMAKE_CURRENT_SOURCE_DIR}/86box/cpu"
+        "${CMAKE_CURRENT_SOURCE_DIR}/86box"
+    )
+    target_compile_definitions(winuae_86box_video PRIVATE ${WINUAE_UNIX_86BOX_DEFINITIONS})
+    # C11's _Static_assert, which older GCCs don't take in C++
+    target_compile_definitions(winuae_86box_video PRIVATE $<$<CXX_COMPILER_ID:GNU>:_Static_assert=static_assert>)
+    target_compile_options(winuae_86box_video PRIVATE -w
+        -include "${CMAKE_CURRENT_SOURCE_DIR}/86box/winuae/86box_video_redirect.h")
+endif()
+
+if(WINUAE_UNIX_ENABLE_PPC OR WINUAE_UNIX_ENABLE_GFXBOARD OR WINUAE_UNIX_ENABLE_X86 OR WINUAE_UNIX_ENABLE_DRACO)
+    target_compile_definitions(winuae_unix_core_defs INTERFACE UAE=)
+endif()
+
+if(WINUAE_UNIX_WITH_AVIOUTPUT)
+    set(WINUAE_UNIX_ENABLE_AVIOUTPUT ON)
+    target_compile_definitions(winuae_unix_core_defs INTERFACE AVIOUTPUT=1)
+    list(APPEND WINUAE_UNIX_EXTRA_SOURCES od-unix/avioutput.cpp)
+endif()
+
+if(WINUAE_UNIX_WITH_VIDEOGRAB)
+    set(WINUAE_UNIX_ENABLE_VIDEOGRAB ON)
+    target_compile_definitions(winuae_unix_core_defs INTERFACE
+        VIDEOGRAB=1
+        WINUAE_UNIX_WITH_VIDEOGRAB=1
+    )
+    list(APPEND WINUAE_UNIX_EXTRA_SOURCES od-unix/videograb.cpp)
+endif()
+
+set(WINUAE_UNIX_FFMPEG_OK OFF)
+set(WINUAE_UNIX_FFMPEG_FOUND OFF)
+if(WINUAE_UNIX_WITH_FFMPEG AND WINUAE_UNIX_WITH_VIDEOGRAB AND PkgConfig_FOUND)
+    pkg_check_modules(FFMPEG QUIET
+        libavformat>=59
+        libavcodec>=59
+        libavutil>=57
+        libswscale>=6
+        libswresample>=4
+    )
+    if(FFMPEG_FOUND)
+        set(WINUAE_UNIX_FFMPEG_FOUND ON)
+        set(WINUAE_UNIX_FFMPEG_OK ON)
+        if(APPLE)
+            unset(WINUAE_UNIX_FFMPEG_AVFORMAT_LIBRARY CACHE)
+            unset(WINUAE_UNIX_FFMPEG_AVCODEC_LIBRARY CACHE)
+            unset(WINUAE_UNIX_FFMPEG_AVUTIL_LIBRARY CACHE)
+            unset(WINUAE_UNIX_FFMPEG_SWSCALE_LIBRARY CACHE)
+            unset(WINUAE_UNIX_FFMPEG_SWRESAMPLE_LIBRARY CACHE)
+            find_library(WINUAE_UNIX_FFMPEG_AVFORMAT_LIBRARY
+                NAMES avformat
+                PATHS ${FFMPEG_LIBRARY_DIRS}
+                NO_DEFAULT_PATH
+            )
+            find_library(WINUAE_UNIX_FFMPEG_AVCODEC_LIBRARY
+                NAMES avcodec
+                PATHS ${FFMPEG_LIBRARY_DIRS}
+                NO_DEFAULT_PATH
+            )
+            find_library(WINUAE_UNIX_FFMPEG_AVUTIL_LIBRARY
+                NAMES avutil
+                PATHS ${FFMPEG_LIBRARY_DIRS}
+                NO_DEFAULT_PATH
+            )
+            find_library(WINUAE_UNIX_FFMPEG_SWSCALE_LIBRARY
+                NAMES swscale
+                PATHS ${FFMPEG_LIBRARY_DIRS}
+                NO_DEFAULT_PATH
+            )
+            find_library(WINUAE_UNIX_FFMPEG_SWRESAMPLE_LIBRARY
+                NAMES swresample
+                PATHS ${FFMPEG_LIBRARY_DIRS}
+                NO_DEFAULT_PATH
+            )
+            if(WINUAE_UNIX_FFMPEG_AVFORMAT_LIBRARY
+                    AND WINUAE_UNIX_FFMPEG_AVCODEC_LIBRARY
+                    AND WINUAE_UNIX_FFMPEG_AVUTIL_LIBRARY
+                    AND WINUAE_UNIX_FFMPEG_SWSCALE_LIBRARY
+                    AND WINUAE_UNIX_FFMPEG_SWRESAMPLE_LIBRARY)
+                foreach(WINUAE_UNIX_FFMPEG_CHECK_LIBRARY IN ITEMS
+                        WINUAE_UNIX_FFMPEG_AVFORMAT_LIBRARY
+                        WINUAE_UNIX_FFMPEG_AVCODEC_LIBRARY
+                        WINUAE_UNIX_FFMPEG_AVUTIL_LIBRARY
+                        WINUAE_UNIX_FFMPEG_SWSCALE_LIBRARY
+                        WINUAE_UNIX_FFMPEG_SWRESAMPLE_LIBRARY)
+                    execute_process(
+                        COMMAND
+                            "${CMAKE_CURRENT_SOURCE_DIR}/tools/macos-check-deployment-target.sh"
+                            "${${WINUAE_UNIX_FFMPEG_CHECK_LIBRARY}}"
+                            "${CMAKE_OSX_DEPLOYMENT_TARGET}"
+                        RESULT_VARIABLE WINUAE_UNIX_FFMPEG_DEPLOYMENT_RESULT
+                        OUTPUT_VARIABLE WINUAE_UNIX_FFMPEG_DEPLOYMENT_OUTPUT
+                        ERROR_VARIABLE WINUAE_UNIX_FFMPEG_DEPLOYMENT_ERROR
+                        OUTPUT_STRIP_TRAILING_WHITESPACE
+                        ERROR_STRIP_TRAILING_WHITESPACE
+                    )
+                    if(NOT WINUAE_UNIX_FFMPEG_DEPLOYMENT_RESULT EQUAL 0)
+                        message(STATUS
+                            "FFmpeg is newer than "
+                            "CMAKE_OSX_DEPLOYMENT_TARGET=${CMAKE_OSX_DEPLOYMENT_TARGET}; "
+                            "video-grab FFmpeg decode disabled. "
+                            "${WINUAE_UNIX_FFMPEG_DEPLOYMENT_ERROR}"
+                        )
+                        set(WINUAE_UNIX_FFMPEG_OK OFF)
+                    endif()
+                endforeach()
+            else()
+                message(STATUS
+                    "FFmpeg was found by pkg-config but not as library "
+                    "paths; video-grab FFmpeg decode disabled"
+                )
+                set(WINUAE_UNIX_FFMPEG_OK OFF)
+            endif()
+        endif()
+    endif()
+endif()
+
+if(WINUAE_UNIX_FFMPEG_OK)
+    set(WINUAE_UNIX_ENABLE_FFMPEG ON)
+    target_compile_definitions(winuae_unix_core_defs INTERFACE WINUAE_UNIX_WITH_FFMPEG=1)
+    target_include_directories(winuae_core PRIVATE ${FFMPEG_INCLUDE_DIRS})
+    target_compile_options(winuae_core PRIVATE ${FFMPEG_CFLAGS_OTHER})
+    if(APPLE)
+        list(APPEND WINUAE_UNIX_EXTRA_LIBRARIES
+            "${WINUAE_UNIX_FFMPEG_AVFORMAT_LIBRARY}"
+            "${WINUAE_UNIX_FFMPEG_AVCODEC_LIBRARY}"
+            "${WINUAE_UNIX_FFMPEG_AVUTIL_LIBRARY}"
+            "${WINUAE_UNIX_FFMPEG_SWSCALE_LIBRARY}"
+            "${WINUAE_UNIX_FFMPEG_SWRESAMPLE_LIBRARY}"
+        )
+    else()
+        list(APPEND WINUAE_UNIX_EXTRA_LIBRARIES ${FFMPEG_LIBRARIES})
+    endif()
+    list(APPEND WINUAE_UNIX_EXTRA_LIBRARY_DIRS ${FFMPEG_LIBRARY_DIRS})
+elseif(WINUAE_UNIX_WITH_FFMPEG AND WINUAE_UNIX_WITH_VIDEOGRAB AND NOT WINUAE_UNIX_FFMPEG_FOUND)
+    message(STATUS "Compatible FFmpeg development packages not found; video-grab file decoding limited to raw AVI")
+endif()
+
+if(WINUAE_UNIX_WITH_OPENGL_SHADER_PIPELINE AND WINUAE_UNIX_WITH_SDL3)
+    find_package(OpenGL QUIET)
+    if(OpenGL_FOUND)
+        set(WINUAE_UNIX_ENABLE_SHADER_PIPELINE ON)
+        target_compile_definitions(winuae_unix_core_defs INTERFACE WINUAE_UNIX_WITH_OPENGL_SHADER_PIPELINE=1)
+        list(APPEND WINUAE_UNIX_EXTRA_LIBRARIES OpenGL::GL)
+    else()
+        message(STATUS "OpenGL development package not found; Unix shader pipeline disabled")
+    endif()
+endif()
+
+if(WINUAE_UNIX_WITH_JIT)
+    if(WINUAE_UNIX_JIT_TARGET_SUPPORTED)
+        set(WINUAE_UNIX_ENABLE_JIT ON)
+        target_compile_definitions(winuae_unix_core_defs INTERFACE
+            JIT=1
+            USE_JIT_FPU=1
+            NOFLAGS_SUPPORT_GENCOMP=1
+            SAHF_SETO_PROFITABLE=1
+        )
+        list(APPEND WINUAE_UNIX_EXTRA_SOURCES
+            jit/compemu.cpp
+            jit/compemu_fpp.cpp
+            jit/compemu_support.cpp
+            jit/compstbl.cpp
+        )
+    else()
+        message(STATUS "JIT is currently enabled only for Unix ARM64 and x86_64 builds; disabling JIT for ${CMAKE_SYSTEM_PROCESSOR}")
+    endif()
+endif()
+
+if(WINUAE_UNIX_WITH_SLIRP)
+    target_compile_definitions(winuae_unix_core_defs INTERFACE
+        A2065=1
+        WITH_SLIRP=1
+        WITH_BUILTIN_SLIRP=1
+    )
+    list(APPEND WINUAE_UNIX_EXTRA_SOURCES
+        a2065.cpp
+        slirp_uae.cpp
+        slirp/bootp.cpp
+        slirp/cksum.cpp
+        slirp/if.cpp
+        slirp/ip_icmp.cpp
+        slirp/ip_input.cpp
+        slirp/ip_output.cpp
+        slirp/mbuf.cpp
+        slirp/misc.cpp
+        slirp/sbuf.cpp
+        slirp/slirp.cpp
+        slirp/slirpdebug.cpp
+        slirp/socket.cpp
+        slirp/tcp_input.cpp
+        slirp/tcp_output.cpp
+        slirp/tcp_subr.cpp
+        slirp/tcp_timer.cpp
+        slirp/tftp.cpp
+        slirp/udp.cpp
+    )
+endif()
+
+if(WINUAE_UNIX_WITH_SANA2)
+    if(WINUAE_UNIX_WITH_SLIRP)
+        set(WINUAE_UNIX_ENABLE_SANA2 ON)
+        target_compile_definitions(winuae_unix_core_defs INTERFACE SANA2=1)
+        list(APPEND WINUAE_UNIX_EXTRA_SOURCES sana2.cpp)
+    else()
+        message(STATUS "uaenet.device requires the Unix Ethernet backend; disabling WINUAE_UNIX_WITH_SANA2")
+    endif()
+endif()
+
+if(WINUAE_UNIX_WITH_UAENET_PCAP)
+    set(WINUAE_UNIX_PCAP_FOUND OFF)
+    if(PkgConfig_FOUND)
+        pkg_check_modules(PCAP QUIET libpcap)
+        if(PCAP_FOUND)
+            set(WINUAE_UNIX_PCAP_FOUND ON)
+            target_include_directories(winuae_core PRIVATE ${PCAP_INCLUDE_DIRS})
+            target_compile_options(winuae_core PRIVATE ${PCAP_CFLAGS_OTHER})
+            list(APPEND WINUAE_UNIX_EXTRA_LIBRARIES ${PCAP_LIBRARIES})
+            list(APPEND WINUAE_UNIX_EXTRA_LIBRARY_DIRS ${PCAP_LIBRARY_DIRS})
+        endif()
+    endif()
+    if(NOT WINUAE_UNIX_PCAP_FOUND)
+        find_path(WINUAE_UNIX_PCAP_INCLUDE_DIR NAMES pcap/pcap.h pcap.h)
+        find_library(WINUAE_UNIX_PCAP_LIBRARY NAMES pcap)
+        if(WINUAE_UNIX_PCAP_INCLUDE_DIR AND WINUAE_UNIX_PCAP_LIBRARY)
+            set(WINUAE_UNIX_PCAP_FOUND ON)
+            target_include_directories(winuae_core PRIVATE "${WINUAE_UNIX_PCAP_INCLUDE_DIR}")
+            list(APPEND WINUAE_UNIX_EXTRA_LIBRARIES "${WINUAE_UNIX_PCAP_LIBRARY}")
+        endif()
+    endif()
+    if(WINUAE_UNIX_PCAP_FOUND)
+        set(WINUAE_UNIX_ENABLE_UAENET_PCAP ON)
+        target_compile_definitions(winuae_unix_core_defs INTERFACE WITH_UAENET_PCAP=1)
+        list(APPEND WINUAE_UNIX_EXTRA_SOURCES od-unix/uaenet_unix.cpp)
+    else()
+        message(STATUS "libpcap was not found; disabling native Unix packet networking")
+    endif()
+endif()
+
+if(WINUAE_UNIX_WITH_BSDSOCKET)
+    set(WINUAE_UNIX_ENABLE_BSDSOCKET ON)
+    target_compile_definitions(winuae_unix_core_defs INTERFACE BSDSOCKET=1)
+    list(APPEND WINUAE_UNIX_EXTRA_SOURCES od-unix/bsdsock_unix.cpp)
+endif()
+
+if(WINUAE_UNIX_WITH_UAESCSI)
+    set(WINUAE_UNIX_ENABLE_UAESCSI ON)
+    target_compile_definitions(winuae_unix_core_defs INTERFACE SCSIEMU=1)
+endif()
+
+if(WINUAE_UNIX_WITH_NATIVE_CD)
+    if(APPLE OR CMAKE_SYSTEM_NAME STREQUAL "Linux")
+        set(WINUAE_UNIX_ENABLE_NATIVE_CD ON)
+        target_compile_definitions(winuae_unix_core_defs INTERFACE WITH_SCSI_IOCTL=1)
+        list(APPEND WINUAE_UNIX_EXTRA_SOURCES
+            od-unix/blkdev_unix_ioctl.cpp
+        )
+        if(APPLE)
+            list(APPEND WINUAE_UNIX_EXTRA_LIBRARIES
+                "-framework CoreFoundation"
+                "-framework DiskArbitration"
+                "-framework IOKit"
+            )
+        endif()
+    else()
+        message(STATUS "Native Unix CD/DVD access is implemented for macOS and Linux only")
+    endif()
+endif()
+
+if(WINUAE_UNIX_WITH_NATIVE_SCSI)
+    if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+        set(WINUAE_UNIX_ENABLE_NATIVE_SCSI ON)
+        target_compile_definitions(winuae_unix_core_defs INTERFACE WITH_SCSI_SPTI=1)
+        list(APPEND WINUAE_UNIX_EXTRA_SOURCES od-unix/blkdev_unix_sg.cpp)
+    elseif(APPLE)
+        set(WINUAE_UNIX_ENABLE_NATIVE_SCSI ON)
+        target_compile_definitions(winuae_unix_core_defs INTERFACE WITH_SCSI_SPTI=1)
+        list(APPEND WINUAE_UNIX_EXTRA_SOURCES od-unix/blkdev_unix_scsi_macos.cpp)
+        list(APPEND WINUAE_UNIX_EXTRA_LIBRARIES
+            "-framework CoreFoundation"
+            "-framework IOKit"
+        )
+    else()
+        message(STATUS "Native Unix SCSI/tape passthrough is implemented for macOS SCSITaskLib and Linux SG_IO only")
+    endif()
+endif()
+
+if(WINUAE_UNIX_WITH_UAESERIAL)
+    set(WINUAE_UNIX_ENABLE_UAESERIAL ON)
+    target_compile_definitions(winuae_unix_core_defs INTERFACE UAESERIAL=1)
+    list(APPEND WINUAE_UNIX_EXTRA_SOURCES
+        uaeserial.cpp
+        od-unix/uaeserial_host.cpp
+    )
+endif()
+
+target_compile_definitions(winuae_unix_core_defs INTERFACE NCR=1 NCR9X=1)
+set_source_files_properties(ncr_scsi.cpp ncr9x_scsi.cpp PROPERTIES COMPILE_DEFINITIONS WITH_QEMU_CPU=1)
+list(APPEND WINUAE_UNIX_EXTRA_SOURCES
+    ncr_scsi.cpp
+    ncr9x_scsi.cpp
+    qemuvga/esp.cpp
+    qemuvga/lsi53c710.cpp
+    qemuvga/lsi53c895a.cpp
+    qemuvga/qemuuaeglue.cpp
+)
+
+if(WINUAE_UNIX_WITH_PROWIZARD)
+    target_compile_definitions(winuae_unix_core_defs INTERFACE PROWIZARD=1)
+    target_include_directories(winuae_core PRIVATE
+        "${CMAKE_CURRENT_SOURCE_DIR}/prowizard/include"
+    )
+    set(WINUAE_UNIX_PROWIZARD_C_SOURCES
+        prowizard/misc/misc.c
+        prowizard/prowiz.c
+        prowizard/misc/testbag.c
+        prowizard/rippers/AC1D_packer.c
+        prowizard/rippers/AMF.c
+        prowizard/rippers/AMOS-MusicBank.c
+        prowizard/rippers/AMOS-PowerPackerBank.c
+        prowizard/rippers/BP-Soundmonitor.c
+        prowizard/rippers/BSI-FutureComposer.c
+        prowizard/rippers/Bytekiller.c
+        prowizard/rippers/ChipTracker.c
+        prowizard/rippers/Crunchmania-Address.c
+        prowizard/rippers/Crunchmania-Simple.c
+        prowizard/rippers/datacrunchers.c
+        prowizard/rippers/DefjamCruncher32-pro.c
+        prowizard/rippers/DigiBooster17.c
+        prowizard/rippers/DigitalIllusion.c
+        prowizard/rippers/DoubleAction.c
+        prowizard/rippers/DM1.c
+        prowizard/rippers/Dragpack100.c
+        prowizard/rippers/Dragpack252.c
+        prowizard/rippers/EurekaPacker.c
+        prowizard/rippers/FastTracker2.c
+        prowizard/rippers/FC-M-Packer.c
+        prowizard/rippers/FuchsTracker.c
+        prowizard/rippers/FutureComposer13.c
+        prowizard/rippers/FutureComposer14.c
+        prowizard/rippers/FuzzacPacker.c
+        prowizard/rippers/GMC.c
+        prowizard/rippers/GNUPacker12.c
+        prowizard/rippers/GnuPlayer.c
+        prowizard/rippers/GPMO.c
+        prowizard/rippers/HCD.c
+        prowizard/rippers/HeatseekerMC10.c
+        prowizard/rippers/HighPresCr.c
+        prowizard/rippers/HornetPacker.c
+        prowizard/rippers/HQC2.c
+        prowizard/rippers/IFF.c
+        prowizard/rippers/IT.c
+        prowizard/rippers/JamCracker.c
+        prowizard/rippers/KefrensSoundMachine.c
+        prowizard/rippers/MasterCruncher30-Address.c
+        prowizard/rippers/MaxPacker12.c
+        prowizard/rippers/MED-Octamed.c
+        prowizard/rippers/MegaCruncher-Object.c
+        prowizard/rippers/MegaCruncher.c
+        prowizard/rippers/MOD-compatible.c
+        prowizard/rippers/ModuleProtector.c
+        prowizard/rippers/Mugician.c
+        prowizard/rippers/Newtron.c
+        prowizard/rippers/NewtronOld.c
+        prowizard/rippers/NoiseFromHeaven.c
+        prowizard/rippers/NoisePacker1.c
+        prowizard/rippers/NoisePacker2.c
+        prowizard/rippers/NoiseRunner.c
+        prowizard/rippers/NovoTrade.c
+        prowizard/rippers/NP3.c
+        prowizard/rippers/PhaPacker.c
+        prowizard/rippers/Perfsong.c
+        prowizard/rippers/PolkaPacker.c
+        prowizard/rippers/PowerMusic.c
+        prowizard/rippers/PowerPacker23.c
+        prowizard/rippers/PowerPacker30.c
+        prowizard/rippers/PowerPacker40-library.c
+        prowizard/rippers/PowerPacker40.c
+        prowizard/rippers/Promizer01.c
+        prowizard/rippers/Promizer10c.c
+        prowizard/rippers/Promizer18a.c
+        prowizard/rippers/Promizer20.c
+        prowizard/rippers/Promizer40.c
+        prowizard/rippers/ProPacker10.c
+        prowizard/rippers/ProPacker21.c
+        prowizard/rippers/ProPacker30.c
+        prowizard/rippers/Prorunner10.c
+        prowizard/rippers/Prorunner20.c
+        prowizard/rippers/QuadraComposer.c
+        prowizard/rippers/RelokIt10.c
+        prowizard/rippers/S3M.c
+        prowizard/rippers/SA.c
+        prowizard/rippers/SGT-Packer.c
+        prowizard/rippers/skizzo.c
+        prowizard/rippers/SlamPacker.c
+        prowizard/rippers/SkytPacker.c
+        prowizard/rippers/SoundFX.c
+        prowizard/rippers/SoundTracker.c
+        prowizard/rippers/SoundTracker26.c
+        prowizard/rippers/SpikeCruncher.c
+        prowizard/rippers/StartrekkerPack.c
+        prowizard/rippers/StimPacker.c
+        prowizard/rippers/StoneArtsPlayer.c
+        prowizard/rippers/StoneCracker270.c
+        prowizard/rippers/StoneCracker299.c
+        prowizard/rippers/StoneCracker299b.c
+        prowizard/rippers/StoneCracker299d.c
+        prowizard/rippers/StoneCracker300.c
+        prowizard/rippers/StoneCracker310.c
+        prowizard/rippers/SuperCruncher27.c
+        prowizard/rippers/SyncroPacker46.c
+        prowizard/rippers/THX.c
+        prowizard/rippers/TetraPack102.c
+        prowizard/rippers/TetraPack21.c
+        prowizard/rippers/TetraPack22.c
+        prowizard/rippers/TheDarkDemon.c
+        prowizard/rippers/ThePlayer22a.c
+        prowizard/rippers/ThePlayer30a.c
+        prowizard/rippers/ThePlayer40.c
+        prowizard/rippers/ThePlayer41a.c
+        prowizard/rippers/ThePlayer50a.c
+        prowizard/rippers/ThePlayer60a.c
+        prowizard/rippers/ThePlayer61a.c
+        prowizard/rippers/TimeCruncher17.c
+        prowizard/rippers/TitanicsPlayer.c
+        prowizard/rippers/TMK.c
+        prowizard/rippers/TNMCruncher.c
+        prowizard/rippers/TrackerPacker1.c
+        prowizard/rippers/TrackerPacker2.c
+        prowizard/rippers/TrackerPacker3.c
+        prowizard/rippers/TryItCruncher101.c
+        prowizard/rippers/TurboSqueezer61.c
+        prowizard/rippers/UnicTracker.c
+        prowizard/rippers/UnicTracker2.c
+        prowizard/rippers/WantonPacker.c
+        prowizard/rippers/XannPlayer.c
+        prowizard/rippers/bnr.c
+        prowizard/rippers/mosh.c
+        prowizard/rippers/okta.c
+        prowizard/rippers/pmd3.c
+        prowizard/rippers/sidmon1.c
+        prowizard/rippers/sidmon2.c
+        prowizard/rippers/struggle.c
+        prowizard/rippers/ZenPacker.c
+    )
+    list(APPEND WINUAE_UNIX_EXTRA_SOURCES
+        moduleripper.cpp
+        ${WINUAE_UNIX_PROWIZARD_C_SOURCES}
+    )
+    set_source_files_properties(${WINUAE_UNIX_PROWIZARD_C_SOURCES}
+        PROPERTIES LANGUAGE CXX
+    )
+endif()
+
+if(WINUAE_UNIX_WITH_SDL3)
+    find_package(SDL3 CONFIG QUIET)
+    if(TARGET SDL3::SDL3)
+        set(WINUAE_UNIX_SDL3_TARGET SDL3::SDL3)
+    elseif(TARGET SDL3::SDL3-shared)
+        set(WINUAE_UNIX_SDL3_TARGET SDL3::SDL3-shared)
+    elseif(TARGET SDL3-static)
+        set(WINUAE_UNIX_SDL3_TARGET SDL3-static)
+    elseif(TARGET SDL3)
+        set(WINUAE_UNIX_SDL3_TARGET SDL3)
+    endif()
+    if(WINUAE_UNIX_SDL3_TARGET AND APPLE)
+        winuae_unix_imported_location("${WINUAE_UNIX_SDL3_TARGET}" WINUAE_UNIX_SDL3_IMPORTED_LIBRARY)
+        if(WINUAE_UNIX_SDL3_IMPORTED_LIBRARY)
+            execute_process(
+                COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/tools/macos-check-deployment-target.sh" "${WINUAE_UNIX_SDL3_IMPORTED_LIBRARY}" "${CMAKE_OSX_DEPLOYMENT_TARGET}"
+                RESULT_VARIABLE WINUAE_UNIX_SDL3_DEPLOYMENT_RESULT
+                OUTPUT_VARIABLE WINUAE_UNIX_SDL3_DEPLOYMENT_OUTPUT
+                ERROR_VARIABLE WINUAE_UNIX_SDL3_DEPLOYMENT_ERROR
+                OUTPUT_STRIP_TRAILING_WHITESPACE
+                ERROR_STRIP_TRAILING_WHITESPACE
+            )
+            if(NOT WINUAE_UNIX_SDL3_DEPLOYMENT_RESULT EQUAL 0)
+                message(STATUS "SDL3 is newer than CMAKE_OSX_DEPLOYMENT_TARGET=${CMAKE_OSX_DEPLOYMENT_TARGET}; ignoring package target. ${WINUAE_UNIX_SDL3_DEPLOYMENT_ERROR}")
+                unset(WINUAE_UNIX_SDL3_TARGET)
+                set(SDL3_FOUND OFF)
+            endif()
+        endif()
+    endif()
+    if(NOT WINUAE_UNIX_SDL3_TARGET)
+        find_path(WINUAE_UNIX_SDL3_INCLUDE_DIR NAMES SDL3/SDL.h)
+        find_library(WINUAE_UNIX_SDL3_FALLBACK_LIBRARY NAMES SDL3 SDL3.0)
+        if(WINUAE_UNIX_SDL3_INCLUDE_DIR AND WINUAE_UNIX_SDL3_FALLBACK_LIBRARY)
+            set(WINUAE_UNIX_SDL3_FALLBACK_OK ON)
+            if(APPLE)
+                execute_process(
+                    COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/tools/macos-check-deployment-target.sh" "${WINUAE_UNIX_SDL3_FALLBACK_LIBRARY}" "${CMAKE_OSX_DEPLOYMENT_TARGET}"
+                    RESULT_VARIABLE WINUAE_UNIX_SDL3_FALLBACK_DEPLOYMENT_RESULT
+                    OUTPUT_VARIABLE WINUAE_UNIX_SDL3_FALLBACK_DEPLOYMENT_OUTPUT
+                    ERROR_VARIABLE WINUAE_UNIX_SDL3_FALLBACK_DEPLOYMENT_ERROR
+                    OUTPUT_STRIP_TRAILING_WHITESPACE
+                    ERROR_STRIP_TRAILING_WHITESPACE
+                )
+                if(NOT WINUAE_UNIX_SDL3_FALLBACK_DEPLOYMENT_RESULT EQUAL 0)
+                    message(STATUS "SDL3 library is newer than CMAKE_OSX_DEPLOYMENT_TARGET=${CMAKE_OSX_DEPLOYMENT_TARGET}; SDL3 disabled. ${WINUAE_UNIX_SDL3_FALLBACK_DEPLOYMENT_ERROR}")
+                    set(WINUAE_UNIX_SDL3_FALLBACK_OK OFF)
+                endif()
+            endif()
+            if(WINUAE_UNIX_SDL3_FALLBACK_OK)
+                add_library(WINUAE::SDL3 UNKNOWN IMPORTED)
+                set_target_properties(WINUAE::SDL3 PROPERTIES
+                    IMPORTED_LOCATION "${WINUAE_UNIX_SDL3_FALLBACK_LIBRARY}"
+                    INTERFACE_INCLUDE_DIRECTORIES "${WINUAE_UNIX_SDL3_INCLUDE_DIR}"
+                )
+                set(WINUAE_UNIX_SDL3_TARGET WINUAE::SDL3)
+                message(STATUS "Using SDL3 library: ${WINUAE_UNIX_SDL3_FALLBACK_LIBRARY}")
+            endif()
+        endif()
+    endif()
+    if(NOT WINUAE_UNIX_SDL3_TARGET AND PkgConfig_FOUND AND NOT APPLE)
+        pkg_check_modules(SDL3 QUIET sdl3)
+    endif()
+endif()
+
+if(WINUAE_UNIX_SDL3_TARGET)
+    target_compile_definitions(winuae_unix_core_defs INTERFACE UAE_UNIX_WITH_SDL3=1)
+    target_link_libraries(winuae_core PRIVATE ${WINUAE_UNIX_SDL3_TARGET})
+    list(APPEND WINUAE_UNIX_EXTRA_SOURCES od-unix/video_sdl.cpp)
+    list(APPEND WINUAE_UNIX_EXTRA_LIBRARIES ${WINUAE_UNIX_SDL3_TARGET})
+elseif(SDL3_FOUND)
+    target_compile_definitions(winuae_unix_core_defs INTERFACE UAE_UNIX_WITH_SDL3=1)
+    target_include_directories(winuae_core PRIVATE ${SDL3_INCLUDE_DIRS})
+    target_compile_options(winuae_core PRIVATE ${SDL3_CFLAGS_OTHER})
+    list(APPEND WINUAE_UNIX_EXTRA_SOURCES od-unix/video_sdl.cpp)
+    list(APPEND WINUAE_UNIX_EXTRA_LIBRARIES ${SDL3_LIBRARIES})
+    list(APPEND WINUAE_UNIX_EXTRA_LIBRARY_DIRS ${SDL3_LIBRARY_DIRS})
+else()
+    list(APPEND WINUAE_UNIX_EXTRA_SOURCES od-unix/video_null.cpp)
+endif()
+
+if(WINUAE_UNIX_WITH_SAMPLER AND (WINUAE_UNIX_SDL3_TARGET OR SDL3_FOUND))
+    set(WINUAE_UNIX_ENABLE_SAMPLER ON)
+    target_compile_definitions(winuae_unix_core_defs INTERFACE WINUAE_UNIX_WITH_SAMPLER=1)
+    list(APPEND WINUAE_UNIX_EXTRA_SOURCES od-unix/sampler_sdl.cpp)
+endif()
+
+set(WINUAE_CORE_SOURCES
+    a2091.cpp
+    akiko.cpp
+    amax.cpp
+    ar.cpp
+    arcadia.cpp
+    aros.rom.cpp
+    audio.cpp
+    autoconf.cpp
+    blitfunc.cpp
+    blitops.cpp
+    blittable.cpp
+    blitter.cpp
+    blkdev.cpp
+    blkdev_cdimage.cpp
+    bsdsocket.cpp
+    calc.cpp
+    cd32_fmv.cpp
+    cd32_fmv_genlock.cpp
+    cda_play.cpp
+    cdrom.cpp
+    cdtv.cpp
+    cdtvcr.cpp
+    cfgfile.cpp
+    cia.cpp
+    consolehook.cpp
+    cpuboard.cpp
+    cpudefs.cpp
+    cpustbl.cpp
+    cpuemu_0.cpp
+    cpuemu_11.cpp
+    cpuemu_13.cpp
+    cpuemu_20.cpp
+    cpuemu_21.cpp
+    cpuemu_22.cpp
+    cpuemu_23.cpp
+    cpuemu_24.cpp
+    cpuemu_31.cpp
+    cpuemu_32.cpp
+    cpuemu_33.cpp
+    cpuemu_34.cpp
+    cpuemu_35.cpp
+    cpuemu_40.cpp
+    cpuemu_50.cpp
+    cpummu.cpp
+    cpummu30.cpp
+    crc32.cpp
+    custom.cpp
+    debug.cpp
+    debugmem.cpp
+    def_icons.cpp
+    devices.cpp
+    disasm.cpp
+    disk.cpp
+    $<$<BOOL:${WINUAE_UNIX_WITH_FLOPPYBRIDGE}>:floppybridge/floppybridge_lib.cpp>
+    diskutil.cpp
+    dlopen.cpp
+    dongle.cpp
+    drawing.cpp
+    driveclick.cpp
+    enforcer.cpp
+    ethernet.cpp
+    events.cpp
+    expansion.cpp
+    fdi2raw.cpp
+    filesys.cpp
+    flashrom.cpp
+    fpp.cpp
+    fpp_native.cpp
+    fpp_softfloat.cpp
+    framebufferboards.cpp
+    fsdb.cpp
+    fsdb_unix.cpp
+    gayle.cpp
+    gdb_monitor.cpp
+    gdb_protocol.cpp
+    gdb_server.cpp
+    gdb_target.cpp
+    gfxlib.cpp
+    gfxutil.cpp
+    hardfile.cpp
+    hrtmon.rom.cpp
+    ide.cpp
+    idecontrollers.cpp
+    identify.cpp
+    ini.cpp
+    inputdevice.cpp
+    inputrecord.cpp
+    isofs.cpp
+    kbmcu/8048/co8048.cpp
+    kbmcu/keyboard_mcu_6500_1.cpp
+    kbmcu/keyboard_mcu_6805.cpp
+    kbmcu/keyboard_mcu_d8039hlc.cpp
+    kbmcu/m6805/m68emu.cpp
+    kbmcu/m6805/m68_ops.cpp
+    keybuf.cpp
+    logging.cpp
+    main.cpp
+    memory.cpp
+    missing.cpp
+    mos6502.cpp
+    native2amiga.cpp
+    newcpu.cpp
+    newcpu_common.cpp
+    readcpu.cpp
+    rommgr.cpp
+    rtc.cpp
+    savestate.cpp
+    scp.cpp
+    scsi.cpp
+    scsiemul.cpp
+    scsitape.cpp
+    specialmonitors.cpp
+    statusline.cpp
+    test_card.cpp
+    tinyxml2.cpp
+    traps.cpp
+    uaeexe.cpp
+    uaelib.cpp
+    uaeresource.cpp
+    vm.cpp
+    writelog.cpp
+    zfile.cpp
+    archivers/mp2/kjmp2.cpp
+    softfloat/softfloat.cpp
+    softfloat/softfloat_decimal.cpp
+    softfloat/softfloat_fpsp.cpp
+    od-generic/clipboard.cpp
+    od-generic/mman.cpp
+    od-generic/registry_ini.cpp
+    od-unix/charset.cpp
+    od-unix/clipboard.cpp
+    od-unix/config.cpp
+    od-unix/config_compat.cpp
+    od-unix/driveclick.cpp
+    od-unix/dlopen.cpp
+    od-unix/filesys_host.cpp
+    od-unix/graphics.cpp
+    od-unix/gui.cpp
+    od-unix/hardfile_host.cpp
+    od-unix/input.cpp
+    od-unix/logging.cpp
+    od-unix/ldp_render.cpp
+    od-unix/mman.cpp
+    od-unix/path_expand.cpp
+    od-unix/parallel.cpp
+    od-unix/registry.cpp
+    od-unix/romscan.cpp
+    od-unix/rtg.cpp
+    od-unix/scaler.cpp
+    od-unix/screenshot.cpp
+    od-unix/serial.cpp
+    od-unix/sound.cpp
+    od-unix/stubs.cpp
+    od-unix/support.cpp
+    od-unix/threading.cpp
+    od-unix/time.cpp
+)
+
+list(REMOVE_DUPLICATES WINUAE_UNIX_EXTRA_SOURCES)
+list(APPEND WINUAE_CORE_SOURCES ${WINUAE_UNIX_EXTRA_SOURCES})
+target_sources(winuae_core PRIVATE ${WINUAE_CORE_SOURCES})
+
+if(WINUAE_UNIX_BUILD_EXECUTABLE)
+    add_executable(winuae_unix $<TARGET_OBJECTS:winuae_core>)
+    if(TARGET winuae_86box)
+        target_sources(winuae_unix PRIVATE $<TARGET_OBJECTS:winuae_86box>)
+    endif()
+    if(TARGET winuae_86box_video)
+        target_sources(winuae_unix PRIVATE $<TARGET_OBJECTS:winuae_86box_video>)
+    endif()
+    # Keep the developer-facing target name stable; the produced binary is
+    # named winuae to match the installed name, the .desktop files, the
+    # WinUAE.app bundle, and winuae.exe on Windows.
+    set_target_properties(winuae_unix PROPERTIES OUTPUT_NAME winuae)
+    if(WINUAE_UNIX_EXTRA_LIBRARY_DIRS)
+        target_link_directories(winuae_unix PRIVATE ${WINUAE_UNIX_EXTRA_LIBRARY_DIRS})
+    endif()
+    target_link_libraries(winuae_unix PRIVATE pthread ${CMAKE_DL_LIBS} ZLIB::ZLIB ${WINUAE_UNIX_EXTRA_LIBRARIES})
+
+    function(add_winuae_unix_smoke_target target script)
+        add_custom_target(${target}
+            COMMAND "${CMAKE_COMMAND}" -E env
+                "WINUAE_BUILD_DIR=${CMAKE_BINARY_DIR}"
+                ${ARGN}
+                "${CMAKE_CURRENT_SOURCE_DIR}/tools/${script}"
+            DEPENDS winuae_unix
+            WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+            COMMENT "Running ${script}"
+            VERBATIM
+        )
+    endfunction()
+
+    add_winuae_unix_smoke_target(winuae_unix_smoke_a1200 unix-smoke-a1200.sh)
+    add_winuae_unix_smoke_target(winuae_unix_smoke_a2065 unix-smoke-a2065.sh)
+    add_winuae_unix_smoke_target(winuae_unix_smoke_sana2 unix-smoke-sana2.sh)
+    add_winuae_unix_smoke_target(winuae_unix_smoke_driveclick unix-smoke-driveclick.sh)
+    add_winuae_unix_smoke_target(winuae_unix_smoke_sound_boards unix-smoke-sound-boards.sh)
+    add_winuae_unix_smoke_target(winuae_unix_smoke_rtg_z3 unix-smoke-rtg-z3.sh)
+    add_winuae_unix_smoke_target(winuae_unix_smoke_uaegfx unix-smoke-uaegfx.sh)
+    add_winuae_unix_smoke_target(winuae_unix_smoke_p96_guest unix-smoke-p96-guest.sh)
+    add_winuae_unix_smoke_target(winuae_unix_smoke_p96_guest_800x600 unix-smoke-p96-guest-800x600.sh)
+    add_winuae_unix_smoke_target(winuae_unix_smoke_p96_guest_16bit_modes unix-smoke-p96-guest-16bit-modes.sh)
+    add_winuae_unix_smoke_target(winuae_unix_smoke_p96_guest_15bit_open unix-smoke-p96-guest-15bit-open.sh)
+    add_winuae_unix_smoke_target(winuae_unix_smoke_p96_guest_16bit_open unix-smoke-p96-guest-16bit-open.sh)
+    add_winuae_unix_smoke_target(winuae_unix_smoke_p96_guest_24bit_open unix-smoke-p96-guest-24bit-open.sh)
+    add_winuae_unix_smoke_target(winuae_unix_smoke_p96_guest_32bit_open unix-smoke-p96-guest-32bit-open.sh)
+    add_winuae_unix_smoke_target(winuae_unix_smoke_p96_guest_draw_8bit unix-smoke-p96-guest-draw-8bit.sh)
+    add_winuae_unix_smoke_target(winuae_unix_smoke_p96_guest_draw_16bit unix-smoke-p96-guest-draw-16bit.sh)
+    add_winuae_unix_smoke_target(winuae_unix_smoke_p96_guest_z3 unix-smoke-p96-guest-z3.sh)
+    add_winuae_unix_smoke_target(winuae_unix_smoke_a4091_hdf unix-smoke-a4091-hdf.sh)
+    add_winuae_unix_smoke_target(winuae_unix_smoke_alfapower_hdf unix-smoke-alfapower-hdf.sh)
+    add_winuae_unix_smoke_target(winuae_unix_smoke_ripple_hdf unix-smoke-ripple-hdf.sh)
+    add_winuae_unix_smoke_target(winuae_unix_smoke_serial_tcp unix-smoke-serial-tcp.sh)
+    add_winuae_unix_smoke_target(winuae_unix_smoke_path_config unix-smoke-path-config.sh)
+    set(WINUAE_UNIX_CONFIG_ROUNDTRIP_ENV)
+    if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND WINUAE_UNIX_BUNDLE_DRIVE_SOUNDS)
+        list(APPEND WINUAE_UNIX_CONFIG_ROUNDTRIP_ENV
+            "WINUAE_QT_EXPECT_DRIVE_SOUND_SETS_DIR=${WINUAE_DRIVE_SOUNDS_SAMPLE_DIR}")
+    endif()
+    add_winuae_unix_smoke_target(
+        winuae_unix_smoke_config_roundtrip
+        unix-smoke-config-roundtrip.sh
+        ${WINUAE_UNIX_CONFIG_ROUNDTRIP_ENV})
+    if(WINUAE_UNIX_ENABLE_JIT)
+        add_winuae_unix_smoke_target(winuae_unix_smoke_jit unix-smoke-jit.sh)
+    endif()
+    add_custom_target(winuae_unix_smoke_basic
+        DEPENDS winuae_unix_smoke_a1200 winuae_unix_smoke_path_config
+            winuae_unix_smoke_config_roundtrip
+    )
+endif()
+
+add_executable(winuae_unix_path_expand_test EXCLUDE_FROM_ALL
+    od-unix/path_expand.cpp
+    od-unix/path_expand_test.cpp
+)
+target_include_directories(winuae_unix_path_expand_test PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}/od-unix"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include"
+)
+winuae_unix_register_test(winuae_unix_path_expand_test)
+
+add_executable(winuae_unix_registry_test EXCLUDE_FROM_ALL
+    od-unix/registry.cpp
+    od-generic/registry_ini.cpp
+    od-unix/registry_test.cpp
+    ini.cpp
+    missing.cpp
+)
+target_include_directories(winuae_unix_registry_test PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}/od-unix"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include"
+    "${CMAKE_CURRENT_SOURCE_DIR}"
+)
+winuae_unix_register_test(winuae_unix_registry_test)
+
+add_executable(winuae_unix_threading_test EXCLUDE_FROM_ALL
+    od-unix/threading.cpp
+    od-unix/threading_test.cpp
+)
+target_include_directories(winuae_unix_threading_test PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}/od-unix"
+    "${CMAKE_CURRENT_SOURCE_DIR}"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include"
+)
+target_link_libraries(winuae_unix_threading_test PRIVATE pthread)
+winuae_unix_register_test(winuae_unix_threading_test)
+
+add_executable(winuae_unix_clipboard_test EXCLUDE_FROM_ALL
+    od-generic/clipboard.cpp
+    od-generic/clipboard_test.cpp
+)
+target_include_directories(winuae_unix_clipboard_test PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}/od-unix"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include"
+    "${CMAKE_CURRENT_SOURCE_DIR}"
+)
+winuae_unix_register_test(winuae_unix_clipboard_test)
+
+add_executable(winuae_unix_serial_tx_test EXCLUDE_FROM_ALL
+    od-unix/serial_tx_test.cpp
+)
+target_include_directories(winuae_unix_serial_tx_test PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}/od-unix"
+)
+winuae_unix_register_test(winuae_unix_serial_tx_test)
+
+if(WINUAE_UNIX_WITH_INTEGRATED_QT_UI AND NOT WINUAE_UNIX_WITH_QT_UI)
+    message(STATUS
+        "WINUAE_UNIX_WITH_INTEGRATED_QT_UI requires "
+        "WINUAE_UNIX_WITH_QT_UI; disabling integrated Qt UI"
+    )
+    set(WINUAE_UNIX_WITH_INTEGRATED_QT_UI OFF)
+endif()
+
+if(WINUAE_UNIX_WITH_QT_UI)
+    if(APPLE)
+        winuae_unix_macos_find_qt_frameworks(WINUAE_UNIX_QT_WIDGETS_TARGET)
+    endif()
+    if(NOT WINUAE_UNIX_QT_WIDGETS_TARGET)
+        find_package(Qt6 COMPONENTS Widgets QUIET)
+        if(Qt6_FOUND)
+            set(WINUAE_UNIX_QT_WIDGETS_TARGET Qt6::Widgets)
+        endif()
+    endif()
+    if(NOT WINUAE_UNIX_QT_WIDGETS_TARGET)
+        find_package(Qt5 COMPONENTS Widgets QUIET)
+        if(Qt5_FOUND)
+            set(WINUAE_UNIX_QT_WIDGETS_TARGET Qt5::Widgets)
+        endif()
+    endif()
+
+    if(WINUAE_UNIX_QT_WIDGETS_TARGET)
+        add_library(winuae_unix_qt_frontend STATIC
+            od-unix/qt/config.cpp
+            od-unix/qt/drive_sound_sets.cpp
+            $<$<BOOL:${WINUAE_UNIX_WITH_FLOPPYBRIDGE}>:od-unix/qt/floppybridge_ui.cpp>
+            od-unix/qt/launcher.cpp
+            od-unix/qt/launcher_bridge.cpp
+            od-unix/qt/mount_config.cpp
+            od-unix/qt/path_utils.cpp
+            od-unix/qt/prefs_adapter.cpp
+        )
+        # Must see the same feature macros as winuae_core (see comment by
+        # winuae_unix_core_defs) since it also builds struct uae_prefs and
+        # other core types that gate members behind these macros.
+        target_link_libraries(winuae_unix_qt_frontend PRIVATE winuae_unix_core_defs)
+        target_include_directories(winuae_unix_qt_frontend PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/od-unix"
+            "${CMAKE_CURRENT_SOURCE_DIR}"
+            "${CMAKE_CURRENT_SOURCE_DIR}/include"
+        )
+        target_compile_definitions(winuae_unix_qt_frontend PRIVATE
+            WINUAE_UNIX_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}"
+            WINUAE_UNIX_INSTALL_DATA_DIR="${CMAKE_INSTALL_FULL_DATADIR}/winuae"
+            WINUAE_UNIX_INSTALL_DATADIR_RELATIVE="${CMAKE_INSTALL_DATADIR}/winuae"
+            WINUAE_UNIX_VERSION_MAJOR=${WINUAE_UNIX_VERSION_MAJOR}
+            WINUAE_UNIX_VERSION_MINOR=${WINUAE_UNIX_VERSION_MINOR}
+            WINUAE_UNIX_VERSION_REVISION=${WINUAE_UNIX_VERSION_REVISION}
+            WINUAE_UNIX_WITH_QT_DEFAULT_STYLE=$<BOOL:${WINUAE_UNIX_WITH_QT_DEFAULT_STYLE}>
+            UAE_UNIX_WITH_SANA2=$<BOOL:${WINUAE_UNIX_ENABLE_SANA2}>
+            UAE_UNIX_WITH_UAENET_PCAP=$<BOOL:${WINUAE_UNIX_ENABLE_UAENET_PCAP}>
+            UAE_UNIX_WITH_BSDSOCKET=$<BOOL:${WINUAE_UNIX_ENABLE_BSDSOCKET}>
+            UAE_UNIX_WITH_UAESCSI=$<BOOL:${WINUAE_UNIX_ENABLE_UAESCSI}>
+            UAE_UNIX_WITH_SAMPLER=$<BOOL:${WINUAE_UNIX_ENABLE_SAMPLER}>
+            UAE_UNIX_WITH_CAPS=$<BOOL:${WINUAE_UNIX_ENABLE_CAPS}>
+            UAE_UNIX_WITH_FLOPPYBRIDGE=$<BOOL:${WINUAE_UNIX_WITH_FLOPPYBRIDGE}>
+            $<$<BOOL:${WINUAE_UNIX_WITH_FLOPPYBRIDGE}>:FLOPPYBRIDGE=1>
+            UAE_UNIX_WITH_NATIVE_HARDDRIVES=$<BOOL:${WINUAE_UNIX_ENABLE_NATIVE_HARDDRIVES}>
+            UAE_UNIX_WITH_NATIVE_SCSI=$<BOOL:${WINUAE_UNIX_ENABLE_NATIVE_SCSI}>
+            UAE_UNIX_WITH_MIDI=$<BOOL:${WINUAE_UNIX_ENABLE_MIDI}>
+            UAE_UNIX_WITH_DSP=$<BOOL:${WINUAE_UNIX_ENABLE_DSP}>
+            UAE_UNIX_WITH_SNDBOARD=$<BOOL:${WINUAE_UNIX_ENABLE_SNDBOARD}>
+            UAE_UNIX_WITH_GFXBOARD=$<BOOL:${WINUAE_UNIX_ENABLE_GFXBOARD}>
+            UAE_UNIX_WITH_X86=$<BOOL:${WINUAE_UNIX_ENABLE_X86}>
+            UAE_UNIX_WITH_DRACO=$<BOOL:${WINUAE_UNIX_ENABLE_DRACO}>
+            UAE_UNIX_WITH_JIT=$<BOOL:${WINUAE_UNIX_ENABLE_JIT}>
+            UAE_UNIX_WITH_AVIOUTPUT=$<BOOL:${WINUAE_UNIX_ENABLE_AVIOUTPUT}>
+            UAE_UNIX_WITH_VIDEOGRAB=$<BOOL:${WINUAE_UNIX_ENABLE_VIDEOGRAB}>
+            UAE_UNIX_WITH_FFMPEG=$<BOOL:${WINUAE_UNIX_ENABLE_FFMPEG}>
+            UAE_UNIX_WITH_SHADER_PIPELINE=$<BOOL:${WINUAE_UNIX_ENABLE_SHADER_PIPELINE}>
+            ${WINUAE_UNIX_MIDI_QT_DEFINITIONS}
+        )
+        if(WINUAE_UNIX_MIDI_INCLUDE_DIRS)
+            target_include_directories(winuae_unix_qt_frontend PRIVATE ${WINUAE_UNIX_MIDI_INCLUDE_DIRS})
+        endif()
+        if(WINUAE_UNIX_MIDI_COMPILE_OPTIONS)
+            target_compile_options(winuae_unix_qt_frontend PRIVATE ${WINUAE_UNIX_MIDI_COMPILE_OPTIONS})
+        endif()
+        target_link_libraries(winuae_unix_qt_frontend PUBLIC ${WINUAE_UNIX_QT_WIDGETS_TARGET})
+        if(WINUAE_UNIX_MIDI_LIBRARY_DIRS)
+            target_link_directories(winuae_unix_qt_frontend PUBLIC ${WINUAE_UNIX_MIDI_LIBRARY_DIRS})
+        endif()
+        if(WINUAE_UNIX_MIDI_LIBRARIES)
+            target_link_libraries(winuae_unix_qt_frontend PUBLIC ${WINUAE_UNIX_MIDI_LIBRARIES})
+        endif()
+        if(WINUAE_UNIX_SDL3_TARGET)
+            target_compile_definitions(winuae_unix_qt_frontend PRIVATE UAE_UNIX_WITH_SDL3=1)
+            target_link_libraries(winuae_unix_qt_frontend PUBLIC ${WINUAE_UNIX_SDL3_TARGET})
+        elseif(SDL3_FOUND)
+            target_compile_definitions(winuae_unix_qt_frontend PRIVATE UAE_UNIX_WITH_SDL3=1)
+            target_include_directories(winuae_unix_qt_frontend PRIVATE ${SDL3_INCLUDE_DIRS})
+            target_compile_options(winuae_unix_qt_frontend PRIVATE ${SDL3_CFLAGS_OTHER})
+            target_link_libraries(winuae_unix_qt_frontend PUBLIC ${SDL3_LIBRARIES})
+            if(SDL3_LIBRARY_DIRS)
+                target_link_directories(winuae_unix_qt_frontend PUBLIC ${SDL3_LIBRARY_DIRS})
+            endif()
+        endif()
+
+        add_executable(winuae_unix_qt_config_test EXCLUDE_FROM_ALL
+            od-unix/qt/config.cpp
+            od-unix/qt/config_roundtrip_test.cpp
+        )
+        target_link_libraries(winuae_unix_qt_config_test PRIVATE ${WINUAE_UNIX_QT_WIDGETS_TARGET})
+        winuae_unix_register_test(winuae_unix_qt_config_test)
+
+        add_executable(winuae_unix_qt_mount_config_test EXCLUDE_FROM_ALL
+            od-unix/qt/mount_config.cpp
+            od-unix/qt/mount_config_test.cpp
+        )
+        target_link_libraries(winuae_unix_qt_mount_config_test PRIVATE ${WINUAE_UNIX_QT_WIDGETS_TARGET})
+        winuae_unix_register_test(winuae_unix_qt_mount_config_test)
+
+        add_executable(winuae_unix_qt_prefs_adapter_test EXCLUDE_FROM_ALL
+            od-unix/qt/config.cpp
+            od-unix/qt/prefs_adapter.cpp
+            od-unix/qt/prefs_adapter_test.cpp
+        )
+        target_include_directories(winuae_unix_qt_prefs_adapter_test PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/od-unix"
+            "${CMAKE_CURRENT_SOURCE_DIR}"
+            "${CMAKE_CURRENT_SOURCE_DIR}/include"
+        )
+        target_link_libraries(winuae_unix_qt_prefs_adapter_test PRIVATE ${WINUAE_UNIX_QT_WIDGETS_TARGET})
+        winuae_unix_register_test(winuae_unix_qt_prefs_adapter_test)
+
+        add_executable(winuae_unix_qt_path_utils_test EXCLUDE_FROM_ALL
+            od-unix/qt/path_utils.cpp
+            od-unix/qt/path_utils_test.cpp
+        )
+        target_link_libraries(winuae_unix_qt_path_utils_test PRIVATE ${WINUAE_UNIX_QT_WIDGETS_TARGET})
+        winuae_unix_register_test(winuae_unix_qt_path_utils_test)
+
+        add_executable(winuae_unix_qt_drive_sound_sets_test EXCLUDE_FROM_ALL
+            od-unix/qt/drive_sound_sets.cpp
+            od-unix/qt/drive_sound_sets_test.cpp
+        )
+        target_link_libraries(winuae_unix_qt_drive_sound_sets_test PRIVATE ${WINUAE_UNIX_QT_WIDGETS_TARGET})
+        winuae_unix_register_test(winuae_unix_qt_drive_sound_sets_test)
+
+        add_executable(winuae_unix_qt_gui_font_test EXCLUDE_FROM_ALL
+            od-unix/config_compat.cpp
+            od-unix/qt/config.cpp
+            od-unix/qt/drive_sound_sets.cpp
+            od-unix/qt/launcher.cpp
+            od-unix/qt/mount_config.cpp
+            od-unix/qt/path_utils.cpp
+            od-unix/qt/gui_font_test.cpp
+        )
+        target_include_directories(winuae_unix_qt_gui_font_test PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/od-unix"
+            "${CMAKE_CURRENT_SOURCE_DIR}"
+            "${CMAKE_CURRENT_SOURCE_DIR}/include"
+        )
+        target_link_libraries(winuae_unix_qt_gui_font_test PRIVATE ${WINUAE_UNIX_QT_WIDGETS_TARGET})
+        winuae_unix_register_test(winuae_unix_qt_gui_font_test)
+        if(BUILD_TESTING)
+            set_tests_properties(winuae_unix_qt_gui_font_test PROPERTIES
+                ENVIRONMENT "QT_QPA_PLATFORM=offscreen"
+                TIMEOUT 30
+            )
+        endif()
+
+        if(WINUAE_UNIX_WITH_INTEGRATED_QT_UI)
+            target_compile_definitions(winuae_unix_core_defs INTERFACE WINUAE_UNIX_WITH_INTEGRATED_QT_UI=1)
+            if(TARGET winuae_unix)
+                target_link_libraries(winuae_unix PRIVATE winuae_unix_qt_frontend)
+            endif()
+        endif()
+    else()
+        message(STATUS "Qt Widgets not found; skipping Unix Qt targets")
+    endif()
+endif()
+
+if(WINUAE_UNIX_TEST_TARGETS)
+    add_custom_target(winuae_unix_tests
+        DEPENDS ${WINUAE_UNIX_TEST_TARGETS}
+    )
+    if(BUILD_TESTING)
+        add_custom_target(winuae_unix_check
+            COMMAND "${CMAKE_CTEST_COMMAND}" --output-on-failure
+            DEPENDS winuae_unix_tests
+            WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
+            COMMENT "Running Unix host tests"
+            VERBATIM
+        )
+    endif()
+endif()
+
+add_custom_target(winuae_unix_linux_package_metadata_check
+    COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/tools/unix-check-linux-package-metadata.sh" "${CMAKE_CURRENT_SOURCE_DIR}"
+    COMMENT "Checking Linux install and package metadata"
+    VERBATIM
+)
+
+if(APPLE)
+    set(WINUAE_UNIX_MACOS_DEPS_ENV
+        "WINUAE_MACOS_DEPLOYMENT_TARGET=${CMAKE_OSX_DEPLOYMENT_TARGET}"
+    )
+    if(WINUAE_UNIX_WITH_CHD)
+        list(APPEND WINUAE_UNIX_MACOS_DEPS_ENV "WINUAE_REQUIRE_FLAC=1")
+    endif()
+    if(WINUAE_UNIX_WITH_FFMPEG AND WINUAE_UNIX_WITH_VIDEOGRAB)
+        list(APPEND WINUAE_UNIX_MACOS_DEPS_ENV "WINUAE_REQUIRE_FFMPEG=1")
+    endif()
+    add_custom_target(winuae_unix_macos_deps
+        COMMAND "${CMAKE_COMMAND}" -E env
+            ${WINUAE_UNIX_MACOS_DEPS_ENV}
+            "${CMAKE_CURRENT_SOURCE_DIR}/tools/macos-build-deps.sh" "${WINUAE_UNIX_MACOS_DEPS_PREFIX}"
+        WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+        COMMENT "Building private macOS dependencies for deployment target ${CMAKE_OSX_DEPLOYMENT_TARGET}"
+        VERBATIM
+    )
+    add_custom_target(winuae_unix_macos_qemu_deps
+        COMMAND "${CMAKE_COMMAND}" -E env
+            "WINUAE_MACOS_DEPLOYMENT_TARGET=${CMAKE_OSX_DEPLOYMENT_TARGET}"
+            "${CMAKE_CURRENT_SOURCE_DIR}/tools/macos-build-qemu-deps.sh" "${WINUAE_QEMU_UAE_DEPS_PREFIX}"
+        WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+        COMMENT "Building private macOS QEMU-UAE dependencies for deployment target ${CMAKE_OSX_DEPLOYMENT_TARGET}"
+        VERBATIM
+    )
+endif()
+
+if(WINUAE_QEMU_UAE_PLUGIN_FILE)
+    get_filename_component(WINUAE_QEMU_UAE_PLUGIN_PATH
+        "${WINUAE_QEMU_UAE_PLUGIN_FILE}" ABSOLUTE
+        BASE_DIR "${CMAKE_BINARY_DIR}")
+else()
+    set(WINUAE_QEMU_UAE_PLUGIN_PATH "${CMAKE_BINARY_DIR}/qemu-uae.so")
+endif()
+# On Linux the plugin is part of the default build so that plain
+# `cmake --build` + `cmake --install` flows (distro packaging) always
+# produce the mandatory qemu-uae.so. macOS keeps it behind the app/dmg
+# and package targets.
+set(WINUAE_QEMU_UAE_PLUGIN_ALL)
+if(UNIX AND NOT APPLE)
+    set(WINUAE_QEMU_UAE_PLUGIN_ALL ALL)
+endif()
+if(UNIX
+    AND WINUAE_UNIX_WITH_PPC_QEMU
+    AND NOT WINUAE_UNIX_EXTERNAL_QEMU_UAE_PLUGIN
+    AND WINUAE_UNIX_BUILD_QEMU_UAE_PLUGIN
+    AND NOT WINUAE_QEMU_UAE_PLUGIN_FILE)
+    if(EXISTS "${WINUAE_QEMU_UAE_SOURCE_DIR}/configure-qemu-uae")
+        message(STATUS
+            "QEMU-UAE plugin: building from sibling source ${WINUAE_QEMU_UAE_SOURCE_DIR}")
+        add_custom_target(winuae_unix_qemu_uae_plugin ${WINUAE_QEMU_UAE_PLUGIN_ALL}
+            COMMAND "${CMAKE_COMMAND}" -E env
+                "WINUAE_MACOS_DEPLOYMENT_TARGET=${CMAKE_OSX_DEPLOYMENT_TARGET}"
+                "QEMU_UAE_DEPS_PREFIX=${WINUAE_QEMU_UAE_DEPS_PREFIX}"
+                "${CMAKE_CURRENT_SOURCE_DIR}/tools/build-qemu-uae.sh"
+                "${WINUAE_QEMU_UAE_SOURCE_DIR}"
+                "${WINUAE_QEMU_UAE_PLUGIN_PATH}"
+            WORKING_DIRECTORY "${WINUAE_QEMU_UAE_SOURCE_DIR}"
+            COMMENT "Building QEMU-UAE PPC plugin"
+            VERBATIM
+        )
+    elseif(EXISTS "${WINUAE_QEMU_UAE_BUILDER_DIR}/build-qemu-uae-plugin.sh"
+        OR WINUAE_QEMU_UAE_BUILDER_FETCH)
+        if(EXISTS "${WINUAE_QEMU_UAE_BUILDER_DIR}/build-qemu-uae-plugin.sh")
+            message(STATUS
+                "QEMU-UAE plugin: building through ${WINUAE_QEMU_UAE_BUILDER_DIR}")
+        else()
+            message(STATUS
+                "QEMU-UAE plugin: builder will be cloned from ${WINUAE_QEMU_UAE_BUILDER_URL}")
+        endif()
+        # OUTPUT-based so repeated `all` builds (e.g. the CPack preinstall
+        # step) skip the builder once the plugin exists; the external
+        # builder's configure step is not re-entrant.
+        add_custom_command(OUTPUT "${WINUAE_QEMU_UAE_PLUGIN_PATH}"
+            COMMAND "${CMAKE_COMMAND}" -E env
+                "WINUAE_MACOS_DEPLOYMENT_TARGET=${CMAKE_OSX_DEPLOYMENT_TARGET}"
+                "QEMU_UAE_DEPS_PREFIX=${WINUAE_QEMU_UAE_DEPS_PREFIX}"
+                "QEMU_UAE_WORK_DIR=${CMAKE_BINARY_DIR}/_deps/qemu-uae"
+                "WINUAE_QEMU_UAE_BUILDER_DIR=${WINUAE_QEMU_UAE_BUILDER_DIR}"
+                "WINUAE_QEMU_UAE_BUILDER_URL=${WINUAE_QEMU_UAE_BUILDER_URL}"
+                "WINUAE_QEMU_UAE_BUILDER_FETCH=$<BOOL:${WINUAE_QEMU_UAE_BUILDER_FETCH}>"
+                "WINUAE_QEMU_UAE_QEMU_TARBALL=${WINUAE_QEMU_UAE_QEMU_TARBALL}"
+                "${CMAKE_CURRENT_SOURCE_DIR}/tools/build-qemu-uae-via-builder.sh"
+                "${WINUAE_QEMU_UAE_PLUGIN_PATH}"
+            DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/tools/build-qemu-uae-via-builder.sh"
+            WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+            COMMENT "Building QEMU-UAE PPC plugin through uae-ppc-plugin"
+            VERBATIM
+        )
+        add_custom_target(winuae_unix_qemu_uae_plugin ${WINUAE_QEMU_UAE_PLUGIN_ALL}
+            DEPENDS "${WINUAE_QEMU_UAE_PLUGIN_PATH}"
+        )
+    endif()
+endif()
+
+if(UNIX AND WINUAE_UNIX_WITH_PPC_QEMU AND WINUAE_UNIX_EXTERNAL_QEMU_UAE_PLUGIN)
+    message(STATUS "QEMU-UAE plugin: supplied at runtime by an external package")
+endif()
+if(UNIX AND WINUAE_UNIX_WITH_PPC_QEMU AND NOT WINUAE_UNIX_EXTERNAL_QEMU_UAE_PLUGIN)
+    if(WINUAE_QEMU_UAE_PLUGIN_FILE)
+        if(NOT EXISTS "${WINUAE_QEMU_UAE_PLUGIN_PATH}")
+            message(FATAL_ERROR
+                "WINUAE_QEMU_UAE_PLUGIN_FILE does not exist: "
+                "${WINUAE_QEMU_UAE_PLUGIN_PATH}")
+        endif()
+        message(STATUS
+            "QEMU-UAE plugin: using prebuilt ${WINUAE_QEMU_UAE_PLUGIN_PATH}")
+    elseif(NOT TARGET winuae_unix_qemu_uae_plugin)
+        message(FATAL_ERROR
+            "WINUAE_UNIX_WITH_PPC_QEMU requires the QEMU-UAE PPC plugin, but no "
+            "way to provide qemu-uae.so was found. Provide one of:\n"
+            "  -DWINUAE_QEMU_UAE_PLUGIN_FILE=/path/to/qemu-uae.so (prebuilt plugin)\n"
+            "  -DWINUAE_QEMU_UAE_BUILDER_DIR=/path/to/uae-ppc-plugin (builder checkout; "
+            "offline builds also want -DWINUAE_QEMU_UAE_QEMU_TARBALL=/path/to/qemu-11.0.1.tar.xz)\n"
+            "  -DWINUAE_QEMU_UAE_BUILDER_FETCH=ON to clone ${WINUAE_QEMU_UAE_BUILDER_URL} at build time\n"
+            "  a qemu-uae source tree at ${WINUAE_QEMU_UAE_SOURCE_DIR}\n"
+            "Or use -DWINUAE_UNIX_EXTERNAL_QEMU_UAE_PLUGIN=ON when a separate "
+            "package supplies the plugin at runtime.")
+    endif()
+    set(WINUAE_UNIX_QEMU_UAE_PACKAGE_CHECK_DEPS)
+    if(TARGET winuae_unix_qemu_uae_plugin)
+        list(APPEND WINUAE_UNIX_QEMU_UAE_PACKAGE_CHECK_DEPS
+            winuae_unix_qemu_uae_plugin)
+    endif()
+    add_custom_target(winuae_unix_qemu_uae_package_check
+        COMMAND sh "${CMAKE_CURRENT_SOURCE_DIR}/tools/require-qemu-uae-plugin.sh"
+                "${WINUAE_QEMU_UAE_PLUGIN_PATH}"
+        DEPENDS ${WINUAE_UNIX_QEMU_UAE_PACKAGE_CHECK_DEPS}
+        COMMENT "Checking packaged QEMU-UAE PPC plugin"
+        VERBATIM
+    )
+endif()
+
+if(WINUAE_FLOPPYBRIDGE_PLUGIN_FILE)
+    get_filename_component(WINUAE_FLOPPYBRIDGE_PLUGIN_PATH
+        "${WINUAE_FLOPPYBRIDGE_PLUGIN_FILE}" ABSOLUTE
+        BASE_DIR "${CMAKE_BINARY_DIR}")
+else()
+    set(WINUAE_FLOPPYBRIDGE_PLUGIN_PATH "${CMAKE_BINARY_DIR}/FloppyBridge.so")
+endif()
+
+if(UNIX AND WINUAE_UNIX_WITH_FLOPPYBRIDGE
+    AND WINUAE_UNIX_BUILD_FLOPPYBRIDGE_PLUGIN
+    AND NOT WINUAE_FLOPPYBRIDGE_PLUGIN_FILE)
+    set(WINUAE_FLOPPYBRIDGE_BUILD_SOURCE_DIR)
+    if(EXISTS "${WINUAE_FLOPPYBRIDGE_SOURCE_DIR}/Makefile")
+        set(WINUAE_FLOPPYBRIDGE_BUILD_SOURCE_DIR
+            "${WINUAE_FLOPPYBRIDGE_SOURCE_DIR}")
+    endif()
+    add_custom_command(OUTPUT "${WINUAE_FLOPPYBRIDGE_PLUGIN_PATH}"
+        COMMAND "${CMAKE_COMMAND}" -E env
+            "CXX=${CMAKE_CXX_COMPILER}"
+            "WINUAE_MACOS_DEPLOYMENT_TARGET=${CMAKE_OSX_DEPLOYMENT_TARGET}"
+            "WINUAE_FLOPPYBRIDGE_SOURCE_DIR=${WINUAE_FLOPPYBRIDGE_BUILD_SOURCE_DIR}"
+            "WINUAE_FLOPPYBRIDGE_WORK_DIR=${CMAKE_BINARY_DIR}/_deps/floppybridge"
+            "WINUAE_FLOPPYBRIDGE_URL=${WINUAE_FLOPPYBRIDGE_URL}"
+            "WINUAE_FLOPPYBRIDGE_REVISION=${WINUAE_FLOPPYBRIDGE_REVISION}"
+            "WINUAE_FLOPPYBRIDGE_FETCH=$<BOOL:${WINUAE_FLOPPYBRIDGE_FETCH}>"
+            "${CMAKE_CURRENT_SOURCE_DIR}/tools/build-floppybridge.sh"
+            "${WINUAE_FLOPPYBRIDGE_PLUGIN_PATH}"
+        DEPENDS
+            "${CMAKE_CURRENT_SOURCE_DIR}/tools/build-floppybridge.sh"
+            "${CMAKE_CURRENT_SOURCE_DIR}/tools/floppybridge-linux-baud-smoke.cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/tools/patches/floppybridge-linux-b2000000.patch"
+        WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+        COMMENT "Building FloppyBridge real-drive plugin"
+        VERBATIM
+    )
+    set(WINUAE_FLOPPYBRIDGE_PLUGIN_ALL)
+    if(NOT APPLE)
+        set(WINUAE_FLOPPYBRIDGE_PLUGIN_ALL ALL)
+    endif()
+    add_custom_target(winuae_unix_floppybridge_plugin
+        ${WINUAE_FLOPPYBRIDGE_PLUGIN_ALL}
+        DEPENDS "${WINUAE_FLOPPYBRIDGE_PLUGIN_PATH}")
+endif()
+
+if(UNIX AND WINUAE_UNIX_WITH_FLOPPYBRIDGE)
+    if(WINUAE_FLOPPYBRIDGE_PLUGIN_FILE
+        AND NOT EXISTS "${WINUAE_FLOPPYBRIDGE_PLUGIN_PATH}")
+        message(FATAL_ERROR "WINUAE_FLOPPYBRIDGE_PLUGIN_FILE does not exist: ${WINUAE_FLOPPYBRIDGE_PLUGIN_PATH}")
+    elseif(NOT WINUAE_FLOPPYBRIDGE_PLUGIN_FILE
+        AND NOT TARGET winuae_unix_floppybridge_plugin)
+        message(FATAL_ERROR "FloppyBridge support requires FloppyBridge.so")
+    endif()
+    set(WINUAE_FLOPPYBRIDGE_PACKAGE_CHECK_DEPS)
+    if(TARGET winuae_unix_floppybridge_plugin)
+        list(APPEND WINUAE_FLOPPYBRIDGE_PACKAGE_CHECK_DEPS
+            winuae_unix_floppybridge_plugin)
+    endif()
+    add_custom_target(winuae_unix_floppybridge_package_check
+        COMMAND sh "${CMAKE_CURRENT_SOURCE_DIR}/tools/require-floppybridge-plugin.sh"
+            "${WINUAE_FLOPPYBRIDGE_PLUGIN_PATH}"
+        DEPENDS ${WINUAE_FLOPPYBRIDGE_PACKAGE_CHECK_DEPS}
+        COMMENT "Checking packaged FloppyBridge plugin"
+        VERBATIM)
+endif()
+
+if(TARGET winuae_unix AND NOT APPLE)
+    install(PROGRAMS "$<TARGET_FILE:winuae_unix>"
+        DESTINATION "${CMAKE_INSTALL_BINDIR}"
+    )
+    install(FILES README_unix.md
+        DESTINATION "${CMAKE_INSTALL_DOCDIR}"
+    )
+    install(DIRECTORY od-win32/resources/
+        DESTINATION "${CMAKE_INSTALL_DATADIR}/winuae/od-win32/resources"
+        PATTERN "*.rc" EXCLUDE
+        PATTERN "*.manifest" EXCLUDE
+        PATTERN "resource.h" EXCLUDE
+    )
+    install(DIRECTORY od-unix/share/filter-presets/
+        DESTINATION "${CMAKE_INSTALL_DATADIR}/winuae/od-unix/share/filter-presets"
+    )
+    if(WINUAE_UNIX_WITH_PPC_QEMU AND NOT WINUAE_UNIX_EXTERNAL_QEMU_UAE_PLUGIN)
+        install(FILES "${WINUAE_QEMU_UAE_PLUGIN_PATH}"
+            DESTINATION "${WINUAE_UNIX_INSTALL_PLUGINDIR_RELATIVE}"
+        )
+    endif()
+    if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND WINUAE_UNIX_BUNDLE_DRIVE_SOUNDS)
+        install(DIRECTORY "${WINUAE_DRIVE_SOUNDS_SAMPLE_DIR}/"
+            DESTINATION "${WINUAE_UNIX_INSTALL_PLUGINDIR_RELATIVE}/floppysounds"
+            FILES_MATCHING PATTERN "*.wav")
+    endif()
+    if(WINUAE_UNIX_WITH_FLOPPYBRIDGE)
+        install(FILES "${WINUAE_FLOPPYBRIDGE_PLUGIN_PATH}"
+            DESTINATION "${WINUAE_UNIX_INSTALL_PLUGINDIR_RELATIVE}")
+    endif()
+    if(NOT APPLE)
+        install(FILES od-unix/share/applications/net.winuae.WinUAE.desktop
+            DESTINATION "${CMAKE_INSTALL_DATADIR}/applications"
+        )
+        install(FILES od-unix/share/mime/packages/net.winuae.WinUAE.xml
+            DESTINATION "${CMAKE_INSTALL_DATADIR}/mime/packages"
+        )
+        install(FILES od-win32/resources/amiga.png
+            DESTINATION "${CMAKE_INSTALL_DATADIR}/icons/hicolor/256x256/apps"
+            RENAME winuae.png
+        )
+        install(FILES od-win32/resources/amiga.png
+            DESTINATION "${CMAKE_INSTALL_DATADIR}/icons/hicolor/256x256/mimetypes"
+            RENAME application-x-winuae-config.png
+        )
+    endif()
+endif()
+
+if(APPLE AND TARGET winuae_unix)
+    set(WINUAE_UNIX_MACOS_APP_DEPS winuae_unix)
+    if(TARGET winuae_unix_qemu_uae_plugin)
+        list(APPEND WINUAE_UNIX_MACOS_APP_DEPS winuae_unix_qemu_uae_plugin)
+    endif()
+    if(TARGET winuae_unix_qemu_uae_package_check)
+        list(APPEND WINUAE_UNIX_MACOS_APP_DEPS
+            winuae_unix_qemu_uae_package_check)
+    endif()
+    if(TARGET winuae_unix_floppybridge_plugin)
+        list(APPEND WINUAE_UNIX_MACOS_APP_DEPS winuae_unix_floppybridge_plugin)
+    endif()
+    if(TARGET winuae_unix_floppybridge_package_check)
+        list(APPEND WINUAE_UNIX_MACOS_APP_DEPS
+            winuae_unix_floppybridge_package_check)
+    endif()
+    add_custom_target(winuae_unix_macos_app
+        COMMAND "${CMAKE_COMMAND}" -E env
+            "WINUAE_BUNDLE_REQUIRE_FFMPEG=$<BOOL:${WINUAE_UNIX_ENABLE_FFMPEG}>"
+            "WINUAE_QEMU_UAE_PLUGIN=${WINUAE_QEMU_UAE_PLUGIN_PATH}"
+            "WINUAE_BUNDLE_QEMU_UAE_PLUGIN=$<NOT:$<BOOL:${WINUAE_UNIX_EXTERNAL_QEMU_UAE_PLUGIN}>>"
+            "WINUAE_FLOPPYBRIDGE_PLUGIN=${WINUAE_FLOPPYBRIDGE_PLUGIN_PATH}"
+            "WINUAE_BUNDLE_REQUIRE_FLOPPYBRIDGE=$<BOOL:${WINUAE_UNIX_WITH_FLOPPYBRIDGE}>"
+            "${CMAKE_CURRENT_SOURCE_DIR}/tools/macos-bundle.sh" "${CMAKE_BINARY_DIR}" "${CMAKE_BINARY_DIR}/package"
+        DEPENDS ${WINUAE_UNIX_MACOS_APP_DEPS}
+        COMMENT "Creating WinUAE.app"
+        VERBATIM
+    )
+    add_custom_target(winuae_unix_macos_dmg
+        COMMAND "${CMAKE_COMMAND}" -E env
+            "WINUAE_BUNDLE_REQUIRE_FFMPEG=$<BOOL:${WINUAE_UNIX_ENABLE_FFMPEG}>"
+            "WINUAE_QEMU_UAE_PLUGIN=${WINUAE_QEMU_UAE_PLUGIN_PATH}"
+            "WINUAE_BUNDLE_QEMU_UAE_PLUGIN=$<NOT:$<BOOL:${WINUAE_UNIX_EXTERNAL_QEMU_UAE_PLUGIN}>>"
+            "WINUAE_FLOPPYBRIDGE_PLUGIN=${WINUAE_FLOPPYBRIDGE_PLUGIN_PATH}"
+            "WINUAE_BUNDLE_REQUIRE_FLOPPYBRIDGE=$<BOOL:${WINUAE_UNIX_WITH_FLOPPYBRIDGE}>"
+            "${CMAKE_CURRENT_SOURCE_DIR}/tools/macos-dmg.sh" "${CMAKE_BINARY_DIR}" "${CMAKE_BINARY_DIR}/package"
+        DEPENDS winuae_unix_macos_app
+        COMMENT "Creating WinUAE drag-install DMG"
+        VERBATIM
+    )
+    if(TARGET winuae_unix_qt_frontend AND WINUAE_UNIX_WITH_INTEGRATED_QT_UI)
+        add_custom_target(winuae_unix_macos_app_smoke
+            COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/tools/macos-smoke-app.sh" "${CMAKE_BINARY_DIR}/package/WinUAE.app"
+            DEPENDS winuae_unix_macos_app
+            COMMENT "Smoke testing packaged WinUAE.app Qt launch"
+            VERBATIM
+        )
+        add_custom_target(winuae_unix_macos_release_check
+            COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/tools/macos-smoke-app.sh" "${CMAKE_BINARY_DIR}/package/WinUAE.app"
+            DEPENDS winuae_unix_macos_dmg
+            COMMENT "Release checking packaged WinUAE DMG and Qt app launch"
+            VERBATIM
+        )
+    else()
+        add_custom_target(winuae_unix_macos_release_check
+            COMMAND "${CMAKE_COMMAND}" -E echo "Qt integrated UI is disabled; release check is limited to DMG verification"
+            DEPENDS winuae_unix_macos_dmg
+            COMMENT "Release checking packaged WinUAE DMG"
+            VERBATIM
+        )
+    endif()
+endif()
+
+if(NOT APPLE)
+    set(CPACK_PACKAGE_NAME "WinUAE")
+    set(CPACK_PACKAGE_VENDOR "WinUAE")
+    set(CPACK_PACKAGE_VERSION "${WINUAE_UNIX_VERSION}")
+    set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "WinUAE Unix port")
+    set(CPACK_PACKAGE_CONTACT "https://www.winuae.net/")
+    set(CPACK_PACKAGE_FILE_NAME "WinUAE-${WINUAE_UNIX_VERSION}-${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}")
+    set(CPACK_PACKAGING_INSTALL_PREFIX "/usr")
+    set(CPACK_RESOURCE_FILE_README "${CMAKE_CURRENT_SOURCE_DIR}/README_unix.md")
+    set(CPACK_GENERATOR "TGZ")
+    if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+        list(APPEND CPACK_GENERATOR "DEB")
+        set(CPACK_DEBIAN_PACKAGE_NAME "winuae")
+        set(CPACK_DEBIAN_FILE_NAME DEB-DEFAULT)
+        set(CPACK_DEBIAN_PACKAGE_HOMEPAGE "https://www.winuae.net/")
+        set(CPACK_DEBIAN_PACKAGE_MAINTAINER "WinUAE")
+        set(CPACK_DEBIAN_PACKAGE_SECTION "emulators")
+        set(CPACK_DEBIAN_PACKAGE_PRIORITY "optional")
+        set(CPACK_DEBIAN_PACKAGE_RECOMMENDS
+            "desktop-file-utils, shared-mime-info, hicolor-icon-theme"
+        )
+        set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
+        set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA
+            "${CMAKE_CURRENT_SOURCE_DIR}/packaging/debian/postinst"
+            "${CMAKE_CURRENT_SOURCE_DIR}/packaging/debian/postrm"
+        )
+    endif()
+    include(CPack)
+    if(TARGET package AND TARGET winuae_unix)
+        add_dependencies(package winuae_unix)
+    endif()
+    if(TARGET package AND TARGET winuae_unix_qemu_uae_plugin)
+        add_dependencies(package winuae_unix_qemu_uae_plugin)
+    endif()
+    if(TARGET package AND TARGET winuae_unix_qemu_uae_package_check)
+        add_dependencies(package winuae_unix_qemu_uae_package_check)
+    endif()
+    if(TARGET package AND TARGET winuae_unix_floppybridge_plugin)
+        add_dependencies(package winuae_unix_floppybridge_plugin)
+    endif()
+    if(TARGET package AND TARGET winuae_unix_floppybridge_package_check)
+        add_dependencies(package winuae_unix_floppybridge_package_check)
+    endif()
+endif()

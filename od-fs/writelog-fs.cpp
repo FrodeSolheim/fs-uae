@@ -119,6 +119,19 @@ extern BOOL debuggerinitializing;
 
 /* console functions for debugger */
 
+#ifndef _WIN32
+// FS-UAE has no (interactive) host console for the debugger, so activate_debugger
+// (debug.cpp) must not activate it. Also used by consolehook.cpp.
+bool is_interactive_console(void)
+{
+	return false;
+}
+
+void set_console_input_mode(int)
+{
+}
+#endif
+
 #ifdef _WIN32
 
 static HWND myGetConsoleWindow (void)
@@ -626,51 +639,7 @@ void console_flush (void)
 #endif
 }
 
-TCHAR *write_log_get_ts(void)
-{
-	struct tm *t;
-#ifdef _WIN32
-	struct timeb tb;
-#else
-	struct _timeb tb;
-#endif
-	static TCHAR out[100];
-	TCHAR *p;
-	static TCHAR lastts[100];
-	TCHAR curts[100];
-
-#if 0
-	if (bootlogmode)
-		return NULL;
-#endif
-	if (nodatestamps)
-		return NULL;
-	if (!vsync_counter)
-		return NULL;
-	ftime (&tb);
-	t = localtime (&tb.time);
-	strftime (curts, sizeof curts / sizeof (TCHAR), _T("%Y-%m-%d %H:%M:%S\n"), t);
-	p = out;
-	*p = 0;
-#if 0
-	_stprintf (p, _T("XX-XXX"));
-	p += _tcslen (p);
-#else
-	if (_tcsncmp (curts, lastts, _tcslen (curts) - 3)) { // "xx\n"
-		_tcscat (p, curts);
-		p += _tcslen (p);
-		_tcscpy (lastts, curts);
-	}
-	strftime (p, sizeof out / sizeof (TCHAR) - (p - out) , _T("%S-"), t);
-	p += _tcslen (p);
-	_stprintf (p, _T("%03d"), tb.millitm);
-	p += _tcslen (p);
-#endif
-	if (vsync_counter != 0xffffffff)
-		_stprintf (p, _T(" [%lu %03d%s%03d]"), vsync_counter, current_hpos_safe (), lof_store ? _T("-") : _T("="), vpos);
-	_tcscat (p, _T(": "));
-	return out;
-}
+// write_log_get_ts() is provided by logging.cpp (shared with upstream WinUAE)
 
 void write_logx(const char *format, ...)
 {

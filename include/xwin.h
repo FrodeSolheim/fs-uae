@@ -10,6 +10,7 @@
 #define UAE_XWIN_H
 
 #include "uae/types.h"
+#include "uae/time.h"
 #include "machdep/rpt.h"
 #include "options.h"
 
@@ -69,6 +70,8 @@ float target_getcurrentvblankrate(int monid);
 
 extern int debuggable (void);
 extern void screenshot(int monid, int,int);
+// Save PNG to an explicit host path without changing screenshot preferences.
+extern bool screenshot_save(int monid, const TCHAR *path);
 void refreshtitle (void);
 
 extern int bits_in_mask (unsigned long mask);
@@ -105,9 +108,6 @@ struct vidbuffer
 	/* nominal size of image for centering */
 	int inwidth;
 	int inheight;
-	/* same but doublescan multiplier included */
-	int inwidth2;
-	int inheight2;
 	/* static, hardwired screen position and size (A2024) */
 	bool hardwiredpositioning;
 	/* extra width, chipset hpos extra in right border */
@@ -126,6 +126,7 @@ struct vidbuffer
 extern bool isnativevidbuf(int monid);
 extern int max_uae_width, max_uae_height;
 extern bool gfx_hdr;
+extern float p96vblank;
 
 struct vidbuf_description
 {

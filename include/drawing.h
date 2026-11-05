@@ -24,8 +24,9 @@
 extern int interlace_seen;
 extern int visible_left_border, visible_right_border;
 extern int detected_screen_resolution;
-extern int hsync_end_left_border, hdisplay_left_border, denisehtotal;
+extern int hdisplay_left_border, denisehtotal;
 extern int vsync_startline;
+extern int video_recording_active;
 
 #define AMIGA_WIDTH_MAX (754 / 2)
 #define AMIGA_HEIGHT_MAX_PAL (576 / 2)
@@ -121,7 +122,7 @@ extern void redraw_frame(void);
 extern void full_redraw_all(void);
 extern int get_custom_limits(int *pw, int *ph, int *pdx, int *pdy, int *prealh, int *hres, int *vres);
 extern void store_custom_limits(int w, int h, int dx, int dy);
-extern void set_custom_limits(int w, int h, int dx, int dy, bool blank);
+extern void set_custom_limits(int w, int h, int dx, int dy);
 extern void check_custom_limits(void);
 extern void get_custom_topedge(int *x, int *y, bool max);
 extern void get_custom_raw_limits(int *pw, int *ph, int *pdx, int *pdy);
@@ -171,17 +172,20 @@ struct linestate
 	bool blankedline;
 	bool vb;
 	bool strlong_seen;
+	int lol_shift_prev;
 	int fetchmode_size, fetchstart_mask;
 	uae_u16 strobe;
 	int strobe_pos;
+	bool drawmode;
 };
 
 extern struct color_entry denise_colors;
-void draw_denise_line_queue(int gfx_ypos, nln_how how, uae_u32 linecnt, int startpos, int endpos, int startcycle, int endcycle, int skip, int skip2, int dtotal, int calib_start, int calib_len, bool lof, bool lol, int hdelay, bool blanked, bool finalseg, struct linestate *ls);
+void draw_denise_line_queue(int gfx_ypos, nln_how how, uae_u32 linecnt, int startpos, int endpos, int startcycle, int endcycle, int skip_start, int skip_end, int dtotal,
+	int calib_start, int calib_len, bool lol, int hdelay, bool blanked, uae_s8 borderline, bool finalseg, struct linestate *ls);
 void draw_denise_bitplane_line_fast(int gfx_ypos, enum nln_how how, struct linestate *ls);
 void draw_denise_bitplane_line_fast_queue(int gfx_ypos, enum nln_how how, struct linestate *ls);
-void draw_denise_border_line_fast(int gfx_ypos, enum nln_how how, struct linestate *ls);
-void draw_denise_border_line_fast_queue(int gfx_ypos, enum nln_how how, struct linestate *ls);
+void draw_denise_border_line_fast(int gfx_ypos, bool blank, enum nln_how how, struct linestate *ls);
+void draw_denise_border_line_fast_queue(int gfx_ypos, bool blank, enum nln_how how, struct linestate *ls);
 bool start_draw_denise(void);
 void end_draw_denise(void);
 void denise_reset(bool);
@@ -196,7 +200,17 @@ void denise_handle_quick_strobe_queue(uae_u16 strobe, int strobe_pos, int endpos
 bool drawing_can_lineoptimizations(void);
 void set_drawbuffer(void);
 int gethresolution(void);
+int getvresolution(void);
 void denise_update_reg_queue(uae_u16 reg, uae_u16 v, uae_u32 linecnt);
 void denise_store_restore_registers_queue(bool store, uae_u32 linecnt);
+void denise_clearbuffers(void);
+uae_u8 *get_row_genlock(int monid, int line);
+void drawing_free(void);
+bool denise_get_hboffsets(int *hbs, int *hbe, int *hblen, int *total);
+bool denise_get_hbstate(bool);
+void denise_set_hdiw(bool hdiw);
+bool denise_get_hdiw(void);
+void centering_reset(bool h, bool v);
+void get_filter_compatibility_offset(int *dx, int *dy, bool mode);
 
 #endif /* UAE_DRAWING_H */

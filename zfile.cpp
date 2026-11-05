@@ -13,10 +13,10 @@
 #include "sysconfig.h"
 #include "sysdeps.h"
 
+#include "uae.h"
 #include "options.h"
 #include "zfile.h"
 #include "disk.h"
-#include "gui.h"
 #include "crc32.h"
 #include "fsdb.h"
 #include "fsusage.h"
@@ -199,10 +199,15 @@ static struct zfile *zfile_create (struct zfile *prev, const TCHAR *originalname
 	return z;
 }
 
-static void zfile_free (struct zfile *f)
+static int zfile_free (struct zfile *f)
 {
-	if (f->f)
-		fclose (f->f);
+	int error = 0;
+	if (f->f) {
+		error = ferror(f->f) != 0;
+		if (fclose(f->f))
+			error = 1;
+		f->f = NULL;
+	}
 	if (f->deleteafterclose) {
 		_wunlink (f->name);
 		write_log (_T("deleted temporary file '%s'\n"), f->name);
@@ -213,6 +218,7 @@ static void zfile_free (struct zfile *f)
 	xfree (f->mode);
 	xfree (f->userdata);
 	xfree (f);
+	return error;
 }
 
 void zfile_exit (void)
@@ -224,18 +230,18 @@ void zfile_exit (void)
 	}
 }
 
-void zfile_fclose (struct zfile *f)
+int zfile_fclose (struct zfile *f)
 {
 	//write_log (_T("%p\n"), f);
 	if (!f)
-		return;
+		return 0;
 	if (f->opencnt < 0) {
 		write_log (_T("zfile: tried to free already closed filehandle!\n"));
-		return;
+		return 1;
 	}
 	f->opencnt--;
 	if (f->opencnt > 0)
-		return;
+		return 0;
 	f->opencnt = -100;
 	if (f->parent) {
 		f->parent->opencnt--;
@@ -252,20 +258,21 @@ void zfile_fclose (struct zfile *f)
 	while (l != f) {
 		if (l == 0) {
 			write_log (_T("zfile: tried to free already freed or nonexisting filehandle!\n"));
-			return;
+			return 1;
 		}
 		pl = l;
 		l = l->next;
 	}
 	if (l)
 		nxt = l->next;
-	zfile_free (f);
+	int error = zfile_free (f);
 	if (l == 0)
-		return;
+		return error;
 	if(!pl)
 		zlist = nxt;
 	else
 		pl->next = nxt;
+	return error;
 }
 
 static void removeext (TCHAR *s, const TCHAR *ext)
@@ -288,7 +295,14 @@ static bool checkwrite (struct zfile *zf, int *retcode)
 
 
 static uae_u8 exeheader[]={ 0x00,0x00,0x03,0xf3,0x00,0x00,0x00,0x00 };
-static const TCHAR *diskimages[] = { _T("adf"), _T("adz"), _T("ipf"), _T("scp"), _T("fdi"), _T("dms"), _T("wrp"), _T("dsq"), _T("pkd"), _T("ima"), 0 };
+static const TCHAR *diskimages[] = {
+	_T("adf"), _T("adz"),
+#ifdef CAPS
+	_T("ipf"),
+#endif
+	_T("scp"), _T("fdi"), _T("dms"), _T("wrp"), _T("dsq"),
+	_T("pkd"), _T("ima"), 0
+};
 
 int zfile_gettype (struct zfile *z)
 {
@@ -337,8 +351,10 @@ int zfile_gettype (struct zfile *z)
 	zfile_fseek (z, -8, SEEK_CUR);
 	if (!memcmp (buf, exeheader, sizeof (buf)))
 		return ZFILE_EXECUTABLE;
+#ifdef CAPS
 	if (!memcmp (buf, "CAPS", 4))
 		return ZFILE_DISKIMAGE;
+#endif
 	if (!memcmp (buf, "SCP", 3))
 		return ZFILE_DISKIMAGE;
 	if (!memcmp (buf, "UAE--ADF", 8))
@@ -916,7 +932,7 @@ end:
 }
 
 #ifdef CAPS
-#include "caps/caps_win32.h"
+#include "od-win32/caps/caps_win32.h"
 static struct zfile *ipf (struct zfile *z, int index, int *retcode)
 {
 	int i, j, r;
@@ -1161,6 +1177,9 @@ static struct zfile *wrp (struct zfile *z, int *retcode)
 #ifdef A_7Z
 #include "7z/Xz.h"
 #include "7z/LzmaDec.h"
+#ifdef UAE_7Z_SDK_1604
+#define LZMA_FINISH_ANY CODER_FINISH_ANY
+#endif
 #include "7z/7zCrc.h"
 
 static void *SzAlloc (void *p, size_t size)
@@ -1322,7 +1341,14 @@ end:
 const TCHAR *uae_ignoreextensions[] =
 { _T(".gif"), _T(".jpg"), _T(".png"), _T(".xml"), _T(".pdf"), _T(".txt"), 0 };
 const TCHAR *uae_diskimageextensions[] =
-{ _T(".adf"), _T(".adz"), _T(".ipf"), _T(".scp"), _T(".fdi"), _T(".exe"), _T(".dms"), _T(".wrp"), _T(".dsq"), 0 };
+{
+	_T(".adf"), _T(".adz"),
+#ifdef CAPS
+	_T(".ipf"),
+#endif
+	_T(".scp"), _T(".fdi"), _T(".exe"), _T(".dms"), _T(".wrp"),
+	_T(".dsq"), 0
+};
 
 int zfile_is_ignore_ext (const TCHAR *name)
 {
@@ -1361,7 +1387,11 @@ int zfile_is_diskimage (const TCHAR *name)
 
 static const TCHAR *archive_extensions[] = {
 	_T("7z"), _T("rar"), _T("zip"), _T("lha"), _T("lzh"), _T("lzx"),
-	_T("adf"), _T("adz"), _T("dsq"), _T("dms"), _T("ipf"), _T("fdi"), _T("wrp"), _T("ima"),
+	_T("adf"), _T("adz"), _T("dsq"), _T("dms"),
+#ifdef CAPS
+	_T("ipf"),
+#endif
+	_T("fdi"), _T("wrp"), _T("ima"),
 	_T("hdf"), _T("tar"),
 	NULL
 };
@@ -2472,7 +2502,7 @@ int zfile_getc (struct zfile *z)
 
 int zfile_ferror (struct zfile *z)
 {
-	return 0;
+	return z && z->f ? ferror(z->f) : 0;
 }
 
 uae_u8 *zfile_getdata (struct zfile *z, uae_s64 offset, int len, int *outlen)

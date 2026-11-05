@@ -52,7 +52,6 @@
 #include "options.h"
 #include "memory.h"
 #include "zfile.h"
-#include "ar.h"
 #include "autoconf.h"
 #include "custom.h"
 #include "newcpu.h"
@@ -63,13 +62,12 @@
 #include "filesys.h"
 #include "inputrecord.h"
 #include "disk.h"
-#include "threaddep/thread.h"
-#include "a2091.h"
 #include "devices.h"
 #include "fsdb.h"
 #include "gfxboard.h"
 
 int savestate_state = 0;
+int savestate_last_save_result = -1;
 static int savestate_first_capture;
 
 static bool new_blitter = false;
@@ -85,6 +83,7 @@ struct zfile *savestate_file;
 #define SAVESTATE_ALWAYSUSEPATH 16
 #define SAVESTATE_SPECIALDUMP (SAVESTATE_SPECIALDUMP1 | SAVESTATE_SPECIALDUMP2)
 static int savestate_flags;
+static uae_u32 statefile_version;
 
 TCHAR savestate_fname[MAX_DPATH];
 TCHAR path_statefile[MAX_DPATH];
@@ -151,7 +150,8 @@ bool is_savestate_incompatible(void)
 /* functions for reading/writing bytes, shorts and longs in big-endian
 * format independent of host machine's endianness */
 
-static uae_u8 *storepos;
+static uae_u8 *chunk_start, *storepos;
+static unsigned int chunk_totallen;
 void save_store_pos_func(uae_u8 **dstp)
 {
 	storepos = *dstp;
@@ -289,6 +289,10 @@ TCHAR *restore_string_func (uae_u8 **dstp)
 	s = utf8u (to);
 	xfree (to);
 	return s;
+}
+bool restore_data_valid_func(uae_u8 **dstp)
+{
+	return *dstp < chunk_start + chunk_totallen;
 }
 
 static bool state_path_exists(const TCHAR *path, int type)
@@ -580,6 +584,11 @@ static uae_u8 *restore_log (uae_u8 *src)
 	return src;
 }
 
+uae_u32 get_statefile_version(void)
+{
+	return statefile_version;
+}
+
 static void restore_header (uae_u8 *src)
 {
 	TCHAR *emuname, *emuversion, *description;
@@ -590,6 +599,21 @@ static void restore_header (uae_u8 *src)
 	description = restore_string ();
 	write_log (_T("Saved with: '%s %s', description: '%s'\n"),
 		emuname, emuversion, description);
+
+	statefile_version = 0;
+	TCHAR *tmpp = _tcschr(emuversion, '.');
+	if (tmpp) {
+		*tmpp++ = 0;
+		TCHAR *tmpp2 = tmpp;
+		statefile_version = _tstol(emuversion) << 16;
+		tmpp = _tcschr(tmpp, '.');
+		if (tmpp) {
+			*tmpp++ = 0;
+			statefile_version |= _tstol(tmpp2) << 8;
+			statefile_version |= _tstol(tmpp);
+		}
+	}
+
 	xfree (description);
 	xfree (emuversion);
 	xfree (emuname);
@@ -628,12 +652,15 @@ void restore_state (const TCHAR *filename)
 	restore_header (chunk);
 	xfree (chunk);
 	devices_restore_start();
+	set_cycles(0);
 	clear_events();
 	z2num = z3num = 0;
 	for (;;) {
 		name[0] = 0;
 		chunk = end = restore_chunk (f, name, &len, &totallen, &filepos);
 		write_log (_T("Chunk '%s' size %u (%u)\n"), name, len, totallen);
+		chunk_totallen = totallen;
+		chunk_start = chunk;
 		if (!_tcscmp (name, _T("END "))) {
 			if (end_found)
 				break;
@@ -1281,6 +1308,7 @@ int save_state (const TCHAR *filename, const TCHAR *description)
 		}
 		if (!save_filesys_cando ()) {
 			gui_message (_T("Filesystem active. Try again later."));
+			savestate_state = 0;
 			return -1;
 		}
 	}
@@ -1288,8 +1316,10 @@ int save_state (const TCHAR *filename, const TCHAR *description)
 	savestate_flags &= ~SAVESTATE_NODIALOGS;
 	custom_prepare_savestate();
 	f = zfile_fopen (filename, _T("w+b"), 0);
-	if (!f)
+	if (!f) {
+		savestate_state = 0;
 		return 0;
+	}
 	if (savestate_flags & SAVESTATE_SPECIALDUMP) {
 		size_t pos;
 		if (savestate_flags & SAVESTATE_SPECIALDUMP2) {
@@ -1310,14 +1340,18 @@ int save_state (const TCHAR *filename, const TCHAR *description)
 			zfile_fwrite (tmp, len2, 1, f);
 			xfree (tmp);
 		}
-		zfile_fclose (f);
-		return 1;
+		return zfile_fclose(f) ? 0 : 1;
 	}
 	int v = save_state_internal (f, description, comp, true);
-	if (v)
-		write_log (_T("Save of '%s' complete\n"), filename);
-	zfile_fclose (f);
-	DISK_history_add(filename, -1, HISTORY_STATEFILE, 0);
+	bool failed = zfile_ferror(f) != 0;
+	if (zfile_fclose(f))
+		failed = true;
+	if (failed)
+		v = 0;
+	if (v) {
+		write_log(_T("Save of '%s' complete\n"), filename);
+		DISK_history_add(filename, -1, HISTORY_STATEFILE, 0);
+	}
 	savestate_state = 0;
 	return v;
 }
@@ -1379,7 +1413,8 @@ bool savestate_check(void)
 		return true;
 	} else if (savestate_state == STATE_SAVE) {
 		savestate_initsave(savestate_fname, 1, true, true);
-		save_state(savestate_fname, STATE_SAVE_DESCRIPTION);
+		savestate_last_save_result = save_state(savestate_fname, STATE_SAVE_DESCRIPTION);
+		savestate_state = 0;
 		return false;
 	}
 	return false;

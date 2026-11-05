@@ -28,6 +28,7 @@
 #endif
 
 int log_scsiemu = 0;
+int log_scsi;
 
 #ifdef FSUAE
 // FIXME: Can remember why this change was done
@@ -566,6 +567,7 @@ int device_func_init (int flags)
 {
 	blkdev_fix_prefs (&currprefs);
 	install_driver (flags);
+	gui_flicker_led(LED_CD, 0, 0);
 	dev_init = true;
 	return 1;
 }
@@ -1056,17 +1058,23 @@ int sys_command_ismedia (int unitnum, int quick)
 struct device_info *sys_command_info_session (int unitnum, struct device_info *di, int quick, int session)
 {
 	struct blkdevstate *st = &state[unitnum];
-	if (failunit (unitnum))
+	if (failunit (unitnum)) {
 		return NULL;
-	if (!getsem (unitnum))
+	}
+	if (!getsem (unitnum)) {
 		return 0;
-	if (st->device_func->info == NULL)
+	}
+	if (st->device_func->info == NULL) {
+		freesem(unitnum);
 		return 0;
+	}
 	struct device_info *di2 = st->device_func->info (unitnum, di, quick, -1);
-	if (di2)
+	if (di2) {
 		st->type = di2->type;
-	if (di2 && st->delayed)
+	}
+	if (di2 && st->delayed) {
 		di2->media_inserted = 0;
+	}
 	freesem (unitnum);
 	return di2;
 }
@@ -1655,6 +1663,9 @@ int scsi_cd_emulate (int unitnum, uae_u8 *cmdbuf, int scsi_cmd_len,
 	}
 	break;
 	case 0x01: /* REZERO UNIT */
+		if (nodisk(&di))
+			goto nodisk;
+		stopplay(unitnum);
 		scsi_len = 0;
 		break;
 	case 0x1d: /* SEND DIAGNOSTICS */

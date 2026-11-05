@@ -1,7 +1,7 @@
 #ifndef UAE_ROMMGR_H
 #define UAE_ROMMGR_H
 
-#define MAX_ROMMGR_ROMS 340
+#define MAX_ROMMGR_ROMS 350
 
 extern int decode_cloanto_rom_do(uae_u8 *mem, int size, int real_size);
 
@@ -50,7 +50,7 @@ extern int decode_cloanto_rom_do(uae_u8 *mem, int size, int real_size);
 #define ROMTYPE_CB_FALCON40	0x0004001b
 #define ROMTYPE_CB_A1230S2	0x0004001c
 #define ROMTYPE_CB_TYPHOON2	0x0004001d
-#define ROMTYPE_CB_QUIKPAK	0x0004001e
+#define ROMTYPE_CB_QUIKPAKXP	0x0004001e
 #define ROMTYPE_CB_12GAUGE	0x0004001f
 #define ROMTYPE_CB_HARMS3KP	0x00040020
 #define ROMTYPE_CB_A1230S1	0x00040021
@@ -58,6 +58,7 @@ extern int decode_cloanto_rom_do(uae_u8 *mem, int size, int real_size);
 #define ROMTYPE_CB_CASAB	0x00040023
 #define ROMTYPE_CB_APOLLO_630 0x00040024
 #define ROMTYPE_CB_TREXII	0x00040025
+#define ROMTYPE_CB_QUIKPAK	0x00040026
 
 #define ROMTYPE_FREEZER		0x00080000
 #define ROMTYPE_AR			0x00080001
@@ -66,6 +67,8 @@ extern int decode_cloanto_rom_do(uae_u8 *mem, int size, int real_size);
 #define ROMTYPE_NORDIC		0x00080004
 #define ROMTYPE_XPOWER		0x00080005
 #define ROMTYPE_SUPERIV		0x00080006
+#define ROMTYPE_DEMON1		0x00080007
+#define ROMTYPE_DEMON2		0x00080008
 
 #define ROMTYPE_SCSI		0x00100000
 #define ROMTYPE_A2091		0x00100001
@@ -218,6 +221,8 @@ extern int decode_cloanto_rom_do(uae_u8 *mem, int size, int real_size);
 #define ROMTYPE_KBMCU		0x00100094
 #define ROMTYPE_RIPPLE		0x00100095
 #define ROMTYPE_512KWOM		0x00100096
+#define ROMTYPE_AIDE		0x00100097
+#define ROMTYPE_ATONCE		0x00100098
 
 #define ROMTYPE_NOT			0x00800000
 #define ROMTYPE_QUAD		0x01000000
@@ -231,7 +236,7 @@ extern int decode_cloanto_rom_do(uae_u8 *mem, int size, int real_size);
 
 #define ROMTYPE_ALL_KICK (ROMTYPE_KICK | ROMTYPE_KICKCD32 | ROMTYPE_CD32)
 #define ROMTYPE_ALL_EXT (ROMTYPE_EXTCD32 | ROMTYPE_EXTCDTV | ROMTYPE_ARCADIABIOS)
-#define ROMTYPE_ALL_CART (ROMTYPE_AR | ROMTYPE_HRTMON | ROMTYPE_NORDIC | ROMTYPE_XPOWER | ROMTYPE_CD32CART | ROMTYPE_ARCADIAGAME | ROMTYPE_ALG)
+#define ROMTYPE_ALL_CART (ROMTYPE_FREEZER | ROMTYPE_CD32CART | ROMTYPE_ARCADIAGAME | ROMTYPE_ALG | ROMTYPE_SUB_MASK)
 
 struct romheader {
 	const TCHAR *name;
@@ -279,6 +284,8 @@ extern void getromname (const struct romdata*, TCHAR*);
 extern struct romdata *getromdatabyname (const TCHAR*);
 extern struct romlist *getromlistbyids (const int *ids, const TCHAR *romname);
 extern struct romlist *getromlistbyromtype(uae_u32 romtype, const TCHAR *romname);
+extern struct romdata **getromdatalistbyids(const int *ids);
+extern struct romdata *getrombyident(const TCHAR *ident);
 extern void romwarning(const int *ids);
 extern void romwarning(int romtype);
 extern struct romlist *getromlistbyromdata (const struct romdata *rd);
@@ -288,6 +295,21 @@ extern void romlist_clear (void);
 extern struct zfile *read_rom(struct romdata *rd, bool rw = false);
 extern struct zfile *read_rom_name(const TCHAR *filename, bool rw = false);
 extern struct zfile *read_device_from_romconfig(struct romconfig *rc, uae_u32 romtype, bool rw = false);
+enum romscan_event {
+	ROMSCAN_FILE,
+	ROMSCAN_MEMBER,
+	ROMSCAN_ARCADIA,
+	ROMSCAN_ROM
+};
+// FILE and MEMBER report progress with rd == NULL. Return false to stop
+// scanning this file. Each detected ROM is reported before loading its key.
+typedef bool (*romscan_callback)(void *user, romscan_event event, const TCHAR *path, struct romdata *rd);
+extern bool romscan_is_candidate(const TCHAR *path, bool deepscan);
+extern int romscan_priority(const TCHAR *path, int size);
+extern void romscan_file(const TCHAR *path, bool deepscan, romscan_callback callback, void *user);
+// A scan callback returns false to stop. Restart prepares the next pass;
+// max_restarts == -1 allows retries while the keyring keeps growing.
+extern void romscan_with_keyring(bool (*scan)(void *), void (*restart)(void *), void *user, int max_restarts);
 extern struct romdata *scan_single_rom_file(struct zfile *f);
 extern struct romdata *scan_single_rom(const TCHAR *path);
 
@@ -319,6 +341,7 @@ void clear_device_rom(struct uae_prefs *p, int romtype, int devnum, bool deleteD
 struct boardromconfig *get_boardromconfig(struct uae_prefs *p, int romtype, int *index);
 bool is_board_enabled(struct uae_prefs *p, int romtype, int devnum);
 void board_prefs_changed(int romtype, int devnum);
+const struct cpuboardsubtype *get_cpuboard_rom(struct uae_prefs *p, int romtype);
 
 #define LOADROM_FILL 1
 #define LOADROM_EVENONLY 2

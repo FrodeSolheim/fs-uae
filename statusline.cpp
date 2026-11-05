@@ -69,6 +69,7 @@ static const char *numbers_default = { /* ugly  0123456789CHD%+-PNKV */
 	"+++++++---+++-++++++++++++++----+++++++++++++++++--+++--++++++++++++++++++++-++++++-++++------------------------+++----+++++++++++++  ++++  "
 //   x      x      x      x      x      x      x      x      x      x      x      x      x      x      x      x      x      x      x      x      x  
 };
+static const char *numbers_mapping = "0123456789CHD%+-PNKV";
 
 static const char *numbers = numbers_default;
 
@@ -158,49 +159,104 @@ int statusline_get_multiplier(int monid)
 	return statusline_mult[idx];
 }
 
+const uae_s8 defaultosdledpos[LED_MAX] = {
+	LED_SND,
+	LED_CPU,
+	LED_FPS,
+	LED_LINES,
+	LED_CAPS,
+	LED_POWER,
+	LED_HD,
+	LED_CD,
+	LED_DF0,
+	LED_DF1,
+	LED_DF2,
+	LED_DF3,
+	LED_MD,
+	LED_NET
+};
+
+bool statusline_led_visible(int led)
+{
+	if (led == LED_SND && !gui_data.sndbuf_avail) {
+		return false;
+	}
+	if (led == LED_MD && gui_data.md < 0) {
+		return false;
+	}
+	if (led == LED_HD && gui_data.hd < 0) {
+		return false;
+	}
+	if (led == LED_CD && gui_data.cd < 0) {
+		return false;
+	}
+	if (led == LED_NET && gui_data.net < 0) {
+		return false;
+	}
+	return true;
+}
+
 void draw_status_line_single(int monid, uae_u8 *buf, int y, int totalwidth, uae_u32 *rc, uae_u32 *gc, uae_u32 *bc, uae_u32 *alpha)
 {
 	struct amigadisplay *ad = &adisplays[monid];
-	int x_start, j, led, border;
+	int x_start, j, led, border, pos;
 	uae_u32 c1, c2, cb;
 	int mult = td_custom ? 1 : statusline_mult[ad->picasso_on ? 1 : 0] / 100;
+	int num_leds = LED_MAX;
+	const uae_s8 *ledposptr;
+	uae_s8 ledposconf[LED_MAX];
 
-	if (!mult)
+	if (!mult) {
 		return;
+	}
 
 	y /= mult;
 
-	c1 = ledcolor (0x00ffffff, rc, gc, bc, alpha);
-	c2 = ledcolor (0x00111111, rc, gc, bc, alpha);
+	num_leds = 0;
+	ledposptr = ledposconf;
+	pos = 0;
+	memset(ledposconf, -1, sizeof(ledposconf));
+	for (int i = 0; i < sizeof(defaultosdledpos); i++) {
+		led = defaultosdledpos[i];
+		if (!statusline_led_visible(led)) {
+			continue;
+		}
+		if (currprefs.leds_on_screen_mask[ad->picasso_on ? 1 : 0] & (1 << led)) {
+			ledposconf[led] = num_leds;
+			num_leds++;
+		}
+	}
 
-	if (td_numbers_pos & TD_RIGHT)
-		x_start = totalwidth - (td_numbers_padx + VISIBLE_LEDS * td_width) * mult;
-	else
+	c1 = ledcolor(0x00ffffff, rc, gc, bc, alpha);
+	c2 = ledcolor(0x00111111, rc, gc, bc, alpha);
+
+	if (td_numbers_pos & TD_RIGHT) {
+		x_start = totalwidth - (td_numbers_padx + num_leds * td_width) * mult;
+	} else {
 		x_start = td_numbers_padx * mult;
+	}
 
 	for (led = 0; led < LED_MAX; led++) {
-		int pos, num1 = -1, num2 = -1, num3 = -1, num4 = -1;
-		int x, c, on = 0, am = 2;
+		char text[TD_MAX_CHARS + 1] = { 0 };
+		int x, c, on = 0;
 		xcolnr on_rgb = 0, on_rgb2 = 0, off_rgb = 0, pen_rgb = 0;
 		int half = 0, extraborder = 0;
 
 		cb = ledcolor(TD_BORDER, rc, gc, bc, alpha);
-
-		if (!(currprefs.leds_on_screen_mask[ad->picasso_on ? 1 : 0] & (1 << led)))
-			continue;
-
 		pen_rgb = c1;
+		pos = ledposconf[led];
+		if (pos < 0) {
+			continue;
+		}
+
 		if (led >= LED_DF0 && led <= LED_DF3) {
 			int pled = led - LED_DF0;
 			struct floppyslot *fs = &currprefs.floppyslots[pled];
 			struct gui_info_drive *gid = &gui_data.drives[pled];
 			int track = gid->drive_track;
-			pos = 8 + pled;
 			on_rgb = 0x00cc00;
 			if (!gid->drive_disabled) {
-				num1 = -1;
-				num2 = track / 10;
-				num3 = track % 10;
+				sprintf(text, "%02d", track);
 				on = gid->drive_motor;
 				if (gid->drive_writing) {
 					on_rgb = 0xcc0000;
@@ -217,124 +273,92 @@ void draw_status_line_single(int monid, uae_u8 *buf, int y, int totalwidth, uae_
 			off_rgb = rgbmuldiv(on_rgb, 2, 4);
 			on_rgb2 = rgbmuldiv(on_rgb, 2, 3);
 		} else if (led == LED_CAPS) {
-			pos = 4;
 			on_rgb = 0xcc9900;
 			on = gui_data.capslock;
 			off_rgb = (on_rgb & 0xfefefe) >> 1;
 		} else if (led == LED_POWER) {
-			pos = 3;
 			on_rgb = ((gui_data.powerled_brightness * 10 / 16) + 0x33) << 16;
 			on = 1;
 			off_rgb = 0x330000;
 		} else if (led == LED_CD) {
-			pos = 6;
-			if (gui_data.cd >= 0) {
-				on = gui_data.cd & (LED_CD_AUDIO | LED_CD_ACTIVE);
-				if (on & LED_CD_AUDIO) {
-					on_rgb = 0x009900;
-				} else if (on == LED_CD_ACTIVE) {
-					on_rgb = 0x000099;
-				} else {
-					on = 0;
-				}
-				off_rgb = 0x000033;
-				num1 = -1;
-				num2 = 10;
-				num3 = 12;
+			on = gui_data.cd & (LED_CD_AUDIO | LED_CD_ACTIVE);
+			if (on & LED_CD_AUDIO) {
+				on_rgb = 0x009900;
+			} else if (on == LED_CD_ACTIVE) {
+				on_rgb = 0x000099;
+			} else {
+				on = 0;
 			}
+			off_rgb = 0x000033;
+			strcpy(text, "CD");
 		} else if (led == LED_HD) {
-			pos = 5;
-			if (gui_data.hd >= 0) {
-				on = gui_data.hd;
-				on_rgb = on == 2 ? 0xcc0000 : 0x0000cc;
-				off_rgb = 0x000033;
-				num1 = -1;
-				num2 = 11;
-				num3 = 12;
-			}
+			on = gui_data.hd;
+			on_rgb = on == 2 ? 0xcc0000 : 0x0000cc;
+			off_rgb = 0x000033;
+			strcpy(text, "HD");
 		} else if (led == LED_FPS) {
-			pos = 2;
 			if (pause_emulation) {
-				num1 = -1;
-				num2 = -1;
-				num3 = 16;
+				strcpy(text, "P");
 				on_rgb = 0xcccccc;
 				off_rgb = 0x111111;
-				am = 2;
 			} else {
 				int fps = (gui_data.fps + 5) / 10;
 				on_rgb = 0x111111;
 				off_rgb = gui_data.fps_color == 1 ? 0xcccc00 : (gui_data.fps_color == 2 ? 0x0000cc : 0x111111);
-				am = 3;
 				if (gui_data.fps_color >= 2) {
-					num1 = -1;
-					num2 = 15;
-					num3 = 15;
-					am = 2;
+					if (ad->picasso_on) {
+						fps = (int)(p96vblank + 0.5f);
+					} else {
+						fps = -1;
+					}
+				}
+				if (fps < 0) {
+					strcpy(text, "--");
 				} else {
 					if (fps > 999) {
-						fps += 50;
-						fps /= 10;
-						if (fps > 999)
-							fps = 999;
-						num1 = fps / 100;
-						num1 %= 10;
-						num2 = 18;
-						num3 = (fps - num1 * 100) / 10;
+						if (fps > 9999) {
+							fps = 9999;
+						}
+						sprintf(text, "%dK", fps / 1000);
+					} else if (fps >= 100) {
+						sprintf(text, "%3d", fps);
 					} else {
-						num1 = fps / 100;
-						num2 = (fps - num1 * 100) / 10;
-						num3 = fps % 10;
-						num1 %= 10;
-						num2 %= 10;
-						if (num1 == 0)
-							am = 2;
+						sprintf(text, "%2d", fps);
 					}
 				}
 			}
 		} else if (led == LED_CPU) {
 			int idle = (gui_data.idle + 5) / 10;
-			pos = 1;
 			on_rgb = 0xcc0000;
 			off_rgb = 0x111111;
-			if (gui_data.cpu_halted) {
+			if (gui_data.cpu_halted || gui_data.cpu_stopped) {
 				idle = 0;
-				on = 1;
 				if (gui_data.cpu_halted < 0) {
+					on = 1;
 					on_rgb = 0x111111;
-					num1 = 16; // PPC
-					num2 = 16;
-					num3 = 10;
-					am = 3;
-				} else {
+					strcpy(text, "PPC");
+				} else if (gui_data.cpu_halted > 0) {
+					on = 1;
 					on_rgb = 0xcccc00;
-					num1 = gui_data.cpu_halted >= 10 ? 11 : -1;
-					num2 = gui_data.cpu_halted >= 10 ? (gui_data.cpu_halted / 10) % 10 : 11;
-					num3 = gui_data.cpu_halted % 10;
-					am = 2;
+					sprintf(text, "H%d", gui_data.cpu_halted);
 				}
+			} else if (idle >= 100) {
+				if (idle >= 1000) {
+					idle = 999;
+				}
+				sprintf(text, "%3d", idle);
+			} else if (idle >= 0) {
+				sprintf(text, "%2d%%", idle);
 			} else {
-				num1 = idle / 100;
-				num2 = (idle - num1 * 100) / 10;
-				num3 = idle % 10;
-				num1 %= 10;
-				num2 %= 10;
-				num4 = num1 == 0 ? 13 : -1;
-				if (!num1 && !num2) {
-					num2 = -2;
-				}
-				am = 3;
+				strcpy(text, "--");
 			}
-		} else if (led == LED_SND && gui_data.sndbuf_avail) {
+		} else if (led == LED_SND) {
 			int snd = abs(gui_data.sndbuf + 5) / 10;
 			if (snd > 99)
 				snd = 99;
-			pos = 0;
 			on = gui_data.sndbuf_status;
 			if (on < 3) {
-				num1 = gui_data.sndbuf < 0 ? 15 : 14;
-				num2 = snd / 10;
-				num3 = snd % 10;
+				sprintf(text, "%2d", snd);
 			}
 			on_rgb = 0x111111;
 			if (on < 0)
@@ -344,37 +368,38 @@ void draw_status_line_single(int monid, uae_u8 *buf, int y, int totalwidth, uae_
 			else if (on == 1)
 				on_rgb = 0x0000cc; // "normal" overflow
 			off_rgb = 0x111111;
-			am = 3;
 		} else if (led == LED_MD) {
-			// DF3 reused as internal non-volatile ram led (cd32/cdtv)
-			if (gui_data.drives[3].drive_disabled && gui_data.md >= 0) {
-				pos = 8 + 3;
-				if (gui_data.md >= 0) {
-					on = gui_data.md;
-					on_rgb = on == 2 ? 0xcc0000 : 0x00cc00;
-					off_rgb = 0x003300;
-				}
-				num1 = -1;
-				num2 = 17;
-				num3 = 19;
-			} else {
-				continue;
-			}
+			on = gui_data.md;
+			on_rgb = on == 2 ? 0xcc0000 : 0x00cc00;
+			off_rgb = 0x003300;
+			strcpy(text, "NV");
 		} else if (led == LED_NET) {
-			pos = 7;
-			if (gui_data.net >= 0) {
-				on = gui_data.net;
-				on_rgb = 0;
-				if (on & 1)
-					on_rgb |= 0x00cc00;
-				if (on & 2)
-					on_rgb |= 0xcc0000;
-				off_rgb = 0x111111;
-				num1 = -1;
-				num2 = -1;
-				num3 = 17;
-				am = 1;
+			on = gui_data.net;
+			on_rgb = 0;
+			if (on & 1)
+				on_rgb |= 0x00cc00;
+			if (on & 2)
+				on_rgb |= 0xcc0000;
+			off_rgb = 0x111111;
+			strcpy(text, "N");
+		} else if (led == LED_LINES) {
+			if (gui_data.fps_color < 2) {
+				int lines = gui_data.lines;
+				if (lines > 999) {
+					if (lines > 9999) {
+						lines = 9999;
+					}
+					sprintf(text, "%dK", lines / 1000);
+				} else if (lines > 0) {
+					sprintf(text, "%3d", lines);
+				} else {
+					strcpy(text, "--");
+				}
+			} else {
+				strcpy(text, "--");
 			}
+			on_rgb = 0x111111;
+			off_rgb = 0x111111;
 		} else {
 			continue;
 		}
@@ -414,22 +439,16 @@ void draw_status_line_single(int monid, uae_u8 *buf, int y, int totalwidth, uae_
 		}
 
 		if (y >= td_numbers_pady && y - td_numbers_pady < td_numbers_height) {
-			if (num3 >= 0) {
-				x += (td_led_width - am * td_numbers_width) * mult / 2;
-				if (num1 > 0) {
-					write_tdnumber(buf, x, y - td_numbers_pady, num1, pen_rgb, c2, mult);
-					x += td_numbers_width * mult;
+			int xd = (TD_MAX_CHARS - uaestrlen(text)) * td_numbers_width * mult / 2 + TD_DEFAULT_PADX;
+			for (int i = 0; i < uaestrlen(text); i++) {
+				char ch = text[i];
+				for (int j = 0; j < uaestrlen(numbers_mapping); j++) {
+					if (ch == numbers_mapping[j]) {
+						write_tdnumber(buf, x + xd, y - td_numbers_pady, j, pen_rgb, c2, mult);
+						break;
+					}
 				}
-				if (num2 >= 0) {
-					write_tdnumber(buf, x, y - td_numbers_pady, num2, pen_rgb, c2, mult);
-					x += td_numbers_width * mult;
-				} else if (num2 < -1) {
-					x += td_numbers_width * mult;
-				}
-				write_tdnumber(buf, x, y - td_numbers_pady, num3, pen_rgb, c2, mult);
 				x += td_numbers_width * mult;
-				if (num4 > 0)
-					write_tdnumber(buf, x, y - td_numbers_pady, num4, pen_rgb, c2, mult);
 			}
 		}
 	}
@@ -480,8 +499,15 @@ void statusline_add_message(int statustype, const TCHAR *format, ...)
 	va_list parms;
 	TCHAR buffer[256];
 
-	if (isguiactive())
-		return;
+	if (isguiactive()) {
+		switch (statustype)
+		{
+			case STATUSTYPE_DISPLAY:
+			break;
+			default:
+			return;
+		}
+	}
 
 	va_start(parms, format);
 	buffer[0] = ' ';

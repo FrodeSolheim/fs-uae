@@ -12,6 +12,7 @@
 #include "uae/types.h"
 #include "uae/inline.h"
 #include "options.h"
+#include "uae/time.h"
 #include "machdep/rpt.h"
 
 #define BEAMCON0_HARDDIS	0x4000
@@ -78,10 +79,10 @@ extern uae_u32 hsync_counter, vsync_counter;
 extern uae_u16 dmacon;
 extern uae_u16 intena, intreq, intreqr;
 
-extern int vpos, linear_vpos;
+extern int vpos, linear_vpos_start;
+extern int linear_vpos_vb_start, linear_vpos_vb_end;
 extern uae_u8 agnus_hpos;
 extern bool lof_store, lof_display;
-extern int scandoubled_line;
 
 extern int n_frames;
 
@@ -99,6 +100,7 @@ extern void INTREQ(uae_u16);
 extern bool INTREQ_0(uae_u16);
 extern void INTREQ_f(uae_u16);
 extern void INTREQ_INT(int num, int delay);
+extern void INTREQ_INT_clear(int num, int delay);
 extern void rethink_uae_int(void);
 extern uae_u16 INTREQR(void);
 
@@ -132,16 +134,19 @@ extern uae_u16 INTREQR(void);
 #define EQU_ENDLINE_PAL 8
 #define EQU_ENDLINE_NTSC 9
 
+#define LINES_AFTER_VSYNC 3
+#define CCKS_AFTER_HSYNC 4
+
 #define OCS_DENISE_HBLANK_DISABLE_HPOS 0x2e
 
 extern int maxhpos, maxhposm0, maxhpos_short;
 extern int maxvpos, maxvpos_nom, maxvpos_display, maxvpos_display_vsync, maxhpos_display;
 extern int maxvsize_display;
 extern int hsyncstartpos_hw, hsyncendpos_hw;
-extern int minfirstline, minfirstline_linear, vblank_endline, numscrlines, minfirstline_linear;
+extern int minfirstline, minfirstline_linear, vblank_endline, numscrlines;
 extern float vblank_hz, fake_vblank_hz;
 extern float hblank_hz;
-extern int vblank_skip, doublescan;
+extern int vblank_skip, doublescan, doublescan2x;
 extern int programmedmode;
 extern int display_reset;
 
@@ -188,6 +193,7 @@ extern int xbluecolor_s, xbluecolor_b, xbluecolor_m;
 #define RES_HIRES 1
 #define RES_SUPERHIRES 2
 #define RES_MAX 2
+#define RES_MAX2X 3
 #define VRES_NONDOUBLE 0
 #define VRES_DOUBLE 1
 #define VRES_QUAD 2
@@ -239,6 +245,7 @@ void custom_cpuchange(void);
 void custom_dumpstate(int);
 bool get_ras_cas(uaecptr, int*, int*);
 void get_mode_blanking_limits(int *phbstop, int *phbstrt, int *pvbstop, int *pvbstrt);
+uaecptr copper_blitter_conflict(struct rgabuf *rga);
 
 #define CYCLE_PIPE_CPUFREE 0x4000
 #define CYCLE_PIPE_BLITTER 0x100
@@ -309,9 +316,8 @@ struct rgabuf {
 	uae_u32 mwmask;
 	int alloc;
 	bool write;
-	uae_u32 *conflict;
-	uaecptr conflictaddr;
-	uae_u32 bpldat, sprdat, bltdat, auddat, refdat, dskdat, copdat;
+	uae_u32 *conflict, *conflict2;
+	uae_u32 bpldat, sprdat, bltdat, auddat, refdat, dskdat;
 	uae_s16 bplmod, bltmod, bltadd;
 };
 

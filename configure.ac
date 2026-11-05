@@ -833,6 +833,19 @@ AS_IF([test "x$enable_x86" != xno], [
 AM_CONDITIONAL([WITH_X86],
 [test x$enable_x86 != xno])
 
+# 86Box x86 recompiler (dynarec) for the bridgeboards; only available for
+# x86-64 and arm64 hosts.
+x86_dynarec_x86_64=no
+x86_dynarec_arm64=no
+AS_IF([test x$enable_x86 != xno], [
+    AS_CASE([$host_cpu],
+    [x86_64|amd64], [x86_dynarec_x86_64=yes],
+    [aarch64|arm64], [x86_dynarec_arm64=yes])
+])
+AM_CONDITIONAL([X86_DYNAREC_X86_64], [test x$x86_dynarec_x86_64 = xyes])
+AM_CONDITIONAL([X86_DYNAREC_ARM64], [test x$x86_dynarec_arm64 = xyes])
+AM_CONDITIONAL([X86_DYNAREC], [test x$x86_dynarec_x86_64 = xyes -o x$x86_dynarec_arm64 = xyes])
+
 OPT_FEATURE([WITH_XML_SHADER], [xml_shader], [xml-shader], [XML shader support])
 # OPT_FEATURE([A_ZIP], [zip], [zip], [ZIP archive support])
 

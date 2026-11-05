@@ -21,16 +21,11 @@
 
 #include "resource.h"
 
-#include <stddef.h>
 #include <process.h>
 #include <iphlpapi.h>
 
 #include "options.h"
 #include "memory.h"
-#include "uae/seh.h"
-#include "custom.h"
-#include "events.h"
-#include "newcpu.h"
 #include "autoconf.h"
 #include "traps.h"
 #include "bsdsocket.h"
@@ -39,8 +34,6 @@
 #include "registry.h"
 #include "native2amiga.h"
 #include "win32gui.h"
-#include "wininet.h"
-#include "mmsystem.h"
 #include "win32.h"
 
 int rawsockets = 0;

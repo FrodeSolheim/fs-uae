@@ -22,27 +22,44 @@ struct m68k_exception {
 #define THROW_AGAIN(var) throw
 #define ENDTRY
 #define STOPTRY
+#define TRY_VOLATILE
 #else
 /* we are in plain C, just use a stack of long jumps */
 #include <setjmp.h>
-extern jmp_buf __exbuf;
+/* BSD and macOS setjmp() also saves the signal mask, a system call for
+   every TRY. sigsetjmp(buf, 0) does not. Windows has no sigsetjmp, and
+   its setjmp() does not save the signal mask. */
+#ifdef _WIN32
+typedef jmp_buf uae_jmp_buf;
+#define uae_setjmp(buf) setjmp(buf)
+#define uae_longjmp(buf, val) longjmp(buf, val)
+#else
+typedef sigjmp_buf uae_jmp_buf;
+#define uae_setjmp(buf) sigsetjmp(buf, 0)
+#define uae_longjmp(buf, val) siglongjmp(buf, val)
+#endif
+extern uae_jmp_buf __exbuf;
 extern int     __exvalue;
-#define TRY(DUMMY)       __exvalue=setjmp(__exbuf);       \
+#define TRY(DUMMY)       __exvalue=uae_setjmp(__exbuf);       \
                   if (__exvalue==0) { __pushtry(&__exbuf);
 #define CATCH(x)  __poptry(); } else {m68k_exception x=__exvalue; 
 #define ENDTRY    __poptry();}
 #define STOPTRY   __poptry()
-#define THROW(x) if (__is_catched()) {longjmp(__exbuf,x);}
-#define THROW_AGAIN(var) if (__is_catched()) longjmp(*__poptry(),__exvalue)
+#define THROW(x) if (__is_catched()) {uae_longjmp(__exbuf,x);}
+#define THROW_AGAIN(var) if (__is_catched()) uae_longjmp(*__poptry(),__exvalue)
 #define SAVE_EXCEPTION
 #define RESTORE_EXCEPTION
-jmp_buf* __poptry(void);
-void __pushtry(jmp_buf *j);
+/* locals modified inside TRY and read after CATCH must survive longjmp() */
+#define TRY_VOLATILE volatile
+uae_jmp_buf* __poptry(void);
+void __pushtry(uae_jmp_buf *j);
 int __is_catched(void);
 
 typedef int m68k_exception;
 
 #endif
+
+extern bool mmu_debugger;
 
 /* special status word (access error stack frame) */
 /* 68060 */
@@ -151,5 +168,15 @@ extern uae_u32(*x_phys_get_long)(uaecptr);
 extern void(*x_phys_put_byte)(uaecptr, uae_u32);
 extern void(*x_phys_put_word)(uaecptr, uae_u32);
 extern void(*x_phys_put_long)(uaecptr, uae_u32);
+
+#define MAX_MMU_DEBUG_DESCRIPTOR_LEVEL 8
+struct mmu_debug_data
+{
+    uaecptr descriptor[MAX_MMU_DEBUG_DESCRIPTOR_LEVEL];
+    int descriptor_type[MAX_MMU_DEBUG_DESCRIPTOR_LEVEL];
+    bool desc_fault;
+    int tt;
+    uae_u32 ttdata;
+};
 
 #endif /* UAE_MMU_COMMON_H */

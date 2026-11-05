@@ -17,6 +17,7 @@
 */
 
 #define SOUNDSTUFF 1
+#define SOUND_MODE_NG 0
 
 extern uae_u16 paula_sndbuffer[];
 extern uae_u16 *paula_sndbufpt;

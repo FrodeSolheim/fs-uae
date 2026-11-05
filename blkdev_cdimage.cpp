@@ -17,19 +17,16 @@
 #include <sys/timeb.h>
 
 #include "options.h"
-#include "traps.h"
 #include "blkdev.h"
 #include "zfile.h"
 #include "gui.h"
 #include "fsdb.h"
 #include "threaddep/thread.h"
-#include "scsidev.h"
 #include "mp3decoder.h"
 #include "cda_play.h"
 #include "memory.h"
 #include "audio.h"
 #include "uae.h"
-#include "uae/cdrom.h"
 #ifdef RETROPLATFORM
 #include "rp.h"
 #endif
@@ -1758,7 +1755,13 @@ static int parsecue (struct cdunit *cdu, struct zfile *zcue, const TCHAR *img, c
 			index0 = -1;
 			lastpregap = 0;
 			lastpostgap = 0;
+			skipspace(&p);
+			TCHAR *pt = p;
 			tracknum = _tstoi (nextstring (&p));
+			// fix broken "TRACK 0"
+			if (tracknum == 0 && pt[0] == '0' && pt[1] == 0 && cdu->tracks == 0) {
+				tracknum = 1;
+			}
 			tracktype = nextstring (&p);
 			if (!tracktype)
 				break;
@@ -1785,7 +1788,9 @@ static int parsecue (struct cdunit *cdu, struct zfile *zcue, const TCHAR *img, c
 
 				if (tracknum > 1 && newfile) {
 					t--;
-					secoffset += (int)(t->filesize / t->size);
+					if (t->size) {
+						secoffset += (int)(t->filesize / t->size);
+					}
 					t++;
 				}
 

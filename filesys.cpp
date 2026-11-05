@@ -31,7 +31,6 @@
 #include "uae.h"
 #include "memory.h"
 #include "custom.h"
-#include "events.h"
 #include "newcpu.h"
 #include "filesys.h"
 #include "autoconf.h"
@@ -44,15 +43,7 @@
 #include "zarchive.h"
 #include "gui.h"
 #include "gayle.h"
-#include "idecontrollers.h"
 #include "savestate.h"
-#ifdef A2091
-#include "a2091.h"
-#endif
-#ifdef NCR
-#include "ncr_scsi.h"
-#endif
-#include "cdtv.h"
 #include "sana2.h"
 #include "bsdsocket.h"
 #include "uaeresource.h"
@@ -68,7 +59,6 @@
 #include "tabletlibrary.h"
 #include "cia.h"
 #include "picasso96.h"
-#include "cpuboard.h"
 #include "rommgr.h"
 #include "debug.h"
 #include "debugmem.h"
@@ -148,7 +138,7 @@ static volatile int shellexecute2_queued;
 static uae_u32 filesys_shellexecute2_process(int mode, TrapContext *ctx);
 static void filesys_shellexecute2_run_queue(void);
 static void shellexecute2_free(struct ShellExecute2 *se2);
-
+static bool exter_added;
 static int bootrom_header;
 
 static uae_u32 dlg (uae_u32 a)
@@ -381,6 +371,10 @@ static struct uaedev_mount_info mountinfo;
 
 /* OS4 64-bit filesize packets */
 #define ACTION_FILESYSTEM_ATTR         3005
+#define ACTION_EXAMINEDATA             3030
+#define ACTION_EXAMINEDATA_FH          3031
+#define ACTION_EXAMINEDATA_OBJ         3032
+#define ACTION_EXAMINEDATA_DIR         3040
 #define ACTION_CHANGE_FILE_POSITION64  8001
 #define ACTION_GET_FILE_POSITION64     8002
 #define ACTION_CHANGE_FILE_SIZE64      8003
@@ -689,6 +683,7 @@ int get_filesys_unitconfig (struct uae_prefs *p, int index, struct mountedinfo *
 			struct device_info di;
 			ui->hf.ci.readonly = true;
 			ui->hf.ci.blocksize = uci->ci.blocksize;
+			ui->hf.ci.device_emu_unit = uci->ci.device_emu_unit;
 			mi->size = -1;
 			mi->ismounted = true;
 			if (blkdev_get_info (p, ui->hf.ci.device_emu_unit, &di)) {
@@ -1949,38 +1944,30 @@ int filesys_eject(int nr)
 }
 
 static uae_u32 heartbeat;
-static int heartbeat_count, heartbeat_count_cont;
-static int heartbeat_task;
+static int heartbeat_count_cont;
+static bool clock_sync_pending;
 
 bool filesys_heartbeat(void)
 {
 	return heartbeat_count_cont > 0;
 }
 
-// This uses filesystem process to reduce resource usage
 void setsystime (void)
 {
-	write_log("SETSYSTIME\n");
-	if (!currprefs.tod_hack || !rtarea_bank.baseaddr)
+	if (!currprefs.tod_hack || !rtarea_bank.baseaddr) {
 		return;
-	write_log("SETSYSTIME2\n");
-	heartbeat = get_long_host(rtarea_bank.baseaddr + RTAREA_HEARTBEAT);
-	heartbeat_task = 1;
-	heartbeat_count = 10;
-}
-
-static void setsystime_vblank (void)
-{
-	Unit *u;
-	TrapContext *ctx = NULL;
-
-	for (u = units; u; u = u->next) {
-		if (is_virtual(u->unit) && filesys_isvolume(u)) {
-			put_byte(u->volume + 173 - 32, get_byte(u->volume + 173 - 32) | 1);
-			uae_Signal(get_long(u->volume + 176 - 32), 1 << 13);
-			break;
-		}
 	}
+	if (!exter_added) {
+		return;
+	}
+	/*
+	 * Clock sync is handled by the UAE external interrupt server. Wait for
+	 * the heartbeat to advance before raising its level-2 PORTS interrupt:
+	 * WHDLoad and similar software can temporarily replace the OS interrupt
+	 * handlers and cannot safely service UAE's external interrupt then.
+	 */
+	heartbeat = get_long_host(rtarea_bank.baseaddr + RTAREA_HEARTBEAT);
+	clock_sync_pending = true;
 }
 
 static uae_u32 REGPARAM2 debugger_helper(TrapContext *ctx)
@@ -2633,6 +2620,29 @@ static void move_aino_children (Unit *unit, a_inode *from, a_inode *to)
 	update_child_names (unit, to->child, to);
 }
 
+/* Dispose of the cached a_inodes below a directory, except those that are
+   still in use, and those above them.  Returns true if none is left.  */
+static bool dispose_children (Unit *unit, a_inode *dir)
+{
+	a_inode **aip = &dir->child;
+	bool all = true;
+
+	if (dir->exnext_count > 0)
+		return dir->child == 0;
+	while (*aip) {
+		a_inode *aino = *aip;
+		aino_test (aino);
+		if (aino->shlock > 0 || aino->elock || !dispose_children (unit, aino)) {
+			all = false;
+			aip = &aino->sibling;
+			continue;
+		}
+		de_recycle_aino (unit, aino);
+		dispose_aino (unit, aip, aino);
+	}
+	return all;
+}
+
 static void delete_aino (Unit *unit, a_inode *aino)
 {
 	a_inode **aip;
@@ -2643,6 +2653,14 @@ static void delete_aino (Unit *unit, a_inode *aino)
 	aino->dirty = 1;
 	aino->deleted = 1;
 	de_recycle_aino (unit, aino);
+
+	/* A directory that disappeared on the host can still have cached
+	   children, which point back to it as their parent.  Dispose of them
+	   with it, or, if any of them is still in use, keep it.  */
+	if (aino->child && !dispose_children (unit, aino)) {
+		write_log (_T("FILESYS: keeping deleted directory '%s', its contents are in use\n"), aino->nname);
+		return;
+	}
 
 	/* If any ExKeys are currently pointing at us, advance them.  */
 	if (aino->parent->exnext_count > 0) {
@@ -3651,6 +3669,20 @@ static Key *new_key (Unit *unit)
 	return k;
 }
 
+static bool filedir_exists(Unit *unit, a_inode *aino)
+{
+	struct mystat statbuf;
+	bool ok = true;
+	if (unit->volflags & MYVOLUMEINFO_ARCHIVE)
+		ok = zfile_stat_archive(aino->nname, &statbuf) != 0;
+	else if (unit->volflags & MYVOLUMEINFO_CDFS)
+		ok = isofs_stat(unit->ui.cdfs_superblock, aino->uniq_external, &statbuf);
+	else {
+		ok = my_existsfiledir(aino->nname);
+	}
+	return ok;
+}
+
 #if TRACING_ENABLED
 static void dumplock(TrapContext *ctx, Unit *unit, uaecptr lock)
 {
@@ -3947,12 +3979,19 @@ static void action_lock(TrapContext *ctx, Unit *unit, dpacket *packet)
 	if (err == 0 && (a->elock || (mode != SHARED_LOCK && a->shlock > 0))) {
 		err = ERROR_OBJECT_IN_USE;
 	}
+	if (err == 0) {
+		if (!filedir_exists(unit, a)) {
+			delete_aino(unit, a);
+			err = ERROR_OBJECT_NOT_AROUND;
+		}
+	}
 	/* Lock() doesn't do access checks. */
 	if (err != 0) {
 		PUT_PCK_RES1 (packet, DOS_FALSE);
 		PUT_PCK_RES2 (packet, err);
 		return;
 	}
+
 	if (mode == SHARED_LOCK)
 		a->shlock++;
 	else
@@ -5891,9 +5930,6 @@ static void	action_change_mode(TrapContext *ctx, Unit *unit, dpacket *packet)
 	int type = GET_PCK_ARG1 (packet);
 	/* either a file-handle or lock */
 	uaecptr object = GET_PCK_ARG2 (packet) << 2;
-	/* will be EXCLUSIVE_LOCK/SHARED_LOCK if CHANGE_LOCK,
-	* or MODE_OLDFILE/MODE_NEWFILE/MODE_READWRITE if CHANGE_FH *
-	* Above is wrong, it is always *_LOCK. TW. */
 	int mode = GET_PCK_ARG3 (packet);
 	unsigned long uniq;
 	a_inode *a = NULL, *olda = NULL;
@@ -5922,16 +5958,22 @@ static void	action_change_mode(TrapContext *ctx, Unit *unit, dpacket *packet)
 	if (! a) {
 		err = ERROR_INVALID_LOCK;
 	} else {
+		// EXCLUSIVE_LOCK == -1
 		if (mode == -1) {
-			if (a->shlock > 1) {
-				err = ERROR_OBJECT_IN_USE;
-			} else {
-				a->shlock = 0;
-				a->elock = 1;
+			if (!a->elock) {
+				if (a->shlock > 1) {
+					err = ERROR_OBJECT_IN_USE;
+				} else {
+					a->shlock = 0;
+					a->elock = 1;
+				}
 			}
-		} else { /* Must be SHARED_LOCK == -2 */
-			a->elock = 0;
-			a->shlock++;
+		} else {
+			// SHARED_LOCK == -2 (any other than -1)
+			if (a->elock) {
+				a->elock = 0;
+				a->shlock = 1;
+			}
 		}
 	}
 
@@ -6392,6 +6434,17 @@ static void	action_rename_object(TrapContext *ctx, Unit *unit, dpacket *packet)
 	a2->db_offset = a1->db_offset;
 	a2->dirty = 0;
 	a2->vfso = a1->vfso;
+	/* Files still open under the old name (for reading: renaming a file
+	 * open for writing fails above) keep valid host handles when the
+	 * host rename succeeds, as it does on Unix. Their keys must follow
+	 * the object, since a1 is freed below. */
+	for (k1 = unit->keys; k1; k1 = knext) {
+		knext = k1->next;
+		if (k1->aino == a1) {
+			k1->aino = a2;
+			wehavekeys++;
+		}
+	}
 	move_exkeys (unit, a1, a2);
 	move_aino_children (unit, a1, a2);
 	delete_aino (unit, a1);
@@ -7085,6 +7138,12 @@ static uae_u32 REGPARAM2 exter_int_helper(TrapContext *ctx)
 					return 7;
 				}
 
+				case 7: /* clocksync */
+				{
+					trap_set_areg(ctx, 0, read_comm_pipe_u32_blocking(&native2amiga_pending));
+					return 8;
+				}
+
 				default:
 				write_log(_T("exter_int_helper: unknown native action %X\n"), cmd);
 				break;
@@ -7208,6 +7267,13 @@ static int handle_packet(TrapContext *ctx, Unit *unit, dpacket *pck, uae_u32 msg
 	case ACTION_GET_FILE_POSITION64: action_get_file_position64 (ctx, unit, pck); break;
 	case ACTION_CHANGE_FILE_SIZE64: action_change_file_size64 (ctx, unit, pck); break;
 	case ACTION_GET_FILE_SIZE64: action_get_file_size64 (ctx, unit, pck); break;
+	case ACTION_EXAMINEDATA:
+	case ACTION_EXAMINEDATA_FH:
+	case ACTION_EXAMINEDATA_OBJ:
+	case ACTION_EXAMINEDATA_DIR:
+		PUT_PCK_RES1(pck, DOS_FALSE);
+		PUT_PCK_RES2(pck, ERROR_ACTION_NOT_KNOWN);
+		break;
 
 		/* MOS packet types */
 	case ACTION_SEEK64: action_seek64(ctx, unit, pck); break;
@@ -7503,6 +7569,8 @@ static void filesys_reset2 (void)
 
 void filesys_reset (void)
 {
+	exter_added = false;
+	clock_sync_pending = false;
 	if (isrestore ())
 		return;
 	load_injected_icons();
@@ -8558,11 +8626,16 @@ static int pt_babe(TrapContext *ctx, uae_u8 *bufrdb, UnitInfo *uip, int unit_no,
 
 	bad = rl(bufrdb + 4);
 	if (bad) {
-		if (bad * hfd->ci.blocksize > FILESYS_MAX_BLOCKSIZE)
-			return 0;
-		hdf_read_rdb(hfd, bufrdb2, bad * hfd->ci.blocksize, hfd->ci.blocksize, &error);
-		if (bufrdb2[0] != 0xBA || bufrdb2[1] != 0xD1)
-			return 0;
+		if (bufrdb[0] == 0xba && bufrdb[1] == 0xbe) {
+			if (bad * hfd->ci.blocksize > FILESYS_MAX_BLOCKSIZE)
+				return 0;
+			hdf_read_rdb(hfd, bufrdb2, bad * hfd->ci.blocksize, hfd->ci.blocksize, &error);
+			if (bufrdb2[0] != 0xBA || bufrdb2[1] != 0xD1)
+				return 0;
+		} else {
+			// Only A2090 supports bad blocks. Fireball does not.
+			bad = 0;
+		}
 	}
 
 	if (partnum > 0)
@@ -8866,8 +8939,10 @@ static int rdb_mount (TrapContext *ctx, UnitInfo *uip, int unit_no, int partnum,
 
 	for (rdblock = 0; rdblock < lastblock; rdblock++) {
 		hdf_read_rdb (hfd, bufrdb, rdblock * hfd->ci.blocksize, hfd->ci.blocksize, &error);
-		if (!error && rdblock == 0 && bufrdb[0] == 0xBA && bufrdb[1] == 0xBE) {
-				// A2090 "BABE" partition table?
+		if (!error && rdblock == 0 && (
+			(bufrdb[0] == 0xBA && bufrdb[1] == 0xBE && bufrdb[2] == 0x00 && bufrdb[3] == 0x00) || // A2090
+			(bufrdb[0] == 0x44 && bufrdb[1] == 0x4f && bufrdb[2] == 0x53 && bufrdb[3] == 0x00 && bufrdb[4] == 0xBA && bufrdb[5] == 0xBE))) { // MAST
+				// A2090 or Mast FireBall "BABE" partition table?
 				int v = pt_babe(ctx, bufrdb, uip, unit_no, partnum, parmpacket);
 				if (v)
 					return v;
@@ -9256,6 +9331,7 @@ static uae_u32 REGPARAM2 mousehack_done (TrapContext *ctx)
 		uaecptr diminfo = trap_get_areg(ctx, 2);
 		uaecptr dispinfo = trap_get_areg(ctx, 3);
 		uaecptr vp = trap_get_areg(ctx, 4);
+		exter_added = true;
 		return input_mousehack_status(ctx, mode, diminfo, dispinfo, vp, trap_get_dreg(ctx, 2));
 	} else if (mode == 10) {
 		amiga_clipboard_die(ctx);
@@ -9466,14 +9542,17 @@ void filesys_vsync (void)
 	}
 
 	if (heartbeat == get_long_host(rtarea_bank.baseaddr + RTAREA_HEARTBEAT)) {
-		if (heartbeat_count > 0)
-			heartbeat_count--;
 		if (heartbeat_count_cont > 0)
 			heartbeat_count_cont--;
 		return;
 	}
 	heartbeat = get_long_host(rtarea_bank.baseaddr + RTAREA_HEARTBEAT);
 	heartbeat_count_cont = 10;
+	if (clock_sync_pending) {
+		clock_sync_pending = false;
+		if (currprefs.tod_hack)
+			uae_ClockSync();
+	}
 	cia_heartbeat ();
 
 	for (u = units; u; u = u->next) {
@@ -9505,14 +9584,6 @@ void filesys_vsync (void)
 				hardfile_media_change (hfd, &hfd->delayedci, true, true);
 			}
 		}
-	}
-
-	if (heartbeat_count <= 0)
-		return;
-
-	if (heartbeat_task & 1) {
-		setsystime_vblank ();
-		heartbeat_task &= ~1;
 	}
 
 #ifdef FSUAE
@@ -9639,7 +9710,7 @@ void filesys_install (void)
 	org (rtarea_base + RTAREA_HEARTBEAT);
 	dl (0);
 	heartbeat = 0;
-	heartbeat_task = 0;
+	clock_sync_pending = false;
 
 	org (rtarea_base + 0xFF18);
 	calltrap (deftrap2 (filesys_dev_bootfilesys, 0, _T("filesys_dev_bootfilesys")));

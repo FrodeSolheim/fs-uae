@@ -28,20 +28,17 @@
 #include "inputdevice.h"
 #include "keybuf.h"
 #include "gui.h"
+#include "target_main.h"
 #include "zfile.h"
 #include "autoconf.h"
-#include "picasso96.h"
 #include "native2amiga.h"
 #include "savestate.h"
-#include "filesys.h"
 #include "blkdev.h"
 #include "consolehook.h"
 #include "gfxboard.h"
 #ifdef WITH_LUA
 #include "luascript.h"
 #endif
-#include "uaenative.h"
-#include "tabletlibrary.h"
 #include "cpuboard.h"
 #ifdef WITH_PPC
 #include "uae/ppc.h"
@@ -67,6 +64,7 @@ bool no_gui = 0, quit_to_gui = 0;
 bool cloanto_rom = 0;
 bool kickstart_rom = 1;
 bool console_emulation = 0;
+TCHAR console_path[MAX_DPATH] = { 0 };
 
 struct gui_info gui_data;
 
@@ -367,12 +365,6 @@ void fixup_cpu (struct uae_prefs *p)
 		p->m68k_speed = 0;
 #endif
 
-#if 0
-	if (p->immediate_blits && p->blitter_cycle_exact) {
-		error_log (_T("Cycle-exact and immediate blitter can't be enabled simultaneously.\n"));
-		p->immediate_blits = false;
-	}
-#endif
 	if (p->immediate_blits && p->waiting_blits) {
 		error_log (_T("Immediate blitter and waiting blits can't be enabled simultaneously.\n"));
 		p->waiting_blits = 0;
@@ -486,8 +478,16 @@ void fixup_prefs (struct uae_prefs *p, bool userconfig)
 	}
 #endif
 
+	bool initial_monitor = false;
 	for (int i = 0; i < MAX_RTG_BOARDS; i++) {
 		struct rtgboardconfig *rbc = &p->rtgboards[i];
+		if (rbc->initial_active) {
+			if (initial_monitor) {
+				rbc->initial_active = false;
+				error_log(_T("Only one graphics card can be initial active."));
+			}
+			initial_monitor = true;
+		}
 		if (rbc->monitor_id > 0 && p->monitoremu_mon == rbc->monitor_id) {
 			error_log(_T("Video port monitor %d was allocated for graphics card %d."), rbc->monitor_id + 1, i + 1);
 			p->monitoremu_mon = 0;
@@ -785,8 +785,9 @@ void fixup_prefs (struct uae_prefs *p, bool userconfig)
 #endif
 	}
 #endif
-	if (p->gfx_framerate < 1)
+	if (p->gfx_framerate < 1) {
 		p->gfx_framerate = 1;
+	}
 	if (p->gfx_display_sections < 1) {
 		p->gfx_display_sections = 1;
 	} else if (p->gfx_display_sections > 99) {
@@ -803,12 +804,27 @@ void fixup_prefs (struct uae_prefs *p, bool userconfig)
 		p->maprom = 0;
 	}
 
-	if (p->tod_hack && p->cs_ciaatod == 0)
+	if (p->tod_hack && p->cs_ciaatod == 0) {
 		p->cs_ciaatod = p->ntscmode ? 2 : 1;
+	}
 
 	// PCem does not support max speed.
-	if (p->x86_speed_throttle < 0)
+	if (p->x86_speed_throttle < 0) {
 		p->x86_speed_throttle = 0;
+	}
+
+	if (p->cs_hsyncadjust < 2 * 4 * 2) {
+		p->cs_hsyncadjust = 2 * 4 * 2;
+	}
+	if (p->cs_hsyncadjust > 20 * 4 * 2) {
+		p->cs_hsyncadjust = 20 * 4 * 2;
+	}
+	if (p->cs_vsyncadjust < 0) {
+		p->cs_vsyncadjust = 0;
+	}
+	if (p->cs_vsyncadjust > 20 * 2) {
+		p->cs_vsyncadjust = 20 * 2;
+	}
 
 	built_in_chipset_prefs (p);
 	blkdev_fix_prefs (p);
@@ -833,6 +849,7 @@ void uae_reset (int hardreset, int keyboardreset)
 	currprefs.quitstatefile[0] = changed_prefs.quitstatefile[0] = 0;
 
 	if (quit_program == 0) {
+		consolehook_shutdown();
 		quit_program = -UAE_RESET;
 		if (keyboardreset)
 			quit_program = -UAE_RESET_KEYBOARD;
@@ -847,6 +864,7 @@ void uae_quit (void)
 #ifdef DEBUGGER
 	deactivate_debugger ();
 #endif
+	consolehook_shutdown();
 	if (quit_program != -UAE_QUIT)
 		quit_program = -UAE_QUIT;
 	target_quit ();
@@ -976,6 +994,25 @@ static void parse_cmdline (int argc, TCHAR **argv)
 	started = true;
 
 	for (i = 1; i < argc; i++) {
+		if (_tcsncmp(argv[i], _T("-cli="), 5) == 0 || _tcsncmp(argv[i], _T("--cli="), 6) == 0) {
+			console_emulation = 1;
+			TCHAR *path = _tcschr(argv[i], _T('=')) + 1;
+			if (path && path[0]) {
+				_tcsncpy(console_path, path, MAX_DPATH - 1);
+				console_path[MAX_DPATH - 1] = 0;
+			}
+			continue;
+		}
+		if (_tcscmp(argv[i], _T("-cli")) == 0 || _tcscmp(argv[i], _T("--cli")) == 0) {
+			console_emulation = 1;
+			// Check if next argument is a path (not starting with '-')
+			if (i + 1 < argc && argv[i + 1][0] != _T('-')) {
+				i++;
+				_tcsncpy(console_path, argv[i], MAX_DPATH - 1);
+				console_path[MAX_DPATH - 1] = 0;
+			}
+			continue;
+		}
 		if (!_tcsncmp (argv[i], _T("-diskswapper="), 13)) {
 			TCHAR *txt = parsetextpath (argv[i] + 13);
 			parse_diskswapper (txt);
@@ -1184,7 +1221,7 @@ static int real_main2 (int argc, TCHAR **argv)
 	}
 
 	if (console_emulation) {
-		consolehook_config (&currprefs);
+		consolehook_config (&currprefs, console_path[0] ? console_path : NULL);
 		fixup_prefs (&currprefs, true);
 	}
 
@@ -1330,7 +1367,12 @@ void real_main (int argc, TCHAR **argv)
 #ifndef NO_MAIN_IN_MAIN_C
 int main (int argc, TCHAR **argv)
 {
+	target_main_set_args(argc, argv);
+	const int early_exit = target_main_handle_early(argc, argv);
+	if (early_exit >= 0)
+		return early_exit;
 	real_main (argc, argv);
+	target_main_exit();
 	return 0;
 }
 #endif

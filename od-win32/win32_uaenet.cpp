@@ -9,7 +9,6 @@
 #ifdef FSUAE
 #else
 #include <winsock2.h>
-#include <Ws2tcpip.h>
 #include <Iphlpapi.h>
 #endif
 
@@ -23,8 +22,6 @@ static int ethernet_paused;
 
 #else
 
-#include <stdio.h>
-
 #define HAVE_REMOTE
 #define WPCAP
 #define PCAP_DONT_INCLUDE_PCAP_BPF_H
@@ -35,7 +32,6 @@ static int ethernet_paused;
 #include "ntddndis.h"
 
 #include "options.h"
-#include "traps.h"
 #include "sana2.h"
 
 #include "threaddep/thread.h"

@@ -2,12 +2,14 @@
 /* Direct3D 9 graphics renderer */
 
 #include <windows.h>
-#include "resource.h"
 
 #include "sysconfig.h"
 #include "sysdeps.h"
 
-#if defined (D3D) && defined (GFXFILTER)
+int forcedframelatency = -1;
+int fakemodewaitms;
+
+#if defined (D3D) && defined (GFXFILTER) && defined(WITH_DIRECT3D9)
 
 #define D3DXFX_LARGEADDRESS_HANDLE
 #ifdef D3DXFX_LARGEADDRESS_HANDLE
@@ -24,7 +26,6 @@
 #include "options.h"
 #include "xwin.h"
 #include "custom.h"
-#include "drawing.h"
 #include "render.h"
 #include "win32.h"
 #include "win32gfx.h"
@@ -37,7 +38,6 @@
 #include "threaddep\thread.h"
 
 extern int D3DEX, shaderon, d3ddebug;
-int forcedframelatency = -1;
 
 #include <d3d9.h>
 #include <d3dx9.h>
@@ -52,8 +52,6 @@ static int clearcnt;
 static bool debugcolors;
 static bool noclear;
 static bool cannoclear;
-
-int fakemodewaitms;
 
 static int leds[LED_MAX];
 
@@ -3992,19 +3990,6 @@ static void xD3D_refresh (int monid)
 		D3D_render2(d3d, true, monid);
 		D3D_showframe2(d3d, true);
 	}
-}
-
-void D3D_getpixelformat (int *rb, int *gb, int *bb, int *rs, int *gs, int *bs, int *ab, int *as, int *a)
-{
-	*rb = 8;
-	*gb = 8;
-	*bb = 8;
-	*ab = 8;
-	*rs = 16;
-	*gs = 8;
-	*bs = 0;
-	*as = 24;
-	*a = 0;
 }
 
 static float xD3D_getrefreshrate(int monid)

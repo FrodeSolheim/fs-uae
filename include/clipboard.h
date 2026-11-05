@@ -3,6 +3,9 @@
 
 #include "uae/types.h"
 
+struct TrapContext;
+typedef struct TrapContext TrapContext;
+
 extern int amiga_clipboard_want_data(TrapContext *ctx);
 extern void amiga_clipboard_got_data(TrapContext *ctx, uaecptr data, uae_u32 size, uae_u32 actual);
 extern void amiga_clipboard_die(TrapContext *ctx);
@@ -12,5 +15,6 @@ extern void amiga_clipboard_task_start(TrapContext *ctx, uaecptr);
 extern void clipboard_disable(bool);
 extern void clipboard_vsync(void);
 extern void clipboard_unsafeperiod(void);
+extern void clipboard_host_changed(void);
 
 #endif /* UAE_CLIPBOARD_H */

@@ -240,6 +240,7 @@ extern int input_mousehack_status(TrapContext *ctx, int mode, uaecptr diminfo, u
 extern void input_mousehack_mouseoffset (uaecptr pointerprefs);
 extern int mousehack_alive (void);
 extern void mousehack_wakeup(void);
+extern bool mousehack_pending(void);
 extern void mousehack_write(int reg, uae_u16 val);
 extern void setmouseactive(int monid, int);
 extern bool ismouseactive(void);
@@ -295,9 +296,10 @@ extern uae_u16 JOYGET (int num);
 extern void pulse_joydat(int joy, int xy, int dir);
 
 
-extern void inputdevice_vsync (void);
-extern void inputdevice_hsync (bool);
-extern void inputdevice_reset (void);
+extern void inputdevice_vsync(void);
+extern void inputdevice_hsync(bool);
+extern void inputdevice_hsync_strobe(void);
+extern void inputdevice_reset(void);
 
 extern void write_inputdevice_config (struct uae_prefs *p, struct zfile *f);
 extern void read_inputdevice_config (struct uae_prefs *p, const TCHAR *option, TCHAR *value);
@@ -308,6 +310,7 @@ extern int inputdevice_getjoyportdevice (int port, int val);
 extern void inputdevice_validate_jports (struct uae_prefs *p, int changedport, bool fixedports[MAX_JPORTS][MAX_JPORT_DEVS]);
 extern void inputdevice_fix_prefs(struct uae_prefs *p, bool userconfig);
 extern void inputdevice_jportcustom_fixup(struct uae_prefs *p, TCHAR*, int);
+extern void inputdevice_joyport_keyboard_default(struct uae_prefs *p, const TCHAR *value, int portnum);
 
 extern void inputdevice_init (void);
 extern void inputdevice_close (void);
@@ -373,10 +376,10 @@ extern int handle_custom_event (const TCHAR *custom, int append);
 extern int inputdevice_geteventid(const TCHAR *s);
 extern void inputdevice_playevents(void);
 
-extern int inputdevice_testread (int*, int*, int*, bool);
-extern int inputdevice_istest (void);
-extern void inputdevice_settest (int);
-extern int inputdevice_testread_count (void);
+extern int inputdevice_testread(int*, int*, int*, bool);
+extern int inputdevice_istest(void);
+extern void inputdevice_settest(bool, bool);
+extern int inputdevice_testread_count(void);
 
 bool target_can_autoswitchdevice(void);
 void target_inputdevice_acquire(void);

@@ -1,88 +1,94 @@
 /*
- * Common types used throughout the UAE source code
- * Copyright (C) 2014 Frode Solheim
+ * UAE core integer and character types.
  *
- * Licensed under the terms of the GNU General Public License version 2.
- * See the file 'COPYING' for full license text.
+ * Every translation unit in the emulator gets these, usually after
+ * sysdeps.h, sometimes before it (mame/mameglue.h includes this header
+ * first). The underlying types are fixed and must match the typedefs that
+ * sysdeps.h makes for the 8, 16 and 32-bit names. sysdeps.h also defines
+ * uae_s64/uae_u64 as macros expanding to long long / unsigned long long,
+ * and owns VAL64/UVAL64, so this header only typedefs the 64-bit names
+ * when no such macro exists and never defines VAL64/UVAL64.
+ *
+ * This header is self-contained: it must compile without sysconfig.h,
+ * without UAE defined and with none of the SIZEOF_* macros present, so it
+ * never tests SIZEOF_* and never includes emulator headers.
+ *
+ * Copyright (C) 2026 Dimitris Panokostas
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ *
+ * Clean-room implementation written from a functional description of the
+ * UAE portability interface.
  */
 
 #ifndef UAE_TYPES_H
 #define UAE_TYPES_H
 
-/* This file is intended to be included by external libraries as well,
- * so don't pull in too much UAE-specific stuff. */
-
-#if 0
-#include "config.h"
-#endif
-
-/* Define uae_ integer types. Prefer long long int for uae_x64 since we can
- * then use the %lld format specifier for both 32-bit and 64-bit instead of
- * the ugly PRIx64 macros. */
-
+#ifdef __cplusplus
+#include <cstdint>
+#else
 #include <stdint.h>
-
-typedef int8_t uae_s8;
-typedef uint8_t uae_u8;
-
-typedef int16_t uae_s16;
-typedef uint16_t uae_u16;
-
-typedef int32_t uae_s32;
-typedef uint32_t uae_u32;
-
-//typedef int64_t uae_s64;
-//typedef uint64_t uae_u64;
-
-typedef long long int uae_s64;
-typedef unsigned long long int uae_u64;
-
-#ifdef HAVE___UINT128_T
-#define HAVE_UAE_U128
-typedef __uint128_t uae_u128;
-#endif
-
 /* Parts of the UAE/WinUAE code uses the bool type (from C++).
  * Including stdbool.h lets this be valid also when compiling with C. */
-
-#ifndef __cplusplus
 #include <stdbool.h>
 #endif
 
-/* Use uaecptr to represent 32-bit (or 24-bit) addresses into the Amiga
- * address space. This is a 32-bit unsigned int regardless of host arch. */
+/* TCHAR, SIZEOF_TCHAR, _T() and the _tcs*() mappings. FS-UAE always uses
+ * char-based strings (UTF-8) on non-Windows hosts. */
+#include "uae/tchar.h"
 
-typedef uae_u32 uaecptr;
-
-/* Define UAE character types. WinUAE uses TCHAR (typedef for wchar_t) for
- * many strings. FS-UAE always uses char-based strings in UTF-8 format.
- * Defining SIZEOF_TCHAR lets us determine whether to include overloaded
- * functions in some cases or not. */
+/* Fixed-width emulator types. short/int/long long are 16/32/64 bits on
+ * every supported target (ILP32, LP64 and LLP64 alike). */
+typedef signed char uae_s8;
+typedef unsigned char uae_u8;
+typedef signed short uae_s16;
+typedef unsigned short uae_u16;
+typedef signed int uae_s32;
+typedef unsigned int uae_u32;
+/* sysdeps.h may already have defined these as macros of the same types. */
+#ifndef uae_s64
+typedef long long uae_s64;
+#endif
+#ifndef uae_u64
+typedef unsigned long long uae_u64;
+#endif
 
 typedef char uae_char;
 
-#include "uae/tchar.h"
+/* Amiga address (32-bit address space, even on 64-bit hosts) */
+typedef uae_u32 uaecptr;
 
+/* Emulator cycle counter (events.h) */
+typedef signed long long evt_t;
+
+/* Booleans. FALSE must be exactly 0 because mameglue.h redefines it
+ * unguarded. */
 #ifndef FALSE
 #define FALSE 0
 #endif
 #ifndef TRUE
-#define TRUE (!FALSE)
+#define TRUE 1
 #endif
 
-typedef signed long long evt_t;
+/* Win32-style sized integers used by the MAME-derived sources. Windows
+ * provides this group via <basetsd.h> (pulled in by <windows.h>); if that
+ * header comes later it repeats the same types, which is valid. */
+#ifndef _BASETSD_H_
+typedef signed char INT8;
+typedef signed short INT16;
+typedef signed int INT32;
+typedef signed long long INT64;
+typedef unsigned char UINT8;
+typedef unsigned short UINT16;
+typedef unsigned int UINT32;
+typedef unsigned long long UINT64;
+#endif
 
-#ifdef _WIN32
-// Presumable these type names already exists on win32
-#else
-typedef int8_t INT8;
-typedef int16_t INT16;
-typedef int32_t INT32;
-typedef int64_t INT64;
-typedef uint8_t UINT8;
-typedef uint16_t UINT16;
-typedef uint32_t UINT32;
-typedef uint64_t UINT64;
+#ifdef __cplusplus
+static_assert(sizeof(uae_s8) == 1 && sizeof(uae_u8) == 1, "uae_s8/uae_u8 must be 8 bit");
+static_assert(sizeof(uae_s16) == 2 && sizeof(uae_u16) == 2, "uae_s16/uae_u16 must be 16 bit");
+static_assert(sizeof(uae_s32) == 4 && sizeof(uae_u32) == 4, "uae_s32/uae_u32 must be 32 bit");
+static_assert(sizeof(uae_s64) == 8 && sizeof(uae_u64) == 8, "uae_s64/uae_u64 must be 64 bit");
+static_assert(sizeof(evt_t) == 8, "evt_t must be 64 bit");
 #endif
 
 #endif /* UAE_TYPES_H */

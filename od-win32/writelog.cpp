@@ -54,20 +54,17 @@ static void premsg (void)
 
 #define SHOW_CONSOLE 0
 
-static int nodatestamps = 0;
-
 int consoleopen = 0;
 static int realconsole;
 static HANDLE stdinput,stdoutput;
-static int bootlogmode;
 static CRITICAL_SECTION cs;
 static int cs_init;
+static bool logtostdoutput;
 
 FILE *debugfile = NULL;
 int console_logging = 0;
 static int debugger_type = -1;
 extern BOOL debuggerinitializing;
-extern bool lof_store;
 static int console_input_linemode = -1;
 int always_flush_log = 0;
 TCHAR *conlogfile = NULL;
@@ -88,7 +85,7 @@ static HWND myGetConsoleWindow (void)
 	return GetConsoleWindow ();
 }
 
-static void set_console_input_mode(int line)
+void set_console_input_mode(int line)
 {
 	if (console_input_linemode < 0)
 		return;
@@ -110,8 +107,8 @@ static void getconsole (void)
 {
 	CONSOLE_SCREEN_BUFFER_INFO csbi;
 
-	stdinput = GetStdHandle (STD_INPUT_HANDLE);
-	stdoutput = GetStdHandle (STD_OUTPUT_HANDLE);
+	stdinput = GetStdHandle(STD_INPUT_HANDLE);
+	stdoutput = GetStdHandle(STD_OUTPUT_HANDLE);
 	SetConsoleMode (stdinput, ENABLE_PROCESSED_INPUT|ENABLE_LINE_INPUT|ENABLE_ECHO_INPUT|ENABLE_PROCESSED_OUTPUT);
 	console_input_linemode = 1;
 	SetConsoleCP (65001);
@@ -159,6 +156,9 @@ void activate_console(void)
 
 static void open_console_window (void)
 {
+	if (logtostdoutput) {
+		return;
+	}
 	if (!consoleopen) {
 		previousactivewindow = GetForegroundWindow();
 	}
@@ -166,6 +166,11 @@ static void open_console_window (void)
 	getconsole ();
 	consoleopen = -1;
 	reopen_console ();
+}
+
+bool is_interactive_console(void)
+{
+	return !logtostdoutput;
 }
 
 static void openconsole (void)
@@ -230,6 +235,8 @@ void reopen_console (void)
 	if (realconsole)
 		return;
 	if (consoleopen >= 0)
+		return;
+	if (logtostdoutput)
 		return;
 	hwnd = myGetConsoleWindow ();
 	if (hwnd) {
@@ -534,41 +541,6 @@ void console_flush (void)
 
 static int lfdetected = 1;
 
-TCHAR *write_log_get_ts(void)
-{
-	struct tm *t;
-	struct _timeb tb;
-	static TCHAR out[100];
-	TCHAR *p;
-	static TCHAR lastts[100];
-	TCHAR curts[100];
-
-	if (bootlogmode)
-		return NULL;
-	if (nodatestamps)
-		return NULL;
-	if (!vsync_counter)
-		return NULL;
-	_ftime (&tb);
-	t = localtime (&tb.time);
-	_tcsftime (curts, sizeof curts / sizeof (TCHAR), _T("%Y-%m-%d %H:%M:%S\n"), t);
-	p = out;
-	*p = 0;
-	if (_tcsncmp (curts, lastts, _tcslen (curts) - 3)) { // "xx\n"
-		_tcscat (p, curts);
-		p += _tcslen (p);
-		_tcscpy (lastts, curts);
-	}
-	_tcsftime (p, sizeof out / sizeof (TCHAR) - (p - out) , _T("%S-"), t);
-	p += _tcslen (p);
-	_stprintf (p, _T("%03d"), tb.millitm);
-	p += _tcslen (p);
-	if (vsync_counter != 0xffffffff)
-		_stprintf (p, _T(" [%d %03d%s%03d/%03d]"), vsync_counter, current_hpos_safe(), lof_store ? _T("-") : _T("="), vpos, linear_vpos);
-	_tcscat (p, _T(": "));
-	return out;
-}
-
 void write_dlog (const TCHAR *format, ...)
 {
 	int count;
@@ -640,8 +612,9 @@ void write_logx(const TCHAR *format, ...)
 	TCHAR *bufp;
 	va_list parms;
 
-	if (!cs_init)
+	if (!cs_init) {
 		return;
+	}
 
 	EnterCriticalSection (&cs);
 	va_start (parms, format);
@@ -650,8 +623,9 @@ void write_logx(const TCHAR *format, ...)
 		count = _vsntprintf (bufp, bufsize - 1, format, parms);
 		if (count < 0) {
 			bufsize *= 10;
-			if (bufp != buffer)
+			if (bufp != buffer) {
 				xfree (bufp);
+			}
 			bufp = xmalloc (TCHAR, bufsize);
 			continue;
 		}
@@ -665,11 +639,13 @@ void write_logx(const TCHAR *format, ...)
 		_ftprintf (debugfile, _T("%s"), bufp);
 	}
 	lfdetected = 0;
-	if (bufp[0] != '\0' && bufp[_tcslen (bufp) - 1] == '\n')
+	if (bufp[0] != '\0' && bufp[_tcslen (bufp) - 1] == '\n') {
 		lfdetected = 1;
+	}
 	va_end (parms);
-	if (bufp != buffer)
+	if (bufp != buffer) {
 		xfree (bufp);
+	}
 	LeaveCriticalSection (&cs);
 }
 
@@ -681,16 +657,19 @@ void write_log (const TCHAR *format, ...)
 	TCHAR *bufp;
 	va_list parms;
 
-	if (!SHOW_CONSOLE && !console_logging && !debugfile)
+	if (!SHOW_CONSOLE && !console_logging && !debugfile) {
 		return;
+	}
 
-	if (!cs_init)
+	if (!cs_init) {
 		return;
+	}
 
 	premsg ();
 
-	if (!_tcsicmp (format, _T("*")))
+	if (!_tcsicmp (format, _T("*"))) {
 		count = 0;
+	}
 
 	EnterCriticalSection (&cs);
 	va_start (parms, format);
@@ -707,20 +686,35 @@ void write_log (const TCHAR *format, ...)
 		break;
 	}
 	bufp[bufsize - 1] = 0;
-	if (!_tcsncmp (bufp, _T("write "), 6))
+	if (!_tcsncmp (bufp, _T("write "), 6)) {
 		bufsize--;
+	}
 	ts = write_log_get_ts();
-	if (bufp[0] == '*')
+	if (bufp[0] == '*') {
 		count++;
+	}
 	if (SHOW_CONSOLE || console_logging) {
-		if (lfdetected && ts)
+		if (lfdetected && ts) {
 			writeconsole (ts);
+		}
 		writeconsole (bufp);
 	}
 	if (debugfile) {
-		if (lfdetected && ts)
+		if (lfdetected && ts) {
 			_ftprintf (debugfile, _T("%s"), ts);
+		}
 		_ftprintf (debugfile, _T("%s"), bufp);
+	}
+	if (logtostdoutput) {
+		DWORD temp;
+		if (lfdetected && ts) {
+			char *utf8_ts = uutf8(ts);
+			WriteFile(stdoutput, utf8_ts, (DWORD)strlen(utf8_ts), &temp, NULL);
+			xfree(utf8_ts);
+		}
+		char *utf8 = uutf8(bufp);
+		WriteFile(stdoutput, utf8, (DWORD)strlen(utf8), &temp, NULL);
+		xfree(utf8);
 	}
 
 #if 0
@@ -734,20 +728,27 @@ void write_log (const TCHAR *format, ...)
 #endif
 
 	lfdetected = 0;
-	if (bufp[0] != '\0' && bufp[_tcslen (bufp) - 1] == '\n')
+	if (bufp[0] != '\0' && bufp[_tcslen (bufp) - 1] == '\n') {
 		lfdetected = 1;
+	}
 	va_end (parms);
-	if (bufp != buffer)
+	if (bufp != buffer) {
 		xfree (bufp);
-	if (always_flush_log)
+	}
+	if (always_flush_log) {
 		flush_log ();
+		if (logtostdoutput) {
+			FlushFileBuffers(stdoutput);
+		}
+	}
 	LeaveCriticalSection (&cs);
 }
 
 void flush_log (void)
 {
-	if (debugfile)
+	if (debugfile) {
 		fflush (debugfile);
+	}
 	flushconsole ();
 }
 
@@ -758,8 +759,9 @@ void f_out (void *f, const TCHAR *format, ...)
 	va_list parms;
 	va_start (parms, format);
 
-	if (f == NULL || !consoleopen)
+	if (f == NULL || !consoleopen) {
 		return;
+	}
 	count = _vsntprintf (buffer, WRITE_LOG_BUF_SIZE - 1, format, parms);
 	openconsole ();
 	writeconsole (buffer);
@@ -772,8 +774,9 @@ TCHAR *buf_out(TCHAR *buffer, int *bufsize, const TCHAR *format, ...)
 	va_list parms;
 	va_start (parms, format);
 
-	if (buffer == NULL)
+	if (buffer == NULL) {
 		return 0;
+	}
 	count = _vsntprintf(buffer, (*bufsize) - 1, format, parms);
 	va_end (parms);
 	*bufsize -= uaetcslen(buffer);
@@ -784,8 +787,17 @@ FILE *log_open (const TCHAR *name, int append, int bootlog, TCHAR *outpath)
 {
 	FILE *f = NULL;
 
-	if (!cs_init)
+	if (!cs_init) {
 		InitializeCriticalSection (&cs);
+		HANDLE so = GetStdHandle(STD_OUTPUT_HANDLE);
+		if (so) {
+			if (GetFileType(so) == FILE_TYPE_DISK) {
+				logtostdoutput = true;
+				stdinput = GetStdHandle(STD_INPUT_HANDLE);
+				stdoutput = so;
+			}
+		}
+	}
 	cs_init = 1;
 
 	if (name != NULL) {
@@ -814,7 +826,7 @@ FILE *log_open (const TCHAR *name, int append, int bootlog, TCHAR *outpath)
 			}
 		}
 	}
-	bootlogmode = bootlog;
+	log_nodatestamps = bootlog;
 	return f;
 }
 

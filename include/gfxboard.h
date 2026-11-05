@@ -30,6 +30,8 @@ extern struct gfxboard_func *gfxboard_get_func(struct rtgboardconfig *rbc);
 extern int gfxboard_get_index_from_id(int);
 extern int gfxboard_get_id_from_index(int);
 extern bool gfxboard_switch_away(int monid);
+extern int gfxboard_monitor_visible(struct rtgboardconfig*);
+extern void gfxboard_reset_init(void);
 
 extern bool gfxboard_allocate_slot(int, int);
 extern void gfxboard_free_slot(int);
@@ -58,8 +60,6 @@ void gfxboard_get_a8_vram(int index);
 void gfxboard_free_vram(int index);
 
 int gfxboard_get_devnum(struct uae_prefs *p, int index);
-
-int pcem_getvramsize(void);
 
 void gfxboard_intreq(void *p, int act, bool safe);
 

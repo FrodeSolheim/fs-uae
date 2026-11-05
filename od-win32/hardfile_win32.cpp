@@ -8,7 +8,6 @@
 
 #include "resource.h"
 
-#include "threaddep/thread.h"
 #include "options.h"
 #include "filesys.h"
 #include "blkdev.h"
@@ -34,12 +33,10 @@
 #include <ntddstor.h>
 #include <winioctl.h>
 #include <initguid.h>   // Guid definition
-#include <devguid.h>    // Device guids
 #include <setupapi.h>   // for SetupDiXxx functions.
 #include <cfgmgr32.h>   // for SetupDiXxx functions.
 #include <Ntddscsi.h>
 #endif
-#include <stddef.h>
 
 static int usefloppydrives = 0;
 static int num_drives;
@@ -457,16 +454,18 @@ static int safetycheck (HANDLE h, const TCHAR *name, uae_u64 offset, uae_u8 *buf
 			return -8;
 		}
 		if (mounted < 0) {
-			write_log (_T("hd ignored, NTFS partitions\n"));
+			write_log (_T("NTFS partitions\n"));
 			return 0;
 		}
 		if (mounted > 1) {
 			return 3;
 		}
 		if (ptype == PARTITION_STYLE_GPT) {
+			write_log(_T("PARTITION_STYLE_GPT\n"));
 			return -11;
 		}
 		if (ptype == PARTITION_STYLE_MBR) {
+			write_log(_T("PARTITION_STYLE_MBR\n"));
 			return -6;
 		}
 		return -10;
@@ -507,6 +506,9 @@ static INT_PTR CALLBACK ProgressDialogProc (HWND hDlg, UINT msg, WPARAM wParam, 
 	switch(msg)
 	{
 	case WM_DESTROY:
+		if (cdstate.active) {
+			CustomDialogClose(hDlg, 0);
+		}
 		PostQuitMessage(0);
 		return TRUE;
 	case WM_CLOSE:
@@ -1898,7 +1900,7 @@ static bool getdeviceinfo(HANDLE hDevice, struct uae_driveinfo *udi)
 		return false;
 	udi->size = gli.Length.QuadPart;
 
-	// check for amithlon partitions, if any found = quick mount not possible
+	// check for amithlon partitions, if none found = quick mount not possible
 	status = DeviceIoControl(hDevice, IOCTL_DISK_GET_DRIVE_LAYOUT_EX, NULL, 0,
 		&outBuf, sizeof (outBuf), &returnedLength, NULL);
 	if (!status)
@@ -1909,11 +1911,7 @@ static bool getdeviceinfo(HANDLE hDevice, struct uae_driveinfo *udi)
 	if (dli->PartitionStyle == PARTITION_STYLE_MBR) {
 		for (int i = 0; i < dli->PartitionCount; i++) {
 			PARTITION_INFORMATION_EX *pi = &dli->PartitionEntry[i];
-			if (pi->Mbr.PartitionType == PARTITION_ENTRY_UNUSED)
-				continue;
-			if (pi->Mbr.RecognizedPartition == 0)
-				continue;
-			if (i + 1 == amipart) {
+			if (pi->PartitionNumber == amipart) {
 				udi->offset = pi->StartingOffset.QuadPart;
 				udi->size = pi->PartitionLength.QuadPart;
 				return false;
@@ -2091,8 +2089,11 @@ int hdf_open_target (struct hardfiledata *hfd, const TCHAR *pname)
 			_tcscat (udi->device_full_path, p);
 			_tcscpy (udi->device_name, name);
 			_tcscpy (udi->device_path, p);
-			if (!getdeviceinfo (h, udi))
+			if (!getdeviceinfo(h, udi)) {
 				udi = NULL;
+			} else {
+				write_log("- Partition start: %I64d, size: %I64d \n", udi->offset, udi->size);
+			}
 			CloseHandle (h);
 			h = INVALID_HANDLE_VALUE;
 		}
@@ -2119,18 +2120,18 @@ int hdf_open_target (struct hardfiledata *hfd, const TCHAR *pname)
 
 			flags = FILE_ATTRIBUTE_NORMAL | FILE_FLAG_RANDOM_ACCESS;
 			h = CreateFile (udi->device_path,
-				rw | (hfd->ci.readonly && !chs ? 0 : GENERIC_WRITE),
-				srw | (hfd->ci.readonly && !chs ? 0 : FILE_SHARE_WRITE),
-				NULL, OPEN_EXISTING, flags, NULL);
+					rw | (hfd->ci.readonly && !chs ? 0 : GENERIC_WRITE),
+					srw | (hfd->ci.readonly && !chs ? 0 : FILE_SHARE_WRITE),
+					NULL, OPEN_EXISTING, flags, NULL);
 			hfd->handle->h = h;
 			if (h == INVALID_HANDLE_VALUE && !hfd->ci.readonly) {
 				DWORD err = GetLastError();
 				write_log(_T("Real HD open (RW) error: %d\n"), err);
 				if (err == ERROR_WRITE_PROTECT || err == ERROR_SHARING_VIOLATION) {
 					h = CreateFile (udi->device_path,
-						GENERIC_READ,
-						FILE_SHARE_READ,
-						NULL, OPEN_EXISTING, flags, NULL);
+							GENERIC_READ,
+							FILE_SHARE_READ,
+							NULL, OPEN_EXISTING, flags, NULL);
 					if (h != INVALID_HANDLE_VALUE) {
 						hfd->ci.readonly = true;
 						write_log(_T("Real HD open succeeded in read-only mode\n"));
@@ -2158,8 +2159,9 @@ int hdf_open_target (struct hardfiledata *hfd, const TCHAR *pname)
 				hfd->flags |= HFD_FLAGS_REALDRIVEPARTITION;
 			if (hfd->offset == 0 && !hfd->drive_empty) {
 				int sf = safetycheck (hfd->handle->h, udi->device_path, 0, hfd->cache, hfd->ci.blocksize, hfd->identity, udi->chsdetected, NULL);
-				if (sf > 0)
+				if (sf > 0) {
 					goto end;
+				}
 				if (sf == 0 && !hfd->ci.readonly && harddrive_dangerous != 0x1234dead) {
 					write_log (_T("'%s' forced read-only, safetycheck enabled\n"), udi->device_path);
 					hfd->dangerous = 1;
@@ -2290,8 +2292,8 @@ emptyreal:
 		}
 	}
 	if (hfd->handle_valid || hfd->drive_empty) {
-		hfd_log (_T("HDF '%s' %p opened, size=%dK mode=%d empty=%d\n"),
-			name, hfd, (int)(hfd->physsize / 1024), hfd->handle_valid, hfd->drive_empty);
+		hfd_log (_T("HDF '%s' %p opened, size=%dK (0x%llx) mode=%d empty=%d\n"),
+			name, hfd, (int)(hfd->physsize / 1024), hfd->physsize, hfd->handle_valid, hfd->drive_empty);
 		return 1;
 	}
 end:
@@ -2377,9 +2379,7 @@ static int hdf_seek (struct hardfiledata *hfd, uae_u64 offset, bool write)
 		abort();
 	}
 	if (hfd->physsize) {
-		if (offset >= hfd->physsize - hfd->virtual_size) {
-			if (hfd->virtual_rdb)
-				return -1;
+		if (offset >= hfd->physsize) {
 			if (write) {
 				gui_message (_T("hd: tried to seek out of bounds! (%I64X >= %I64X - %I64X)\n"), offset, hfd->physsize, hfd->virtual_size);
 				abort ();
@@ -2403,15 +2403,16 @@ static int hdf_seek (struct hardfiledata *hfd, uae_u64 offset, bool write)
 		LARGE_INTEGER fppos;
 		fppos.QuadPart = offset;
 		ret = SetFilePointer(hfd->handle->h, fppos.LowPart, &fppos.HighPart, FILE_BEGIN);
-		if (ret == INVALID_SET_FILE_POINTER && GetLastError() != NO_ERROR)
+		if (ret == INVALID_SET_FILE_POINTER && GetLastError() != NO_ERROR) {
 			return -1;
+		}
 	} else if (hfd->handle_valid == HDF_HANDLE_ZFILE) {
 		zfile_fseek (hfd->handle->zf, (long)offset, SEEK_SET);
 	}
 	return 0;
 }
 
-static void poscheck (struct hardfiledata *hfd, int len)
+static void poscheck(struct hardfiledata *hfd, int len)
 {
 	DWORD err;
 	uae_s64 pos = -1;
@@ -2419,35 +2420,35 @@ static void poscheck (struct hardfiledata *hfd, int len)
 	if (hfd->handle_valid == HDF_HANDLE_WIN32_NORMAL) {
 		LARGE_INTEGER fppos;
 		fppos.QuadPart = 0;
-		fppos.LowPart = SetFilePointer (hfd->handle->h, 0, &fppos.HighPart, FILE_CURRENT);
+		fppos.LowPart = SetFilePointer(hfd->handle->h, 0, &fppos.HighPart, FILE_CURRENT);
 		if (fppos.LowPart == INVALID_SET_FILE_POINTER) {
-			err = GetLastError ();
+			err = GetLastError();
 			if (err != NO_ERROR) {
-				gui_message (_T("hd: poscheck failed. seek failure, error %d"), err);
-				abort ();
+				gui_message(_T("hd: poscheck failed. seek failure, error %d"), err);
+				abort();
 			}
 		}
 		pos = fppos.QuadPart;
 	} else if (hfd->handle_valid == HDF_HANDLE_ZFILE) {
-		pos = zfile_ftell (hfd->handle->zf);
+		pos = zfile_ftell(hfd->handle->zf);
 	} else if (hfd->handle_valid == HDF_HANDLE_WIN32_CHS) {
 		pos = 0;
 	}
 	if (len < 0) {
-		gui_message (_T("hd: poscheck failed, negative length! (%d)"), len);
-		abort ();
+		gui_message(_T("hd: poscheck failed, negative length! (%d)"), len);
+		abort();
 	}
 	if (pos < hfd->offset) {
-		gui_message (_T("hd: poscheck failed, offset out of bounds! (%I64d < %I64d)"), pos, hfd->offset);
-		abort ();
+		gui_message(_T("hd: poscheck failed, offset out of bounds! (%I64d < %I64d)"), pos, hfd->offset);
+		abort();
 	}
-	if (pos >= hfd->offset + hfd->physsize - hfd->virtual_size || pos >= hfd->offset + hfd->physsize + len - hfd->virtual_size) {
-		gui_message (_T("hd: poscheck failed, offset out of bounds! (%I64d >= %I64d, LEN=%d)"), pos, hfd->offset + hfd->physsize, len);
-		abort ();
+	if (pos >= hfd->offset + hfd->physsize) {
+		gui_message(_T("hd: poscheck failed, offset out of bounds! (%I64d >= %I64d, LEN=%d)"), pos, hfd->offset + hfd->physsize, len);
+		abort();
 	}
 	if (pos & (hfd->ci.blocksize - 1)) {
-		gui_message (_T("hd: poscheck failed, offset not aligned to blocksize! (%I64X & %04X = %04X\n"), pos, hfd->ci.blocksize, pos & hfd->ci.blocksize);
-		abort ();
+		gui_message(_T("hd: poscheck failed, offset not aligned to blocksize! (%I64X & %04X = %04X\n"), pos, hfd->ci.blocksize, pos & hfd->ci.blocksize);
+		abort();
 	}
 }
 
@@ -2583,8 +2584,9 @@ static int hdf_read_2(struct hardfiledata *hfd, void *buffer, uae_u64 offset, in
 		return len;
 	}
 	hfd->cache_offset = offset;
-	if (offset + CACHE_SIZE > hfd->offset + (hfd->physsize - hfd->virtual_size))
-		hfd->cache_offset = hfd->offset + (hfd->physsize - hfd->virtual_size) - CACHE_SIZE;
+	if (offset + CACHE_SIZE > hfd->offset + hfd->physsize) {
+		hfd->cache_offset = hfd->offset + hfd->physsize - CACHE_SIZE;
+	}
 	if (hdf_seek(hfd, hfd->cache_offset, false)) {
 		*error = 45;
 		return 0;
@@ -3232,8 +3234,9 @@ static BOOL GetDevicePropertyFromName(const TCHAR *DevicePath, DWORD Index, DWOR
 		udi->heads = dg.TracksPerCylinder;
 	}
 
-	if (gli_ok && gli.Length.QuadPart)
+	if (gli_ok && gli.Length.QuadPart) {
 		udi->size = gli.Length.QuadPart;
+	}
 
 	if (ischs(udi->identity) && gli.Length.QuadPart == 0) {
 		int c, h, s;
@@ -3271,6 +3274,11 @@ static BOOL GetDevicePropertyFromName(const TCHAR *DevicePath, DWORD Index, DWOR
 				write_log (_T("%d: num: %d type: %02X offset: %I64d size: %I64d, "), i,
 					pi->PartitionNumber, pi->Mbr.PartitionType, pi->StartingOffset.QuadPart, pi->PartitionLength.QuadPart);
 
+				if (pi->PartitionLength.QuadPart == 0) {
+					write_log(_T("zero size\n"));
+					continue;
+				}
+
 				bool accepted = false;
 				if (i == 0) {
 					// check if drive is MBR partitioned with RDB on top of it.
@@ -3282,7 +3290,6 @@ static BOOL GetDevicePropertyFromName(const TCHAR *DevicePath, DWORD Index, DWOR
 
 				if (!accepted && (pi->Mbr.RecognizedPartition == 0 || pi->Mbr.PartitionType == PARTITION_ENTRY_UNUSED)) {
 					write_log(_T("unrecognized\n"));
-					udi->readonly = readonly ? 2 : 0;
 					continue;
 				}
 
@@ -3354,14 +3361,16 @@ static BOOL GetDevicePropertyFromName(const TCHAR *DevicePath, DWORD Index, DWOR
 			}
 
 		} else {
-			write_log (_T("no MBR partition table detected, checking for RDB\n"));
+			write_log (_T("no MBR or GPT partition table detected\n"));
 		}
 	}
 checkrdb:
 	if (udi->offset == 0 && udi->size) {
 		udi->dangerous = safetycheck (hDevice, udi->device_path, 0, buffer, dg.BytesPerSector, udi->identity, udi->chsdetected, NULL);
-		if (udi->dangerous > 0)
+		if (udi->dangerous > 0) {
+			write_log("Drive not added: %d\n", udi->dangerous);
 			goto end;
+		}
 	}
 amipartfound:
 	_stprintf (udi2->device_name, _T(":%s"), orgname);

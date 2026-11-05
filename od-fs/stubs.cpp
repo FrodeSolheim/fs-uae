@@ -205,7 +205,7 @@ struct netdriverdata **target_ethernet_enumerate(void)
 	return ndd;
 }
 
-bool gui_ask_disk(int drv, TCHAR *name)
+bool gui_ask_disk(int drv, TCHAR *name, int name_len)
 {
     STUB("");
     return false;

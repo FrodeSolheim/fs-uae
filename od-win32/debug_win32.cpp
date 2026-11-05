@@ -9,8 +9,6 @@
 #include "sysconfig.h"
 #include "sysdeps.h"
 
-#include <string.h>
-#include <stdlib.h>
 #include <windows.h>
 #include <windowsx.h>
 #include <commctrl.h>
@@ -21,8 +19,6 @@
 #include "memory.h"
 #include "custom.h"
 #include "newcpu.h"
-#include "cia.h"
-#include "disk.h"
 #include "debug.h"
 #include "identify.h"
 #include "savestate.h"
@@ -31,8 +27,6 @@
 #include "registry.h"
 #include "win32gui.h"
 #include "fpp.h"
-
-#include "uae.h"
 
 static HWND hDbgWnd = 0;
 static HWND hOutput = 0;

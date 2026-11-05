@@ -50,6 +50,13 @@ extern int _daylight;
 #define _tzset tzset
 #define _istalnum isalnum
 
+// Names used by (newer) shared WinUAE code which od-unix/tchar.h and
+// od-unix/sysconfig.h provide in the upstream unix port.
+#define _tfopen fopen
+#define _stricmp strcasecmp
+#define _strnicmp strncasecmp
+#define swscanf_s sscanf
+
 #endif
 
 // needed by e.g drawing.cpp

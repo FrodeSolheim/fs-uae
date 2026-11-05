@@ -40,7 +40,8 @@ using namespace std;
 #define UAE
 #endif
 
-#if defined(_M_ARM64) || defined(_M_ARM64EC) || defined(__aarch64__)
+#if defined(__aarch64__) || defined(_M_ARM64) || defined(_M_ARM64EC) 
+#define CPU_AARCH64 1
 #define CPU_arm 1
 #define ARM_ASSEMBLY 1
 #define CPU_64_BIT 1
@@ -71,6 +72,9 @@ using namespace std;
 #define JITCALL __fastcall
 #elif defined(CPU_x86_64)
 /* Parameters are passed in RDI, RSI by default (System V AMD64 ABI). */
+#define JITCALL
+#elif defined(CPU_arm) || defined(CPU_AARCH64)
+/* ARM/ARM64: parameters are passed in registers by default. */
 #define JITCALL
 #elif defined(HAVE_FUNC_ATTRIBUTE_REGPARM)
 /* Parameters are passed in EAX, EDX on x86 with regparm(2). */
@@ -462,9 +466,11 @@ extern void flush_log (void);
 extern TCHAR *setconsolemode (TCHAR *buffer, int maxlen);
 extern void close_console (void);
 extern void open_console(void);
+extern bool is_interactive_console(void);
 extern void reopen_console(void);
 extern void activate_console(void);
 extern void deactivate_console(void);
+extern void set_console_input_mode(int);
 extern void console_out (const TCHAR *);
 extern void console_out_f (const TCHAR *, ...);
 extern void console_flush (void);
@@ -480,6 +486,7 @@ extern void logging_init (void);
 extern FILE *log_open (const TCHAR *name, int append, int bootlog, TCHAR*);
 extern void log_close (FILE *f);
 extern TCHAR *write_log_get_ts(void);
+extern int log_nodatestamps;
 extern bool is_console_open(void);
 
 extern bool use_long_double;

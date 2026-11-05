@@ -33,6 +33,7 @@
 #define A_ZIP
 // #define A_RAR
 #define A_7Z
+#define UAE_7Z_SDK_1604
 #define A_LHA
 #define A_LZX
 #define A_DMS

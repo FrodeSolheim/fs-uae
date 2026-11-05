@@ -15,8 +15,6 @@
 #include "threaddep/thread.h"
 #include "options.h"
 #include "memory.h"
-#include "custom.h"
-#include "newcpu.h"
 #include "autoconf.h"
 #include "traps.h"
 #include "native2amiga.h"
@@ -107,7 +105,7 @@ void uae_Signal_with_Func(uaecptr task, uae_u32 mask, UAE_PROCESSED state)
 {
 	uae_nativesem_wait();
 	write_comm_pipe_int(&native2amiga_pending, 0 | 0x80, 0);
-	write_comm_pipe_pvoid(&native2amiga_pending, (void *) state, 0);
+	write_comm_pipe_pvoid(&native2amiga_pending, (void*)state, 0);
 	write_comm_pipe_u32(&native2amiga_pending, task, 0);
 	write_comm_pipe_int(&native2amiga_pending, mask, 1);
 	do_uae_int_requested();
@@ -140,6 +138,15 @@ void uae_ShellExecute2(uae_u32 id)
 	uae_nativesem_wait();
 	write_comm_pipe_int(&native2amiga_pending, 6, 0);
 	write_comm_pipe_int(&native2amiga_pending, id, 1);
+	do_uae_int_requested();
+	uae_nativesem_post();
+}
+
+void uae_ClockSync(void)
+{
+	uae_nativesem_wait();
+	write_comm_pipe_int(&native2amiga_pending, 7, 0);
+	write_comm_pipe_int(&native2amiga_pending, 0, 1);
 	do_uae_int_requested();
 	uae_nativesem_post();
 }

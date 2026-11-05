@@ -13,7 +13,12 @@
 
 #else
 
-#define _strtoui64 strtoll
+#include <stdlib.h>
+
+/* The _tcs*, _tstoi etc. mappings are provided by uae/tchar.h */
+#ifndef _strtoui64
+#define _strtoui64 strtoull
+#endif
 #define _vsnprintf vsnprintf
 
 #endif

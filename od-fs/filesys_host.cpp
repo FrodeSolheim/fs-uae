@@ -192,6 +192,13 @@ int my_existsdir(const char *name) {
     return fs_path_is_dir(name);
 }
 
+bool my_existsfiledir(const char *name) {
+    if (g_fsdb_debug) {
+        write_log("my_existsfiledir %s\n", name);
+    }
+    return fs_path_is_file(name) || fs_path_is_dir(name);
+}
+
 uae_s64 my_fsize(struct my_openfile_s* mos) {
     struct fs_stat sonuc;
     if (fs_fstat(mos->fd, &sonuc) == -1) {

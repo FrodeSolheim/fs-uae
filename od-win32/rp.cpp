@@ -1,7 +1,4 @@
 
-#include <stdlib.h>
-#include <stdarg.h>
-#include <signal.h>
 
 #include <windows.h>
 
@@ -13,20 +10,15 @@
 #include "options.h"
 #include "uae.h"
 #include "inputdevice.h"
-#include "audio.h"
 #include "sound.h"
 #include "disk.h"
 #include "xwin.h"
 #include "custom.h"
-#include "memory.h"
-#include "newcpu.h"
 #include "picasso96_win.h"
 #include "win32.h"
 #include "win32gfx.h"
 #include "filesys.h"
 #include "savestate.h"
-#include "gfxfilter.h"
-#include "blkdev.h"
 #include "registry.h"
 #include "win32gui.h"
 #include "drawing.h"
@@ -173,6 +165,7 @@ static const TCHAR *getmsg (int msg)
 	case RP_IPC_TO_GUEST_EXECUTE: return _T("RP_IPC_TO_GUEST_EXECUTE");
 	case RP_IPC_TO_GUEST_DEVICEWRITEBYTE: return _T("RP_IPC_TO_GUEST_DEVICEWRITEBYTE");
 	case RP_IPC_TO_GUEST_DEVICESETSIGNALS: return _T("RP_IPC_TO_GUEST_DEVICESETSIGNALS");
+	case RP_IPC_TO_GUEST_SCREEN1X: return _T("RP_IPC_TO_GUEST_SCREEN1X");
 	default: return _T("UNKNOWN");
 	}
 }
@@ -746,6 +739,33 @@ static int shift (int val, int shift)
 	return val;
 }
 
+static void get_wh(int *wp, int *hp)
+{
+	struct AmigaMonitor *mon = &AMonitors[0];
+	int rtg = WIN32GFX_IsPicassoScreen(mon) != 0;
+	int w, h;
+
+	if (rtg) {
+
+		w = picasso96_state[mon->monitor_id].Width;
+		h = picasso96_state[mon->monitor_id].Height;
+
+	} else {
+
+		int rw, rh, rx, ry;
+		get_custom_raw_limits(&rw, &rh, &rx, &ry);
+		w = rw;
+		h = rh;
+
+	}
+
+	*wp = w;
+	*hp = h;
+}
+
+static int gfx_height_original;
+static bool ntsc_extended;
+
 static void get_screenmode (struct RPScreenMode *sm, struct uae_prefs *p, bool getclip)
 {
 	struct AmigaMonitor *mon = &AMonitors[0];
@@ -756,7 +776,7 @@ static void get_screenmode (struct RPScreenMode *sm, struct uae_prefs *p, bool g
 	int totalhdbl = -1, totalvdbl = -1;
 	float hmult, vmult;
 	bool half;
-	bool rtg;
+	int rtg;
 	int scalemode = p->gf[0].gfx_filter_autoscale;
 
 	hres = p->gfx_resolution;
@@ -776,8 +796,8 @@ static void get_screenmode (struct RPScreenMode *sm, struct uae_prefs *p, bool g
 		full = p->gfx_apmode[1].gfx_fullscreen;
 		sm->lClipTop = -1;
 		sm->lClipLeft = -1;
-		sm->lClipWidth = -1;//picasso96_state.Width;
-		sm->lClipHeight = -1;//picasso96_state.Height;
+		sm->lClipWidth = -1;
+		sm->lClipHeight = -1;
 
 		for (int i = RP_SCREENMODE_SCALE_MAX_X; i >= RP_SCREENMODE_SCALE_2X; i--) {
 			if (hmult >= (float)i + 0.5) {
@@ -836,8 +856,8 @@ static void get_screenmode (struct RPScreenMode *sm, struct uae_prefs *p, bool g
 			sm->lClipWidth = rw;
 			sm->lClipHeight = rh;
 		} else {
-			sm->lClipLeft = p->gfx_xcenter_pos < 0 ? -1 : p->gfx_xcenter_pos;
-			sm->lClipTop = p->gfx_ycenter_pos < 0 ? -1 : p->gfx_ycenter_pos;
+			sm->lClipLeft = p->gfx_xcenter_pos < MANUAL_SCALE_MIN_RANGE ? -32768 : p->gfx_xcenter_pos;
+			sm->lClipTop = p->gfx_ycenter_pos < MANUAL_SCALE_MIN_RANGE ? -32768 : p->gfx_ycenter_pos;
 			sm->lClipWidth = p->gfx_xcenter_size <= 0 ? -1 : p->gfx_xcenter_size;
 			sm->lClipHeight = p->gfx_ycenter_size <= 0 ? -1 : p->gfx_ycenter_size;
 		}
@@ -873,9 +893,9 @@ static void get_screenmode (struct RPScreenMode *sm, struct uae_prefs *p, bool g
 		sm->dwScreenMode |= RP_SCREENMODE_SCALE_MAX;
 	} else if ((storeflags & RP_SCREENMODE_SCALEMASK) == RP_SCREENMODE_SCALE_TARGET) {
 		sm->dwScreenMode &= ~RP_SCREENMODE_SCALEMASK;
-		sm->dwScreenMode = RP_SCREENMODE_SCALE_TARGET;
+		sm->dwScreenMode |= RP_SCREENMODE_SCALE_TARGET;
 		sm->lTargetWidth = gm->gfx_size_win.width;
-		sm->lTargetHeight = gm->gfx_size_win.height;
+		sm->lTargetHeight = ntsc_extended && p->gfx_ntscpixels ? gfx_height_original : gm->gfx_size_win.height;
 	}
 	sm->dwClipFlags = cf;
 
@@ -919,6 +939,7 @@ static void set_screenmode (struct RPScreenMode *sm, struct uae_prefs *p)
 	int width, height;
 	bool half;
 
+	gfx_height_original = gm->gfx_size_win.height;
 	storeflags = sm->dwScreenMode;
 	minimized = 0;
 	if (display) {
@@ -929,8 +950,8 @@ static void set_screenmode (struct RPScreenMode *sm, struct uae_prefs *p)
 		else
 			fs = 1;
 	}
-	p->gf[0].gfx_filter_left_border = 0;
-	p->gf[0].gfx_filter_top_border = 0;
+	p->gf[0].gfx_filter_left_border = -1;
+	p->gf[0].gfx_filter_top_border = -1;
 	p->gf[0].gfx_filter_right_border = 0;
 	p->gf[0].gfx_filter_bottom_border = 0;
 	p->gf[0].gfx_filter_autoscale = AUTOSCALE_CENTER;
@@ -1115,8 +1136,8 @@ static void set_screenmode (struct RPScreenMode *sm, struct uae_prefs *p)
 			p->gf[0].gfx_filter_integerscalelimit = 0;
 			if (sm->dwClipFlags & RP_CLIPFLAGS_AUTOCLIP) {
 				p->gf[0].gfx_filter_autoscale = AUTOSCALE_INTEGER_AUTOSCALE;
-				p->gfx_xcenter_pos = -1;
-				p->gfx_ycenter_pos = -1;
+				p->gfx_xcenter_pos = MANUAL_SCALE_MIN_RANGE - 1;
+				p->gfx_ycenter_pos = MANUAL_SCALE_MIN_RANGE - 1;
 				p->gfx_xcenter_size = -1;
 				p->gfx_ycenter_size = -1;
 			} else {
@@ -1136,46 +1157,73 @@ static void set_screenmode (struct RPScreenMode *sm, struct uae_prefs *p)
 			
 		}
 
-		if (keepaspect) {
-			p->gf[0].gfx_filter_aspect = -1;
-			p->gf[0].gfx_filter_keep_autoscale_aspect = integerscale ? 0 : 1;
-			p->gf[0].gfx_filter_keep_aspect = 1;
-		} else {
-			p->gf[0].gfx_filter_aspect = 0;
-			p->gf[0].gfx_filter_keep_autoscale_aspect = 0;
-			p->gf[0].gfx_filter_keep_aspect = 0;
-		}
-
 		if (!integerscale) {
 			if (sm->dwClipFlags & RP_CLIPFLAGS_AUTOCLIP) {
-				if (!forcesize)
+				if (!forcesize) {
 					p->gf[0].gfx_filter_autoscale = AUTOSCALE_RESIZE;
-				else
+					if (sm->dwScreenMode & RP_SCREENMODE_PIXEL_ORIGINAL_RATIO) {
+						p->gfx_ntscpixels = true;
+					}
+				} else {
 					p->gf[0].gfx_filter_autoscale = AUTOSCALE_NORMAL;
-				p->gfx_xcenter_pos = -1;
-				p->gfx_ycenter_pos = -1;
+				}
+				p->gfx_xcenter_pos = MANUAL_SCALE_MIN_RANGE - 1;
+				p->gfx_ycenter_pos = MANUAL_SCALE_MIN_RANGE - 1;
 				p->gfx_xcenter_size = -1;
 				p->gfx_ycenter_size = -1;
 			} else if (sm->dwClipFlags & RP_CLIPFLAGS_NOCLIP) {
 				p->gf[0].gfx_filter_autoscale = AUTOSCALE_STATIC_MAX;
-				p->gfx_xcenter_pos = -1;
-				p->gfx_ycenter_pos = -1;
+				p->gfx_xcenter_pos = MANUAL_SCALE_MIN_RANGE - 1;
+				p->gfx_ycenter_pos = MANUAL_SCALE_MIN_RANGE - 1;
 				p->gfx_xcenter_size = -1;
 				p->gfx_ycenter_size = -1;
 				if (!forcesize) {
 					gm->gfx_size_win.width = AMIGA_WIDTH_MAX << currprefs.gfx_resolution;
-					gm->gfx_size_win.height = AMIGA_HEIGHT_MAX << currprefs.gfx_vresolution;;
+					gm->gfx_size_win.height = AMIGA_HEIGHT_MAX << currprefs.gfx_vresolution;
 				}
 			}
 
-			if (sm->lClipWidth > 0)
+			if (sm->lClipWidth > 0) {
 				p->gfx_xcenter_size = sm->lClipWidth;
-			if (sm->lClipHeight > 0)
-				p->gfx_ycenter_size = sm->lClipHeight;
-
-			if ((p->gfx_xcenter_pos >= 0 && p->gfx_ycenter_pos >= 0) || (p->gfx_xcenter_size > 0 && p->gfx_ycenter_size > 0)) {
-				p->gf[0].gfx_filter_autoscale = AUTOSCALE_MANUAL;
 			}
+			if (sm->lClipHeight > 0) {
+				p->gfx_ycenter_size = sm->lClipHeight;
+			}
+
+			gfx_height_original = gm->gfx_size_win.height;
+
+			ntsc_extended = false;
+			if ((p->gfx_xcenter_pos >= MANUAL_SCALE_MIN_RANGE && p->gfx_ycenter_pos >= MANUAL_SCALE_MIN_RANGE) || (p->gfx_xcenter_size > 0 && p->gfx_ycenter_size > 0)) {
+				p->gf[0].gfx_filter_autoscale = AUTOSCALE_MANUAL;
+				if ((sm->dwScreenMode & RP_SCREENMODE_PIXEL_ORIGINAL_RATIO) && currprefs.ntscmode) {
+					int lh;
+					bool isp = ispal(&lh);
+					if (!isp) {
+						float palh = (313 - 25) * 2 + 1.0f;
+						float ntsch = (263 - 20) * 2 + 1.0f;
+						float ll = lh * 2 + 1.0f;
+						if (abs(lh - (263 - 20)) <= 22) {
+							ll = ntsch;
+						}
+						if (abs(lh - (313 - 25)) <= 22) {
+							ll = palh;
+						}
+						gm->gfx_size_win.height = (int)(gm->gfx_size_win.height * palh / ll + 0.5f);
+						ntsc_extended = true;
+					}
+				}
+			}
+		}
+
+		p->gfx_ntscpixels = (sm->dwScreenMode & RP_SCREENMODE_PIXEL_ORIGINAL_RATIO) != 0;
+		if (keepaspect) {
+			p->gf[0].gfx_filter_aspect = ntsc_extended ? 0 : -1;
+			p->gf[0].gfx_filter_keep_autoscale_aspect = ntsc_extended || fs ? 0 : 1;
+			p->gf[0].gfx_filter_aspect_type = 0;
+		} else {
+			p->gf[0].gfx_filter_aspect = 0;
+			p->gf[0].gfx_filter_keep_autoscale_aspect = 0;
+			p->gf[0].gfx_filter_aspect_type = 0;
 		}
 
 		p->gf[0].gfx_filter_horiz_zoom_mult = hmult;
@@ -1203,33 +1251,31 @@ static void set_screenmode (struct RPScreenMode *sm, struct uae_prefs *p)
 			p->gf[0].gfx_filter_bilinear = interpolation_old(sm->dwScreenMode);
 		}
 
-		if (sm->dwScreenMode & RP_SCREENMODE_PIXEL_ORIGINAL_RATIO) {
-			p->gfx_ntscpixels = true;
-		}
 	}
 
 	if (log_rp & 2) {
 		write_log(_T("%dx%d %dx%d %dx%d %08x HM=%.1f VM=%.1f\n"),
 			sm->lClipLeft, sm->lClipTop, sm->lClipWidth, sm->lClipHeight, sm->lTargetWidth, sm->lTargetHeight, sm->dwClipFlags, hmult, vmult);
 		if (WIN32GFX_IsPicassoScreen(mon)) {
-			write_log (_T("RTG WW=%d WH=%d FW=%d FH=%d HM=%.1f VM=%.1f\n"),
+			write_log(_T("RTG WW=%d WH=%d FW=%d FH=%d HM=%.1f VM=%.1f\n"),
 				gm->gfx_size_win.width, gm->gfx_size_win.height,
 				gm->gfx_size_fs.width, gm->gfx_size_fs.height,
 				p->rtg_horiz_zoom_mult, p->rtg_vert_zoom_mult);
 		} else {
-			write_log (_T("WW=%d (%d) WH=%d (%d) FW=%d (%d) FH=%d (%d) HM=%.1f VM=%.1f XP=%d YP=%d XS=%d YS=%d AS=%d AR=%d,%d\n"),
+			write_log(_T("WW=%d (%d) WH=%d (%d) FW=%d (%d) FH=%d (%d) HM=%.1f VM=%.1f XP=%d YP=%d XS=%d YS=%d AS=%d AR=%d,%d, N=%d (%d)\n"),
 				gm->gfx_size_win.width, gmc->gfx_size_win.width, gm->gfx_size_win.height, gmc->gfx_size.height,
 				gm->gfx_size_fs.width, gmc->gfx_size_fs.width, gm->gfx_size_fs.height, gmc->gfx_size_fs.height,
 				p->gf[0].gfx_filter_horiz_zoom_mult, p->gf[0].gfx_filter_vert_zoom_mult,
 				p->gfx_xcenter_pos, p->gfx_ycenter_pos,
 				p->gfx_xcenter_size, p->gfx_ycenter_size,
-				p->gf[0].gfx_filter_autoscale, p->gf[0].gfx_filter_aspect, p->gf[0].gfx_filter_keep_aspect);
+				p->gf[0].gfx_filter_autoscale, p->gf[0].gfx_filter_aspect, p->gf[0].gfx_filter_aspect_type,
+				gfx_height_original, p->gfx_ntscpixels);
 		}
 	}
 
 	updatewinfsmode(0, p);
 	hwndset = 0;
-	set_config_changed ();
+	set_config_changed();
 #if 0
 	write_log (_T("AFTER WW=%d (%d) WH=%d (%d) FW=%d (%d) FH=%d (%d) HM=%.1f VM=%.1f XP=%d YP=%d XS=%d YS=%d AS=%d AR=%d,%d\n"),
 		gm->gfx_size_win.width, currprefs.gfx_size_win.width, gm->gfx_size_win.height, currprefs.gfx_size.height,
@@ -1237,7 +1283,7 @@ static void set_screenmode (struct RPScreenMode *sm, struct uae_prefs *p)
 		p->gf[0].gfx_filter_horiz_zoom_mult, p->gf[0].gfx_filter_vert_zoom_mult,
 		p->gfx_xcenter_pos, p->gfx_ycenter_pos,
 		p->gfx_xcenter_size, p->gfx_ycenter_size,
-		p->gf[0].gfx_filter_autoscale, p->gf[0].gfx_filter_aspect, p->gf[0].gfx_filter_keep_aspect);
+		p->gf[0].gfx_filter_autoscale, p->gf[0].gfx_filter_aspect, p->gf[0].gfx_filter_aspect_type);
 	write_log (_T("AFTER W=%d (%d) H=%d (%d)\n"), gm->gfx_size.width, currprefs.gfx_size.width, gm->gfx_size.height, currprefs.gfx_size.height);
 #endif
 }
@@ -1604,6 +1650,15 @@ static LRESULT CALLBACK RPHostMsgFunction2 (UINT uMessage, WPARAM wParam, LPARAM
 			write_log (_T("RP_IPC_TO_GUEST_QUERYSCREENMODE -> RP_IPC_TO_HOST_SCREENMODE screenmode_request started\n"));
 			return 1;
 		}
+	case RP_IPC_TO_GUEST_SCREEN1X:
+		{
+			int w = 0, h = 0;
+			get_wh(&w, &h);
+			if (w > 0 && h > 0) {
+				return MAKELONG(w, h);
+			}
+			return MAKELONG(-1, -1);
+		}
 	case RP_IPC_TO_GUEST_GUESTAPIVERSION:
 		{
 			return MAKELONG(7, 6);
@@ -1872,6 +1927,8 @@ void rp_fixup_options (struct uae_prefs *p)
 	rp_filter_default = rp_filter = currprefs.gf[0].gfx_filter;
 
 	fixup_size (p);
+	currprefs.gfx_ntscpixels = changed_prefs.gfx_ntscpixels = (rp_screenmode & RP_SCREENMODE_PIXEL_ORIGINAL_RATIO) != 0;
+	currprefs.gf[0].gfx_filter_bilinear = changed_prefs.gf[0].gfx_filter_bilinear = (rp_screenmode & RP_SCREENMODE_INTERPOLATION) != 0;
 	get_screenmode (&sm, p, false);
 	sm.dwScreenMode &= ~RP_SCREENMODE_SCALEMASK;
 	sm.dwScreenMode |= rp_screenmode;
@@ -2289,8 +2346,10 @@ void rp_set_hwnd (HWND hWnd)
 	RPSendMessagex (RP_IPC_TO_HOST_SCREENMODE, 0, 0, &sm, sizeof sm, &guestinfo, NULL); 
 }
 
-void rp_screenmode_changed (void)
+void rp_screenmode_changed(void)
 {
+	if (!initialized)
+		return;
 	if (log_rp)
 		write_log (_T("rp_screenmode_changed\n"));
 	if (!screenmode_request && !hwndset_delay) {

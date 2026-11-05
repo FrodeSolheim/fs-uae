@@ -29,7 +29,7 @@ static void lts_ecs_shres_dhires(void)
 				dpix_val1 = bordercolor_ecs_shres;
 				dpix_val2 = bordercolor_ecs_shres;
 				dpix_val3 = bordercolor_ecs_shres;
-				if (denise_hdiw && bpl1dat_trigger) {
+				if (denise_hdiw && bpl1dat_trigger && !diw_disable) {
 					shifted = true;
 					pix0 = getbpl2();
 					shiftbpl2();
@@ -44,25 +44,33 @@ static void lts_ecs_shres_dhires(void)
 				}
 			}
 			uae_u32 sv0 = 0;
+			sprite_pixdata = 0;
 			if (denise_spr_nr_armeds) {
 				uae_u32 svt;
 				svt = denise_render_sprites_ecs_shres();
-				if (!denise_sprite_blank_active && !sprites_hidden) {
-					sv0 = svt;
+				if (!denise_sprite_blank_active) {
+					sprite_pixdata = svt;
+					if (!sprites_hidden) {
+						sv0 = svt;
+					}
 				}
 			}
 			matchsprites_ecs_shres(cnt + 0);
 			uae_u32 sv1 = 0;
+			sprite_pixdata = 0;
 			if (denise_spr_nr_armeds) {
 				uae_u32 svt;
 				svt = denise_render_sprites_ecs_shres();
-				if (!denise_sprite_blank_active && !sprites_hidden) {
-					sv1 = svt;
+				if (!denise_sprite_blank_active) {
+					sprite_pixdata = svt;
+					if (!sprites_hidden) {
+						sv1 = svt;
+					}
 				}
 			}
 			matchsprites_ecs_shres(cnt + 2);
 			if (sv0 || sv1) {
-				get_shres_spr_pix(sv0, sv1, &dpix_val0, &dpix_val2);
+				get_shres_spr_pix(pix0, pix1, pix2, pix3, sv0, sv1, &dpix_val0, &dpix_val2);
 				if (sv0) {
 					dpix_val1 = dpix_val0;
 				}
@@ -70,7 +78,7 @@ static void lts_ecs_shres_dhires(void)
 					dpix_val3 = dpix_val2;
 				}
 			}
-			if (denise_pixtotal >= 0 && denise_pixtotal < denise_pixtotal_max) {
+			if (denise_pixtotal >= 0 && buf1 < denise_pixtotal_max_buf_2x) {
 				#ifdef DEBUGGER
 				if (decode_specials_debug) {
 					dpix_val0 = decode_denise_specials_debug(dpix_val0, cnt + 0);
@@ -106,8 +114,8 @@ static void lts_ecs_shres_dhires(void)
 			denise_hcounter &= 511;
 			denise_hcounter_next++;
 			denise_hcounter_next &= 511;
+			denise_pixtotal++;
 		}
-		denise_pixtotal++;
 		if (denise_pixtotal == 0) {
 			internal_pixel_start_cnt = internal_pixel_cnt;
 		}
@@ -143,7 +151,7 @@ static void lts_ecs_shres_dhires_filtered(void)
 				dpix_val1 = bordercolor_ecs_shres;
 				dpix_val2 = bordercolor_ecs_shres;
 				dpix_val3 = bordercolor_ecs_shres;
-				if (denise_hdiw && bpl1dat_trigger) {
+				if (denise_hdiw && bpl1dat_trigger && !diw_disable) {
 					shifted = true;
 					pix0 = getbpl2();
 					shiftbpl2();
@@ -158,25 +166,33 @@ static void lts_ecs_shres_dhires_filtered(void)
 				}
 			}
 			uae_u32 sv0 = 0;
+			sprite_pixdata = 0;
 			if (denise_spr_nr_armeds) {
 				uae_u32 svt;
 				svt = denise_render_sprites_ecs_shres();
-				if (!denise_sprite_blank_active && !sprites_hidden) {
-					sv0 = svt;
+				if (!denise_sprite_blank_active) {
+					sprite_pixdata = svt;
+					if (!sprites_hidden) {
+						sv0 = svt;
+					}
 				}
 			}
 			matchsprites_ecs_shres(cnt + 0);
 			uae_u32 sv1 = 0;
+			sprite_pixdata = 0;
 			if (denise_spr_nr_armeds) {
 				uae_u32 svt;
 				svt = denise_render_sprites_ecs_shres();
-				if (!denise_sprite_blank_active && !sprites_hidden) {
-					sv1 = svt;
+				if (!denise_sprite_blank_active) {
+					sprite_pixdata = svt;
+					if (!sprites_hidden) {
+						sv1 = svt;
+					}
 				}
 			}
 			matchsprites_ecs_shres(cnt + 2);
 			if (sv0 || sv1) {
-				get_shres_spr_pix(sv0, sv1, &dpix_val0, &dpix_val2);
+				get_shres_spr_pix(pix0, pix1, pix2, pix3, sv0, sv1, &dpix_val0, &dpix_val2);
 				if (sv0) {
 					dpix_val1 = dpix_val0;
 				}
@@ -184,7 +200,7 @@ static void lts_ecs_shres_dhires_filtered(void)
 					dpix_val3 = dpix_val2;
 				}
 			}
-			if (denise_pixtotal >= 0 && denise_pixtotal < denise_pixtotal_max) {
+			if (denise_pixtotal >= 0 && buf1 < denise_pixtotal_max_buf_2x) {
 				dpix_val0 = filter_pixel(dpix_val0, dpix_val1);
 				dpix_val2 = filter_pixel(dpix_val2, dpix_val3);
 				#ifdef DEBUGGER
@@ -222,8 +238,8 @@ static void lts_ecs_shres_dhires_filtered(void)
 			denise_hcounter &= 511;
 			denise_hcounter_next++;
 			denise_hcounter_next &= 511;
+			denise_pixtotal++;
 		}
-		denise_pixtotal++;
 		if (denise_pixtotal == 0) {
 			internal_pixel_start_cnt = internal_pixel_cnt;
 		}
@@ -259,7 +275,7 @@ static void lts_ecs_shres_dshres(void)
 				dpix_val1 = bordercolor_ecs_shres;
 				dpix_val2 = bordercolor_ecs_shres;
 				dpix_val3 = bordercolor_ecs_shres;
-				if (denise_hdiw && bpl1dat_trigger) {
+				if (denise_hdiw && bpl1dat_trigger && !diw_disable) {
 					shifted = true;
 					pix0 = getbpl2();
 					shiftbpl2();
@@ -274,25 +290,33 @@ static void lts_ecs_shres_dshres(void)
 				}
 			}
 			uae_u32 sv0 = 0;
+			sprite_pixdata = 0;
 			if (denise_spr_nr_armeds) {
 				uae_u32 svt;
 				svt = denise_render_sprites_ecs_shres();
-				if (!denise_sprite_blank_active && !sprites_hidden) {
-					sv0 = svt;
+				if (!denise_sprite_blank_active) {
+					sprite_pixdata = svt;
+					if (!sprites_hidden) {
+						sv0 = svt;
+					}
 				}
 			}
 			matchsprites_ecs_shres(cnt + 0);
 			uae_u32 sv1 = 0;
+			sprite_pixdata = 0;
 			if (denise_spr_nr_armeds) {
 				uae_u32 svt;
 				svt = denise_render_sprites_ecs_shres();
-				if (!denise_sprite_blank_active && !sprites_hidden) {
-					sv1 = svt;
+				if (!denise_sprite_blank_active) {
+					sprite_pixdata = svt;
+					if (!sprites_hidden) {
+						sv1 = svt;
+					}
 				}
 			}
 			matchsprites_ecs_shres(cnt + 2);
 			if (sv0 || sv1) {
-				get_shres_spr_pix(sv0, sv1, &dpix_val0, &dpix_val2);
+				get_shres_spr_pix(pix0, pix1, pix2, pix3, sv0, sv1, &dpix_val0, &dpix_val2);
 				if (sv0) {
 					dpix_val1 = dpix_val0;
 				}
@@ -300,7 +324,7 @@ static void lts_ecs_shres_dshres(void)
 					dpix_val3 = dpix_val2;
 				}
 			}
-			if (denise_pixtotal >= 0 && denise_pixtotal < denise_pixtotal_max) {
+			if (denise_pixtotal >= 0 && buf1 < denise_pixtotal_max_buf_4x) {
 				#ifdef DEBUGGER
 				if (decode_specials_debug) {
 					dpix_val0 = decode_denise_specials_debug(dpix_val0, cnt + 0);
@@ -350,8 +374,8 @@ static void lts_ecs_shres_dshres(void)
 			denise_hcounter &= 511;
 			denise_hcounter_next++;
 			denise_hcounter_next &= 511;
+			denise_pixtotal++;
 		}
-		denise_pixtotal++;
 		if (denise_pixtotal == 0) {
 			internal_pixel_start_cnt = internal_pixel_cnt;
 		}
@@ -400,7 +424,7 @@ static void lts_ecs_shres_dhires_genlock(void)
 				dpix_val1 = bordercolor_ecs_shres;
 				dpix_val2 = bordercolor_ecs_shres;
 				dpix_val3 = bordercolor_ecs_shres;
-				if (denise_hdiw && bpl1dat_trigger) {
+				if (denise_hdiw && bpl1dat_trigger && !diw_disable) {
 					shifted = true;
 					pix0 = getbpl2();
 					shiftbpl2();
@@ -415,25 +439,33 @@ static void lts_ecs_shres_dhires_genlock(void)
 				}
 			}
 			uae_u32 sv0 = 0;
+			sprite_pixdata = 0;
 			if (denise_spr_nr_armeds) {
 				uae_u32 svt;
 				svt = denise_render_sprites_ecs_shres();
-				if (!denise_sprite_blank_active && !sprites_hidden) {
-					sv0 = svt;
+				if (!denise_sprite_blank_active) {
+					sprite_pixdata = svt;
+					if (!sprites_hidden) {
+						sv0 = svt;
+					}
 				}
 			}
 			matchsprites_ecs_shres(cnt + 0);
 			uae_u32 sv1 = 0;
+			sprite_pixdata = 0;
 			if (denise_spr_nr_armeds) {
 				uae_u32 svt;
 				svt = denise_render_sprites_ecs_shres();
-				if (!denise_sprite_blank_active && !sprites_hidden) {
-					sv1 = svt;
+				if (!denise_sprite_blank_active) {
+					sprite_pixdata = svt;
+					if (!sprites_hidden) {
+						sv1 = svt;
+					}
 				}
 			}
 			matchsprites_ecs_shres(cnt + 2);
 			if (sv0 || sv1) {
-				get_shres_spr_pix(sv0, sv1, &dpix_val0, &dpix_val2);
+				get_shres_spr_pix(pix0, pix1, pix2, pix3, sv0, sv1, &dpix_val0, &dpix_val2);
 				if (sv0) {
 					dpix_val1 = dpix_val0;
 				}
@@ -441,7 +473,7 @@ static void lts_ecs_shres_dhires_genlock(void)
 					dpix_val3 = dpix_val2;
 				}
 			}
-			if (denise_pixtotal >= 0 && denise_pixtotal < denise_pixtotal_max) {
+			if (denise_pixtotal >= 0 && buf1 < denise_pixtotal_max_buf_2x) {
 				#ifdef DEBUGGER
 				if (decode_specials_debug) {
 					dpix_val0 = decode_denise_specials_debug(dpix_val0, cnt + 0);
@@ -479,8 +511,8 @@ static void lts_ecs_shres_dhires_genlock(void)
 			denise_hcounter &= 511;
 			denise_hcounter_next++;
 			denise_hcounter_next &= 511;
+			denise_pixtotal++;
 		}
-		denise_pixtotal++;
 		if (denise_pixtotal == 0) {
 			internal_pixel_start_cnt = internal_pixel_cnt;
 		}
@@ -520,7 +552,7 @@ static void lts_ecs_shres_dhires_genlock_filtered(void)
 				dpix_val1 = bordercolor_ecs_shres;
 				dpix_val2 = bordercolor_ecs_shres;
 				dpix_val3 = bordercolor_ecs_shres;
-				if (denise_hdiw && bpl1dat_trigger) {
+				if (denise_hdiw && bpl1dat_trigger && !diw_disable) {
 					shifted = true;
 					pix0 = getbpl2();
 					shiftbpl2();
@@ -535,25 +567,33 @@ static void lts_ecs_shres_dhires_genlock_filtered(void)
 				}
 			}
 			uae_u32 sv0 = 0;
+			sprite_pixdata = 0;
 			if (denise_spr_nr_armeds) {
 				uae_u32 svt;
 				svt = denise_render_sprites_ecs_shres();
-				if (!denise_sprite_blank_active && !sprites_hidden) {
-					sv0 = svt;
+				if (!denise_sprite_blank_active) {
+					sprite_pixdata = svt;
+					if (!sprites_hidden) {
+						sv0 = svt;
+					}
 				}
 			}
 			matchsprites_ecs_shres(cnt + 0);
 			uae_u32 sv1 = 0;
+			sprite_pixdata = 0;
 			if (denise_spr_nr_armeds) {
 				uae_u32 svt;
 				svt = denise_render_sprites_ecs_shres();
-				if (!denise_sprite_blank_active && !sprites_hidden) {
-					sv1 = svt;
+				if (!denise_sprite_blank_active) {
+					sprite_pixdata = svt;
+					if (!sprites_hidden) {
+						sv1 = svt;
+					}
 				}
 			}
 			matchsprites_ecs_shres(cnt + 2);
 			if (sv0 || sv1) {
-				get_shres_spr_pix(sv0, sv1, &dpix_val0, &dpix_val2);
+				get_shres_spr_pix(pix0, pix1, pix2, pix3, sv0, sv1, &dpix_val0, &dpix_val2);
 				if (sv0) {
 					dpix_val1 = dpix_val0;
 				}
@@ -561,7 +601,7 @@ static void lts_ecs_shres_dhires_genlock_filtered(void)
 					dpix_val3 = dpix_val2;
 				}
 			}
-			if (denise_pixtotal >= 0 && denise_pixtotal < denise_pixtotal_max) {
+			if (denise_pixtotal >= 0 && buf1 < denise_pixtotal_max_buf_2x) {
 				dpix_val0 = filter_pixel(dpix_val0, dpix_val1);
 				dpix_val2 = filter_pixel(dpix_val2, dpix_val3);
 				gpix0 = filter_pixel_genlock(gpix0, gpix1);
@@ -603,8 +643,8 @@ static void lts_ecs_shres_dhires_genlock_filtered(void)
 			denise_hcounter &= 511;
 			denise_hcounter_next++;
 			denise_hcounter_next &= 511;
+			denise_pixtotal++;
 		}
-		denise_pixtotal++;
 		if (denise_pixtotal == 0) {
 			internal_pixel_start_cnt = internal_pixel_cnt;
 		}
@@ -644,7 +684,7 @@ static void lts_ecs_shres_dshres_genlock(void)
 				dpix_val1 = bordercolor_ecs_shres;
 				dpix_val2 = bordercolor_ecs_shres;
 				dpix_val3 = bordercolor_ecs_shres;
-				if (denise_hdiw && bpl1dat_trigger) {
+				if (denise_hdiw && bpl1dat_trigger && !diw_disable) {
 					shifted = true;
 					pix0 = getbpl2();
 					shiftbpl2();
@@ -659,25 +699,33 @@ static void lts_ecs_shres_dshres_genlock(void)
 				}
 			}
 			uae_u32 sv0 = 0;
+			sprite_pixdata = 0;
 			if (denise_spr_nr_armeds) {
 				uae_u32 svt;
 				svt = denise_render_sprites_ecs_shres();
-				if (!denise_sprite_blank_active && !sprites_hidden) {
-					sv0 = svt;
+				if (!denise_sprite_blank_active) {
+					sprite_pixdata = svt;
+					if (!sprites_hidden) {
+						sv0 = svt;
+					}
 				}
 			}
 			matchsprites_ecs_shres(cnt + 0);
 			uae_u32 sv1 = 0;
+			sprite_pixdata = 0;
 			if (denise_spr_nr_armeds) {
 				uae_u32 svt;
 				svt = denise_render_sprites_ecs_shres();
-				if (!denise_sprite_blank_active && !sprites_hidden) {
-					sv1 = svt;
+				if (!denise_sprite_blank_active) {
+					sprite_pixdata = svt;
+					if (!sprites_hidden) {
+						sv1 = svt;
+					}
 				}
 			}
 			matchsprites_ecs_shres(cnt + 2);
 			if (sv0 || sv1) {
-				get_shres_spr_pix(sv0, sv1, &dpix_val0, &dpix_val2);
+				get_shres_spr_pix(pix0, pix1, pix2, pix3, sv0, sv1, &dpix_val0, &dpix_val2);
 				if (sv0) {
 					dpix_val1 = dpix_val0;
 				}
@@ -685,7 +733,7 @@ static void lts_ecs_shres_dshres_genlock(void)
 					dpix_val3 = dpix_val2;
 				}
 			}
-			if (denise_pixtotal >= 0 && denise_pixtotal < denise_pixtotal_max) {
+			if (denise_pixtotal >= 0 && buf1 < denise_pixtotal_max_buf_4x) {
 				#ifdef DEBUGGER
 				if (decode_specials_debug) {
 					dpix_val0 = decode_denise_specials_debug(dpix_val0, cnt + 0);
@@ -739,8 +787,8 @@ static void lts_ecs_shres_dshres_genlock(void)
 			denise_hcounter &= 511;
 			denise_hcounter_next++;
 			denise_hcounter_next &= 511;
+			denise_pixtotal++;
 		}
-		denise_pixtotal++;
 		if (denise_pixtotal == 0) {
 			internal_pixel_start_cnt = internal_pixel_cnt;
 		}

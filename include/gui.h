@@ -71,6 +71,7 @@ struct gui_info
 	uae_s8 md;					/* CD32 or CDTV internal storage */
 	uae_s8 net;					/* network */
 	int cpu_halted;
+	int cpu_stopped;
 	int fps, lines, lace, idle;
 	int fps_color;
 	int sndbuf, sndbuf_status;
@@ -78,7 +79,7 @@ struct gui_info
 	struct gui_info_drive drives[4];
 };
 #define NUM_LEDS (LED_MAX)
-#define VISIBLE_LEDS (LED_MAX - 1)
+#define VISIBLE_LEDS (LED_MAX)
 
 extern struct gui_info gui_data;
 

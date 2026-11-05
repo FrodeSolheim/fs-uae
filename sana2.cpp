@@ -16,14 +16,10 @@
 #include "options.h"
 #include "memory.h"
 #include "custom.h"
-#include "events.h"
-#include "newcpu.h"
 #include "autoconf.h"
 #include "traps.h"
 #include "execlib.h"
 #include "native2amiga.h"
-#include "blkdev.h"
-#include "uae.h"
 #include "sana2.h"
 #if defined(_WIN32) && defined(WITH_UAENET_PCAP)
 #include "win32_uaenet.h"
@@ -33,6 +29,8 @@
 #include "execio.h"
 #include "debug.h"
 #include "devices.h"
+
+int log_net;
 
 #ifdef SANA2
 
@@ -233,6 +231,7 @@ struct priv_s2devstruct {
 	uaecptr copyfrombuff;
 	uaecptr packetfilter;
 	uaecptr tempbuf;
+	bool txbusy;
 
 	uaecptr timerbase;
 
@@ -282,6 +281,16 @@ static int start_thread (struct s2devstruct *dev)
 	return dev->thread_running;
 }
 
+static void free_tempbuf(TrapContext *ctx, struct priv_s2devstruct *pdev)
+{
+	if (pdev->tempbuf) {
+		trap_call_add_areg(ctx, 1, pdev->tempbuf);
+		trap_call_add_dreg(ctx, 0, 2 * (pdev->td->mtu + ETH_HEADER_SIZE + 2));
+		trap_call_lib(ctx, trap_get_long(ctx, 4), -0xD2); /* FreeMem */
+		pdev->tempbuf = 0;
+	}
+}
+
 static uae_u32 REGPARAM2 dev_close_2 (TrapContext *ctx)
 {
 	uae_u32 request = trap_get_areg(ctx, 1);
@@ -300,16 +309,10 @@ static uae_u32 REGPARAM2 dev_close_2 (TrapContext *ctx)
 	if (log_net)
 		write_log (_T("%s:%d close, open=%d req=%08X\n"), SANA2NAME, pdev->unit, dev->opencnt, request);
 	trap_put_long(ctx, request + 24, 0);
+	free_tempbuf(ctx, pdev);
 	dev->opencnt--;
-	pdev->inuse = 0;
 	if (!dev->opencnt) {
 		dev->exclusive = 0;
-		if (pdev->tempbuf) {
-			trap_call_add_areg(ctx, 1, pdev->tempbuf);
-			trap_call_add_dreg(ctx, 0, pdev->td->mtu + ETH_HEADER_SIZE + 2);
-			trap_call_lib(ctx, trap_get_long(ctx, 4), -0xD2); /* FreeMem */
-			pdev->tempbuf = 0;
-		}
 		ethernet_close (pdev->td, dev->sysdata);
 		xfree (dev->sysdata);
 		dev->sysdata = NULL;
@@ -320,6 +323,7 @@ static uae_u32 REGPARAM2 dev_close_2 (TrapContext *ctx)
 		uae_sem_post(&pipe_sem);
 		write_log (_T("%s: opencnt == 0, all instances closed\n"), SANA2NAME);
 	}
+	memset(pdev, 0, sizeof(struct priv_s2devstruct));
 	trap_put_word(ctx, trap_get_areg(ctx, 6) + 32, trap_get_word(ctx, trap_get_areg(ctx, 6) + 32) - 1);
 	return 0;
 }
@@ -341,6 +345,14 @@ static int openfail (TrapContext *ctx, uaecptr ioreq, int error)
 	if (log_net)
 		write_log (_T("-> failed with error %d\n"), error);
 	return (uae_u32)-1;
+}
+
+static int openfail_reserved(TrapContext *ctx, uaecptr ioreq, struct priv_s2devstruct *pdev, int error)
+{
+	trap_put_longt(ctx, ioreq + 24, 0);
+	free_tempbuf(ctx, pdev);
+	memset(pdev, 0, sizeof(struct priv_s2devstruct));
+	return openfail(ctx, ioreq, error);
 }
 
 static uaecptr uaenet_worker;
@@ -433,6 +445,7 @@ static uae_u32 REGPARAM2 dev_open_2 (TrapContext *ctx)
 	if (i == MAX_OPEN_DEVICES)
 		return openfail(ctx, ioreq, IOERR_UNITBUSY);
 
+	memset(pdev, 0, sizeof(struct priv_s2devstruct));
 	trap_put_longt(ctx, ioreq + 24, pdev - pdevst);
 	pdev->unit = unit;
 	pdev->flags = flags;
@@ -441,7 +454,7 @@ static uae_u32 REGPARAM2 dev_open_2 (TrapContext *ctx)
 	pdev->promiscuous = (flags & SANA2OPF_PROM) ? 1 : 0;
 
 	if (pdev->td == NULL || pdev->td->active == 0)
-		return openfail(ctx, ioreq, IOERR_OPENFAIL);
+		return openfail_reserved(ctx, ioreq, pdev, IOERR_OPENFAIL);
 
 	if (dev->opencnt == 0) {
 		dev->unit = unit;
@@ -449,7 +462,7 @@ static uae_u32 REGPARAM2 dev_open_2 (TrapContext *ctx)
 		if (!ethernet_open (pdev->td, dev->sysdata, dev, uaenet_gotdata, uaenet_getdata, pdev->promiscuous, NULL)) {
 			xfree (dev->sysdata);
 			dev->sysdata = NULL;
-			return openfail(ctx, ioreq, IOERR_OPENFAIL);
+			return openfail_reserved(ctx, ioreq, pdev, IOERR_OPENFAIL);
 		}
 		write_log (_T("%s: initializing unit %d\n"), getdevname (), unit);
 		dev->td = pdev->td;
@@ -503,7 +516,8 @@ static uae_u32 REGPARAM2 dev_open_2 (TrapContext *ctx)
 				break;
 			}
 		}
-		trap_call_add_dreg(ctx, 0, dev->td->mtu + ETH_HEADER_SIZE + 2);
+		/* receive scratch followed by transmit scratch, see createwritepacket() */
+		trap_call_add_dreg(ctx, 0, 2 * (dev->td->mtu + ETH_HEADER_SIZE + 2));
 		trap_call_add_dreg(ctx, 1, 65536 + 1);
 		pdev->tempbuf = trap_call_lib(ctx, trap_get_long(ctx, 4), -0xC6); /* AllocMem */
 		if (log_net) {
@@ -512,11 +526,24 @@ static uae_u32 REGPARAM2 dev_open_2 (TrapContext *ctx)
 		}
 		if (!pdev->tempbuf) {
 			if (dev->opencnt == 0) {
-				ethernet_close (pdev->td, dev->sysdata);
+				if (dev->thread_running) {
+					uae_sem_wait(&pipe_sem);
+					write_comm_pipe_pvoid(&dev->requests, NULL, 0);
+					write_comm_pipe_pvoid(&dev->requests, NULL, 0);
+					write_comm_pipe_u32(&dev->requests, 0, 1);
+					uae_sem_post(&pipe_sem);
+					uae_sem_wait(&dev->sync_sem);
+				}
+				if (dev->td && dev->sysdata)
+					ethernet_close (dev->td, dev->sysdata);
 				xfree (dev->sysdata);
 				dev->sysdata = NULL;
+				dev->td = NULL;
+				dev->adapter = 0;
+				dev->online = 0;
+				dev->configured = 0;
 			}
-			return openfail(ctx, ioreq, S2ERR_BAD_ARGUMENT);
+			return openfail_reserved(ctx, ioreq, pdev, S2ERR_BAD_ARGUMENT);
 		}
 		/* buffermanagement */
 		trap_put_long(ctx, ioreq + 32 + 4 + 4 + SANA2_MAX_ADDR_BYTES * 2 + 4 + 4 + 4, pdev->tempbuf);
@@ -754,6 +781,18 @@ static uae_u64 addrto64 (const uae_u8 *d)
 	}
 	return addr;
 }
+/* multicast address added with S2_ADDMULTICASTADDRESS(ES)? */
+static int ismulticastregistered (struct s2devstruct *dev, const uae_u8 *d)
+{
+	uae_u64 mac64 = addrto64 (d);
+	struct mcast *mc = dev->mc;
+	while (mc) {
+		if (mac64 >= mc->start && mac64 <= mc->end)
+			return 1;
+		mc = mc->next;
+	}
+	return 0;
+}
 static uae_u64 amigaaddrto64(uae_u8 *d)
 {
 	int i;
@@ -874,15 +913,7 @@ static int handleread (TrapContext *ctx, struct priv_s2devstruct *pdev, struct s
 
 	/* drop if CMD_READ and multicast with unknown address */
 	if (cmd == CMD_READ && ismulticast(dstaddr)) {
-		uae_u64 mac64 = addrto64(dstaddr);
-		/* multicast */
-		struct mcast *mc = dev->mc;
-		while (mc) {
-			if (mac64 >= mc->start && mac64 <= mc->end)
-				break;
-			mc = mc->next;
-		}
-		if (!mc) {
+		if (!ismulticastregistered(dev, dstaddr)) {
 			if (log_net)
 				write_log(_T("-> %s multicast filter rejected, CMD_READ, REQ=%08X LEN=%d\n"), dumphead(d, len), arequest, len);
 			return 0;
@@ -920,11 +951,12 @@ static void uaenet_gotdata (void *devv, const uae_u8 *d, int len)
 			write_log(_T("<- invalid packet size %d\n"), len);
 		return;
 	}
-	/* drop if dst == broadcast and src == me */
-	if (isbroadcast (d) && !memcmp (d + 6, dev->td->mac, ADDR_SIZE))
+	/* drop if src == me, the host link reflects our own frames back at us */
+	if (!memcmp (d + 6, dev->td->mac, ADDR_SIZE))
 		return;
-	/* drop if not promiscuous and dst != broadcast and dst != me */
-	if (!dev->promiscuous && !isbroadcast (d) && memcmp (d, dev->td->mac, ADDR_SIZE))
+	/* drop if not promiscuous and dst != broadcast/multicast and dst != me,
+	 * multicast is filtered against the registered addresses in handleread() */
+	if (!dev->promiscuous && !isbroadcast (d) && !ismulticast (d) && memcmp (d, dev->td->mac, ADDR_SIZE))
 		return;
 
 	type = (d[12] << 8) | d[13];
@@ -957,13 +989,25 @@ static struct s2packet *createwritepacket(TrapContext *ctx, uae_u8 *request, uae
 	uae_u8 *dstaddr = request + 32 + 4 + 4 + SANA2_MAX_ADDR_BYTES;
 	uae_u16 packettype = get_long_host(request + 32 + 4);
 	struct s2packet *s2p;
+	uaecptr txbuf;
 
 	if (!pdev) {
 		if (log_net)
 			write_log(_T("-> createwritepacket() without device, REQ=%08X LEN=%d\n"), arequest, datalength);
 		return NULL;
 	}
-	if (!copyfrombuff (ctx, data, pdev->tempbuf, datalength, pdev->copyfrombuff)) {
+	/* CopyFromBuff() runs guest code, during which a received packet can be
+	 * written to the receive scratch, so transmit uses its own scratch. A write
+	 * that starts while another one is still being copied is refused. */
+	if (pdev->txbusy) {
+		if (log_net)
+			write_log(_T("-> createwritepacket() while another write is copying, REQ=%08X LEN=%d\n"), arequest, datalength);
+		return NULL;
+	}
+	txbuf = pdev->tempbuf + pdev->td->mtu + ETH_HEADER_SIZE + 2;
+	pdev->txbusy = true;
+	if (!copyfrombuff (ctx, data, txbuf, datalength, pdev->copyfrombuff)) {
+		pdev->txbusy = false;
 		if (log_net)
 			write_log(_T("-> CopyFromBuff() rejected, CMD_READ, REQ=%08X LEN=%d\n"), arequest, datalength);
 		return NULL;
@@ -971,17 +1015,18 @@ static struct s2packet *createwritepacket(TrapContext *ctx, uae_u8 *request, uae
 	s2p = xcalloc (struct s2packet, 1);
 	s2p->data = xmalloc (uae_u8, pdev->td->mtu + ETH_HEADER_SIZE + 2);
 	if (flags & SANA2IOF_RAW) {
-		trap_get_bytes(ctx, s2p->data, pdev->tempbuf, datalength);
+		trap_get_bytes(ctx, s2p->data, txbuf, datalength);
 		packettype = (s2p->data[2 * ADDR_SIZE + 0] << 8) | (s2p->data[2 * ADDR_SIZE + 1]);
 		s2p->len = datalength;
 	} else {
-		trap_get_bytes(ctx, s2p->data + ETH_HEADER_SIZE, pdev->tempbuf, datalength);
+		trap_get_bytes(ctx, s2p->data + ETH_HEADER_SIZE, txbuf, datalength);
 		memcpy(s2p->data + ADDR_SIZE, pdev->td->mac, ADDR_SIZE);
 		memcpy(s2p->data, dstaddr, ADDR_SIZE);
 		s2p->data[2 * ADDR_SIZE + 0] = packettype >> 8;
 		s2p->data[2 * ADDR_SIZE + 1] = (uae_u8)packettype;
 		s2p->len = datalength + ETH_HEADER_SIZE;
 	}
+	pdev->txbusy = false;
 	if (pdev->tracks[packettype]) {
 		pdev->packetssent++;
 		pdev->bytessent += datalength;
@@ -1306,7 +1351,7 @@ static int dev_do_io_2 (TrapContext *ctx, struct s2devstruct *dev, uae_u8 *reque
 			uae_u32 wanted_events = get_long_host(request + 32);
 			if (wanted_events & ~KNOWN_EVENTS) {
 				io_error = S2ERR_NOT_SUPPORTED;
-				events = S2WERR_BAD_EVENT;
+				wire_error = S2WERR_BAD_EVENT;
 			} else {
 				if (dev->online)
 					events = S2EVENT_ONLINE;
@@ -1464,8 +1509,8 @@ static uae_u32 REGPARAM2 dev_beginio (TrapContext *ctx)
 		if (command == CMD_WRITE || command == S2_BROADCAST || command == S2_MULTICAST) {
 			struct s2packet *s2p;
 			if (!pdev->copyfrombuff || !pdev->copytobuff) {
-				put_long_host(request + 32, S2ERR_BAD_ARGUMENT);
-				put_byte_host(request + 31, S2WERR_BUFF_ERROR);
+				put_long_host(request + 32, S2WERR_BUFF_ERROR);
+				put_byte_host(request + 31, S2ERR_BAD_ARGUMENT);
 			} else {
 				if (command == S2_BROADCAST) {
 					uae_u8 *dstaddr = request + 32 + 4 + 4 + SANA2_MAX_ADDR_BYTES;
@@ -1606,11 +1651,21 @@ static int uaenet_int_handler2(TrapContext *ctx)
 
 	for (i = 0; i < MAX_TOTAL_NET_DEVICES; i++) {
 		struct s2devstruct *dev = &devst[i];
-		struct s2packet *p;
+		struct s2packet *p, **pp;
 		if (dev->online) {
-			while (dev->readqueue) {
+			pp = &dev->readqueue;
+			while (*pp) {
 				uae_u16 type;
-				p = dev->readqueue;
+				p = *pp;
+				/* a multicast address nobody registered isn't received at all */
+				if (!dev->promiscuous && ismulticast(p->data) && !ismulticastregistered(dev, p->data)) {
+					*pp = p->next;
+					freepacket(p);
+					continue;
+				}
+				/* reader state is per packet, now that the loop can move past one */
+				for (j = 0; j < MAX_OPEN_DEVICES; j++)
+					pdevst[j].tmp = 0;
 				type = (p->data[2 * ADDR_SIZE] << 8) | p->data[2 * ADDR_SIZE + 1];
 				ar = dev->ar;
 				while (ar) {
@@ -1636,8 +1691,8 @@ static int uaenet_int_handler2(TrapContext *ctx)
 										uae_sem_post(&pipe_sem);
 										dev->packetsreceived++;
 										pdev->tmp = 1;
-										dev->readqueue = dev->readqueue->next;
-										resetpackettimer(dev->readqueue);
+										*pp = p->next;
+										resetpackettimer(*pp);
 										freepacket(p);
 										return -1;
 									} else {
@@ -1671,8 +1726,8 @@ static int uaenet_int_handler2(TrapContext *ctx)
 								dev->packetsreceived++;
 								dev->unknowntypesreceived++;
 								pdev->tmp = 1;
-								dev->readqueue = dev->readqueue->next;
-								resetpackettimer(dev->readqueue);
+								*pp = p->next;
+								resetpackettimer(*pp);
 								freepacket(p);
 								return -1;
 							}
@@ -1682,16 +1737,15 @@ static int uaenet_int_handler2(TrapContext *ctx)
 				}
 				if (p->drop_start == 0 || p->drop_count - p->drop_start < DELAYED_DROPPED_PACKET_FRAMES) {
 					// we got packet but there was no readers, lets wait a bit before dropping it.
+					// Keep it queued, but don't let it hold up the packets behind it.
 					if (log_net && p->drop_start == 0) {
 						write_log(_T("-> %s No readers, queued for dropping\n"), dumphead(p->data, p->len));
 					}
-					while (p) {
-						if (p->drop_start == 0)
-							p->drop_start = vsync_counter;
-						p->drop_count = vsync_counter;
-						p = p->next;
-					}
-					break;
+					if (p->drop_start == 0)
+						p->drop_start = vsync_counter;
+					p->drop_count = vsync_counter;
+					pp = &p->next;
+					continue;
 				}
 				if (log_net) {
 					write_log (_T("-> %s packet dropped, CNT=%d/%d:%d\n"), dumphead(p->data, p->len), p->drop_start, p->drop_count, p->drop_count - p->drop_start);
@@ -1702,7 +1756,7 @@ static int uaenet_int_handler2(TrapContext *ctx)
 							pdevst[j].packetsdropped++;
 					}
 				}
-				dev->readqueue = dev->readqueue->next;
+				*pp = p->next;
 				freepacket(p);
 			}
 		} else {
@@ -1797,6 +1851,22 @@ static uae_u32 REGPARAM2 uaenet_int_handler(TrapContext *ctx)
 	}
 }
 
+static bool uaenet_vsync_has_work(struct s2devstruct *dev)
+{
+	if (dev->readqueue)
+		return true;
+
+	for (struct asyncreq *ar = dev->ar; ar; ar = ar->next) {
+		if (!ar->ready) {
+			const uae_u32 command = get_word_host(ar->request + 28);
+			if (command == CMD_FLUSH || command == S2_ONLINE)
+				return true;
+		}
+	}
+
+	return false;
+}
+
 static void uaenet_vsync(void)
 {
 	if (!irq_init)
@@ -1806,12 +1876,9 @@ static void uaenet_vsync(void)
 	bool pending = false;
 	for (int i = 0; i < MAX_TOTAL_NET_DEVICES; i++) {
 		struct s2devstruct *dev = &devst[i];
-		if (dev->online) {
-			if(dev->readqueue)
-				pending = true;
-		}
-		if (dev->ar) {
+		if (uaenet_vsync_has_work(dev)) {
 			pending = true;
+			break;
 		}
 	}
 	if (uaenet_int_late || pending)
@@ -1834,7 +1901,7 @@ static void dev_reset (void)
 			struct asyncreq *ar = dev->ar;
 			while (ar) {
 				if (!ar->ready) {
-					dev->ar->ready = 1;
+					ar->ready = 1;
 				}
 				ar = ar->next;
 			}

@@ -1,9 +1,11 @@
 #include "sysconfig.h"
 #include "sysdeps.h"
+#include "gdb_server.h"
 
 #include "devices.h"
 
 #include "options.h"
+#include "uae.h"
 #include "threaddep/thread.h"
 #include "memory.h"
 #include "audio.h"
@@ -64,11 +66,9 @@
 #endif
 #include "ethernet.h"
 #include "drawing.h"
-#ifdef AVIOUTPUT
+#ifdef VIDEOGRAB
 #include "videograb.h"
 #endif
-#include "rommgr.h"
-#include "newcpu.h"
 #ifdef WITH_MIDIEMU
 #include "midiemu.h"
 #endif
@@ -108,6 +108,7 @@ static void execute_device_items(DEVICE_VOID *pp, int cnt)
 	}
 }
 
+static uae_sem_t thread_sema;
 static int device_configs_cnt;
 static DEVICE_VOID device_configs[MAX_DEVICE_ITEMS];
 static int device_vsync_pre_cnt;
@@ -125,6 +126,32 @@ static DEVICE_VOID device_leaves_early[MAX_DEVICE_ITEMS];
 static int device_resets_cnt;
 static DEVICE_INT device_resets[MAX_DEVICE_ITEMS];
 static bool device_reset_done[MAX_DEVICE_ITEMS];
+static int device_callbacks_cnt;
+static DEVICE_VOID device_callbacks[MAX_DEVICE_ITEMS];
+
+void device_call_main_thread_callbacks(void)
+{
+	uae_sem_wait(&thread_sema);
+	DEVICE_VOID device_callbacks_tmp[MAX_DEVICE_ITEMS];
+	int device_callbacks_cnt_tmp = device_callbacks_cnt;
+	memcpy(device_callbacks_tmp, device_callbacks, sizeof(DEVICE_VOID) * device_callbacks_cnt);
+	device_callbacks_cnt = 0;
+	uae_sem_post(&thread_sema);
+	execute_device_items(device_callbacks_tmp, device_callbacks_cnt_tmp);
+}
+
+// queues function for execution from main thread if called from another thread
+void device_add_main_thread_callback(DEVICE_VOID p)
+{
+	if (is_mainthread()) {
+		p();
+	} else {
+		uae_sem_wait(&thread_sema);
+		add_device_item(device_callbacks, &device_callbacks_cnt, p);
+		set_special(SPCFLAG_CALLBACK);
+		uae_sem_post(&thread_sema);
+	}
+}
 
 static void reset_device_items(void)
 {
@@ -210,6 +237,7 @@ void devices_reset_ext(int hardreset)
 
 void devices_reset(int hardreset)
 {
+	gdb_server_reset();
 	memset(device_reset_done, 0, sizeof(device_reset_done));
 	// must be first
 	init_eventtab();
@@ -273,6 +301,11 @@ void devices_reset(int hardreset)
 	keymcu_reset();
 	keymcu2_reset();
 	keymcu3_reset();
+
+	uae_sem_wait(&thread_sema);
+	device_callbacks_cnt = 0;
+	uae_sem_post(&thread_sema);
+
 	uae_int_requested = 0;
 }
 
@@ -305,6 +338,8 @@ void devices_hsync(void)
 	void CIA_hsync_prehandler();
 	CIA_hsync_prehandler ();
 #endif
+	blitter_hsync();
+
 	decide_blitter(-1);
 #ifdef SERIAL_PORT
 	serial_hsynchandler();
@@ -353,6 +388,7 @@ void devices_update_sync(float svpos, float syncadjust)
 
 void virtualdevice_free(void)
 {
+	gdb_server_close();
 #ifdef WITH_PPC
 	// must be first
 	uae_ppc_free();
@@ -387,13 +423,14 @@ void virtualdevice_free(void)
 #endif
 	savestate_free();
 	memory_cleanup();
+	rtarea_free();
 	free_shm();
 	cfgfile_addcfgparam(0);
 #ifdef DRIVESOUND
 	driveclick_free();
 #endif
 	ethernet_enumerate_free();
-	rtarea_free();
+	drawing_free();
 #ifdef WITH_DRACO
 	draco_free();
 #endif
@@ -414,10 +451,19 @@ void do_leave_program (void)
 	SDL_Quit();
 #endif
 	machdep_free();
+
+	if (thread_sema) {
+		uae_sem_destroy(&thread_sema);
+		thread_sema = NULL;
+	}
 }
 
 void virtualdevice_init (void)
 {
+	if (!thread_sema) {
+		uae_sem_init(&thread_sema, 0, 1);
+	}
+
 	reset_device_items();
 
 #ifdef CD32
@@ -502,7 +548,7 @@ void devices_pause(void)
 #ifdef RETROPLATFORM
 	rp_pause(1);
 #endif
-#ifdef AVIOUTPUT
+#ifdef VIDEOGRAB
 	pausevideograb(1);
 #endif
 	ethernet_pause(1);
@@ -520,7 +566,7 @@ void devices_unpause(void)
 #ifdef WITH_DSP
 	dsp_pause(0);
 #endif
-#ifdef AVIOUTPUT
+#ifdef VIDEOGRAB
 	pausevideograb(0);
 #endif
 	ethernet_pause(0);

@@ -15,47 +15,30 @@
 
 #include <windows.h>
 #include <winspool.h>
-#include <stdlib.h>
-#include <stdarg.h>
-#include <mmsystem.h>
-#include <commctrl.h>
-#include <commdlg.h>
-#include <stdio.h>
-#include <fcntl.h>
-#include <sys/stat.h>
-#include <io.h>
 
 #include <setupapi.h>
-#include <Ntddpar.h>
 
 #include "sysdeps.h"
 #include "options.h"
-#include "gensound.h"
 #include "events.h"
-#include "uae.h"
 #include "include/memory.h"
 #include "custom.h"
 #include "autoconf.h"
-#include "newcpu.h"
 #include "traps.h"
-#include "registry.h"
-#include "od-win32/win32gui.h"
 #include "od-win32/parser.h"
 #include "od-win32/midi.h"
 #include "od-win32/ahidsound.h"
 #include "picasso96_win.h"
-#include "win32gfx.h"
 #include "win32.h"
 #include "ioport.h"
 #include "parallel.h"
 #include "zfile.h"
 #include "threaddep/thread.h"
 #include "serial.h"
-#include "savestate.h"
 #include "ahidsound_new.h"
-#include "uaeipc.h"
 #include "xwin.h"
 #include "drawing.h"
+#include "uae.h"
 #ifdef WITH_MIDIEMU
 #include "midiemu.h"
 #endif
@@ -73,6 +56,7 @@
 static uae_char prtbuf[PRTBUFSIZE];
 static int prtbufbytes,wantwrite;
 static HANDLE hPrt = INVALID_HANDLE_VALUE;
+static struct zfile *PrtFile = NULL;
 static DWORD  dwJob;
 static int prtopen;
 void DoSomeWeirdPrintingStuff(uae_char val);
@@ -293,7 +277,7 @@ static void flushprtbuf (void)
 				return;
 			}
 #endif
-			if (hPrt == INVALID_HANDLE_VALUE) {
+			if (hPrt == INVALID_HANDLE_VALUE && PrtFile == NULL) {
 				if (!doflushprinter(prtopen))
 					return;
 				openprinter ();
@@ -305,6 +289,8 @@ static void flushprtbuf (void)
 				} else {
 					write_log (_T("PRINTER: Couldn't write data!\n"));
 				}
+			} else if (PrtFile != NULL) {
+				zfile_fwrite(prtbuf, pbyt, 1, PrtFile);
 			}
 		}
 
@@ -521,13 +507,13 @@ static DWORD GetPrinterDriverVersion(HANDLE handle)
 	return version;
 }
 
-static void openprinter (void)
+static void openprinter(void)
 {
 	DOC_INFO_1 DocInfo;
 	static int first;
 	DWORD error = 0;
 
-	closeprinter ();
+	closeprinter();
 	if (!currprefs.prtname[0])
 		return;
 
@@ -535,10 +521,25 @@ static void openprinter (void)
 		prtopen = 1;
 		return;
 	} else if (currprefs.parallel_matrix_emulation >= PARALLEL_MATRIX_EPSON) {
-		epson_init (currprefs.prtname, currprefs.parallel_matrix_emulation);
+		epson_init(currprefs.prtname, currprefs.parallel_matrix_emulation);
 	} else if (hPrt == INVALID_HANDLE_VALUE) {
-		flushprtbuf ();
-		if (OpenPrinter (currprefs.prtname, &hPrt, NULL)) {
+		flushprtbuf();
+		if (!_tcsnicmp(currprefs.prtname, _T("FILE:"), 5)) {
+			TCHAR path[MAX_DPATH];
+			fetch_datapath(path, sizeof(path) / sizeof(TCHAR));
+			_tcscat(path, currprefs.prtname + 5);
+			fixtrailing(path);
+			for (int idx = 0; idx < 1000; idx++) {
+				TCHAR path2[MAX_DPATH];
+				_tcscpy(path2, path);
+				_stprintf(path2 + _tcslen(path2), _T("Print_%03d.dat"), idx);
+				if (zfile_exists(path2)) {
+					continue;
+				}
+				PrtFile = zfile_fopen(path2, _T("wb"));
+				break;
+			}
+		} else if (OpenPrinter (currprefs.prtname, &hPrt, NULL)) {
 			DWORD version = GetPrinterDriverVersion(hPrt);
 			// Fill in the structure with info about this "document."
 			DocInfo.pDocName = _T("WinUAE Document");
@@ -558,6 +559,8 @@ static void openprinter (void)
 	}
 	if (hPrt != INVALID_HANDLE_VALUE) {
 		write_log (_T("PRINTER: Opening printer \"%s\" with handle 0x%x.\n"), currprefs.prtname, hPrt);
+	} else if (PrtFile != NULL) {
+		write_log(_T("PRINTER: Opening file printer \"%s\".\n"), currprefs.prtname + 5);
 	} else if (*currprefs.prtname) {
 		write_log (_T("PRINTER: ERROR - Couldn't open printer \"%s\" for output. Error %08x\n"), currprefs.prtname, error);
 	}
@@ -576,8 +579,9 @@ void flushprinter(void)
 		return;
 	}
 #endif
-	if (!doflushprinter(prtopen))
+	if (!doflushprinter(prtopen)) {
 		return;
+	}
 	flushprtbuf();
 	closeprinter();
 }
@@ -595,6 +599,11 @@ void closeprinter (void)
 		ClosePrinter (hPrt);
 		hPrt = INVALID_HANDLE_VALUE;
 		write_log (_T("PRINTER: Closing printer.\n"));
+	}
+	if (PrtFile != NULL) {
+		zfile_fclose(PrtFile);
+		PrtFile = NULL;
+		write_log(_T("PRINTER: Closing file printer.\n"));
 	}
 	if (currprefs.parallel_postscript_emulation)
 		prtopen = 1;
@@ -925,7 +934,8 @@ static uae_u8 inputbuffer[SERIAL_READ_BUFFER];
 static int datainoutput;
 static int dataininput, dataininputcnt;
 static OVERLAPPED writeol, readol;
-static int writepending;
+static bool writepending;
+static int writepending_size;
 static bool breakpending;
 
 static WSADATA wsadata;
@@ -990,6 +1000,11 @@ static int opentcp (const TCHAR *sername)
 	bool waitmode = false;
 	const int one = 1;
 	const struct linger linger_1s = { 1, 1 };
+	ADDRINFOW hints = {0};
+
+	hints.ai_family = AF_INET;
+	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_protocol = IPPROTO_TCP;
 
 	if (WSAStartup (MAKEWORD (2, 2), &wsadata)) {
 		DWORD lasterror = WSAGetLastError ();
@@ -1016,7 +1031,7 @@ static int opentcp (const TCHAR *sername)
 	if (!port)
 		port = 	my_strdup (_T("1234"));
 
-	err = GetAddrInfoW (name, port, NULL, &socketinfo);
+	err = GetAddrInfoW (name, port, &hints, &socketinfo);
 	if (err < 0) {
 		write_log (_T("SERIAL_TCP: GetAddrInfoW() failed, %s:%s: %d\n"), name, port, WSAGetLastError ());
 		goto end;
@@ -1105,7 +1120,7 @@ int openser (const TCHAR *sername)
 	}
 
 	SetCommMask (hCom, EV_RXFLAG | EV_BREAK);
-	SetupComm (hCom, 65536, 128);
+	SetupComm (hCom, 128, 128);
 	PurgeComm (hCom, PURGE_TXABORT | PURGE_RXABORT | PURGE_TXCLEAR | PURGE_RXCLEAR);
 	CommTimeOuts.ReadIntervalTimeout = 0xFFFFFFFF;
 	CommTimeOuts.ReadTotalTimeoutMultiplier = 0;
@@ -1186,22 +1201,67 @@ void closeser (void)
 	uartbreak = 0;
 }
 
-static void outser (void)
+static void outser(void)
 {
-	if (datainoutput <= 0)
-		return;
-	DWORD v = WaitForSingleObject (writeevent, 0);
-	if (v == WAIT_OBJECT_0) {
+	if (writepending) {
 		DWORD actual;
-		memcpy (outputbufferout, outputbuffer, datainoutput);
-		WriteFile (hCom, outputbufferout, datainoutput, &actual, &writeol);
+		writepending = false;
+		if (GetOverlappedResult(hCom, &writeol, &actual, FALSE)) {
+			if (actual < writepending_size) {
+				if (actual) {
+					memmove(outputbufferout, outputbufferout + actual, writepending_size - actual);
+					writepending_size -= actual;
+				}
+				if (!WriteFile(hCom, outputbufferout, writepending_size, NULL, &writeol)) {
+					if (GetLastError() == ERROR_IO_PENDING) {
+						writepending = true;
+					}
+				} else {
+					DWORD err = GetLastError();
+					write_log(_T("SERIAL: WriteFile failed (remaining write), err=%d\n"), err);
+					writepending_size = 0;
+				}
+			}
+		} else {
+			writepending = false;
+			writepending_size = 0;
+		}
+	}
+	if (!writepending && datainoutput > 0) {
+		writepending_size = 0;
+		memcpy(outputbufferout, outputbuffer, datainoutput);
+		if (!WriteFile(hCom, outputbufferout, datainoutput, NULL, &writeol)) {
+			DWORD err = GetLastError();
+			if (err == ERROR_IO_PENDING) {
+				writepending_size = datainoutput;
+				writepending = true;
+				datainoutput = 0;
+			} else {
+				write_log(_T("SERIAL: WriteFile failed, err=%d\n"), err);
+				datainoutput = 0;
+			}
+		} else {
+			datainoutput = 0;
+		}
+	}
+}
+
+static void writeser_waitpending(void)
+{
+	if (writepending) {
+		DWORD actual;
+		GetOverlappedResult(hCom, &writeol, &actual, TRUE);
+		writepending_size = 0;
 		datainoutput = 0;
+		writepending = false;
 	}
 }
 
 void writeser_flush(void)
 {
+	writeser_waitpending();
 	outser();
+	writeser_waitpending();
 }
 
 void writeser (int c)
@@ -1438,8 +1498,7 @@ int setbaud(int baud, int org_baud)
 		}
 #endif
 		if (!midi_ready) {
-			if (Midi_Open())
-				write_log (_T("Midi enabled\n"));
+			Midi_Open();
 		}
 		return 1;
 	} else {
@@ -1479,7 +1538,9 @@ void initparallel (void)
 		calltrap (deftrapres (ahi_demux, 0, _T("ahi_winuae")));
 		dw (RTS);
 		org (a);
+#ifdef AHI_v2
 		init_ahi_v2 ();
+#endif
 	}
 }
 
@@ -1729,6 +1790,73 @@ int enumserialports (void)
 	return cnt;
 }
 
+static int getmidideviceid(int index, bool midiout)
+{
+	write_log("getmidi%sdeviceid index %d\n", midiout ? "out" : "in", index);
+
+	if (index < 0) {
+		return index;
+	}
+
+	int max = midiout ? midiOutGetNumDevs() : midiInGetNumDevs();
+	write_log("total devices %d\n", max);
+	for (int j = 0; j < 3; j++) {
+		for (int i = 0; i < max; i++) {
+			MIDIINCAPS midiInCaps;
+			MIDIOUTCAPS midiOutCaps;
+			MMRESULT res;
+			int mid, pid;
+			TCHAR *name;
+			if (midiout) {
+				res = midiOutGetDevCaps(i, &midiOutCaps, sizeof(midiOutCaps));
+				mid = midiOutCaps.wMid;
+				pid = midiOutCaps.wPid;
+				name = midiOutCaps.szPname;
+			} else {
+				res = midiInGetDevCaps(i, &midiInCaps, sizeof(midiInCaps));
+				mid = midiInCaps.wMid;
+				pid = midiInCaps.wPid;
+				name = midiInCaps.szPname;
+			}
+			if (res == MMSYSERR_NOERROR) {
+				int retid = -1;
+				struct midiportinfo *mi = midiout ? midioutportinfo[index] : midiinportinfo[index];
+				bool matchid = mi->mid == mid && mi->pid == pid;
+				write_log(_T("device %d/%d:'%s':%d:%d\n"), i, max, name, mid, pid);
+				if (j == 0) {
+					if (!_tcscmp(mi->name, name) && matchid) {
+						retid = mi->devid;
+					}
+				} else if (j == 1) {
+					if (!_tcsicmp(mi->name, name)) {
+						retid = mi->devid;
+					}
+				} else if (j == 2) {
+					if (matchid) {
+						retid = mi->devid;
+					}
+				}
+				if (retid >= 0) {
+					write_log("match %d\n", retid);
+					return retid;
+				}
+			}
+		}
+	}
+
+	write_log("match not found -> %d\n", index);
+	return index;
+}
+
+int getmidioutdeviceid(int index)
+{
+	return getmidideviceid(index, true);
+}
+int getmidiindeviceid(int index)
+{
+	return getmidideviceid(index, false);
+}
+
 int enummidiports (void)
 {
 	MIDIOUTCAPS midiOutCaps;
@@ -1736,9 +1864,10 @@ int enummidiports (void)
 	int i, j, num, total;
 	int innum, outnum;
 	
+	write_log(_T("MIDI port enumeration..\n"));
 	outnum = midiOutGetNumDevs();
 	innum = midiInGetNumDevs();
-	write_log (_T("MIDI port enumeration.. IN=%d OUT=%d\n"), innum, outnum);
+	write_log (_T("IN=%d OUT=%d\n"), innum, outnum);
 
 	num = outnum;
 	for (i = 0; i < num + 1 && i < MAX_MIDI_PORTS - 1; i++) {
@@ -1750,6 +1879,8 @@ int enummidiports (void)
 		midioutportinfo[i] = xcalloc (struct midiportinfo, 1);
 		midioutportinfo[i]->name = my_strdup (midiOutCaps.szPname);
 		midioutportinfo[i]->devid = i - 1;
+		midioutportinfo[i]->mid = midiOutCaps.wMid;
+		midioutportinfo[i]->pid = midiOutCaps.wPid;
 		write_log (_T("MIDI OUT: %d:'%s' (%d/%d)\n"), midioutportinfo[i]->devid, midioutportinfo[i]->name, midiOutCaps.wMid, midiOutCaps.wPid);
 	}
 	num++;
@@ -1766,15 +1897,23 @@ int enummidiports (void)
 	}
 #ifdef WITH_MIDIEMU
 	midioutportinfo[num] = xcalloc(struct midiportinfo, 1);
-	midioutportinfo[num]->label = midi_emu_available(_T("MT-32")) ? my_strdup(_T("Munt MT-32")) : my_strdup(_T("Munt MT-32 (Missing ROMs)"));
-	midioutportinfo[num]->name = my_strdup(_T("Munt MT-32"));
-	midioutportinfo[num]->devid = num;
-	num++;
+	if (midioutportinfo[num]) {
+		midioutportinfo[num]->label = midi_emu_available(_T("MT-32")) ? my_strdup(_T("Munt MT-32")) : my_strdup(_T("Munt MT-32 (Missing ROMs)"));
+		midioutportinfo[num]->name = my_strdup(_T("Munt MT-32"));
+		midioutportinfo[num]->mid = -1;
+		midioutportinfo[num]->pid = -1;
+		midioutportinfo[num]->devid = num;
+		num++;
+	}
 	midioutportinfo[num] = xcalloc(struct midiportinfo, 1);
-	midioutportinfo[num]->label = midi_emu_available(_T("CM-32L")) ? my_strdup(_T("Munt CM-32L")) : my_strdup(_T("Munt CM-32L (Missing ROMs)"));
-	midioutportinfo[num]->name = my_strdup(_T("Munt CM-32L"));
-	midioutportinfo[num]->devid = num;
-	num++;
+	if (midioutportinfo[num]) {
+		midioutportinfo[num]->label = midi_emu_available(_T("CM-32L")) ? my_strdup(_T("Munt CM-32L")) : my_strdup(_T("Munt CM-32L (Missing ROMs)"));
+		midioutportinfo[num]->name = my_strdup(_T("Munt CM-32L"));
+		midioutportinfo[num]->mid = -1;
+		midioutportinfo[num]->pid = -1;
+		midioutportinfo[num]->devid = num;
+		num++;
+	}
 #endif
 	num = innum;
 	for (i = 0; i < num && i < MAX_MIDI_PORTS - 1; i++) {
@@ -1785,6 +1924,8 @@ int enummidiports (void)
 		midiinportinfo[i] = xcalloc (struct midiportinfo, 1);
 		midiinportinfo[i]->name = my_strdup (midiInCaps.szPname);
 		midiinportinfo[i]->devid = i;
+		midiinportinfo[i]->mid = midiInCaps.wMid;
+		midiinportinfo[i]->pid = midiInCaps.wPid;
 		write_log (_T("MIDI IN: %d:'%s' (%d/%d)\n"), midiinportinfo[i]->devid, midiinportinfo[i]->name, midiInCaps.wMid, midiInCaps.wPid);
 	}
 	total += num;

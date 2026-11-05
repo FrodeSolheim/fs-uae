@@ -13,6 +13,8 @@
 #include <stdarg.h>
 #include <stdio.h>
 
+static bool FMODE64_HACK = false;
+
 static FILE *outfile;
 static int outfile_indent = 0;
 static int aga, outres, res, planes, modes, bplfmode, sprres, oddeven, ecsshres, genlock, ntsc, filtered, modetype;
@@ -250,12 +252,8 @@ static void gen_getbpl(int num, int maxplanes)
 	}
 
 	int p = planes < maxplanes ? planes : maxplanes;
-	if (bplfmode == 2) {
+	if (aga) {
 		outf("loaded_pix = getbpl%d_64();", p);
-	} else if (bplfmode == 1) {
-		outf("loaded_pix = getbpl%d_32(); ", p);
-	} else if (aga) {
-		outf("loaded_pix = getbpl%d();", p);
 	} else {
 		outf("pix%d = getbpl%d();", num, p);
 	}
@@ -268,8 +266,12 @@ static void gen_shiftbpl(int maxplanes)
 	}
 
 	int p = planes < maxplanes ? planes : maxplanes;
-	if (bplfmode == 2) {
-		outf("shiftbpl%d_64();", p);
+	if (aga) {
+		if (bplfmode == 2) {
+			outf("shiftbpl%d_64();", p);
+		} else {
+			outf("shiftbpl%d_32();", p);
+		}
 	} else {
 		outf("shiftbpl%d();", p);
 	}
@@ -289,8 +291,12 @@ static void gen_shiftbpl_hr(int maxplanes)
 		add = 4;
 	}
 	if (add == 4) {
-		if (bplfmode == 2) {
-			outf("shiftbpl%d_64();", p);
+		if (aga) {
+			if (bplfmode == 2) {
+				outf("shiftbpl%d_64();", p);
+			} else {
+				outf("shiftbpl%d_32();", p);
+			}
 		} else {
 			outf("shiftbpl%d();", p);
 		}
@@ -298,8 +304,12 @@ static void gen_shiftbpl_hr(int maxplanes)
 		outf("bplshiftcnt[0] += %d;", add);
 		outf("if (bplshiftcnt[0] >= 4) {");
 		outf("bplshiftcnt[0] = 0;");
-		if (bplfmode == 2) {
-			outf("shiftbpl%de_64();", p);
+		if (aga) {
+			if (bplfmode == 2) {
+				outf("shiftbpl%de_64();", p);
+			} else {
+				outf("shiftbpl%de_32();", p);
+			}
 		} else {
 			outf("shiftbpl%de();", p);
 		}
@@ -308,8 +318,12 @@ static void gen_shiftbpl_hr(int maxplanes)
 		outf("bplshiftcnt[1] += %d;", add);
 		outf("if (bplshiftcnt[1] >= 4) {");
 		outf("bplshiftcnt[1] = 0;");
-		if (bplfmode == 2) {
-			outf("shiftbpl%do_64();", p);
+		if (aga) {
+			if (bplfmode == 2) {
+				outf("shiftbpl%do_64();", p);
+			} else {
+				outf("shiftbpl%do_32();", p);
+			}
 		} else {
 			outf("shiftbpl%do();", p);
 		}
@@ -319,8 +333,12 @@ static void gen_shiftbpl_hr(int maxplanes)
 		outf("bplshiftcnt[0] += %d;", add);
 		outf("if (bplshiftcnt[0] >= 4) {");
 		outf("bplshiftcnt[0] = 0;");
-		if (bplfmode == 2) {
-			outf("shiftbpl%d_64();", p);
+		if (aga) {
+			if (bplfmode == 2) {
+				outf("shiftbpl%d_64();", p);
+			} else {
+				outf("shiftbpl%d_32();", p);
+			}
 		} else {
 			outf("shiftbpl%d();", p);
 		}
@@ -342,7 +360,7 @@ static void gen_shiftspr(int shift)
 static void gen_ecsshresspr(void)
 {
 	outf("if (sv0 || sv1) {");
-	outf("get_shres_spr_pix(sv0, sv1, &dpix_val0, &dpix_val2);");
+	outf("get_shres_spr_pix(pix0, pix1, pix2, pix3, sv0, sv1, &dpix_val0, &dpix_val2);");
 	outf("if (sv0) {");
 	outf("dpix_val1 = dpix_val0;");
 	outf("}");
@@ -352,24 +370,47 @@ static void gen_ecsshresspr(void)
 	outf("}");
 }
 
-static void gen_sprpix(int i)
+static void gen_sprpix_ecs(int i)
+{
+	// sprite pixel
+	outf("uae_u32 sv%d = 0;", i);
+	outf("sprite_pixdata = 0;");
+	outf("if (denise_spr_nr_armeds) {");
+	outf("	uae_u32 svt;");
+	if (ecsshres) {
+		outf("		svt = denise_render_sprites_ecs_shres();");
+	} else {
+		outf("		svt = denise_render_sprites_lores();");
+	}
+	outf("	if (!denise_sprite_blank_active) {");
+	outf("       sprite_pixdata = svt;");
+	outf("       if (!sprites_hidden) {");
+	outf("	         sv%d = svt;", i);
+	outf("	     }");
+	outf("	}");
+	outf("}");
+}
+
+static void gen_sprpix_aga(int i)
 {
 	// sprite pixel
 	outf("uae_u32 sv%d = 0;", i);
 	outf("if (denise_spr_nr_armeds) {");
 	outf("	uae_u32 svt;");
-	if (aga) {
-		// outres > sprres ? 1 << (2 - (outres - sprres)) : 4
-		outf("		svt = denise_render_sprites_aga(denise_spr_add);");
-	} else if (ecsshres) {
-		outf("		svt = denise_render_sprites_ecs_shres();");
-	} else {
-		outf("		svt = denise_render_sprites_lores();");
-	}
+	outf("		svt = denise_render_sprites_aga(denise_spr_add);");
 	outf("	if (!denise_sprite_blank_active && !sprites_hidden) {");
 	outf("	sv%d = svt;", i);
 	outf("	}");
 	outf("}");
+}
+
+static void gen_sprpix(int i)
+{
+	if (aga) {
+		gen_sprpix_aga(i);
+	} else {
+		gen_sprpix_ecs(i);
+	}
 }
 
 static void gen_storepix(int off, int off2)
@@ -402,7 +443,7 @@ static void gen_copybpl_lines(int oddeven)
 	for (int i = 1; i <= 8; i++) {
 		if (planes >= i) {
 			if (oddeven == 0 || (oddeven == 1 && (i & 1)) || (oddeven == 2 && !(i & 1))) {
-				if (bplfmode == 2) {
+				if (aga) {
 					outf("bplxdat3_64[%d] = bplxdat2_64[%d];", i - 1, i - 1);
 				} else {
 					outf("bplxdat3[%d] = bplxdat2[%d];", i - 1, i - 1);
@@ -427,14 +468,14 @@ static void gen_copybpl(void)
 	if (oddeven) {
 		// bitplane shifter shifting
 		outf("if (bpldat_copy[0] && (denise_hcounter_cmp & %d) == bplcon1_shift[0]) { ", ((16 << bplfmode) >> res) - 1);
-		if (bplfmode == 2) {
+		if (aga) {
 			outf("copybpl%de_64();", planes);
 		} else {
 			outf("copybpl%de();", planes);
 		}
 		outf("}");
 		outf("if (bpldat_copy[1] && (denise_hcounter_cmp & %d) == bplcon1_shift[1]) {", ((16 << bplfmode) >> res) - 1);
-		if (bplfmode == 2) {
+		if (aga) {
 			outf("copybpl%do_64();", planes);
 		} else {
 			outf("copybpl%do();", planes);
@@ -443,7 +484,7 @@ static void gen_copybpl(void)
 	} else {
 		// bitplane shifter shifting
 		outf("if (bpldat_copy[0] && (denise_hcounter_cmp & %d) == bplcon1_shift[0]) { ", ((16 << bplfmode) >> res) - 1);
-		if (bplfmode == 2) {
+		if (aga) {
 			outf("copybpl%d_64();", planes);
 		} else {
 			outf("copybpl%d();", planes);
@@ -467,7 +508,7 @@ static void gen_copybpl_hr(int add)
 	if (oddeven) {
 		// bitplane shifter shifting
 		outf("if (bpldat_copy[0] && ((cmp | %d) & %d) == bplcon1_shift_full_masked[0]) { ", add, (((16 << bplfmode) >> res) << 2) - 1);
-		if (bplfmode == 2) {
+		if (aga) {
 			outf("copybpl%de_64();", planes);
 		} else {
 			outf("copybpl%de();", planes);
@@ -478,7 +519,7 @@ static void gen_copybpl_hr(int add)
 		}
 		outf("}");
 		outf("if (bpldat_copy[1] && ((cmp | %d) & %d) == bplcon1_shift_full_masked[1]) {", add, (((16 << bplfmode) >> res) << 2) - 1);
-		if (bplfmode == 2) {
+		if (aga) {
 			outf("copybpl%do_64();", planes);
 		} else {
 			outf("copybpl%do();", planes);
@@ -491,7 +532,7 @@ static void gen_copybpl_hr(int add)
 	} else {
 		// bitplane shifter shifting
 		outf("if (bpldat_copy[0] && ((cmp | %d) & %d) == bplcon1_shift_full_masked[0]) { ", add, (((16 << bplfmode) >> res) << 2) - 1);
-		if (bplfmode == 2) {
+		if (aga) {
 			outf("copybpl%d_64();", planes);
 		} else {
 			outf("copybpl%d();", planes);
@@ -564,7 +605,7 @@ static void gen_pix_aga(void)
 		}
 		outf("	dpix_val%d = bordercolor;", off);
 		if (modetype > 0) {
-			outf("	if (denise_hdiw && bpl1dat_trigger) {");
+			outf("	if (denise_hdiw && bpl1dat_trigger && !diw_disable) {");
 			outf("	pix%d = loaded_pixs[%d];", off, off);
 			outf("	clxdat |= bplcoltable[pix%d];", off);
 			gen_bplpixmode_aga(off);
@@ -599,7 +640,7 @@ static void gen_pix_aga(void)
 					}
 					outf("	dpix_val%d = bordercolor;", off);
 					if (modetype > 0) {
-						outf("	if (denise_hdiw && bpl1dat_trigger) {");
+						outf("	if (denise_hdiw && bpl1dat_trigger && !diw_disable) {");
 						outf("	pix%d = loaded_pixs[%d];", off, off);
 						outf("	clxdat |= bplcoltable[pix%d];", off);
 						gen_bplpixmode_aga(off);
@@ -619,7 +660,7 @@ static void gen_pix_aga(void)
 						outf("if (!denise_blank_active) {");
 						outf("	dpix_val%d = bordercolor;", off);
 						if (modetype > 0) {
-							outf("	if (denise_hdiw && bpl1dat_trigger) {");
+							outf("	if (denise_hdiw && bpl1dat_trigger && !diw_disable) {");
 							outf("	pix%d = loaded_pixs[%d];", off, off);
 							outf("	decode_ham_pixel_aga(pix%d);", off);
 						}
@@ -643,7 +684,7 @@ static void gen_pix_aga(void)
 		outf("internal_pixel_cnt += %d;", 4 / (1 << outres));
 	}
 
-	outf("if (denise_pixtotal >= 0 && denise_pixtotal < denise_pixtotal_max) {");
+	outf("if (denise_pixtotal >= 0 && buf1 < denise_pixtotal_max_buf_%dx) {", 1 << outres);
 
 	// bitplane/sprite merging
 	off = 0;
@@ -750,7 +791,7 @@ static void gen_pix(void)
 			}
 			outf("	dpix_val%d = bordercolor;", i);
 			if (modetype > 0) {
-				outf("	if (denise_hdiw && bpl1dat_trigger) {");
+				outf("	if (denise_hdiw && bpl1dat_trigger && !diw_disable) {");
 				gen_getbpl(i, maxplanes);
 				outf("	clxdat |= bplcoltable[pix%d];", i);
 				if (planes > 4) {
@@ -794,7 +835,7 @@ static void gen_pix(void)
 		}
 	}
 
-	outf("if (denise_pixtotal >= 0 && denise_pixtotal < denise_pixtotal_max) {");
+	outf("if (denise_pixtotal >= 0 && buf1 < denise_pixtotal_max_buf_%dx) {", 1 << outres);
 
 	// bitplane/sprite merging
 	for (int i = 0; i < (1 << outres); i++) {
@@ -994,8 +1035,8 @@ static bool gen_fasthead(void)
 		}
 	}
 
-	outf("static void %s(int draw_start, int draw_end, int draw_startoffset, int hbstrt_offset, int hbstop_offset, int hstrt_offset, int hstop_offset,"
-		"int bpl1dat_trigger_offset, int planes, uae_u32 bgcolor, uae_u8 *cp, uae_u8 *cp2, int cpadd, int *cpadds, int bufadd, struct linestate *ls)", funcname);
+	outf("static void %s(int cnt, int draw_end, int hbstrt_offset, int hbstop_offset, int hstrt_offset, int hstop_offset,"
+		"int bpl1dat_trigger_offset, int planes, uae_u32 bgcolor, uae_u8 **cpp, uae_u8 **cp2p, int cpaddv, int *cpadds, int bufaddv, struct linestate *ls)", funcname);
 	outf("{");
 
 	// shres on lores is useless
@@ -1148,14 +1189,16 @@ static void gen_fastdraw_mode(int off, int total)
 		outf("*buf2++ = col;");
 	}
 	if (genlock) {
-		outf("gpix = get_genlock_transparency_fast(c);");
-		outf("*gbuf++ = gpix;");
+		outf("*gbuf++ = get_genlock_transparency_fast(c);");
 	}
 }
 
 static void gen_fastdraw(void)
 {
 	int doubling = outres - res;
+
+	outf("uae_u8 *cp = *cpp;");
+	outf("uae_u8 *cp2 = *cp2p;");
 
 	outf("uae_u32 *acolors = (uae_u32*)ls->linecolorstate;");
 	if (aga) {
@@ -1166,32 +1209,13 @@ static void gen_fastdraw(void)
 	if (aga) {
 		outf("uae_u8 bxor = ls->bplcon4 >> 8;");
 	}
-	outf("int bufaddv = 1 << bufadd;");
-	outf("int cpaddv = 1 << cpadd;");
 	if (genlock) {
 		outf("uae_u8 gpix = get_genlock_transparency_border_fast(ls->bplcon3);");
 	}
 
-	outf("int end = draw_end;");
-	outf("if (end > hbstrt_offset) {");
-	outf("	end = hbstrt_offset;");
-	outf("}");
-
-	outf("int cnt = draw_end;");
-	outf("if (cnt > draw_startoffset) {");
-	outf("	cnt = draw_startoffset;");
-	outf("}");
-	outf("if (cnt > hbstop_offset) {");
-	outf("	cnt = hbstop_offset;");
-	outf("}");
-	outf("if (cnt > bpl1dat_trigger_offset) {");
-	outf("	cnt = bpl1dat_trigger_offset;");
-	outf("}");
-
-	outf("while (cnt < end) {");
+	outf("while (cnt < draw_end) {");
 	outf("	bool bpl = false;");
 	outf("	if (cnt < bpl1dat_trigger_offset || cnt < hbstop_offset || cnt < hstrt_offset || cnt >= hstop_offset) {");
-	outf("		if (cnt >= draw_startoffset) {");
 	outf("		if (cnt < hbstop_offset) {");
 	if (doubling <= 0) {
 		outf("buf1++;");
@@ -1256,7 +1280,6 @@ static void gen_fastdraw(void)
 			outf("*gbuf++ = gpix;");
 		}
 	}
-	outf("}");
 	outf("	}");
 	outf("} else {");
 	outf("bpl = true;");
@@ -1281,6 +1304,9 @@ static void gen_fastdraw(void)
 	outf("}");
 	outf("cnt += bufaddv;");
 	outf("}");
+
+	outf("*cpp = cp;");
+	outf("*cp2p = cp2;");
 }
 
 static void gen_null(void)
@@ -1311,8 +1337,8 @@ static void gen_end(void)
 	outf("			denise_hcounter &= 511;");
 	outf("			denise_hcounter_next++;");
 	outf("			denise_hcounter_next &= 511;");
+	outf("			denise_pixtotal++;");
 	outf("		}");
-	outf("		denise_pixtotal++;");
 	outf("		if (denise_pixtotal == 0) {");
 	outf("			internal_pixel_start_cnt = internal_pixel_cnt;");
 	outf("		}");
@@ -1333,13 +1359,16 @@ static void helperfunctions(void)
 {
 	char *oddeven[] = { "", "e", "o" };
 
-	for (int fmode = 0; fmode < 2; fmode++) {
+	for (int fmode = 0; fmode < 3; fmode++) {
 		for (int i = 1; i <= 8; i++) {
 			for (int oe = 0; oe < 3; oe++) {
-				outf("STATIC_INLINE void shiftbpl%d%s%s(void)", i, oddeven[oe], fmode ? "_64" : "");
+				outf("STATIC_INLINE void shiftbpl%d%s%s(void)", i, oddeven[oe], fmode == 0 ? "" : (fmode == 1 ? "_32" : "_64"));
 				outf("{");
 				for (int j = oe == 2 ? 1 : 0; j < i; j += (oe == 0) ? 1 : 2) {
-					if (fmode) {
+					if (fmode == 2) {
+						outf("bplxdat3_64[%d] <<= 1;", j);
+					} else if (fmode == 1) {
+						outf("bplxdat3_64[%d] &= ~0x80000000LL;", j);
 						outf("bplxdat3_64[%d] <<= 1;", j);
 					} else {
 						outf("bplxdat3[%d] <<= 1;", j);
@@ -1349,16 +1378,14 @@ static void helperfunctions(void)
 			}
 		}
 	}
-	for (int fmode = 0; fmode < 3; fmode++) {
+	for (int fmode = 0; fmode < 2; fmode++) {
 		for (int i = 1; i <= 8; i++) {
-			outf("STATIC_INLINE uae_u8 getbpl%d%s(void)", i, fmode == 1 ? "_32" : (fmode == 2 ? "_64" : ""));
+			outf("STATIC_INLINE uae_u8 getbpl%d%s(void)", i, fmode == 0 ? "": "_64");
 			outf("{");
 			outf("	uae_u8 v = 0;");
 			for (int j = 0; j < i; j++) {
 				if (fmode == 0) {
 					outf("v |= ((bplxdat3[%d] >> 15) & 1) << %d;", j, j);
-				} else if (fmode == 1) {
-					outf("v |= ((bplxdat3[%d] >> 31) & 1) << %d;", j, j);
 				} else {
 					outf("v |= ((bplxdat3_64[%d] >> 63) & 1) << %d;", j, j);
 				}
@@ -1796,7 +1823,7 @@ int main (int argc, char *argv[])
 				outf("	dpix_val1 = bordercolor_ecs_shres;");
 				outf("	dpix_val2 = bordercolor_ecs_shres;");
 				outf("	dpix_val3 = bordercolor_ecs_shres;");
-				outf("	if (denise_hdiw && bpl1dat_trigger) {");
+				outf("	if (denise_hdiw && bpl1dat_trigger && !diw_disable) {");
 				outf("  shifted = true;");
 				outf("pix0 = getbpl2();");
 				outf("shiftbpl2();");
@@ -1821,7 +1848,7 @@ int main (int argc, char *argv[])
 					gen_sprpix(1);
 					gen_matchspr(2);
 					gen_ecsshresspr();
-					outf("if (denise_pixtotal >= 0 && denise_pixtotal < denise_pixtotal_max) {");
+					outf("if (denise_pixtotal >= 0 && buf1 < denise_pixtotal_max_buf_2x) {");
 					if (filtered) {
 						outf("dpix_val0 = filter_pixel(dpix_val0, dpix_val1);");
 						outf("dpix_val2 = filter_pixel(dpix_val2, dpix_val3);");
@@ -1839,7 +1866,7 @@ int main (int argc, char *argv[])
 					gen_sprpix(1);
 					gen_matchspr(2);
 					gen_ecsshresspr();
-					outf("if (denise_pixtotal >= 0 && denise_pixtotal < denise_pixtotal_max) {");
+					outf("if (denise_pixtotal >= 0 && buf1 < denise_pixtotal_max_buf_4x) {");
 					gen_storepix(0, 0);
 					gen_storepix(1, 1);
 					gen_storepix(2, 2);

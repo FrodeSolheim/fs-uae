@@ -28,6 +28,22 @@ extern uae_u32 mmu030_fmovem_store[2];
 extern uae_u8 mmu030_cache_state, mmu030_cache_state_default;
 extern bool ismoves030, islrmw030;
 
+/* Descriptors */
+
+#define DESCR_TYPE_MASK         0x00000003
+
+#define DESCR_TYPE_INVALID      0 /* all tables */
+
+#define DESCR_TYPE_EARLY_TERM   1 /* all but lowest level table */
+#define DESCR_TYPE_PAGE         1 /* only lowest level table */
+#define DESCR_TYPE_VALID4       2 /* all but lowest level table */
+#define DESCR_TYPE_INDIRECT4    2 /* only lowest level table */
+#define DESCR_TYPE_VALID8       3 /* all but lowest level table */
+#define DESCR_TYPE_INDIRECT8    3 /* only lowest level table */
+
+#define DESCR_TYPE_VALID_MASK       0x2 /* all but lowest level table */
+#define DESCR_TYPE_INDIRECT_MASK    0x2 /* only lowest level table */
+
 #define MMU030_STATEFLAG1_FMOVEM 0x2000
 #define MMU030_STATEFLAG1_MOVEM1 0x4000
 #define MMU030_STATEFLAG1_MOVEM2 0x8000
@@ -96,6 +112,10 @@ extern uae_u16 REGPARAM3 mmu030_get_lrmw_word_unaligned(uaecptr addr, uae_u32 fc
 extern uae_u32 REGPARAM3 mmu030_get_lrmw_long_unaligned(uaecptr addr, uae_u32 fc, int flags) REGPARAM;
 extern void REGPARAM3 mmu030_put_word_unaligned(uaecptr addr, uae_u16 val, uae_u32 fc, int flags) REGPARAM;
 extern void REGPARAM3 mmu030_put_long_unaligned(uaecptr addr, uae_u32 val, uae_u32 fc, int flags) REGPARAM;
+
+extern uaecptr debug_mmu030_translate(uaecptr addr, int fc, bool write, struct mmu_debug_data **mdd);
+extern void debug_mmu030_translate_end(void);
+extern void mmu030_dump_tables(int fc);
 
 static ALWAYS_INLINE uae_u32 uae_mmu030_get_fc_code(void)
 {
@@ -621,16 +641,26 @@ extern void m68k_do_bsr_mmu030 (uaecptr oldpc, uae_s32 offset);
 
 // more compatible + optional cache
 
+// These are MOVES's accessors when the data cache is off. A misaligned
+// word or long must be split like everywhere else: mmu030_get/put_word
+// and _long translate only the address of the first byte, so the part
+// in the next page would go to (or come from) the physically adjacent
+// page, and that page would never fault in.
+
 static ALWAYS_INLINE uae_u32 mmu030_get_fc_byte(uaecptr addr, uae_u32 fc)
 {
 	return mmu030_get_byte(addr, fc);
 }
 static ALWAYS_INLINE uae_u32 mmu030_get_fc_word(uaecptr addr, uae_u32 fc)
 {
+	if (unlikely(is_unaligned_bus(addr, 2)))
+		return mmu030_get_word_unaligned(addr, fc, 0);
 	return mmu030_get_word(addr, fc);
 }
 static ALWAYS_INLINE uae_u32 mmu030_get_fc_long(uaecptr addr, uae_u32 fc)
 {
+	if (unlikely(is_unaligned_bus(addr, 4)))
+		return mmu030_get_long_unaligned(addr, fc, 0);
 	return mmu030_get_long(addr, fc);
 }
 static ALWAYS_INLINE void mmu030_put_fc_byte(uaecptr addr, uae_u32 val, uae_u32 fc)
@@ -639,11 +669,17 @@ static ALWAYS_INLINE void mmu030_put_fc_byte(uaecptr addr, uae_u32 val, uae_u32 
 }
 static ALWAYS_INLINE void mmu030_put_fc_word(uaecptr addr, uae_u32 val, uae_u32 fc)
 {
-	mmu030_put_word(addr, val, fc);
+	if (unlikely(is_unaligned_bus(addr, 2)))
+		mmu030_put_word_unaligned(addr, val, fc, 0);
+	else
+		mmu030_put_word(addr, val, fc);
 }
 static ALWAYS_INLINE void mmu030_put_fc_long(uaecptr addr, uae_u32 val, uae_u32 fc)
 {
-	mmu030_put_long(addr, val, fc);
+	if (unlikely(is_unaligned_bus(addr, 4)))
+		mmu030_put_long_unaligned(addr, val, fc, 0);
+	else
+		mmu030_put_long(addr, val, fc);
 }
 
 static ALWAYS_INLINE uae_u32 sfc030c_get_long(uaecptr addr)

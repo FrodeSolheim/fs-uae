@@ -20,6 +20,7 @@
 #include "uae/byteswap.h"
 #include "uae/log.h"
 #include "uae/tchar.h"
+#include "uae/types.h"
 
 #include <stddef.h>
 #include <stdint.h>
@@ -51,10 +52,7 @@ typedef uint32_t DWORD;
 typedef int INT;
 
 typedef unsigned int UINT;
-typedef uint8_t UINT8;
-typedef uint16_t UINT16;
-typedef uint32_t UINT32;
-typedef uint64_t UINT64;
+// UINT8..UINT64 (and INT8..INT64) are provided by uae/types.h
 
 typedef int32_t LONG;
 

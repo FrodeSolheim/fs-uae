@@ -143,8 +143,10 @@ static void moduleripper_filename(const char *aname, TCHAR *out, bool fullpath)
 	xfree(name);
 }
 
-extern "C"
-{
+#ifdef FSUAE
+// The (C) prowizard library calls these functions
+extern "C" {
+#endif
 
 FILE *moduleripper_fopen (const char *aname, const char *amode)
 {
@@ -186,7 +188,10 @@ FILE *moduleripper2_fopen (const char *name, const char *mode, const char *aid, 
 void pw_write_log (const char *format,...)
 {
 }
+
+#ifdef FSUAE
 }
+#endif
 
 #else
 

@@ -13,16 +13,12 @@
 #define NEW_TRAP_DEBUG 0
 
 #include "options.h"
-#include "uae.h"
 #include "memory.h"
-#include "custom.h"
-#include "events.h"
 #include "newcpu.h"
 #include "autoconf.h"
 #include "traps.h"
 #include "debug.h"
 #include "threaddep/thread.h"
-#include "native2amiga.h"
 #include "inputdevice.h"
 #ifdef WITH_PPC
 #include "uae/ppc.h"
@@ -132,6 +128,15 @@ static bool rtarea_trap_status_extra(uaecptr addr)
 	return false;
 }
 
+/* Emulated CPU side of the trap hand-over (see trap_fence()): a fence before every access to the
+ * trap status and data areas keeps loads of host-written data behind the status byte that announced
+ * it, and keeps the CPU's result stores ahead of the status byte it writes afterwards. */
+static void rtarea_trap_fence(uaecptr addr)
+{
+	if (rtarea_trap_status(addr) || rtarea_trap_data(addr))
+		trap_fence();
+}
+
 static uae_u8 *REGPARAM2 rtarea_xlate (uaecptr addr)
 {
 	addr &= 0xFFFF;
@@ -147,6 +152,7 @@ static int REGPARAM2 rtarea_check (uaecptr addr, uae_u32 size)
 static uae_u32 REGPARAM2 rtarea_lget (uaecptr addr)
 {
 	addr &= 0xFFFF;
+	rtarea_trap_fence(addr);
 	if (addr & 1) {
 		return 0;
 	}
@@ -159,6 +165,7 @@ static uae_u32 REGPARAM2 rtarea_lget (uaecptr addr)
 static uae_u32 REGPARAM2 rtarea_wget (uaecptr addr)
 {
 	addr &= 0xFFFF;
+	rtarea_trap_fence(addr);
 	if (addr & 1) {
 		return 0;
 	}
@@ -186,6 +193,7 @@ static uae_u32 REGPARAM2 rtarea_wget (uaecptr addr)
 static uae_u32 REGPARAM2 rtarea_bget (uaecptr addr)
 {
 	addr &= 0xFFFF;
+	rtarea_trap_fence(addr);
 
 	if (currprefs.uaeboard_nodiag) {
 		return rtarea_bank.baseaddr[addr];
@@ -234,6 +242,7 @@ static bool rtarea_write(uaecptr addr)
 static void REGPARAM2 rtarea_bput (uaecptr addr, uae_u32 value)
 {
 	addr &= 0xffff;
+	rtarea_trap_fence(addr);
 
 	if (!rtarea_write(addr)) {
 		return;
@@ -278,6 +287,7 @@ static void REGPARAM2 rtarea_bput (uaecptr addr, uae_u32 value)
 static void REGPARAM2 rtarea_wput (uaecptr addr, uae_u32 value)
 {
 	addr &= 0xffff;
+	rtarea_trap_fence(addr);
 	value &= 0xffff;
 
 	if (addr & 1) {
@@ -330,6 +340,7 @@ static void REGPARAM2 rtarea_wput (uaecptr addr, uae_u32 value)
 static void REGPARAM2 rtarea_lput (uaecptr addr, uae_u32 value)
 {
 	addr &= 0xffff;
+	rtarea_trap_fence(addr);
 	if (addr & 1) {
 		return;
 	}

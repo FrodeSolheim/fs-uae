@@ -61,7 +61,6 @@ struct winuae_currentmode {
 	int amiga_width, amiga_height;
 	int initdone;
 	int fullfill;
-	int vsync;
 	int freq;
 };
 

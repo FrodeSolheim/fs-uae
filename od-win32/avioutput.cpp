@@ -10,7 +10,6 @@ Copyright(c) 2001 - 2002; §ane
 
 #include <windows.h>
 
-#include <mmsystem.h>
 #include <vfw.h>
 #include <msacm.h>
 #include <ks.h>
@@ -24,8 +23,6 @@ Copyright(c) 2001 - 2002; §ane
 #include "options.h"
 #include "audio.h"
 #include "custom.h"
-#include "memory.h"
-#include "newcpu.h"
 #include "picasso96.h"
 #include "render.h"
 #include "win32.h"
@@ -41,6 +38,7 @@ Copyright(c) 2001 - 2002; §ane
 #include "zfile.h"
 #include "savestate.h"
 #include "gfxboard.h"
+#include "drawing.h"
 
 void WIN32GUI_LoadUIString(DWORD id, TCHAR *string, DWORD dwStringLen);
 
@@ -135,11 +133,10 @@ static LPBITMAPINFOHEADER lpbi;
 static PCOMPVARS pcompvars;
 
 extern bool need_genlock_data;
-extern uae_u8 **row_map_genlock;
 
 static bool usealpha(void)
 {
-	return need_genlock_data != 0 && row_map_genlock && currprefs.genlock_image && currprefs.genlock_alpha;
+	return need_genlock_data != 0 && get_row_genlock(0, 0) && currprefs.genlock_image && currprefs.genlock_alpha;
 }
 
 void avi_message (const TCHAR *format,...)
@@ -534,6 +531,7 @@ static int AVIOutput_AllocateVideo(void)
 {
 	struct AmigaMonitor *mon = &AMonitors[aviout_monid];
 	bool locked = false;
+	int dx = 0, dy = 0;
 
 	avioutput_width = avioutput_height = avioutput_bits = 0;
 	aviout_width_out = aviout_height_out = 0;
@@ -545,7 +543,7 @@ static int AVIOutput_AllocateVideo(void)
 	if (avioutput_originalsize || WIN32GFX_IsPicassoScreen(mon)) {
 		int pitch;
 		if (!gfxboard_isgfxboardscreen(0)) {
-			uae_u8 *p = getfilterbuffer(0, &avioutput_width, &avioutput_height, &pitch, &avioutput_bits, &locked);
+			uae_u8 *p = getfilterbuffer(0, &avioutput_width, &avioutput_height, &pitch, &avioutput_bits, &locked, &dx, &dy);
 			freefilterbuffer(0, p, locked);
 		} else {
 			gfxboard_freertgbuffer(0, gfxboard_getrtgbuffer(0, &avioutput_width, &avioutput_height, &pitch, &avioutput_bits, NULL));
@@ -1005,6 +1003,7 @@ static int getFromRenderTarget11(struct avientry *avie, bool renderTarget)
 	return ok;
 }
 
+#ifdef WITH_DIRECT3D9
 static int getFromRenderTarget(struct avientry *avie, bool renderTarget)
 {
 	int ok = 0;
@@ -1060,6 +1059,7 @@ static int getFromRenderTarget(struct avientry *avie, bool renderTarget)
 	}
 	return ok;
 }
+#endif
 
 static int getFromDC(struct avientry *avie)
 {
@@ -1111,20 +1111,26 @@ static int getFromBuffer(struct avientry *ae, int original)
 {
 	struct AmigaMonitor *mon = &AMonitors[aviout_monid];
 	struct vidbuf_description *vidinfo = &adisplays[aviout_monid].gfxvidinfo;
-	int x, y, w, h, d;
+	int x, y, w, h, d, dx, dy;
 	bool locked = false;
 	uae_u8 *src = NULL, *mem = NULL;
 	uae_u8 *dst = ae->lpVideo;
-	int spitch, dpitch;
+	int spitch, dpitch, dbpx;
 	int maxw, maxh;
 	int freed = 0;
 
 	dpitch = ((aviout_width_out * avioutput_bits + 31) & ~31) / 8;
+	dbpx = avioutput_bits / 8;
+	int sbpx = avioutput_bits / 8;
+	if (sbpx == 3) {
+		sbpx = 4;
+	}
+
 	maxw = aviout_width_out;
 	maxh = aviout_height_out;
 	if (original || WIN32GFX_IsPicassoScreen(mon)) {
 		if (!gfxboard_isgfxboardscreen(aviout_monid)) {
-			src = mem = getfilterbuffer(aviout_monid, &w, &h, &spitch, &d, &locked);
+			src = mem = getfilterbuffer(aviout_monid, &w, &h, &spitch, &d, &locked, &dx, &dy);
 			maxw = w;
 			maxh = h;
 			freed = 1;
@@ -1143,17 +1149,23 @@ static int getFromBuffer(struct avientry *ae, int original)
 	int yoffset = currprefs.aviout_yoffset < 0 ? (aviout_height_out - avioutput_height) / 2 : -currprefs.aviout_yoffset;
 
 	dst += dpitch * aviout_height_out;
-	dst += (aviout_width_out - maxw) / 2;
-	dst -= (aviout_height_out - maxh) / 2;
+	if (aviout_width_out >= maxw) {
+		dst += ((aviout_width_out - maxw) / 2) * dbpx;
+	}
+	if (aviout_height_out >= maxh) {
+		dst -= ((aviout_height_out - maxh) / 2) * dpitch;
+	}
 
 	if (yoffset > 0) {
-		if (yoffset >= aviout_height_out - avioutput_height)
+		if (yoffset >= aviout_height_out - avioutput_height) {
 			yoffset = aviout_height_out - avioutput_height;
+		}
 		dst -= dpitch * yoffset;
 	} else if (yoffset < 0) {
 		yoffset = -yoffset;
-		if (yoffset >= avioutput_height - aviout_height_out)
+		if (yoffset >= avioutput_height - aviout_height_out) {
 			yoffset = avioutput_height - aviout_height_out;
+		}
 		src += spitch * yoffset;
 	}
 	int xoffset2 = 0;
@@ -1161,16 +1173,11 @@ static int getFromBuffer(struct avientry *ae, int original)
 		xoffset2 = -xoffset;
 		xoffset = 0;
 	}
-	int dbpx = avioutput_bits / 8;
-	int sbpx = avioutput_bits / 8;
-	if (sbpx == 3)
-		sbpx = 4;
 
 	for (y = 0; y < avioutput_height && y < maxh && y < aviout_height_out && y < aviout_height_in; y++) {
-		uae_u8 *s, *d;
 		dst -= dpitch;
-		d = dst;
-		s = src;
+		uae_u8 *d = dst;
+		uae_u8 *s = src;
 		if (xoffset > 0) {
 			d += xoffset * dbpx;
 		} else if (xoffset2 > 0) {
@@ -1199,7 +1206,7 @@ static int getFromBuffer(struct avientry *ae, int original)
 				d += 4;
 			} else if (avioutput_bits == 24) {
 				uae_u32 v = ((uae_u32*)s)[x];
-				*d++ = v;
+				*d++ = v >> 0;
 				*d++ = v >> 8;
 				*d++ = v >> 16;
 			}
@@ -1237,18 +1244,29 @@ static void AVIOutput_WriteVideo(void)
 	if (avioutput_originalsize) {
 		v = getFromBuffer (ae, 1);
 		if (!v) {
+#ifdef WITH_DIRECT3D11
 			if (D3D_isenabled(0) == 2) {
 				v = getFromRenderTarget11(ae, false);
-			} else if (D3D_isenabled(0) == 1) {
+			}
+#endif
+#ifdef WITH_DIRECT3D9
+			if (D3D_isenabled(0) == 1) {
 				v = getFromRenderTarget(ae, false);
 			}
+#endif
 		}
 	} else {
+#ifdef WITH_DIRECT3D11
 		if (D3D_isenabled(0) == 2) {
 			v = getFromRenderTarget11(ae, true);
-		} else if (D3D_isenabled(0) == 1) {
+		}
+#endif
+#ifdef WITH_DIRECT3D9
+		if (D3D_isenabled(0) == 1) {
 			v = getFromRenderTarget(ae, true);
-		} else {
+		}
+#endif
+		if (D3D_isenabled(0) == 0) {
 			v = getFromDC (ae);
 		}
 	}
@@ -1402,6 +1420,7 @@ static void AVIOutput_End2(bool fullrestart)
 		fclose (wavfile);
 		wavfile = 0;
 	}
+	video_recording_active &= ~1;
 }
 
 void AVIOutput_End(void)
@@ -1606,6 +1625,7 @@ static void AVIOutput_Begin2(bool fullstart, bool immediate)
 	fps_in_use = avioutput_fps;
 	uae_start_thread(_T("aviworker"), AVIOutput_worker, NULL, NULL);
 	write_log(_T("AVIOutput enabled: monitor=%d video=%d audio=%d path='%s'\n"), aviout_monid, avioutput_video, avioutput_audio, avioutput_filename_inuse);
+	video_recording_active |= 1;
 	return;
 
 error:

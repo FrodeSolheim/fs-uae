@@ -24,9 +24,12 @@ struct bltinfo {
     uae_u16 bltsize;
     uae_u16 bltcon0, bltcon1;
     int got_cycle;
-    uae_u32 nasty_cnt, wait_nasty;
-    int blitter_nasty, blit_interrupt;
+    uae_s32 nasty_cnt, wait_nasty;
+    int blitter_nasty;
+    bool blit_interrupt;
+    bool blit_interrupt_trigger;
     int blit_main, blit_pending, blit_count_done;
+    int blit_stuck;
     int blit_queued;
     evt_t finishcycle_dmacon, finishcycle_copper;
     evt_t blt_ch_cycles[4];
@@ -38,11 +41,11 @@ struct bltinfo {
 extern struct bltinfo blt_info;
 
 extern bool blitter_delayed_update;
+extern bool blitter_cycle_exact;
 
 extern void maybe_blit(int);
 extern void reset_blit(int);
 extern int blitnasty(void);
-extern void blitter_handler(uae_u32);
 extern void build_blitfilltable(void);
 extern void do_blitter(int, uaecptr);
 extern void decide_blitter(int hpos);
@@ -52,6 +55,8 @@ extern void blitter_check_start(void);
 extern void blitter_reset(void);
 extern void blitter_debugdump(void);
 extern void restore_blitter_start(void);
+extern void blitter_hsync(void);
+
 void blitter_loadbdat(uae_u16 v);
 void blitter_loadcdat(uae_u16 v);
 

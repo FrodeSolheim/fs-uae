@@ -2545,7 +2545,7 @@ const struct cputbl op_smalltbl_0[] = {
 #ifndef CPUEMU_68000_ONLY
 { op_f800_0_ff, NULL, 0xf800, -1, { 0, 0 }, 0 }, /* LPSTOP */
 #endif
-{ NULL, NULL, 0, 0, { 0, 0 }, 0 } };
+{ 0 }};
 #endif /* CPUEMU_0 */
 #ifndef CPUEMU_68000_ONLY
 const struct cputbl op_smalltbl_1[] = {
@@ -4520,7 +4520,7 @@ const struct cputbl op_smalltbl_1[] = {
 { op_f610_0_ff, NULL, 0xf610, -1, { 0, 0 }, 0 }, /* MOVE16 */
 { op_f618_0_ff, NULL, 0xf618, -1, { 0, 0 }, 0 }, /* MOVE16 */
 { op_f620_0_ff, NULL, 0xf620, -1, { 0, 0 }, 0 }, /* MOVE16 */
-{ NULL, NULL, 0, 0, { 0, 0 }, 0 } };
+{ 0 }};
 #endif /* CPUEMU_68000_ONLY */
 #ifndef CPUEMU_68000_ONLY
 const struct cputbl op_smalltbl_2[] = {
@@ -5383,7 +5383,9 @@ const struct cputbl op_smalltbl_2[] = {
 { op_46fb_0_ff, NULL, 0x46fb, 2, { 2, 0 }, 0 }, /* MV2SR */
 { op_46fc_0_ff, NULL, 0x46fc, 4, { 0, 0 }, 0 }, /* MV2SR */
 { op_4800_2_ff, NULL, 0x4800, 2, { 0, 0 }, 0 }, /* NBCD */
-{ op_4808_1_ff, NULL, 0x4808, 6, { 0, 0 }, 0 }, /* LINK */
+#ifndef CPUEMU_68000_ONLY
+{ op_4808_2_ff, NULL, 0x4808, 6, { 0, 0 }, 0 }, /* LINK */
+#endif
 { op_4810_2_ff, NULL, 0x4810, 2, { 0, 0 }, 0 }, /* NBCD */
 { op_4818_2_ff, NULL, 0x4818, 2, { 0, 0 }, 0 }, /* NBCD */
 { op_4820_2_ff, NULL, 0x4820, 2, { 0, 0 }, 0 }, /* NBCD */
@@ -5497,7 +5499,7 @@ const struct cputbl op_smalltbl_2[] = {
 { op_4cfa_2_ff, NULL, 0x4cfa, 6, { 0, 0 }, 0 }, /* MVMEL */
 { op_4cfb_2_ff, NULL, 0x4cfb, 4, { 2, 0 }, 0 }, /* MVMEL */
 { op_4e40_0_ff, NULL, 0x4e40, 2, { 0, 0 }, 0 }, /* TRAP */
-{ op_4e50_1_ff, NULL, 0x4e50, 4, { 0, 0 }, 0 }, /* LINK */
+{ op_4e50_2_ff, NULL, 0x4e50, 4, { 0, 0 }, 0 }, /* LINK */
 { op_4e58_0_ff, NULL, 0x4e58, 2, { 0, 0 }, 0 }, /* UNLK */
 { op_4e60_2_ff, NULL, 0x4e60, 2, { 0, 0 }, 0 }, /* MVR2USP */
 { op_4e68_0_ff, NULL, 0x4e68, 2, { 0, 0 }, 0 }, /* MVUSP2R */
@@ -6452,7 +6454,7 @@ const struct cputbl op_smalltbl_2[] = {
 { op_f379_0_ff, NULL, 0xf379, -1, { 0, 0 }, 0 }, /* FRESTORE */
 { op_f37a_0_ff, NULL, 0xf37a, -1, { 0, 0 }, 0 }, /* FRESTORE */
 { op_f37b_0_ff, NULL, 0xf37b, -1, { 0, 0 }, 0 }, /* FRESTORE */
-{ NULL, NULL, 0, 0, { 0, 0 }, 0 } };
+{ 0 }};
 #endif /* CPUEMU_68000_ONLY */
 #ifndef CPUEMU_68000_ONLY
 const struct cputbl op_smalltbl_3[] = {
@@ -7227,7 +7229,7 @@ const struct cputbl op_smalltbl_3[] = {
 { op_46fb_0_ff, NULL, 0x46fb, 2, { 2, 0 }, 0 }, /* MV2SR */
 { op_46fc_0_ff, NULL, 0x46fc, 4, { 0, 0 }, 0 }, /* MV2SR */
 { op_4800_2_ff, NULL, 0x4800, 2, { 0, 0 }, 0 }, /* NBCD */
-{ op_4808_1_ff, NULL, 0x4808, 6, { 0, 0 }, 0 }, /* LINK */
+{ op_4808_2_ff, NULL, 0x4808, 6, { 0, 0 }, 0 }, /* LINK */
 { op_4810_2_ff, NULL, 0x4810, 2, { 0, 0 }, 0 }, /* NBCD */
 { op_4818_2_ff, NULL, 0x4818, 2, { 0, 0 }, 0 }, /* NBCD */
 { op_4820_2_ff, NULL, 0x4820, 2, { 0, 0 }, 0 }, /* NBCD */
@@ -7341,7 +7343,7 @@ const struct cputbl op_smalltbl_3[] = {
 { op_4cfa_2_ff, NULL, 0x4cfa, 6, { 0, 0 }, 0 }, /* MVMEL */
 { op_4cfb_2_ff, NULL, 0x4cfb, 4, { 2, 0 }, 0 }, /* MVMEL */
 { op_4e40_0_ff, NULL, 0x4e40, 2, { 0, 0 }, 0 }, /* TRAP */
-{ op_4e50_1_ff, NULL, 0x4e50, 4, { 0, 0 }, 0 }, /* LINK */
+{ op_4e50_2_ff, NULL, 0x4e50, 4, { 0, 0 }, 0 }, /* LINK */
 { op_4e58_0_ff, NULL, 0x4e58, 2, { 0, 0 }, 0 }, /* UNLK */
 { op_4e60_2_ff, NULL, 0x4e60, 2, { 0, 0 }, 0 }, /* MVR2USP */
 { op_4e68_0_ff, NULL, 0x4e68, 2, { 0, 0 }, 0 }, /* MVUSP2R */
@@ -8283,7 +8285,7 @@ const struct cputbl op_smalltbl_3[] = {
 { op_f379_0_ff, NULL, 0xf379, -1, { 0, 0 }, 0 }, /* FRESTORE */
 { op_f37a_0_ff, NULL, 0xf37a, -1, { 0, 0 }, 0 }, /* FRESTORE */
 { op_f37b_0_ff, NULL, 0xf37b, -1, { 0, 0 }, 0 }, /* FRESTORE */
-{ NULL, NULL, 0, 0, { 0, 0 }, 0 } };
+{ 0 }};
 #endif /* CPUEMU_68000_ONLY */
 #ifndef CPUEMU_68000_ONLY
 const struct cputbl op_smalltbl_4[] = {
@@ -9869,7 +9871,7 @@ const struct cputbl op_smalltbl_4[] = {
 { op_e7f0_4_ff, NULL, 0xe7f0, 4, { 4, 0 }, 0 }, /* ROLW */
 { op_e7f8_0_ff, NULL, 0xe7f8, 4, { 0, 0 }, 0 }, /* ROLW */
 { op_e7f9_0_ff, NULL, 0xe7f9, 6, { 0, 0 }, 0 }, /* ROLW */
-{ NULL, NULL, 0, 0, { 0, 0 }, 0 } };
+{ 0 }};
 #endif /* CPUEMU_68000_ONLY */
 #ifndef CPUEMU_68000_ONLY
 const struct cputbl op_smalltbl_5[] = {
@@ -11414,7 +11416,7 @@ const struct cputbl op_smalltbl_5[] = {
 { op_e7f0_4_ff, NULL, 0xe7f0, 4, { 4, 0 }, 0 }, /* ROLW */
 { op_e7f8_0_ff, NULL, 0xe7f8, 4, { 0, 0 }, 0 }, /* ROLW */
 { op_e7f9_0_ff, NULL, 0xe7f9, 6, { 0, 0 }, 0 }, /* ROLW */
-{ NULL, NULL, 0, 0, { 0, 0 }, 0 } };
+{ 0 }};
 #endif /* CPUEMU_68000_ONLY */
 #ifdef CPUEMU_11
 const struct cputbl op_smalltbl_11[] = {
@@ -13058,7 +13060,7 @@ const struct cputbl op_smalltbl_11[] = {
 { op_e7f0_11_ff, NULL, 0xe7f0, 4, { 4, 0 }, 0 }, /* ROLW */
 { op_e7f8_11_ff, NULL, 0xe7f8, 4, { 0, 0 }, 0 }, /* ROLW */
 { op_e7f9_11_ff, NULL, 0xe7f9, 6, { 0, 0 }, 0 }, /* ROLW */
-{ NULL, NULL, 0, 0, { 0, 0 }, 0 } };
+{ 0 }};
 #endif /* CPUEMU_11 */
 const struct cputbl op_smalltbl_12[] = {
 { op_0000_12_ff, NULL, 0x0000, 4, { 0, 0 }, 0 }, /* OR */
@@ -14602,7 +14604,7 @@ const struct cputbl op_smalltbl_12[] = {
 { op_e7f0_12_ff, NULL, 0xe7f0, 4, { 4, 0 }, 0 }, /* ROLW */
 { op_e7f8_12_ff, NULL, 0xe7f8, 4, { 0, 0 }, 0 }, /* ROLW */
 { op_e7f9_12_ff, NULL, 0xe7f9, 6, { 0, 0 }, 0 }, /* ROLW */
-{ NULL, NULL, 0, 0, { 0, 0 }, 0 } };
+{ 0 }};
 #ifdef CPUEMU_13
 const struct cputbl op_smalltbl_13[] = {
 { NULL, op_0000_13_ff, 0x0000, 4, { 0, 0 }, 0 }, /* OR */
@@ -16245,7 +16247,7 @@ const struct cputbl op_smalltbl_13[] = {
 { NULL, op_e7f0_13_ff, 0xe7f0, 4, { 4, 0 }, 0 }, /* ROLW */
 { NULL, op_e7f8_13_ff, 0xe7f8, 4, { 0, 0 }, 0 }, /* ROLW */
 { NULL, op_e7f9_13_ff, 0xe7f9, 6, { 0, 0 }, 0 }, /* ROLW */
-{ NULL, NULL, 0, 0, { 0, 0 }, 0 } };
+{ 0 }};
 #endif /* CPUEMU_13 */
 const struct cputbl op_smalltbl_14[] = {
 { NULL, op_0000_14_ff, 0x0000, 4, { 0, 0 }, 0 }, /* OR */
@@ -17789,7 +17791,7 @@ const struct cputbl op_smalltbl_14[] = {
 { NULL, op_e7f0_14_ff, 0xe7f0, 4, { 4, 0 }, 0 }, /* ROLW */
 { NULL, op_e7f8_14_ff, 0xe7f8, 4, { 0, 0 }, 0 }, /* ROLW */
 { NULL, op_e7f9_14_ff, 0xe7f9, 6, { 0, 0 }, 0 }, /* ROLW */
-{ NULL, NULL, 0, 0, { 0, 0 }, 0 } };
+{ 0 }};
 #ifdef CPUEMU_20
 #ifndef CPUEMU_68000_ONLY
 const struct cputbl op_smalltbl_20[] = {
@@ -20192,7 +20194,7 @@ const struct cputbl op_smalltbl_20[] = {
 #ifndef CPUEMU_68000_ONLY
 { op_f37b_20_ff, NULL, 0xf37b, -1, { 0, 0 }, 0 }, /* FRESTORE */
 #endif
-{ NULL, NULL, 0, 0, { 0, 0 }, 0 } };
+{ 0 }};
 #endif /* CPUEMU_68000_ONLY */
 #endif /* CPUEMU_20 */
 #ifdef CPUEMU_21
@@ -22597,7 +22599,7 @@ const struct cputbl op_smalltbl_21[] = {
 #ifndef CPUEMU_68000_ONLY
 { NULL, op_f37b_21_ff, 0xf37b, -1, { 0, 0 }, 0 }, /* FRESTORE */
 #endif
-{ NULL, NULL, 0, 0, { 0, 0 }, 0 } };
+{ 0 }};
 #endif /* CPUEMU_68000_ONLY */
 #endif /* CPUEMU_21 */
 #ifdef CPUEMU_22
@@ -25029,7 +25031,7 @@ const struct cputbl op_smalltbl_22[] = {
 #ifndef CPUEMU_68000_ONLY
 { op_f37b_22_ff, NULL, 0xf37b, -1, { 0, 0 }, 0 }, /* FRESTORE */
 #endif
-{ NULL, NULL, 0, 0, { 0, 0 }, 0 } };
+{ 0 }};
 #endif /* CPUEMU_68000_ONLY */
 #endif /* CPUEMU_22 */
 #ifdef CPUEMU_23
@@ -27461,7 +27463,7 @@ const struct cputbl op_smalltbl_23[] = {
 #ifndef CPUEMU_68000_ONLY
 { NULL, op_f37b_23_ff, 0xf37b, -1, { 0, 0 }, 0 }, /* FRESTORE */
 #endif
-{ NULL, NULL, 0, 0, { 0, 0 }, 0 } };
+{ 0 }};
 #endif /* CPUEMU_68000_ONLY */
 #endif /* CPUEMU_23 */
 #ifdef CPUEMU_24
@@ -30001,7 +30003,7 @@ const struct cputbl op_smalltbl_24[] = {
 #ifndef CPUEMU_68000_ONLY
 { NULL, op_f800_24_ff, 0xf800, -1, { 0, 0 }, 0 }, /* LPSTOP */
 #endif
-{ NULL, NULL, 0, 0, { 0, 0 }, 0 } };
+{ 0 }};
 #endif /* CPUEMU_68000_ONLY */
 #endif /* CPUEMU_24 */
 #ifndef CPUEMU_68000_ONLY
@@ -31977,7 +31979,7 @@ const struct cputbl op_smalltbl_25[] = {
 { NULL, op_f610_24_ff, 0xf610, -1, { 0, 0 }, 0 }, /* MOVE16 */
 { NULL, op_f618_24_ff, 0xf618, -1, { 0, 0 }, 0 }, /* MOVE16 */
 { NULL, op_f620_24_ff, 0xf620, -1, { 0, 0 }, 0 }, /* MOVE16 */
-{ NULL, NULL, 0, 0, { 0, 0 }, 0 } };
+{ 0 }};
 #endif /* CPUEMU_68000_ONLY */
 #ifdef CPUEMU_31
 #ifndef CPUEMU_68000_ONLY
@@ -34501,7 +34503,7 @@ const struct cputbl op_smalltbl_31[] = {
 #ifndef CPUEMU_68000_ONLY
 { op_f620_31_ff, NULL, 0xf620, -1, { 0, 0 }, 0 }, /* MOVE16 */
 #endif
-{ NULL, NULL, 0, 0, { 0, 0 }, 0 } };
+{ 0 }};
 #endif /* CPUEMU_68000_ONLY */
 #endif /* CPUEMU_31 */
 #ifdef CPUEMU_32
@@ -36933,7 +36935,7 @@ const struct cputbl op_smalltbl_32[] = {
 #ifndef CPUEMU_68000_ONLY
 { op_f37b_32_ff, NULL, 0xf37b, -1, { 0, 0 }, 0 }, /* FRESTORE */
 #endif
-{ NULL, NULL, 0, 0, { 0, 0 }, 0 } };
+{ 0 }};
 #endif /* CPUEMU_68000_ONLY */
 #endif /* CPUEMU_32 */
 #ifdef CPUEMU_33
@@ -39473,7 +39475,7 @@ const struct cputbl op_smalltbl_33[] = {
 #ifndef CPUEMU_68000_ONLY
 { op_f800_33_ff, NULL, 0xf800, -1, { 0, 0 }, 0 }, /* LPSTOP */
 #endif
-{ NULL, NULL, 0, 0, { 0, 0 }, 0 } };
+{ 0 }};
 #endif /* CPUEMU_68000_ONLY */
 #endif /* CPUEMU_33 */
 #ifdef CPUEMU_34
@@ -41905,7 +41907,7 @@ const struct cputbl op_smalltbl_34[] = {
 #ifndef CPUEMU_68000_ONLY
 { op_f37b_34_ff, NULL, 0xf37b, -1, { 0, 0 }, 0 }, /* FRESTORE */
 #endif
-{ NULL, NULL, 0, 0, { 0, 0 }, 0 } };
+{ 0 }};
 #endif /* CPUEMU_68000_ONLY */
 #endif /* CPUEMU_34 */
 #ifdef CPUEMU_35
@@ -44337,7 +44339,7 @@ const struct cputbl op_smalltbl_35[] = {
 #ifndef CPUEMU_68000_ONLY
 { NULL, op_f37b_35_ff, 0xf37b, -1, { 0, 0 }, 0 }, /* FRESTORE */
 #endif
-{ NULL, NULL, 0, 0, { 0, 0 }, 0 } };
+{ 0 }};
 #endif /* CPUEMU_68000_ONLY */
 #endif /* CPUEMU_35 */
 #ifdef CPUEMU_40
@@ -46876,7 +46878,7 @@ const struct cputbl op_smalltbl_40[] = {
 #ifndef CPUEMU_68000_ONLY
 { op_f800_40_ff, NULL, 0xf800, -1, { 0, 0 }, 0 }, /* LPSTOP */
 #endif
-{ NULL, NULL, 0, 0, { 0, 0 }, 0 } };
+{ 0 }};
 #endif /* CPUEMU_40 */
 #ifndef CPUEMU_68000_ONLY
 const struct cputbl op_smalltbl_41[] = {
@@ -48851,7 +48853,7 @@ const struct cputbl op_smalltbl_41[] = {
 { op_f610_40_ff, NULL, 0xf610, -1, { 0, 0 }, 0 }, /* MOVE16 */
 { op_f618_40_ff, NULL, 0xf618, -1, { 0, 0 }, 0 }, /* MOVE16 */
 { op_f620_40_ff, NULL, 0xf620, -1, { 0, 0 }, 0 }, /* MOVE16 */
-{ NULL, NULL, 0, 0, { 0, 0 }, 0 } };
+{ 0 }};
 #endif /* CPUEMU_68000_ONLY */
 #ifndef CPUEMU_68000_ONLY
 const struct cputbl op_smalltbl_42[] = {
@@ -49714,7 +49716,9 @@ const struct cputbl op_smalltbl_42[] = {
 { op_46fb_40_ff, NULL, 0x46fb, 2, { 2, 0 }, 0 }, /* MV2SR */
 { op_46fc_40_ff, NULL, 0x46fc, 4, { 0, 0 }, 0 }, /* MV2SR */
 { op_4800_42_ff, NULL, 0x4800, 2, { 0, 0 }, 0 }, /* NBCD */
-{ op_4808_41_ff, NULL, 0x4808, 6, { 0, 0 }, 0 }, /* LINK */
+#ifndef CPUEMU_68000_ONLY
+{ op_4808_42_ff, NULL, 0x4808, 6, { 0, 0 }, 0 }, /* LINK */
+#endif
 { op_4810_42_ff, NULL, 0x4810, 2, { 0, 0 }, 0 }, /* NBCD */
 { op_4818_42_ff, NULL, 0x4818, 2, { 0, 0 }, 0 }, /* NBCD */
 { op_4820_42_ff, NULL, 0x4820, 2, { 0, 0 }, 0 }, /* NBCD */
@@ -49828,7 +49832,7 @@ const struct cputbl op_smalltbl_42[] = {
 { op_4cfa_42_ff, NULL, 0x4cfa, 6, { 0, 0 }, 0 }, /* MVMEL */
 { op_4cfb_42_ff, NULL, 0x4cfb, 4, { 2, 0 }, 0 }, /* MVMEL */
 { op_4e40_40_ff, NULL, 0x4e40, 2, { 0, 0 }, 0 }, /* TRAP */
-{ op_4e50_41_ff, NULL, 0x4e50, 4, { 0, 0 }, 0 }, /* LINK */
+{ op_4e50_42_ff, NULL, 0x4e50, 4, { 0, 0 }, 0 }, /* LINK */
 { op_4e58_40_ff, NULL, 0x4e58, 2, { 0, 0 }, 0 }, /* UNLK */
 { op_4e60_42_ff, NULL, 0x4e60, 2, { 0, 0 }, 0 }, /* MVR2USP */
 { op_4e68_40_ff, NULL, 0x4e68, 2, { 0, 0 }, 0 }, /* MVUSP2R */
@@ -50783,7 +50787,7 @@ const struct cputbl op_smalltbl_42[] = {
 { op_f379_40_ff, NULL, 0xf379, -1, { 0, 0 }, 0 }, /* FRESTORE */
 { op_f37a_40_ff, NULL, 0xf37a, -1, { 0, 0 }, 0 }, /* FRESTORE */
 { op_f37b_40_ff, NULL, 0xf37b, -1, { 0, 0 }, 0 }, /* FRESTORE */
-{ NULL, NULL, 0, 0, { 0, 0 }, 0 } };
+{ 0 }};
 #endif /* CPUEMU_68000_ONLY */
 #ifndef CPUEMU_68000_ONLY
 const struct cputbl op_smalltbl_43[] = {
@@ -51558,7 +51562,7 @@ const struct cputbl op_smalltbl_43[] = {
 { op_46fb_40_ff, NULL, 0x46fb, 2, { 2, 0 }, 0 }, /* MV2SR */
 { op_46fc_40_ff, NULL, 0x46fc, 4, { 0, 0 }, 0 }, /* MV2SR */
 { op_4800_42_ff, NULL, 0x4800, 2, { 0, 0 }, 0 }, /* NBCD */
-{ op_4808_41_ff, NULL, 0x4808, 6, { 0, 0 }, 0 }, /* LINK */
+{ op_4808_42_ff, NULL, 0x4808, 6, { 0, 0 }, 0 }, /* LINK */
 { op_4810_42_ff, NULL, 0x4810, 2, { 0, 0 }, 0 }, /* NBCD */
 { op_4818_42_ff, NULL, 0x4818, 2, { 0, 0 }, 0 }, /* NBCD */
 { op_4820_42_ff, NULL, 0x4820, 2, { 0, 0 }, 0 }, /* NBCD */
@@ -51672,7 +51676,7 @@ const struct cputbl op_smalltbl_43[] = {
 { op_4cfa_42_ff, NULL, 0x4cfa, 6, { 0, 0 }, 0 }, /* MVMEL */
 { op_4cfb_42_ff, NULL, 0x4cfb, 4, { 2, 0 }, 0 }, /* MVMEL */
 { op_4e40_40_ff, NULL, 0x4e40, 2, { 0, 0 }, 0 }, /* TRAP */
-{ op_4e50_41_ff, NULL, 0x4e50, 4, { 0, 0 }, 0 }, /* LINK */
+{ op_4e50_42_ff, NULL, 0x4e50, 4, { 0, 0 }, 0 }, /* LINK */
 { op_4e58_40_ff, NULL, 0x4e58, 2, { 0, 0 }, 0 }, /* UNLK */
 { op_4e60_42_ff, NULL, 0x4e60, 2, { 0, 0 }, 0 }, /* MVR2USP */
 { op_4e68_40_ff, NULL, 0x4e68, 2, { 0, 0 }, 0 }, /* MVUSP2R */
@@ -52614,7 +52618,7 @@ const struct cputbl op_smalltbl_43[] = {
 { op_f379_40_ff, NULL, 0xf379, -1, { 0, 0 }, 0 }, /* FRESTORE */
 { op_f37a_40_ff, NULL, 0xf37a, -1, { 0, 0 }, 0 }, /* FRESTORE */
 { op_f37b_40_ff, NULL, 0xf37b, -1, { 0, 0 }, 0 }, /* FRESTORE */
-{ NULL, NULL, 0, 0, { 0, 0 }, 0 } };
+{ 0 }};
 #endif /* CPUEMU_68000_ONLY */
 #ifndef CPUEMU_68000_ONLY
 const struct cputbl op_smalltbl_44[] = {
@@ -54200,7 +54204,7 @@ const struct cputbl op_smalltbl_44[] = {
 { op_e7f0_44_ff, NULL, 0xe7f0, 4, { 4, 0 }, 0 }, /* ROLW */
 { op_e7f8_40_ff, NULL, 0xe7f8, 4, { 0, 0 }, 0 }, /* ROLW */
 { op_e7f9_40_ff, NULL, 0xe7f9, 6, { 0, 0 }, 0 }, /* ROLW */
-{ NULL, NULL, 0, 0, { 0, 0 }, 0 } };
+{ 0 }};
 #endif /* CPUEMU_68000_ONLY */
 #ifndef CPUEMU_68000_ONLY
 const struct cputbl op_smalltbl_45[] = {
@@ -55745,7 +55749,7 @@ const struct cputbl op_smalltbl_45[] = {
 { op_e7f0_44_ff, NULL, 0xe7f0, 4, { 4, 0 }, 0 }, /* ROLW */
 { op_e7f8_40_ff, NULL, 0xe7f8, 4, { 0, 0 }, 0 }, /* ROLW */
 { op_e7f9_40_ff, NULL, 0xe7f9, 6, { 0, 0 }, 0 }, /* ROLW */
-{ NULL, NULL, 0, 0, { 0, 0 }, 0 } };
+{ 0 }};
 #endif /* CPUEMU_68000_ONLY */
 const struct cputbl op_smalltbl_46[] = {
 { op_0000_40_ff, NULL, 0x0000, 4, { 0, 0 }, 0 }, /* OR */
@@ -57289,7 +57293,7 @@ const struct cputbl op_smalltbl_46[] = {
 { op_e7f0_44_ff, NULL, 0xe7f0, 4, { 4, 0 }, 0 }, /* ROLW */
 { op_e7f8_40_ff, NULL, 0xe7f8, 4, { 0, 0 }, 0 }, /* ROLW */
 { op_e7f9_40_ff, NULL, 0xe7f9, 6, { 0, 0 }, 0 }, /* ROLW */
-{ NULL, NULL, 0, 0, { 0, 0 }, 0 } };
+{ 0 }};
 const struct cputbl op_smalltbl_47[] = {
 { op_0000_40_ff, NULL, 0x0000, 4, { 0, 0 }, 0 }, /* OR */
 { op_0010_40_ff, NULL, 0x0010, 4, { 0, 0 }, 0 }, /* OR */
@@ -58832,7 +58836,7 @@ const struct cputbl op_smalltbl_47[] = {
 { op_e7f0_44_ff, NULL, 0xe7f0, 4, { 4, 0 }, 0 }, /* ROLW */
 { op_e7f8_40_ff, NULL, 0xe7f8, 4, { 0, 0 }, 0 }, /* ROLW */
 { op_e7f9_40_ff, NULL, 0xe7f9, 6, { 0, 0 }, 0 }, /* ROLW */
-{ NULL, NULL, 0, 0, { 0, 0 }, 0 } };
+{ 0 }};
 const struct cputbl op_smalltbl_48[] = {
 { op_0000_40_ff, NULL, 0x0000, 4, { 0, 0 }, 0 }, /* OR */
 { op_0010_40_ff, NULL, 0x0010, 4, { 0, 0 }, 0 }, /* OR */
@@ -60375,7 +60379,7 @@ const struct cputbl op_smalltbl_48[] = {
 { op_e7f0_44_ff, NULL, 0xe7f0, 4, { 4, 0 }, 0 }, /* ROLW */
 { op_e7f8_40_ff, NULL, 0xe7f8, 4, { 0, 0 }, 0 }, /* ROLW */
 { op_e7f9_40_ff, NULL, 0xe7f9, 6, { 0, 0 }, 0 }, /* ROLW */
-{ NULL, NULL, 0, 0, { 0, 0 }, 0 } };
+{ 0 }};
 const struct cputbl op_smalltbl_49[] = {
 { op_0000_40_ff, NULL, 0x0000, 4, { 0, 0 }, 0 }, /* OR */
 { op_0010_40_ff, NULL, 0x0010, 4, { 0, 0 }, 0 }, /* OR */
@@ -61918,7 +61922,7 @@ const struct cputbl op_smalltbl_49[] = {
 { op_e7f0_44_ff, NULL, 0xe7f0, 4, { 4, 0 }, 0 }, /* ROLW */
 { op_e7f8_40_ff, NULL, 0xe7f8, 4, { 0, 0 }, 0 }, /* ROLW */
 { op_e7f9_40_ff, NULL, 0xe7f9, 6, { 0, 0 }, 0 }, /* ROLW */
-{ NULL, NULL, 0, 0, { 0, 0 }, 0 } };
+{ 0 }};
 #ifdef CPUEMU_50
 const struct cputbl op_smalltbl_50[] = {
 { op_0000_50_ff, NULL, 0x0000, 4, { 0, 0 }, 0 }, /* OR */
@@ -64455,7 +64459,7 @@ const struct cputbl op_smalltbl_50[] = {
 #ifndef CPUEMU_68000_ONLY
 { op_f800_50_ff, NULL, 0xf800, -1, { 0, 0 }, 0 }, /* LPSTOP */
 #endif
-{ NULL, NULL, 0, 0, { 0, 0 }, 0 } };
+{ 0 }};
 #endif /* CPUEMU_50 */
 #ifndef CPUEMU_68000_ONLY
 const struct cputbl op_smalltbl_51[] = {
@@ -66430,7 +66434,7 @@ const struct cputbl op_smalltbl_51[] = {
 { op_f610_50_ff, NULL, 0xf610, -1, { 0, 0 }, 0 }, /* MOVE16 */
 { op_f618_50_ff, NULL, 0xf618, -1, { 0, 0 }, 0 }, /* MOVE16 */
 { op_f620_50_ff, NULL, 0xf620, -1, { 0, 0 }, 0 }, /* MOVE16 */
-{ NULL, NULL, 0, 0, { 0, 0 }, 0 } };
+{ 0 }};
 #endif /* CPUEMU_68000_ONLY */
 #ifndef CPUEMU_68000_ONLY
 const struct cputbl op_smalltbl_52[] = {
@@ -67293,7 +67297,9 @@ const struct cputbl op_smalltbl_52[] = {
 { op_46fb_50_ff, NULL, 0x46fb, 2, { 2, 0 }, 0 }, /* MV2SR */
 { op_46fc_50_ff, NULL, 0x46fc, 4, { 0, 0 }, 0 }, /* MV2SR */
 { op_4800_52_ff, NULL, 0x4800, 2, { 0, 0 }, 0 }, /* NBCD */
-{ op_4808_51_ff, NULL, 0x4808, 6, { 0, 0 }, 0 }, /* LINK */
+#ifndef CPUEMU_68000_ONLY
+{ op_4808_52_ff, NULL, 0x4808, 6, { 0, 0 }, 0 }, /* LINK */
+#endif
 { op_4810_52_ff, NULL, 0x4810, 2, { 0, 0 }, 0 }, /* NBCD */
 { op_4818_52_ff, NULL, 0x4818, 2, { 0, 0 }, 0 }, /* NBCD */
 { op_4820_52_ff, NULL, 0x4820, 2, { 0, 0 }, 0 }, /* NBCD */
@@ -67407,7 +67413,7 @@ const struct cputbl op_smalltbl_52[] = {
 { op_4cfa_52_ff, NULL, 0x4cfa, 6, { 0, 0 }, 0 }, /* MVMEL */
 { op_4cfb_52_ff, NULL, 0x4cfb, 4, { 2, 0 }, 0 }, /* MVMEL */
 { op_4e40_50_ff, NULL, 0x4e40, 2, { 0, 0 }, 0 }, /* TRAP */
-{ op_4e50_51_ff, NULL, 0x4e50, 4, { 0, 0 }, 0 }, /* LINK */
+{ op_4e50_52_ff, NULL, 0x4e50, 4, { 0, 0 }, 0 }, /* LINK */
 { op_4e58_50_ff, NULL, 0x4e58, 2, { 0, 0 }, 0 }, /* UNLK */
 { op_4e60_52_ff, NULL, 0x4e60, 2, { 0, 0 }, 0 }, /* MVR2USP */
 { op_4e68_50_ff, NULL, 0x4e68, 2, { 0, 0 }, 0 }, /* MVUSP2R */
@@ -68362,7 +68368,7 @@ const struct cputbl op_smalltbl_52[] = {
 { op_f379_50_ff, NULL, 0xf379, -1, { 0, 0 }, 0 }, /* FRESTORE */
 { op_f37a_50_ff, NULL, 0xf37a, -1, { 0, 0 }, 0 }, /* FRESTORE */
 { op_f37b_50_ff, NULL, 0xf37b, -1, { 0, 0 }, 0 }, /* FRESTORE */
-{ NULL, NULL, 0, 0, { 0, 0 }, 0 } };
+{ 0 }};
 #endif /* CPUEMU_68000_ONLY */
 #ifndef CPUEMU_68000_ONLY
 const struct cputbl op_smalltbl_53[] = {
@@ -69137,7 +69143,7 @@ const struct cputbl op_smalltbl_53[] = {
 { op_46fb_50_ff, NULL, 0x46fb, 2, { 2, 0 }, 0 }, /* MV2SR */
 { op_46fc_50_ff, NULL, 0x46fc, 4, { 0, 0 }, 0 }, /* MV2SR */
 { op_4800_52_ff, NULL, 0x4800, 2, { 0, 0 }, 0 }, /* NBCD */
-{ op_4808_51_ff, NULL, 0x4808, 6, { 0, 0 }, 0 }, /* LINK */
+{ op_4808_52_ff, NULL, 0x4808, 6, { 0, 0 }, 0 }, /* LINK */
 { op_4810_52_ff, NULL, 0x4810, 2, { 0, 0 }, 0 }, /* NBCD */
 { op_4818_52_ff, NULL, 0x4818, 2, { 0, 0 }, 0 }, /* NBCD */
 { op_4820_52_ff, NULL, 0x4820, 2, { 0, 0 }, 0 }, /* NBCD */
@@ -69251,7 +69257,7 @@ const struct cputbl op_smalltbl_53[] = {
 { op_4cfa_52_ff, NULL, 0x4cfa, 6, { 0, 0 }, 0 }, /* MVMEL */
 { op_4cfb_52_ff, NULL, 0x4cfb, 4, { 2, 0 }, 0 }, /* MVMEL */
 { op_4e40_50_ff, NULL, 0x4e40, 2, { 0, 0 }, 0 }, /* TRAP */
-{ op_4e50_51_ff, NULL, 0x4e50, 4, { 0, 0 }, 0 }, /* LINK */
+{ op_4e50_52_ff, NULL, 0x4e50, 4, { 0, 0 }, 0 }, /* LINK */
 { op_4e58_50_ff, NULL, 0x4e58, 2, { 0, 0 }, 0 }, /* UNLK */
 { op_4e60_52_ff, NULL, 0x4e60, 2, { 0, 0 }, 0 }, /* MVR2USP */
 { op_4e68_50_ff, NULL, 0x4e68, 2, { 0, 0 }, 0 }, /* MVUSP2R */
@@ -70193,7 +70199,7 @@ const struct cputbl op_smalltbl_53[] = {
 { op_f379_50_ff, NULL, 0xf379, -1, { 0, 0 }, 0 }, /* FRESTORE */
 { op_f37a_50_ff, NULL, 0xf37a, -1, { 0, 0 }, 0 }, /* FRESTORE */
 { op_f37b_50_ff, NULL, 0xf37b, -1, { 0, 0 }, 0 }, /* FRESTORE */
-{ NULL, NULL, 0, 0, { 0, 0 }, 0 } };
+{ 0 }};
 #endif /* CPUEMU_68000_ONLY */
 #ifndef CPUEMU_68000_ONLY
 const struct cputbl op_smalltbl_54[] = {
@@ -71779,7 +71785,7 @@ const struct cputbl op_smalltbl_54[] = {
 { op_e7f0_54_ff, NULL, 0xe7f0, 4, { 4, 0 }, 0 }, /* ROLW */
 { op_e7f8_50_ff, NULL, 0xe7f8, 4, { 0, 0 }, 0 }, /* ROLW */
 { op_e7f9_50_ff, NULL, 0xe7f9, 6, { 0, 0 }, 0 }, /* ROLW */
-{ NULL, NULL, 0, 0, { 0, 0 }, 0 } };
+{ 0 }};
 #endif /* CPUEMU_68000_ONLY */
 #ifndef CPUEMU_68000_ONLY
 const struct cputbl op_smalltbl_55[] = {
@@ -73324,5 +73330,5 @@ const struct cputbl op_smalltbl_55[] = {
 { op_e7f0_54_ff, NULL, 0xe7f0, 4, { 4, 0 }, 0 }, /* ROLW */
 { op_e7f8_50_ff, NULL, 0xe7f8, 4, { 0, 0 }, 0 }, /* ROLW */
 { op_e7f9_50_ff, NULL, 0xe7f9, 6, { 0, 0 }, 0 }, /* ROLW */
-{ NULL, NULL, 0, 0, { 0, 0 }, 0 } };
+{ 0 }};
 #endif /* CPUEMU_68000_ONLY */

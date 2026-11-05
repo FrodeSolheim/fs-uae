@@ -5,6 +5,7 @@
 struct in_addr our_addr;
 /* host dns address */
 struct in_addr dns_addr;
+int dns_addr_valid;
 /* host loopback address */
 struct in_addr loopback_addr;
 
@@ -32,7 +33,7 @@ char slirp_hostname[33];
 
 #ifdef _WIN32
 
-static int get_dns_addr(struct in_addr *pdns_addr)
+static bool get_dns_addr(struct in_addr *pdns_addr)
 {
     FIXED_INFO *FixedInfo=NULL;
     ULONG    BufLen;
@@ -57,11 +58,17 @@ static int get_dns_addr(struct in_addr *pdns_addr)
             GlobalFree(FixedInfo);
             FixedInfo = NULL;
         }
-        return -1;
+        return false;
     }
      
     pIPAddr = &(FixedInfo->DnsServerList);
-    inet_aton(pIPAddr->IpAddress.String, &tmp_addr);
+    if (!inet_aton(pIPAddr->IpAddress.String, &tmp_addr)) {
+        if (FixedInfo) {
+            GlobalFree(FixedInfo);
+            FixedInfo = NULL;
+        }
+        return false;
+    }
     *pdns_addr = tmp_addr;
 #if 0
     printf( "DNS Servers:\n" );
@@ -77,46 +84,68 @@ static int get_dns_addr(struct in_addr *pdns_addr)
         GlobalFree(FixedInfo);
         FixedInfo = NULL;
     }
-    return 0;
+    return true;
 }
 
 #else
 
-static int get_dns_addr(struct in_addr *pdns_addr)
+static bool record_dns_server(const char *server, struct in_addr *pdns_addr,
+    int *found4, int *found6)
+{
+    struct in_addr tmp_addr;
+
+    if (!inet_aton(server, &tmp_addr)) {
+#ifdef AF_INET6
+        struct in6_addr tmp_addr6;
+        if (inet_pton(AF_INET6, server, &tmp_addr6) == 1)
+            (*found6)++;
+#endif
+        return false;
+    }
+
+    if (!*found4)
+        *pdns_addr = tmp_addr;
+    else
+        lprint(", ");
+    if (++*found4 > 3) {
+        lprint("(more)");
+        return true;
+    }
+    lprint("%s", inet_ntoa(tmp_addr));
+    return false;
+}
+
+static bool get_dns_addr(struct in_addr *pdns_addr)
 {
     char buff[512];
     char buff2[256+1];
     FILE *f;
-    int found = 0;
-    struct in_addr tmp_addr;
-    
+    int found4 = 0;
+    int found6 = 0;
+
     f = fopen("/etc/resolv.conf", "r");
-    if (!f)
-        return -1;
+    if (!f) {
+        write_log("SLIRP: no resolver configuration found, DNS disabled\n");
+        return false;
+    }
 
     lprint("IP address of your DNS(s): ");
     while (fgets(buff, 512, f) != NULL) {
         if (sscanf(buff, "nameserver%*[ \t]%256s", buff2) == 1) {
-            if (!inet_aton(buff2, &tmp_addr))
-                continue;
-            if (tmp_addr.s_addr == loopback_addr.s_addr)
-                tmp_addr = our_addr;
-            /* If it's the first one, set it to dns_addr */
-            if (!found)
-                *pdns_addr = tmp_addr;
-            else
-                lprint(", ");
-            if (++found > 3) {
-                lprint("(more)");
+            if (record_dns_server(buff2, pdns_addr, &found4, &found6))
                 break;
-            } else
-                lprint("%s", inet_ntoa(tmp_addr));
         }
     }
     fclose(f);
-    if (!found)
-        return -1;
-    return 0;
+    if (!found4) {
+        if (found6) {
+            write_log("SLIRP: only IPv6 DNS servers found, DNS forwarding disabled\n");
+        } else {
+            write_log("SLIRP: no IPv4 DNS server found, DNS forwarding disabled\n");
+        }
+        return false;
+    }
+    return true;
 }
 
 #endif
@@ -137,6 +166,7 @@ int slirp_init(void)
 
     link_up = 1;
 
+    bootp_reset();
     if_init();
     ip_init();
 
@@ -146,8 +176,7 @@ int slirp_init(void)
     /* set default addresses */
     inet_aton("127.0.0.1", &loopback_addr);
 
-    if (get_dns_addr(&dns_addr) < 0)
-        return -1;
+    dns_addr_valid = get_dns_addr(&dns_addr);
 
     inet_aton(CTL_SPECIAL, &special_addr);
 	alias_addr.s_addr = special_addr.s_addr | htonl(CTL_ALIAS);
@@ -159,6 +188,7 @@ void slirp_cleanup(void)
 {
     ip_cleanup();
     m_cleanup();
+	bootp_reset();
 	link_up = 0;
 }
 
@@ -302,7 +332,7 @@ int slirp_select_fill(INT_PTR *pnfds,
 			}
 		}
 
-#if 0
+#if SLIRP_ICMP
         /*
          * ICMP sockets
          */
@@ -423,7 +453,10 @@ void slirp_select_poll(fd_set *readfds, fd_set *writefds, fd_set *xfds)
 			 * test for readfds below if this succeeds
 			 */
 			if (FD_ISSET(so->s, xfds)) {
-				sorecvoob(so);
+				if (sorecvoob(so) < 0) {
+					/* the socket may have been freed on error */
+					continue;
+				}
 			/*
 			 * Check sockets for reading
 			 */
@@ -440,6 +473,10 @@ void slirp_select_poll(fd_set *readfds, fd_set *writefds, fd_set *xfds)
 				/* Output it if we read something */
 				if (ret > 0)
 					tcp_output(sototcpcb(so));
+				if (ret < 0) {
+					/* the socket may have been freed on error */
+					continue;
+				}
 			}
 
 			/*
@@ -450,21 +487,20 @@ void slirp_select_poll(fd_set *readfds, fd_set *writefds, fd_set *xfds)
 				 * Check for non-blocking, still-connecting sockets
 				 */
 				if (so->so_state & SS_ISFCONNECTING) {
-					/* Connected */
-					so->so_state &= ~SS_ISFCONNECTING;
-
-					ret = send(so->s, (const char*)&ret, 0, 0);
-					if (ret < 0) {
-						/* XXXXX Must fix, zero bytes is a NOP */
-						int error = WSAGetLastError();
-						if (error == EAGAIN || error == WSAEWOULDBLOCK  ||
-							error == WSAEINPROGRESS  || error == WSAENOTCONN)
+					int error = 0;
+					socklen_t error_len = sizeof(error);
+					if (getsockopt(so->s, SOL_SOCKET, SO_ERROR,
+						(char*)&error, &error_len) < 0)
+						error = WSAGetLastError();
+					if (error) {
+						if (error == EAGAIN || error == WSAEWOULDBLOCK ||
+							error == WSAEINPROGRESS || error == WSAENOTCONN)
 							continue;
-			      
 						/* else failed */
 						so->so_state = SS_NOFDREF;
+					} else {
+						so->so_state &= ~SS_ISFCONNECTING;
 					}
-					/* else so->so_state &= ~SS_ISFCONNECTING; */
 
 					/*
 					 * Continue tcp_input
@@ -533,7 +569,7 @@ void slirp_select_poll(fd_set *readfds, fd_set *writefds, fd_set *xfds)
 			}
 		}
 
-#if 0
+#if SLIRP_ICMP
         /*
          * Check incoming ICMP relies.
          */
@@ -610,7 +646,7 @@ void arp_input(const uint8_t *pkt, int pkt_len)
     switch(ar_op) {
     case ARPOP_REQUEST:
         if (!memcmp(ah->ar_tip, &special_addr, 3)) {
-            if (ah->ar_tip[3] == CTL_DNS || ah->ar_tip[3] == CTL_ALIAS) 
+            if ((ah->ar_tip[3] == CTL_DNS && dns_addr_valid) || ah->ar_tip[3] == CTL_ALIAS)
                 goto arp_ok;
             for (ex_ptr = exec_list; ex_ptr; ex_ptr = ex_ptr->ex_next) {
                 if (ex_ptr->ex_addr == ah->ar_tip[3])
@@ -662,6 +698,9 @@ void slirp_input(const uint8_t *pkt, int pkt_len)
         if (!m)
             return;
         /* Note: we add to align the IP header */
+        if (M_FREEROOM(m) < (size_t)pkt_len + 2) {
+            m_inc(m, pkt_len + 2);
+        }
         m->m_len = pkt_len + 2;
         memcpy(m->m_data + 2, pkt, pkt_len);
 

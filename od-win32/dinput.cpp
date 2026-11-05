@@ -34,38 +34,28 @@ int key_swap_end_pgup = 0;
 #include "sysconfig.h"
 
 #include <stdlib.h>
-#include <stdarg.h>
-#include <signal.h>
 
 #include <windows.h>
 #include <dinput.h>
 
 #include "sysdeps.h"
 #include "options.h"
-#include "traps.h"
 #include "rp.h"
 #include "inputdevice.h"
-#include "keybuf.h"
 #include "xwin.h"
 #include "uae.h"
 #include "catweasel.h"
 #include "keyboard.h"
-#include "custom.h"
 #include "render.h"
-#include "akiko.h"
 #include "clipboard.h"
 #include "tabletlibrary.h"
 #include "gui.h"
 
-#include <winioctl.h>
 #include <ntddkbd.h>
 #include <ntddpar.h>
 #include <setupapi.h>
 #include <devguid.h>
 #include <cfgmgr32.h>
-#include <wbemidl.h>
-#include <oleauto.h>
-
 
 extern "C" 
 {
@@ -1631,7 +1621,7 @@ static bool initialize_rawinput (void)
 	if (MAX_RAW_KEYBOARD > 0 && rnum_kb > MAX_RAW_KEYBOARD)
 		rnum_kb = MAX_RAW_KEYBOARD;
 
-	write_log (_T("HID device check:\n"));
+	write_log (_T("HID device check (%d devices):\n"), gotnum);
 	for (int rawcnt = 0; rawcnt < gotnum; rawcnt++) {
 		HANDLE h = ridl[rawcnt].hDevice;
 		int type = ridl[rawcnt].dwType;
@@ -1644,28 +1634,33 @@ static bool initialize_rawinput (void)
 
 			if (rawinput_decided) {
 				// must not enable rawinput later, even if rawinput capable device was plugged in
-				if (type == RIM_TYPEKEYBOARD && !rawinput_enabled_keyboard)
+				if (type == RIM_TYPEKEYBOARD && !rawinput_enabled_keyboard) {
 					continue;
-				if (type == RIM_TYPEMOUSE && !rawinput_enabled_mouse)
+				}
+				if (type == RIM_TYPEMOUSE && !rawinput_enabled_mouse) {
 					continue;
-				if (type == RIM_TYPEHID && !rawinput_enabled_hid)
+				}
+				if (type == RIM_TYPEHID && !rawinput_enabled_hid) {
 					continue;
+				}
 			}
 			if (type == RIM_TYPEKEYBOARD) {
-				if (num_keyboard >= rnum_kb)
+				if (num_keyboard >= rnum_kb) {
 					continue;
+				}
 				did = di_keyboard;
 			} else if (type == RIM_TYPEMOUSE) {
 				did = di_mouse;
 			} else if (type == RIM_TYPEHID) {
-				if (!rawinput_enabled_hid)
+				if (!rawinput_enabled_hid) {
 					continue;
+				}
 				did = di_joystick;
 			} else
 				continue;
 
 			if (GetRawInputDeviceInfo (h, RIDI_DEVICENAME, NULL, &vtmp) == -1) {
-				write_log (_T("%p RIDI_DEVICENAME failed\n"), h);
+				write_log (_T("%p RIDI_DEVICENAME failed %08x\n"), h, GetLastError());
 				continue;
 			}
 			if (vtmp >= bufsize) {
@@ -1673,7 +1668,7 @@ static bool initialize_rawinput (void)
 				continue;
 			}
 			if (GetRawInputDeviceInfo (h, RIDI_DEVICENAME, buf1, &vtmp) == -1) {
-				write_log (_T("%p RIDI_DEVICENAME %d failed\n"), h, vtmp);
+				write_log (_T("%p RIDI_DEVICENAME %d failed %08x\n"), h, vtmp, GetLastError());
 				continue;
 			}
 
@@ -1681,7 +1676,7 @@ static bool initialize_rawinput (void)
 			memset (rdi, 0, sizeof (RID_DEVICE_INFO));
 			rdi->cbSize = sizeof (RID_DEVICE_INFO);
 			if (GetRawInputDeviceInfo (h, RIDI_DEVICEINFO, NULL, &vtmp) == -1) {
-				write_log (_T("%p RIDI_DEVICEINFO failed\n"), h);
+				write_log (_T("%p RIDI_DEVICEINFO failed %08x\n"), h, GetLastError());
 				continue;
 			}
 			if (vtmp >= bufsize) {
@@ -1689,7 +1684,7 @@ static bool initialize_rawinput (void)
 				continue;
 			}
 			if (GetRawInputDeviceInfo (h, RIDI_DEVICEINFO, buf2, &vtmp) == -1) {
-				write_log (_T("%p RIDI_DEVICEINFO %d failed\n"), h, vtmp);
+				write_log (_T("%p RIDI_DEVICEINFO %d failed %08x\n"), h, vtmp, GetLastError());
 				continue;
 			}
 
@@ -2125,12 +2120,15 @@ static void sendscancode(int num, int scancode, int pressed)
 #if DEBUG_SCANCODE
 	write_log(_T("%02X %d %d\n"), scancode, pressed, isfocus());
 #endif
-	if (scancode < 0)
+	if (scancode < 0) {
 		return;
-	if (!isfocus())
+	}
+	if (!isfocus()) {
 		return;
-	if (isfocus() < 2 && currprefs.input_tablet >= TABLET_MOUSEHACK && (currprefs.input_mouse_untrap & MOUSEUNTRAP_MAGIC))
+	}
+	if (isfocus() < 2 && currprefs.input_tablet >= TABLET_MOUSEHACK && (currprefs.input_mouse_untrap & MOUSEUNTRAP_MAGIC)) {
 		return;
+	}
 	if (!mouseactive && !(currprefs.win32_active_input & 1)) {
 		if ((currprefs.win32_guikey <= 0 && scancode == DIK_F12) || (scancode == currprefs.win32_guikey)) {
 			inputdevice_add_inputcode(AKS_ENTERGUI, 1, NULL);
@@ -2139,8 +2137,7 @@ static void sendscancode(int num, int scancode, int pressed)
 	}
 	if (pressed) {
 		di_keycodes[num][scancode] = 1;
-	}
-	else {
+	} else {
 		if ((di_keycodes[num][scancode] & 1) && pause_emulation) {
 			di_keycodes[num][scancode] = 2;
 		}
@@ -3375,14 +3372,17 @@ static int di_do_init (void)
 #endif
 
 	write_log (_T("RawInput enumeration..\n"));
-	if (!initialize_rawinput ())
+	if (!initialize_rawinput ()) {
 		rawinput_enabled_hid = 0;
+	}
 
 	if (!rawinput_decided) {
-		if (!(no_rawinput & 1))
+		if (!(no_rawinput & 1)) {
 			rawinput_enabled_keyboard = true;
-		if (!(no_rawinput & 2))
+		}
+		if (!(no_rawinput & 2)) {
 			rawinput_enabled_mouse = true;
+		}
 		rawinput_decided = true;
 	}
 	if (!rawhid_found) {
@@ -3392,7 +3392,7 @@ static int di_do_init (void)
 	}
 
 	if (!no_directinput || !rawinput_enabled_keyboard || !rawinput_enabled_mouse) {
-		hr = DirectInput8Create (hInst, DIRECTINPUT_VERSION, IID_IDirectInput8, (LPVOID *)&g_lpdi, NULL);
+		hr = DirectInput8Create (hInst, DIRECTINPUT_VERSION, IID_IDirectInput8, (LPVOID*)&g_lpdi, NULL);
 		if (FAILED (hr)) {
 			write_log (_T("DirectInput8Create failed, %s\n"), DXError (hr));
 		} else {

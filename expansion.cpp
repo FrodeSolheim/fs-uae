@@ -13,11 +13,8 @@
 #include "sysdeps.h"
 
 #include "options.h"
-#include "uae.h"
-#include "traps.h"
 #include "memory.h"
 #include "rommgr.h"
-#include "custom.h"
 #include "newcpu.h"
 #include "savestate.h"
 #include "zfile.h"
@@ -58,12 +55,12 @@
 #ifdef WITH_SPECIALMONITORS
 #include "specialmonitors.h"
 #endif
-#include "inputdevice.h"
 #ifdef WITH_PCI
 #include "pci.h"
 #endif
 #ifdef WITH_X86
 #include "x86.h"
+#include "atonce.h"
 #endif
 #include "filesys.h"
 #include "ethernet.h"
@@ -291,10 +288,15 @@ void set_expamem_z3_hack_mode(int mode)
 
 bool expamem_z3hack(struct uae_prefs *p)
 {
-	if (z3hack_override == Z3MAPPING_UAE)
+	if (p->z3chipmem.size >= 0x40000000) {
 		return true;
-	if (z3hack_override == Z3MAPPING_REAL)
+	}
+	if (z3hack_override == Z3MAPPING_UAE) {
+		return true;
+	}
+	if (z3hack_override == Z3MAPPING_REAL) {
 		return false;
+	}
 	return p->z3_mapping_mode == Z3MAPPING_UAE || cpuboard_memorytype(p) == BOARD_MEMORY_BLIZZARD_12xx;
 }
 
@@ -1029,28 +1031,28 @@ addrbank romboardmem_bank[MAX_ROM_BOARDS] =
 	{
 		romboardmem0_lget, romboardmem0_wget, romboardmem0_bget,
 		empty_put, empty_put, empty_put,
-		romboardmem0_xlate, romboardmem0_check, NULL, _T("*"), _T("ROM board"),
+		romboardmem0_xlate, romboardmem0_check, NULL, _T("*"), _T("Custom ROM board #1"),
 		romboardmem0_lget, romboardmem0_wget,
 		ABFLAG_ROM | ABFLAG_THREADSAFE | ABFLAG_CACHE_ENABLE_ALL | ABFLAG_DIRECTACCESS, 0, 0
 	},
 	{
 		romboardmem1_lget, romboardmem1_wget, romboardmem1_bget,
 		empty_put, empty_put, empty_put,
-		romboardmem1_xlate, romboardmem1_check, NULL, _T("*"), _T("ROM board"),
+		romboardmem1_xlate, romboardmem1_check, NULL, _T("*"), _T("Custom ROM board #2"),
 		romboardmem1_lget, romboardmem1_wget,
 		ABFLAG_ROM | ABFLAG_THREADSAFE | ABFLAG_CACHE_ENABLE_ALL | ABFLAG_DIRECTACCESS, 0, 0
 	},
 	{
 		romboardmem2_lget, romboardmem2_wget, romboardmem2_bget,
 		empty_put, empty_put, empty_put,
-		romboardmem2_xlate, romboardmem2_check, NULL, _T("*"), _T("ROM board"),
+		romboardmem2_xlate, romboardmem2_check, NULL, _T("*"), _T("Custom ROM board #3"),
 		romboardmem2_lget, romboardmem2_wget,
 		ABFLAG_ROM | ABFLAG_THREADSAFE | ABFLAG_CACHE_ENABLE_ALL | ABFLAG_DIRECTACCESS, 0, 0
 	},
 	{
 		romboardmem3_lget, romboardmem3_wget, romboardmem3_bget,
 		empty_put, empty_put, empty_put,
-		romboardmem3_xlate, romboardmem3_check, NULL, _T("*"), _T("ROM board"),
+		romboardmem3_xlate, romboardmem3_check, NULL, _T("*"), _T("Custom ROM board #4"),
 		romboardmem3_lget, romboardmem3_wget,
 		ABFLAG_ROM | ABFLAG_THREADSAFE | ABFLAG_CACHE_ENABLE_ALL | ABFLAG_DIRECTACCESS, 0, 0
 	}
@@ -1429,11 +1431,12 @@ static addrbank *expamem_map_uaeboard(struct autoconfig_info *aci)
 	uaeboard_base = expamem_board_pointer;
 	uaeboard_ram_start = UAEBOARD_WRITEOFFSET;
 	uaeboard_bank.start = uaeboard_base;
-	map_banks_z2(&uaeboard_bank, uaeboard_base >> 16, 1);
-	if (currprefs.uaeboard > 1) {
-		rtarea_bank.start = uaeboard_base + 65536;
-		map_banks_z2(&rtarea_bank, (uaeboard_base + 65536) >> 16, 1);
-		ce_cachable[(uaeboard_base + 65536) >> 16] = CACHE_DISABLE_ALLOCATE;
+	if (map_banks_z2(&uaeboard_bank, uaeboard_base >> 16, 1)) {
+		if (currprefs.uaeboard > 1) {
+			rtarea_bank.start = uaeboard_base + 65536;
+			map_banks_z2(&rtarea_bank, (uaeboard_base + 65536) >> 16, 1);
+			ce_cachable[(uaeboard_base + 65536) >> 16] = CACHE_DISABLE_ALLOCATE;
+		}
 	}
 	return &uaeboard_bank;
 }
@@ -1621,8 +1624,9 @@ static addrbank *expamem_map_fastcard(struct autoconfig_info *aci)
 	uae_u32 size = ab->allocated_size;
 	ab->start = start;
 	if (ab->start && size) {
-		map_banks_z2(ab, ab->start >> 16, size >> 16);
-		initramboard(ab, &currprefs.fastmem[devnum]);
+		if (map_banks_z2(ab, ab->start >> 16, size >> 16)) {
+			initramboard(ab, &currprefs.fastmem[devnum]);
+		}
 	}
 	return ab;
 }
@@ -1895,8 +1899,9 @@ static addrbank *expamem_map_filesys (struct autoconfig_info *aci)
 	mapped_malloc(&filesys_bank);
 	memcpy (filesys_bank.baseaddr, expamem, 0x3000);
 	uaeboard_ram_start = UAEBOARD_WRITEOFFSET;
-	map_banks_z2(&filesys_bank, filesys_bank.start >> 16, 1);
-	expamem_map_filesys_update();
+	if (map_banks_z2(&filesys_bank, filesys_bank.start >> 16, 1)) {
+		expamem_map_filesys_update();
+	}
 	return &filesys_bank;
 }
 
@@ -2067,8 +2072,9 @@ static addrbank *expamem_map_z3fastmem (struct autoconfig_info *aci)
 	uae_u32 size = currprefs.z3fastmem[devnum].size;
 
 	if (ab->allocated_size) {
-		map_banks_z3(ab, z3fs >> 16, size >> 16);
-		initramboard(ab, &currprefs.z3fastmem[devnum]);
+		if (map_banks_z3(ab, z3fs >> 16, size >> 16)) {
+			initramboard(ab, &currprefs.z3fastmem[devnum]);
+		}
 	}
 	return ab;
 }
@@ -3829,13 +3835,19 @@ static void expansion_add_autoconfig(struct uae_prefs *p)
 
 }
 
-void expansion_scan_autoconfig(struct uae_prefs *p, bool log)
+static void expansion_init_cards(struct uae_prefs *p, bool log)
 {
-	cfgfile_compatibility_romtype(p);
 	expansion_add_autoconfig(p);
 	expansion_init_cards(p);
 	expansion_autoconfig_sort(p);
+
 	expansion_parse_cards(p, log);
+}
+
+void expansion_scan_autoconfig(struct uae_prefs *p, bool log)
+{
+	cfgfile_compatibility_romtype(p);
+	expansion_init_cards(p, log);
 }
 
 void expamem_reset (int hardreset)
@@ -3848,10 +3860,7 @@ void expamem_reset (int hardreset)
 	allocate_expamem ();
 	expamem_bank.name = _T("Autoconfig [reset]");
 
-	expansion_add_autoconfig(&currprefs);
-	expansion_init_cards(&currprefs);
-	expansion_autoconfig_sort(&currprefs);
-	expansion_parse_cards(&currprefs, true);
+	expansion_init_cards(&currprefs, true);
 
 	// this also resets all autoconfig devices
 	devices_reset_ext(hardreset);
@@ -3993,12 +4002,12 @@ void expansion_map(void)
 		filesys_bank.start = 0xe90000;
 		mapped_free(&filesys_bank);
 		mapped_malloc(&filesys_bank);
-		map_banks_z2(&filesys_bank, filesys_bank.start >> 16, 1);
-		expamem_init_filesys(NULL);
-		expamem_map_filesys_update();
+		if (map_banks_z2(&filesys_bank, filesys_bank.start >> 16, 1)) {
+			expamem_init_filesys(NULL);
+			expamem_map_filesys_update();
+		}
 	}
 }
-
 static void clear_bank (addrbank *ab)
 {
 	if (!ab->baseaddr || !ab->allocated_size)
@@ -4103,7 +4112,7 @@ uae_u8 *save_expansion_boards(size_t *len, uae_u8 *dstptr, int cardnum)
 	if (dstptr)
 		dst = dstbak = dstptr;
 	else
-		dstbak = dst = xmalloc(uae_u8, 1000);
+		dstbak = dst = xmalloc(uae_u8, 10000);
 	save_u32(3);
 	save_u32(0);
 	save_u32(cardnum);
@@ -4112,11 +4121,13 @@ uae_u8 *save_expansion_boards(size_t *len, uae_u8 *dstptr, int cardnum)
 	save_u32(ec->size);
 	save_u32(ec->flags);
 	save_string(ec->name);
+	write_log(_T("%d %08x %08x %08x %s\n"), cardnum, ec->base, ec->size, ec->flags, ec->name ? ec->name : _T("<none>"));
 	for (int j = 0; j < 16; j++) {
 		save_u8(ec->aci.autoconfig_bytes[j]);
 	}
 	struct romconfig *rc = ec->rc;
 	if (rc && rc->back) {
+		write_log(_T(" - %08x %08x\n"), rc->back->device_type, rc->back->device_num);
 		save_u32(rc->back->device_type);
 		save_u32(rc->back->device_num);
 		save_string(rc->romfile);
@@ -4152,8 +4163,8 @@ uae_u8 *restore_expansion_boards(uae_u8 *src)
 	ec->base = restore_u32();
 	ec->size = restore_u32();
 	ec->flags = restore_u32();
-	s = restore_string();
-	xfree(s);
+	ec->name = restore_string();
+
 	for (int j = 0; j < 16; j++) {
 		ec->aci.autoconfig_bytes[j] = restore_u8();
 	}
@@ -4173,10 +4184,10 @@ uae_u8 *restore_expansion_boards(uae_u8 *src)
 			currprefs.uaeboard = changed_prefs.uaeboard = 0;
 		}
 	}
-	uae_u32 dev_num = 0;
 	uae_u32 romtype = restore_u32();
+	write_log(_T("%d %08x %08x %08x %08x %s\n"), cardnum, ec->base, ec->size, ec->flags, romtype, ec->name ? ec->name : _T("<none>"));
 	if (romtype != 0xffffffff) {
-		dev_num = restore_u32();
+		uae_u32 dev_num = restore_u32();
 		ec->aci.devnum = dev_num;
 		struct boardromconfig* brc = get_device_rom(&currprefs, romtype, dev_num, NULL);
 		if (!brc) {
@@ -4277,6 +4288,7 @@ void restore_expansion_finish(void)
 		ec->aci.prefs = &currprefs;
 		ec->aci.ert = ec->ert;
 		ec->aci.rc = rc;
+		//write_log(_T("%d %08x %08x %08x %08x %s\n"), i, ec->base, ec->size, ec->flags, _T(""), ec->name);
 		if (rc && ec->ert) {
 			_tcscpy(ec->aci.name, ec->ert->friendlyname);
 			if (ec->ert->init) {
@@ -4546,6 +4558,23 @@ static const struct expansionboardsettings x86vga_settings[] = {
 		_T("Chipset\0") _T("CL-GD5426\0") _T("CL-GD5429\0"),
 		_T("chipset\0") _T("cl-gd5426\0") _T("cl-gd5429\0"),
 		true
+	},
+	{
+		NULL
+	}
+};
+
+static const struct expansionboardsettings atonce_bridge_settings[] = {
+	{
+		// 0
+		_T("Automount first MBR hardfile"),
+		_T("automounthdf"),
+	},
+	{
+		// 19 (not yet implemented)
+		_T("FPU"),
+		_T("fpu"),
+		false, false, 19
 	},
 	{
 		NULL
@@ -5077,6 +5106,12 @@ void ethernet_updateselection(void)
 	}
 }
 
+static bool xsurf_init_common(struct autoconfig_info *aci)
+{
+	xsurf_init_ide(aci);
+	return xsurf_init(aci);
+}
+
 static void fastlane_memory_callback(struct romconfig *rc, uae_u8 *ac, int size)
 {
 	struct zfile *z = read_device_from_romconfig(rc, NULL);
@@ -5405,7 +5440,7 @@ const struct expansionromtype expansionroms[] = {
 	},
 #endif
 	{
-		_T("a1000wom512k"), _T("A1000 512k WOM"), _T("Jörg Huth"),
+		_T("a1000wom512k"), _T("A1000 512k WOM"), _T("J\x00f6rg Huth"),
 		NULL, NULL, NULL, NULL, ROMTYPE_512KWOM | ROMTYPE_NOT, 0, 0, BOARD_NONAUTOCONFIG_BEFORE, true,
 		NULL, 0,
 		false, EXPANSIONTYPE_INTERNAL
@@ -5485,13 +5520,13 @@ const struct expansionromtype expansionroms[] = {
 	},
 #ifdef NCR9X
 	{
-		_T("blizzardscsikitiii"), _T("SCSI Kit III"), _T("Phase 5"),
+		_T("blizzardscsikitiii"), _T("Blizzard SCSI Kit III"), _T("Phase 5"),
 		NULL, NULL, NULL, cpuboard_ncr9x_add_scsi_unit, ROMTYPE_BLIZKIT3, 0, 0, 0, true,
 		NULL, 0,
 		false, EXPANSIONTYPE_SCSI
 	},
 	{
-		_T("blizzardscsikitiv"), _T("SCSI Kit IV"), _T("Phase 5"),
+		_T("blizzardscsikitiv"), _T("Blizzard SCSI Kit IV"), _T("Phase 5"),
 		NULL, NULL, NULL, cpuboard_ncr9x_add_scsi_unit, ROMTYPE_BLIZKIT4, 0, 0, 0, true,
 		NULL, 0,
 		false, EXPANSIONTYPE_SCSI
@@ -5521,14 +5556,14 @@ const struct expansionromtype expansionroms[] = {
 #endif
 	{
 		_T("alfapower"), _T("AlfaPower/AT-Bus 2008"), _T("BSC/Alfa Data"),
-		NULL, alf_init, NULL, alf_add_ide_unit, ROMTYPE_ALFA, 0, 0, BOARD_AUTOCONFIG_Z2, false,
+		NULL, alf_init, NULL, alf_add_ide_unit, ROMTYPE_ALFA | ROMTYPE_NONE, 0, 0, BOARD_AUTOCONFIG_Z2, false,
 		NULL, 0,
 		false, EXPANSIONTYPE_IDE,
 		2092, 8, 0
 	},
 	{
 		_T("alfapowerplus"), _T("AlfaPower Plus"), _T("BSC/Alfa Data"),
-		NULL, alf_init, NULL, alf_add_ide_unit, ROMTYPE_ALFAPLUS, 0, 0, BOARD_AUTOCONFIG_Z2, false,
+		NULL, alf_init, NULL, alf_add_ide_unit, ROMTYPE_ALFAPLUS | ROMTYPE_NONE, 0, 0, BOARD_AUTOCONFIG_Z2, false,
 		NULL, 0,
 		false, EXPANSIONTYPE_IDE,
 		2092, 8, 0
@@ -6111,6 +6146,14 @@ const struct expansionromtype expansionroms[] = {
 		false, 2, NULL,
 		{ 0xd2, 0x07, 0x00, 0x00, 0x14, 0x4A, 0x00, 0x00, 0x00, 0x01, 0x00, 0x08 }
 	},
+	{
+		_T("aide"), _T("AIDE"), _T("Matthias Heinrichs"),
+		NULL, aide_init, NULL, aide_add_ide_unit, ROMTYPE_AIDE | ROMTYPE_NOT, 0, 0, BOARD_NONAUTOCONFIG_BEFORE, true,
+		NULL, 0,
+		false, EXPANSIONTYPE_IDE,
+		0, 0, 0, false, NULL,
+		false, 0, NULL
+	},
 
 	/* PC Bridgeboards */
 #ifdef WITH_X86
@@ -6154,6 +6197,17 @@ const struct expansionromtype expansionroms[] = {
 		false, EXPANSIONTYPE_X86_BRIDGE,
 		0, 0, 0, false, NULL,
 		false, 0, x86at386_bridge_settings
+	},
+	{
+		// Vortex ATonce Plus: 286 board in the A500 68000 socket. Not a Zorro
+		// bridgeboard: no autoconfig, no BIOS ROM file (the x86 BIOS is loaded
+		// from the floppy .dsg into Amiga chip RAM by the 68k driver).
+		_T("atonceplus"), _T("ATonce Plus"), _T("Vortex"),
+		NULL, atonce_init, NULL, NULL, ROMTYPE_ATONCE | ROMTYPE_NOT, 0, 0, BOARD_NONAUTOCONFIG_BEFORE, true,
+		NULL, 0,
+		false, EXPANSIONTYPE_X86_BRIDGE,
+		0, 0, 0, false, NULL,
+		false, 0, atonce_bridge_settings
 	},
 #endif
 
@@ -6315,6 +6369,7 @@ const struct expansionromtype expansionroms[] = {
 #endif
 
 		/* Network */
+#ifdef A2065
 	{
 		_T("a2065"), _T("A2065"), _T("Commodore"),
 		NULL, a2065_init, NULL, NULL, ROMTYPE_A2065 | ROMTYPE_NOT, 0, 0, BOARD_AUTOCONFIG_Z2, true,
@@ -6333,6 +6388,7 @@ const struct expansionromtype expansionroms[] = {
 		false, 0, ethernet_settings,
 		{ 0xc1, 0xc9, 0x00, 0x00, 2167 >> 8, 2167 & 255, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }
 	},
+#endif
 #ifdef WITH_QEMU_CPU
 	{
 		_T("ariadne2"), _T("Ariadne II"), _T("Village Tronic"),
@@ -6363,11 +6419,11 @@ const struct expansionromtype expansionroms[] = {
 	},
 	{
 		_T("xsurf"), _T("X-Surf"), _T("Individual Computers"),
-		NULL, xsurf_init, NULL, NULL, ROMTYPE_XSURF | ROMTYPE_NOT, 0, 0, BOARD_AUTOCONFIG_Z2, true,
+		NULL, xsurf_init_common, NULL, xsurf_add_ide_unit, ROMTYPE_XSURF | ROMTYPE_NOT, 0, 0, BOARD_AUTOCONFIG_Z2, true,
 		NULL, 0,
-		false, EXPANSIONTYPE_NET,
+		false, EXPANSIONTYPE_NET | EXPANSIONTYPE_IDE,
 		0, 0, 0, false, NULL,
-		false, 0, ethernet_settings,
+		false, 2, ethernet_settings,
 		{ 0xc1, 0x17, 0x00, 0x00, 4626 >> 8, 4626 & 255, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }
 	},
 	{
@@ -6606,11 +6662,19 @@ static const struct cpuboardsubtype gvpboard_sub[] = {
 		gvpa1230s2_settings, NULL,
 		2017, 9, 0, false
 	},
+	{
+		_T("QuikPak"),
+		_T("quikpak"),
+		ROMTYPE_CB_QUIKPAK, 0, 6,
+		NULL, 0,
+		BOARD_MEMORY_HIGHMEM,
+		128 * 1024 * 1024,
+	},
 #ifdef NCR
 	{
 		_T("QuikPak XP"),
 		_T("quikpakxp"),
-		ROMTYPE_CB_QUIKPAK, 0, 6,
+		ROMTYPE_CB_QUIKPAKXP, 0, 6,
 		quikpak_add_scsi_unit, EXPANSIONTYPE_SCSI,
 		BOARD_MEMORY_HIGHMEM,
 		128 * 1024 * 1024,
@@ -6776,7 +6840,7 @@ static const struct cpuboardsubtype macrosystem_sub[] = {
 	{
 		_T("Warp Engine A4000"),
 		_T("WarpEngineA4000"),
-		ROMTYPE_CB_WENGINE, 0, 4,
+		ROMTYPE_CB_WENGINE | ROMTYPE_NONE, 0, 4,
 		warpengine_add_scsi_unit, EXPANSIONTYPE_SCSI,
 		BOARD_MEMORY_HIGHMEM,
 		128 * 1024 * 1024,

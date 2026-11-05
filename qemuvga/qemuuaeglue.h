@@ -2,7 +2,11 @@
 #include "uae/likely.h"
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+#ifndef _MSC_VER
+#include <sys/types.h>
+#endif
 #include "sysconfig.h"
 
 #ifdef DEBUGGER
@@ -21,9 +25,7 @@ extern void write_log (const char *, ...);
 #define tostring(s)	#s
 #endif
 
-#ifdef FSUAE
-#warning Not defining ssize_t as int because it is incorrect (but does some code now assume ssize_t is 32-bit?)
-#else
+#ifdef _MSC_VER
 typedef int ssize_t;
 #endif
 
@@ -409,4 +411,3 @@ extern uint64_t lsi_mmio_read(void *opaque, hwaddr addr, unsigned size);
 
 typedef void *qemu_irq;
 typedef void* SysBusDevice;
-

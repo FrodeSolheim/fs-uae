@@ -444,6 +444,10 @@
 #define IDS_DISPLAY_OPTIMIZATION_NONE   450
 #define IDS_KEYBOARD_DISCONNECTED       451
 #define IDS_KEYBOARD_HIGHLEVEL          452
+#define IDS_SYNCMODE_COMBINED2          453
+#define IDS_SYNCMODE_CSYNC2             454
+#define IDS_SYNCMODE_HVSYNC2            455
+#define IDS_PRINTER_PRINT_TO_FILE       456
 #define IDS_QS_MODELS                   1000
 #define IDS_QS_MODEL_A500               1001
 #define IDS_QS_MODEL_A500P              1002
@@ -486,6 +490,7 @@
 #define IDC_MEMORYMEM                   1028
 #define IDC_PORT0_JOYSMODE              1029
 #define IDC_SCREENMODE_NATIVE2          1029
+#define IDC_CPUSLOTMEM                  1029
 #define IDC_SLOWMEM                     1030
 #define IDC_PORT1_JOYSMODE              1030
 #define IDC_SCREENMODE_RTG2             1030
@@ -507,6 +512,7 @@
 #define IDC_CHIPRAM                     1045
 #define IDC_SLOWRAM                     1046
 #define IDC_Z3TEXT                      1047
+#define IDC_CPUSLOTRAM                  1047
 #define IDC_Z3FASTRAM                   1048
 #define IDC_Z3FASTMEM                   1049
 #define IDC_MEMORYRAM                   1050
@@ -564,7 +570,9 @@
 #define IDC_LM_IDOUBLED3                1200
 #define IDC_CPU0                        1200
 #define IDC_CPU1                        1201
+#define IDC_SCALENTSC                   1201
 #define IDC_CPU2                        1202
+#define IDC_SCALENTSCPAL                1202
 #define IDC_CPU3                        1203
 #define IDC_CPU4                        1204
 #define IDC_CPU5                        1205
@@ -732,6 +740,7 @@
 #define IDC_CARTCHOOSER                 1399
 #define IDC_SAVE                        1400
 #define IDC_CPUBOARDROMSUBSELECT        1400
+#define IDC_CARTFILECUSTOM              1400
 #define IDC_LOAD                        1401
 #define IDC_RTCCHOOSER                  1401
 #define IDC_SCSIROMCHOOSER              1402
@@ -810,6 +819,7 @@
 #define IDC_ECS_AGNUS                   1521
 #define IDC_DISPLAY_RESIZE              1521
 #define IDC_ECS_DENISE                  1522
+#define IDC_RLMASPECT                   1522
 #define IDC_ECS                         1523
 #define IDC_AGA                         1524
 #define IDC_OCSA1000                    1525
@@ -915,6 +925,7 @@
 #define IDC_INPUTDEVICETEXT             1610
 #define IDC_ALWAYSONTOP                 1610
 #define IDC_SCSIROMFILEAUTOBOOT         1610
+#define IDC_CUSTOMCARTFILE              1610
 #define IDC_AVIOUTPUT_FILE              1611
 #define IDC_INPUTLIST                   1611
 #define IDC_CATWEASEL                   1611
@@ -1118,6 +1129,7 @@
 #define IDC_FILTERENABLE                1711
 #define IDC_CS_CIAA_TOD2                1712
 #define IDC_CS_EXT                      1712
+#define IDC_FILTERBLANKING              1712
 #define IDC_CS_CIAA_TOD3                1713
 #define IDC_SOUND_DS                    1713
 #define IDC_MONITOREMU                  1713
@@ -1132,6 +1144,7 @@
 #define IDC_MONITOREMU_MON              1716
 #define IDC_CS_CD32CD                   1717
 #define IDC_KEYBOARDMODE                1717
+#define IDC_MONITOREMU_ACTIVEMON        1717
 #define IDC_CS_CD32C2P                  1718
 #define IDC_SOUND_PORTAUDIO             1718
 #define IDC_DISPLAY_OPTIMIZATION        1718
@@ -1275,11 +1288,14 @@
 #define IDC_INPUTMAPOUTM                1802
 #define IDC_RTG_SWITCHER                1802
 #define IDC_INFOBOX_TEXT1               1803
+#define IDC_RTG_INITIAL_MONITOR         1803
 #define IDC_INFOBOX_TEXT3               1804
 #define IDC_CD_EJECT                    1804
+#define IDC_RTG_NONSQUAREPIXELS         1804
 #define IDC_CD_TEXT                     1805
 #define IDC_CD_TYPE                     1806
 #define IDC_CD_SELECT                   1807
+#define IDC_CD_NUMBER                   1808
 #define IDC_RTG_DISPLAYSELECT           1809
 #define IDC_FASTMEMAUTOCONFIGUSE        1809
 #define IDC_MISCLIST                    1810
@@ -1365,6 +1381,8 @@
 #define IDC_KEYBOARD_ENDHACK            1866
 #define IDC_SER_RTSCTSDTRDTECD          1867
 #define IDC_SER_RI                      1868
+#define IDC_SER_CRLF                    1869
+#define IDC_ACTIVATEMONITOR             1869
 #define ID__FLOPPYDRIVES                40004
 #define ID_FLOPPYDRIVES_DF0             40005
 #define ID_ST_CONFIGURATION             40010
@@ -1406,6 +1424,10 @@
 #define ID_ST_CDEJECTALL                40047
 #define ID_CDDRIVES_CD                  40048
 #define ID_ST_CD0                       40049
+#define ID_ST_MENU_MONITORS             40050
+#define ID_ST_MONITORS_NEXTDISPLAY      40051
+#define ID_ST_MONITORS_PREVIOUSDISPLAY  40052
+#define ID_ST_DISPLAYS_CHIPSET          40053
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
@@ -1415,8 +1437,8 @@
 #define _APS_NO_MFC                     1
 #define _APS_3D_CONTROLS                     1
 #define _APS_NEXT_RESOURCE_VALUE        407
-#define _APS_NEXT_COMMAND_VALUE         40050
-#define _APS_NEXT_CONTROL_VALUE         1869
+#define _APS_NEXT_COMMAND_VALUE         40054
+#define _APS_NEXT_CONTROL_VALUE         1870
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

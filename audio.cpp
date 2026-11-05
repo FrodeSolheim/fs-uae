@@ -19,7 +19,6 @@
 #include "memory.h"
 #include "custom.h"
 #include "newcpu.h"
-#include "autoconf.h"
 #include "gensound.h"
 #include "audio.h"
 #include "sounddep/sound.h"
@@ -31,7 +30,6 @@
 #include "zfile.h"
 #include "uae.h"
 #include "gui.h"
-#include "xwin.h"
 #include "debug.h"
 #ifdef WITH_SNDBOARD
 #include "sndboard.h"
@@ -39,8 +37,10 @@
 #ifdef AVIOUTPUT
 #include "avioutput.h"
 #endif
+#if defined(VIDEOGRAB) && defined(UAE_TARGET_UNIX)
+#include "videograb.h"
+#endif
 #ifdef AHI
-#include "traps.h"
 #include "ahidsound.h"
 #ifdef AHI_v2
 #include "ahidsound_new.h"
@@ -715,14 +715,21 @@ static void do_extra_channels(int idx, int ch, int *data1, int *data2, int *data
 	} else if (ch == 1) {
 		int datas[1];
 		samplexx_anti_handler(datas, idx, 1);
+		// A mono stream goes to both sides, mixed with each side's own sample
 		int d1 = *data1 + datas[0];
 		if (d1 < -32768)
 			d1 = -32768;
 		if (d1 > 32767)
 			d1 = 32767;
 		*data1 = d1;
-		if (data2)
-			*data2 = d1;
+		if (data2) {
+			int d2 = *data2 + datas[0];
+			if (d2 < -32768)
+				d2 = -32768;
+			if (d2 > 32767)
+				d2 = 32767;
+			*data2 = d2;
+		}
 	} else if (ch > 2) {
 		int datas[AUDIO_CHANNEL_MAX_STREAM_CH];
 		samplexx_anti_handler(datas, idx, 6);
@@ -782,6 +789,9 @@ static void check_sound_buffers(void)
 	int len;
 #endif
 
+#ifdef DRIVESOUND
+	uae_s16 *bufp = (uae_s16*)paula_sndbufpt - 2;
+#endif
 	if (active_sound_stereo == SND_4CH_CLONEDSTEREO) {
 		((uae_u16*)paula_sndbufpt)[0] = ((uae_u16*)paula_sndbufpt)[-2];
 		((uae_u16*)paula_sndbufpt)[1] = ((uae_u16*)paula_sndbufpt)[-1];
@@ -807,6 +817,12 @@ static void check_sound_buffers(void)
 		p[1] = sum / 8;
 		paula_sndbufpt = (uae_u16*)(((uae_u8*)paula_sndbufpt) + 6 * 2);
 	}
+#ifdef DRIVESOUND
+	if (driveclick_wave_initialized) {
+		driveclick_mix(bufp, active_sound_stereo, currprefs.dfxclickchannelmask);
+	}
+#endif
+
 #if SOUNDSTUFF > 1
 	if (outputsample == 0)
 		return;
@@ -821,9 +837,15 @@ static void check_sound_buffers(void)
 		paula_sndbufpt = paula_sndbufpt_start;
 	}
 #endif
+#if SOUND_MODE_NG
+	if ((uae_u8*)paula_sndbufpt - (uae_u8*)paula_sndbuffer >= paula_sndbufsize * 2) {
+		paula_sndbufpt = paula_sndbuffer;
+	}
+#else
 	if ((uae_u8*)paula_sndbufpt - (uae_u8*)paula_sndbuffer >= paula_sndbufsize) {
 		finish_sound_buffer();
 	}
+#endif
 #if SOUNDSTUFF > 1
 	while (doublesample-- > 0) {
 		memcpy(paula_sndbufpt, paula_sndbufpt_start, len * 2);
@@ -1539,10 +1561,12 @@ uae_u16 audio_dmal(void)
 	uae_u16 dmal = 0;
 	for (int nr = 0; nr < AUDIO_CHANNELS_PAULA; nr++) {
 		struct audio_channel_data *cdp = audio_channel + nr;
-		if (cdp->dr)
+		if (cdp->dr || cdp->dsr) {
 			dmal |= 1 << (nr * 2 + 1);
-		if (cdp->dsr)
+		}
+		if (cdp->dsr) {
 			dmal |= 1 << (nr * 2 + 0);
+		}
 		cdp->dr = cdp->dsr = false;
 	}
 	return dmal;
@@ -1808,6 +1832,10 @@ static bool audio_state_channel2 (int nr, bool perfin)
 			if (cdp->wlen > 2)
 				cdp->ptx_tofetch = true;
 			cdp->dsr = true;
+			if (cdp->intreq2) {
+				setirq(nr, 0);
+				cdp->intreq2 = false;
+			}
 #if TEST_AUDIO > 0
 			cdp->have_dat = false;
 #endif
@@ -1818,7 +1846,7 @@ static bool audio_state_channel2 (int nr, bool perfin)
 #endif
 		} else if (cdp->dat_written && !isirq (nr)) {
 			cdp->state = 2;
-			setirq(nr, 0);
+			setirq(nr, 1);
 			loaddat(nr);
 			if (usehacks() && cdp->per < 10 * CYCLE_UNIT) {
 				static int warned = 100;
@@ -1881,7 +1909,6 @@ static bool audio_state_channel2 (int nr, bool perfin)
 		cdp->state = 2;
 		loadper(nr);
 		cdp->pbufldl = true;
-		cdp->intreq2 = false;
 		cdp->volcnt = 0;
 		audio_state_channel2(nr, false);
 		break;
@@ -2217,6 +2244,10 @@ void set_audio (void)
 	} else {
 		sound_volume (0);
 	}
+
+#if defined(VIDEOGRAB) && defined(UAE_TARGET_UNIX)
+	setsoundoutputvideograb(currprefs.produce_sound >= 2);
+#endif
 
 	sep = (currprefs.sound_stereo_separation = changed_prefs.sound_stereo_separation) * 3 / 2;
 	if (sep >= 15)
@@ -2590,7 +2621,7 @@ void AUDxDAT(int nr, uae_u16 v, uaecptr addr)
 	if (!currprefs.cachesize && (cdp->per < PERIOD_LOW * CYCLE_UNIT || currprefs.cpu_compatible)) {
 		int cyc = 0;
 		if (chan_ena) {
-			// AUDxLEN is processed after 1 CCK delay
+			// AUDxDAT is processed after 1 CCK delay
 			cyc = 1 * CYCLE_UNIT;
 			if ((cdp->state & 15) == 2 || (cdp->state & 15) == 3) {
 				// But INTREQ2 is set immediately

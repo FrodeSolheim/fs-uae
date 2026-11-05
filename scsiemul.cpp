@@ -16,9 +16,6 @@
 #include "threaddep/thread.h"
 #include "options.h"
 #include "memory.h"
-#include "custom.h"
-#include "events.h"
-#include "newcpu.h"
 #include "autoconf.h"
 #include "traps.h"
 #include "execlib.h"
@@ -28,6 +25,8 @@
 #include "uae.h"
 #include "execio.h"
 #include "savestate.h"
+
+#ifdef SCSIEMU
 
 #define CDDEV_COMMANDS
 
@@ -1623,3 +1622,41 @@ uae_u8 *restore_scsidev (uae_u8 *src)
 	}
 	return src;
 }
+
+#else
+
+int scsi_do_disk_change(int unitnum, int insert, int *pollmode)
+{
+	if (pollmode) {
+		*pollmode = 0;
+	}
+	return 0;
+}
+
+uae_u32 scsi_get_cd_drive_mask(void)
+{
+	return 0;
+}
+
+uae_u32 scsi_get_cd_drive_media_mask(void)
+{
+	return 0;
+}
+
+int scsi_add_tape(struct uaedev_config_info *uci)
+{
+	return -1;
+}
+
+uae_u8 *save_scsidev(int num, size_t *len, uae_u8 *dstptr)
+{
+	*len = 0;
+	return dstptr;
+}
+
+uae_u8 *restore_scsidev(uae_u8 *src)
+{
+	return src;
+}
+
+#endif /* SCSIEMU */

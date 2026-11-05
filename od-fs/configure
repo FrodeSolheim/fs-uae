@@ -6,7 +6,8 @@ PROJECT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 echo "PROJECT_DIR: $PROJECT_DIR"
 cd "$PROJECT_DIR"
 
-BUILD_DIR="$PROJECT_DIR/.build/dev"
+# Use FSUAE_BUILD=<name> to configure a separate build directory (default: dev)
+BUILD_DIR="$PROJECT_DIR/.build/${FSUAE_BUILD:-dev}"
 echo "BUILD_DIR: $BUILD_DIR"
 
 echo

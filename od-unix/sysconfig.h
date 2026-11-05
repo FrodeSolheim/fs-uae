@@ -1,3 +1,10 @@
+#ifdef FSUAE
+
+#include "sysconfig-fs.h"
+#define WINUAE_OD_UNIX_SYSCONFIG_H
+
+#endif // FSUAE
+
 #ifndef WINUAE_OD_UNIX_SYSCONFIG_H
 #define WINUAE_OD_UNIX_SYSCONFIG_H
 

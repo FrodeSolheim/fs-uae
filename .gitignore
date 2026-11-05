@@ -1,23 +1,20 @@
 # FS-UAE
 
-__pycache__/
 .~*
+.build/
 .deps/
 .dirstamp
 *.a
+*.DS_Store
+*.xz
 *~
 /aclocal.m4
 /autom4te.cache/
 /config.status
 /configure
 /fs-uae
-/fs-uae.exe
 /Makefile
 /Makefile.in
-configuration.backup
-configuration.cache
-winuaebootlog.txt
-winuaelog.txt
 
 # WinUAE
 

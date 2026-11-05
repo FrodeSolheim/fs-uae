@@ -534,10 +534,10 @@ libuae_a_SOURCES = \
 	newcpu_common.cpp \
 	newcpu.cpp \
 	od-fs/clipboard-fs.cpp \
-	od-fs/mman-fs.cpp \
 	od-generic/clipboard.cpp \
 	od-generic/mman.cpp \
 	od-generic/mman_host.h \
+	od-unix/mman.cpp \
 	od-fs/blkdev-linux.cpp \
 	od-fs/bridge.cpp \
 	od-fs/bsdsocket_posix.cpp \
@@ -631,6 +631,7 @@ libuae_a_SOURCES = \
 	od-win32/render.h \
 	od-win32/serial_win32.cpp \
 	od-win32/sounddep/sound.h \
+	od-unix/sysconfig.h \
 	od-win32/sysconfig.h \
 	od-win32/win32_scaler.cpp \
 	od-win32/win32_uaenet.cpp \

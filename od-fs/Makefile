@@ -12,13 +12,19 @@ else
 OS = UNKNOWN
 endif
 
-BUILD_DIR = ../.build/dev
+# Name of the autoconf build directory (../.build/<name>). Use different names for different
+# environments sharing this source tree (e.g. FSUAE_BUILD=claude in the Claude sandbox) so that
+# they can be configured side by side. The od-fs/fs-uae copy is only made for the "dev" build.
+FSUAE_BUILD ?= dev
+BUILD_DIR = ../.build/$(FSUAE_BUILD)
 
 all: build
 
 build:
 	$(MAKE) -C $(BUILD_DIR)
+ifeq ($(FSUAE_BUILD),dev)
 	$(MAKE) fs-uae
+endif
 
 fs-uae: $(BUILD_DIR)/fs-uae
 	cp -a $(BUILD_DIR)/fs-uae fs-uae

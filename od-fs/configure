@@ -17,3 +17,14 @@ echo
 mkdir -p "$BUILD_DIR"
 cd "$BUILD_DIR"
 "$PROJECT_DIR/configure" "$@"
+
+# In development mode the binary looks for the Python GUI code and resources relative to its own
+# location (SDL_GetBasePath), i.e. <build dir>/od-fs/{python,resources}. Link these to the source
+# tree so the binary can be run directly from the build directory.
+mkdir -p "$BUILD_DIR/od-fs"
+for name in python resources; do
+    link="$BUILD_DIR/od-fs/$name"
+    if [ -L "$link" ] || [ ! -e "$link" ]; then
+        ln -sfn "../../../od-fs/$name" "$link"
+    fi
+done

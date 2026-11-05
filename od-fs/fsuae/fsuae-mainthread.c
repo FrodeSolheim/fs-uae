@@ -29,6 +29,7 @@
 
 #define FSEMU_INTERNAL 1
 #include "fsemu-glvideo.h"
+#include "fsemu-image.h"
 #include "fsemu-video.h"
 
 // FIXME: Rename to "fsapp-mainthread" or "fsemu-mainthread"??
@@ -182,6 +183,59 @@ static void handle_mouse_grab(void) {
     }
 }
 
+// Developer/test aid for headless runs: FSUAE_GL_GRAB_FRAMES="100,600" saves the rendered
+// back buffer (emulator video + GUI, as composited) as a PNG just before the given swap numbers.
+// Output goes to $FSEMU_SCREENSHOTS_DIR (default: current directory) as GLGrab_<swap>.png.
+static void gl_grab_maybe(void) {
+    static bool initialized = false;
+    static int frames[32];
+    static int count = 0;
+    static int next = 0;
+    static int swap_number = 0;
+    if (!initialized) {
+        initialized = true;
+        const char* env = getenv("FSUAE_GL_GRAB_FRAMES");
+        while (env && *env && count < 32) {
+            char* end = NULL;
+            long value = strtol(env, &end, 10);
+            if (end == env) {
+                break;
+            }
+            frames[count++] = (int)value;
+            env = (*end == ',') ? end + 1 : end;
+        }
+    }
+    swap_number++;
+    if (next >= count || swap_number < frames[next]) {
+        return;
+    }
+    next++;
+    int w = 0, h = 0;
+    SDL_GetWindowSizeInPixels(g_window, &w, &h);
+    if (w <= 0 || h <= 0) {
+        printf("GL grab: invalid window size %dx%d\n", w, h);
+        return;
+    }
+    uint8_t* pixels = (uint8_t*)malloc((size_t)w * h * 4);
+    uint8_t* flipped = (uint8_t*)malloc((size_t)w * h * 4);
+    glPixelStorei(GL_PACK_ALIGNMENT, 1);
+    glReadBuffer(GL_BACK);
+    glReadPixels(0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+    for (int y = 0; y < h; y++) {
+        memcpy(flipped + (size_t)y * w * 4, pixels + (size_t)(h - 1 - y) * w * 4, (size_t)w * 4);
+        for (int x = 0; x < w; x++) {
+            flipped[((size_t)y * w + x) * 4 + 3] = 255;
+        }
+    }
+    const char* dir = getenv("FSEMU_SCREENSHOTS_DIR");
+    char path[1024];
+    snprintf(path, sizeof(path), "%s/GLGrab_%05d.png", (dir && dir[0]) ? dir : ".", swap_number);
+    int err = fsemu_image_save_png_file_from_rgba_data(path, flipped, w, h);
+    printf("GL grab: %dx%d -> %s (result %d, glGetError %d)\n", w, h, path, err, glGetError());
+    free(pixels);
+    free(flipped);
+}
+
 static void fsuae_mainloop_iteration(void) {
     static bool first_render = true;
 
@@ -287,6 +341,7 @@ static void fsuae_mainloop_iteration(void) {
     // Swap!
 
     glFinish();  // FIXME: Why is glFinish needed here?
+    gl_grab_maybe();
     SDL_GL_SwapWindow(g_window);
 }
 

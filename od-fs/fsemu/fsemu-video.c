@@ -386,6 +386,33 @@ void fsemu_video_post_frame(fsemu_video_frame_t* frame) {
     // }
 }
 
+// Developer/test aid: FSEMU_AUTO_SCREENSHOT_FRAMES="250,500,1000" requests a screenshot (saved to
+// FSEMU_SCREENSHOTS_DIR) once each listed frame number has been reached. Allows capturing output
+// when running headless, where keyboard shortcuts cannot be used.
+static void fsemu_video_auto_screenshot(const fsemu_video_frame_t* frame) {
+    static bool initialized = false;
+    static int frames[32];
+    static int count = 0;
+    static int next = 0;
+    if (!initialized) {
+        initialized = true;
+        const char* env = getenv("FSEMU_AUTO_SCREENSHOT_FRAMES");
+        while (env && *env && count < 32) {
+            char* end = NULL;
+            long value = strtol(env, &end, 10);
+            if (end == env) {
+                break;
+            }
+            frames[count++] = (int)value;
+            env = (*end == ',') ? end + 1 : end;
+        }
+    }
+    if (next < count && (int)frame->number >= frames[next]) {
+        next++;
+        fsemu_screenshot_capture();
+    }
+}
+
 fsemu_video_frame_t* fsemu_video_get_frame(int timeout_us) {
     fsemu_assert(timeout_us >= -1);
     fsemu_video_frame_t* frame;
@@ -438,6 +465,7 @@ fsemu_video_frame_t* fsemu_video_get_frame(int timeout_us) {
     }
 #endif
     if (frame->partial == 0 || frame->partial == frame->height) {
+        fsemu_video_auto_screenshot(frame);
         if (fsemu_screenshot_should_capture()) {
             fsemu_screenshot_capture_video_frame(frame);
         }
@@ -822,6 +850,7 @@ void fsemu_video_init(void) {
     fsemu_layout_init();
     fsemu_frame_init();
     fsemu_videothread_init();
+    fsemu_screenshot_init();
 
     fsemu_video.gui_snapshot_mutex = fsemu_mutex_create();
 

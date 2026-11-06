@@ -1067,6 +1067,9 @@
     <ClCompile Include="..\..\kbmcu\m6805\m68_ops.cpp" />
     <ClCompile Include="..\..\logging.cpp" />
     <ClCompile Include="..\..\od-generic\clipboard.cpp" />
+    <ClCompile Include="..\..\od-generic\focus.cpp" />
+    <ClCompile Include="..\..\od-generic\screenshot_common.cpp" />
+    <ClCompile Include="..\..\od-generic\uaenet.cpp" />
     <ClCompile Include="..\..\od-generic\mman.cpp" />
     <ClCompile Include="..\..\od-generic\registry_ini.cpp" />
     <ClCompile Include="..\..\luascript.cpp" />
@@ -3497,6 +3500,9 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\include\hardfile_defaults.h" />
+    <ClInclude Include="..\..\include\cfgfile_mount.h" />
+    <ClInclude Include="..\..\include\cpu_selection.h" />
     <ClInclude Include="..\resources\resource.h" />
   </ItemGroup>
   <ItemGroup>

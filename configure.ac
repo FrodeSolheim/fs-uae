@@ -476,6 +476,45 @@ AM_CONDITIONAL([LINUX], [test x$OS_NAME = xlinux])
 AM_CONDITIONAL([MACOS], [test x$OS_NAME = xmacos])
 AM_CONDITIONAL([WINDOWS], [test x$OS_NAME = xwindows])
 
+# Native packet networking for A2065 and uaenet.device (optional, auto-detected).
+# Windows: od-win32/win32_uaenet.cpp loads Npcap (wpcap.dll/packet.dll) at
+# runtime, so only the Npcap SDK headers are needed at build time.
+# Other platforms: od-unix/uaenet_unix.cpp links against libpcap (and uses
+# TAP/TUN on Linux).
+AC_ARG_WITH([pcap],
+    [AS_HELP_STRING([--without-pcap], [native pcap/TAP/TUN networking])])
+with_uaenet_pcap=no
+AS_IF([test "x$with_pcap" != xno], [
+    AS_IF([test "x$OS_NAME" = xwindows], [
+        AC_CHECK_HEADER([pcap.h], [
+            AC_CHECK_HEADER([Packet32.h], [with_uaenet_pcap=yes], [],
+                [#include <winsock2.h>
+#include <pcap.h>])
+        ], [], [#include <winsock2.h>])
+    ], [
+        PKG_CHECK_MODULES([PCAP], [libpcap], [with_uaenet_pcap=yes], [
+            AC_CHECK_HEADER([pcap/pcap.h], [
+                AC_CHECK_LIB([pcap], [pcap_open_live], [
+                    PCAP_CFLAGS=""
+                    PCAP_LIBS="-lpcap"
+                    with_uaenet_pcap=yes
+                ])
+            ])
+        ])
+    ])
+    AS_IF([test "x$with_uaenet_pcap" = xyes], [
+        AC_MSG_NOTICE([enabling native pcap networking])
+        AC_DEFINE([WITH_UAENET_PCAP], [1],
+            [Define to 1 for native pcap/TAP/TUN networking])
+    ], [
+        AS_IF([test "x$with_pcap" = xyes],
+            [AC_MSG_ERROR([pcap requested but not found])])
+    ])
+])
+AC_SUBST([PCAP_CFLAGS])
+AC_SUBST([PCAP_LIBS])
+AM_CONDITIONAL([WITH_UAENET_PCAP], [test x$with_uaenet_pcap = xyes])
+
 # Not using libtool right now, but use name LT_MODULE_EXT anyway in case
 # transitioning to libtool later.
 AC_DEFINE_UNQUOTED([LT_MODULE_EXT], ["$LOADABLE_MODULE_EXT"],

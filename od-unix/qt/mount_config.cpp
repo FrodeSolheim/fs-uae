@@ -1,23 +1,11 @@
 #include "mount_config.h"
+#include "include/cfgfile_mount.h"
 
 #include <QFileInfo>
 
-QString winUaeQtConfigAccessValue(bool readOnly)
-{
-    return readOnly ? QStringLiteral("ro") : QStringLiteral("rw");
-}
-
 QString winUaeQtConfigEscapeMin(QString value)
 {
-    const bool needsQuote = value.contains(QLatin1Char(','))
-        || value.contains(QLatin1Char('"'))
-        || value.startsWith(QLatin1Char(' '))
-        || value.endsWith(QLatin1Char(' '));
-    if (!needsQuote) {
-        return value;
-    }
-    value.replace(QStringLiteral("\""), QStringLiteral("\\\""));
-    return QStringLiteral("\"%1\"").arg(value);
+    return QString::fromStdU16String(cfgfile_escape_min_string(value.toStdU16String(), true));
 }
 
 QString winUaeQtSanitizedAmigaName(QString value, const QString &fallback, bool uppercase)
@@ -46,55 +34,15 @@ static bool takeConfigField(QString *input, QChar delimiter, QString *field, boo
         return false;
     }
 
-    if (input->startsWith(QLatin1Char('"'))) {
-        QString output;
-        bool escaped = false;
-        bool closed = false;
-        int index = 1;
-        for (; index < input->size(); index++) {
-            const QChar c = input->at(index);
-            if (escaped) {
-                output.append(c);
-                escaped = false;
-            } else if (c == QLatin1Char('\\')) {
-                escaped = true;
-            } else if (c == QLatin1Char('"')) {
-                index++;
-                closed = true;
-                break;
-            } else {
-                output.append(c);
-            }
-        }
-        if (!closed) {
-            return false;
-        }
-        if (index < input->size()) {
-            if (input->at(index) != delimiter) {
-                return false;
-            }
-            *input = input->mid(index + 1);
-        } else if (requireDelimiter) {
-            return false;
-        } else {
-            input->clear();
-        }
-        *field = output;
-        return true;
+    const std::u16string source = input->toStdU16String();
+    const char16_t *next = source.c_str();
+    std::u16string value;
+    if (!cfgfile_mount_field(next, char16_t(delimiter.unicode()), value,
+            requireDelimiter, true)) {
+        return false;
     }
-
-    const int delimiterIndex = input->indexOf(delimiter);
-    if (delimiterIndex < 0) {
-        if (requireDelimiter) {
-            return false;
-        }
-        *field = *input;
-        input->clear();
-        return true;
-    }
-
-    *field = input->left(delimiterIndex);
-    *input = input->mid(delimiterIndex + 1);
+    *input = input->mid(next - source.c_str());
+    *field = QString::fromStdU16String(value);
     return true;
 }
 
@@ -150,51 +98,36 @@ bool winUaeQtHardfileUsesNonUaeController(const WinUaeQtMountEntry &entry)
         || controller.startsWith(QStringLiteral("custom"));
 }
 
-static bool parseAccessValue(const QString &value, bool *readOnly)
+static bool parseMountPrefix(QString *value, bool directory, WinUaeQtMountEntry *entry)
 {
-    if (value.compare(QStringLiteral("ro"), Qt::CaseInsensitive) == 0) {
-        *readOnly = true;
-        return true;
+    const std::u16string source = value->toStdU16String();
+    cfgfile_mount_prefix<char16_t> prefix;
+    if (!cfgfile_parse_mount_prefix(source.c_str(), directory, prefix, true)) {
+        return false;
     }
-    if (value.compare(QStringLiteral("rw"), Qt::CaseInsensitive) == 0) {
-        *readOnly = false;
-        return true;
-    }
-    return false;
+    entry->readOnly = prefix.readonly;
+    entry->device = QString::fromStdU16String(prefix.device);
+    entry->volume = QString::fromStdU16String(prefix.volume);
+    entry->path = QString::fromStdU16String(prefix.path);
+    *value = value->mid(prefix.consumed);
+    return true;
 }
 
 static bool parseDirectoryMountValue(QString value, WinUaeQtMountEntry *entry)
 {
-    QString access;
-    QString device;
-    QString volume;
-    QString path;
     QString bootPri;
-    if (!takeConfigField(&value, QLatin1Char(','), &access, true)
-        || !takeConfigField(&value, QLatin1Char(':'), &device, true)
-        || !takeConfigField(&value, QLatin1Char(':'), &volume, true)
-        || !takeConfigField(&value, QLatin1Char(','), &path, true)
-        || !takeConfigField(&value, QLatin1Char(','), &bootPri, false)
-        || !parseAccessValue(access, &entry->readOnly)) {
+    if (!parseMountPrefix(&value, true, entry)
+        || !takeConfigField(&value, QLatin1Char(','), &bootPri, false)) {
         return false;
     }
     entry->kind = QStringLiteral("dir");
-    entry->device = device;
-    entry->volume = volume;
-    entry->path = path;
     entry->bootPri = bootPri.toInt();
     return true;
 }
 
 static bool parseHardfileMountValue(QString value, WinUaeQtMountEntry *entry)
 {
-    QString access;
-    QString device;
-    QString path;
-    if (!takeConfigField(&value, QLatin1Char(','), &access, true)
-        || !takeConfigField(&value, QLatin1Char(':'), &device, true)
-        || !takeConfigField(&value, QLatin1Char(','), &path, true)
-        || !parseAccessValue(access, &entry->readOnly)) {
+    if (!parseMountPrefix(&value, false, entry)) {
         return false;
     }
     QString sectors;
@@ -212,8 +145,6 @@ static bool parseHardfileMountValue(QString value, WinUaeQtMountEntry *entry)
         entry->hardfileTail = value;
     }
     entry->kind = QStringLiteral("hdf");
-    entry->device = device;
-    entry->path = path;
     return true;
 }
 
@@ -297,12 +228,10 @@ bool parseWinUaeQtHardfile2MountValue(const QString &value, WinUaeQtMountEntry *
 
 QString serializeWinUaeQtFilesystem2MountValue(const WinUaeQtMountEntry &entry)
 {
-    return QStringLiteral("%1,%2:%3:%4,%5")
-        .arg(winUaeQtConfigAccessValue(entry.readOnly),
-             winUaeQtSanitizedAmigaName(entry.device, QStringLiteral("DH0"), true),
-             winUaeQtSanitizedAmigaName(entry.volume, QStringLiteral("Hard Disk"), false),
-             winUaeQtConfigEscapeMin(entry.path),
-             QString::number(entry.bootPri));
+    return QString::fromStdU16String(cfgfile_format_filesystem<char16_t>(entry.readOnly,
+        winUaeQtSanitizedAmigaName(entry.device, QStringLiteral("DH0"), true).toStdU16String(),
+        winUaeQtSanitizedAmigaName(entry.volume, QStringLiteral("Hard Disk"), false).toStdU16String(),
+        winUaeQtConfigEscapeMin(entry.path).toStdU16String(), entry.bootPri));
 }
 
 QString serializeWinUaeQtHardfile2MountValue(const WinUaeQtMountEntry &entry)
@@ -315,16 +244,9 @@ QString serializeWinUaeQtHardfile2MountValue(const WinUaeQtMountEntry &entry)
         ? QString()
         : winUaeQtSanitizedAmigaName(entry.device, QStringLiteral("DH0"), true);
     const int bootPri = controllerBackedRdb ? 0 : entry.bootPri;
-    QString value = QStringLiteral("%1,%2:%3,%4,%5")
-        .arg(winUaeQtConfigAccessValue(entry.readOnly),
-             device,
-             winUaeQtConfigEscapeMin(entry.path),
-             geometry,
-             QString::number(bootPri));
-    if (!tail.isEmpty()) {
-        value += QStringLiteral(",") + tail;
-    }
-    return value;
+    return QString::fromStdU16String(cfgfile_format_hardfile<char16_t>(entry.readOnly,
+        device.toStdU16String(), winUaeQtConfigEscapeMin(entry.path).toStdU16String(),
+        geometry.toStdU16String(), bootPri, tail.toStdU16String()));
 }
 
 static QString serializeWinUaeQtHardfileLikeMountValue(
@@ -335,26 +257,22 @@ static QString serializeWinUaeQtHardfileLikeMountValue(
 {
     const QString geometry = entry.hardfileGeometry.isEmpty() ? defaultGeometry : entry.hardfileGeometry;
     const QString tail = entry.hardfileTail.isEmpty() ? defaultTail : entry.hardfileTail;
-    QString value = QStringLiteral("%1,%2:%3,%4,%5")
-        .arg(winUaeQtConfigAccessValue(entry.readOnly),
-             winUaeQtSanitizedAmigaName(entry.device, fallbackDevice, true),
-             winUaeQtConfigEscapeMin(entry.path),
-             geometry,
-             QString::number(entry.bootPri));
-    if (!tail.isEmpty()) {
-        value += QStringLiteral(",") + tail;
-    }
-    return value;
+    return QString::fromStdU16String(cfgfile_format_hardfile<char16_t>(entry.readOnly,
+        winUaeQtSanitizedAmigaName(entry.device, fallbackDevice, true).toStdU16String(),
+        winUaeQtConfigEscapeMin(entry.path).toStdU16String(), geometry.toStdU16String(),
+        entry.bootPri, tail.toStdU16String()));
 }
 
 QString serializeWinUaeQtUaehfDirectoryMountValue(const WinUaeQtMountEntry &entry)
 {
-    return QStringLiteral("dir,%1").arg(serializeWinUaeQtFilesystem2MountValue(entry));
+    return QString::fromStdU16String(cfgfile_format_uaehf<char16_t>(u"dir",
+        serializeWinUaeQtFilesystem2MountValue(entry).toStdU16String()));
 }
 
 QString serializeWinUaeQtUaehfHardfileMountValue(const WinUaeQtMountEntry &entry)
 {
-    return QStringLiteral("hdf,%1").arg(serializeWinUaeQtHardfile2MountValue(entry));
+    return QString::fromStdU16String(cfgfile_format_uaehf<char16_t>(u"hdf",
+        serializeWinUaeQtHardfile2MountValue(entry).toStdU16String()));
 }
 
 QString serializeWinUaeQtUaehfCdMountValue(const WinUaeQtMountEntry &entry)
@@ -362,14 +280,12 @@ QString serializeWinUaeQtUaehfCdMountValue(const WinUaeQtMountEntry &entry)
     WinUaeQtMountEntry cd = entry;
     cd.readOnly = true;
     cd.bootPri = 0;
-    return QStringLiteral("cd%1,%2")
-        .arg(qBound(0, cd.emuUnit, 9))
-        .arg(serializeWinUaeQtHardfileLikeMountValue(cd, QString(), QStringLiteral("0,0,0,2048"), QStringLiteral(",ide0")));
+    return QString::fromStdU16String(cfgfile_format_uaehf<char16_t>(u"cd", qBound(0, cd.emuUnit, 9),
+        serializeWinUaeQtHardfileLikeMountValue(cd, QString(), QStringLiteral("0,0,0,2048"), QStringLiteral(",ide0")).toStdU16String()));
 }
 
 QString serializeWinUaeQtUaehfTapeMountValue(const WinUaeQtMountEntry &entry)
 {
-    return QStringLiteral("tape%1,%2")
-        .arg(qBound(0, entry.emuUnit, 9))
-        .arg(serializeWinUaeQtHardfileLikeMountValue(entry, QString(), QStringLiteral("0,0,0,512"), QStringLiteral(",uae0")));
+    return QString::fromStdU16String(cfgfile_format_uaehf<char16_t>(u"tape", qBound(0, entry.emuUnit, 9),
+        serializeWinUaeQtHardfileLikeMountValue(entry, QString(), QStringLiteral("0,0,0,512"), QStringLiteral(",uae0")).toStdU16String()));
 }

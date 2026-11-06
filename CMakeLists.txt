@@ -1771,7 +1771,7 @@ if(WINUAE_UNIX_WITH_UAENET_PCAP)
     if(WINUAE_UNIX_PCAP_FOUND)
         set(WINUAE_UNIX_ENABLE_UAENET_PCAP ON)
         target_compile_definitions(winuae_unix_core_defs INTERFACE WITH_UAENET_PCAP=1)
-        list(APPEND WINUAE_UNIX_EXTRA_SOURCES od-unix/uaenet_unix.cpp)
+        list(APPEND WINUAE_UNIX_EXTRA_SOURCES od-generic/uaenet.cpp od-unix/uaenet_unix.cpp)
     else()
         message(STATUS "libpcap was not found; disabling native Unix packet networking")
     endif()
@@ -2102,6 +2102,9 @@ set(WINUAE_CORE_SOURCES
     cdtv.cpp
     cdtvcr.cpp
     cfgfile.cpp
+    include/hardfile_defaults.h
+    include/cfgfile_mount.h
+    include/cpu_selection.h
     cia.cpp
     consolehook.cpp
     cpuboard.cpp
@@ -2206,8 +2209,10 @@ set(WINUAE_CORE_SOURCES
     softfloat/softfloat_decimal.cpp
     softfloat/softfloat_fpsp.cpp
     od-generic/clipboard.cpp
+    od-generic/focus.cpp
     od-generic/mman.cpp
     od-generic/registry_ini.cpp
+    od-generic/screenshot_common.cpp
     od-unix/charset.cpp
     od-unix/clipboard.cpp
     od-unix/config.cpp
@@ -2357,6 +2362,28 @@ target_include_directories(winuae_unix_clipboard_test PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}"
 )
 winuae_unix_register_test(winuae_unix_clipboard_test)
+add_executable(winuae_unix_screenshot_common_test EXCLUDE_FROM_ALL
+    od-generic/screenshot_common.cpp
+    od-unix/screenshot_common_test.cpp
+)
+target_include_directories(winuae_unix_screenshot_common_test PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}/od-unix"
+    "${CMAKE_CURRENT_SOURCE_DIR}"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include"
+)
+winuae_unix_register_test(winuae_unix_screenshot_common_test)
+
+add_executable(winuae_unix_uaenet_test EXCLUDE_FROM_ALL
+    od-generic/uaenet.cpp
+    od-generic/uaenet_test.cpp
+)
+target_include_directories(winuae_unix_uaenet_test PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}/od-unix"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include"
+    "${CMAKE_CURRENT_SOURCE_DIR}"
+)
+target_link_libraries(winuae_unix_uaenet_test PRIVATE pthread)
+winuae_unix_register_test(winuae_unix_uaenet_test)
 
 add_executable(winuae_unix_serial_tx_test EXCLUDE_FROM_ALL
     od-unix/serial_tx_test.cpp
@@ -2479,6 +2506,7 @@ if(WINUAE_UNIX_WITH_QT_UI)
             od-unix/qt/mount_config.cpp
             od-unix/qt/mount_config_test.cpp
         )
+        target_include_directories(winuae_unix_qt_mount_config_test PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
         target_link_libraries(winuae_unix_qt_mount_config_test PRIVATE ${WINUAE_UNIX_QT_WIDGETS_TARGET})
         winuae_unix_register_test(winuae_unix_qt_mount_config_test)
 
@@ -2542,6 +2570,12 @@ if(WINUAE_UNIX_WITH_QT_UI)
         message(STATUS "Qt Widgets not found; skipping Unix Qt targets")
     endif()
 endif()
+
+add_executable(winuae_unix_cpu_selection_test EXCLUDE_FROM_ALL
+    od-unix/cpu_selection_test.cpp
+)
+target_include_directories(winuae_unix_cpu_selection_test PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include")
+winuae_unix_register_test(winuae_unix_cpu_selection_test)
 
 if(WINUAE_UNIX_TEST_TARGETS)
     add_custom_target(winuae_unix_tests

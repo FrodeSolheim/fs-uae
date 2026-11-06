@@ -1,3 +1,12 @@
+#ifdef FSUAE
+
+// FS-UAE has its own thread layer. Quoted includes from od-unix/*.cpp find
+// this header first, so forward to the FS-UAE one.
+#include "../../od-fs/threaddep/thread.h"
+#define WINUAE_OD_UNIX_THREADDEP_THREAD_H
+
+#endif // FSUAE
+
 #ifndef WINUAE_OD_UNIX_THREADDEP_THREAD_H
 #define WINUAE_OD_UNIX_THREADDEP_THREAD_H
 

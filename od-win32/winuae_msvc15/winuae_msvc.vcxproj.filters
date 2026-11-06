@@ -694,6 +694,15 @@
     <ClCompile Include="..\..\od-generic\clipboard.cpp">
       <Filter>common</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\od-generic\focus.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\od-generic\screenshot_common.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\od-generic\uaenet.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\od-generic\mman.cpp">
       <Filter>common</Filter>
     </ClCompile>
@@ -2067,6 +2076,9 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\include\hardfile_defaults.h" />
+    <ClInclude Include="..\..\include\cfgfile_mount.h" />
+    <ClInclude Include="..\..\include\cpu_selection.h" />
     <ClInclude Include="..\resources\resource.h" />
   </ItemGroup>
   <ItemGroup>

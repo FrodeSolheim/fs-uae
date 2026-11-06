@@ -47,6 +47,7 @@
 #include "sysdeps.h"
 #include "gui.h"
 #include "options.h"
+#include "cpu_selection.h"
 #include "memory.h"
 #include "rommgr.h"
 #include "custom.h"
@@ -13770,7 +13771,6 @@ static void cpudlg_slider_setup(HWND hDlg)
 static void enable_for_cpudlg (HWND hDlg)
 {
 	BOOL enable = FALSE, jitenable = FALSE;
-	BOOL cpu_based_enable = FALSE;
 
 	ew(hDlg, IDC_SPEED, !workprefs.cpu_cycle_exact);
 	ew(hDlg, IDC_COMPATIBLE24, workprefs.cpu_model <= 68030);
@@ -13786,9 +13786,7 @@ static void enable_for_cpudlg (HWND hDlg)
 	ew(hDlg, IDC_CPU5, FALSE);
 #endif
 
-	cpu_based_enable = workprefs.cpu_model >= 68020 && workprefs.address_space_24 == 0;
-
-	jitenable = cpu_based_enable && !workprefs.mmu_model;
+	jitenable = cpu_selection_jit(workprefs.cpu_model, workprefs.address_space_24, workprefs.mmu_model != 0);
 #ifndef JIT
 	jitenable = FALSE;
 #endif
@@ -13805,7 +13803,7 @@ static void enable_for_cpudlg (HWND hDlg)
 	ew(hDlg, IDC_CS_CACHE_TEXT, enable);
 	ew(hDlg, IDC_CACHE, enable);
 	ew(hDlg, IDC_JITENABLE, jitenable);
-	ew(hDlg, IDC_COMPATIBLE, !workprefs.cpu_memory_cycle_exact && !(workprefs.cachesize && workprefs.cpu_model >= 68040));
+	ew(hDlg, IDC_COMPATIBLE, cpu_selection_compatible(workprefs.cpu_model, workprefs.cpu_memory_cycle_exact, workprefs.cachesize != 0));
 	ew(hDlg, IDC_COMPATIBLE_FPU, workprefs.fpu_model > 0);
 	ew(hDlg, IDC_FPU_UNIMPLEMENTED, workprefs.fpu_model && !workprefs.cachesize);
 	ew(hDlg, IDC_CPU_UNIMPLEMENTED, workprefs.cpu_model == 68060 && !workprefs.cachesize);
@@ -13815,12 +13813,12 @@ static void enable_for_cpudlg (HWND hDlg)
 	ew(hDlg, IDC_CPU_FREQUENCY, (workprefs.cpu_cycle_exact || workprefs.cpu_compatible) && workprefs.m68k_speed >= 0);
 	ew(hDlg, IDC_CPU_FREQUENCY2, workprefs.cpu_cycle_exact && !workprefs.cpu_clock_multiplier && workprefs.m68k_speed >= 0);
 
-	ew(hDlg, IDC_FPU1, workprefs.cpu_model < 68040 && (workprefs.cpu_model >= 68020 || !workprefs.cpu_compatible));
-	ew(hDlg, IDC_FPU2, workprefs.cpu_model < 68040 && (workprefs.cpu_model >= 68020 || !workprefs.cpu_compatible));
+	ew(hDlg, IDC_FPU1, cpu_selection_external_fpu(workprefs.cpu_model, workprefs.cpu_compatible));
+	ew(hDlg, IDC_FPU2, cpu_selection_external_fpu(workprefs.cpu_model, workprefs.cpu_compatible));
 	ew(hDlg, IDC_FPU3, workprefs.cpu_model >= 68040);
-	ew(hDlg, IDC_MMUENABLEEC, workprefs.cpu_model >= 68030 && workprefs.cachesize == 0);
-	ew(hDlg, IDC_MMUENABLE, workprefs.cpu_model >= 68030 && workprefs.cachesize == 0);
-	ew(hDlg, IDC_CPUDATACACHE, workprefs.cpu_model >= 68030 && workprefs.cachesize == 0 && workprefs.cpu_compatible);
+	ew(hDlg, IDC_MMUENABLEEC, cpu_selection_mmu(workprefs.cpu_model, workprefs.cachesize != 0));
+	ew(hDlg, IDC_MMUENABLE, cpu_selection_mmu(workprefs.cpu_model, workprefs.cachesize != 0));
+	ew(hDlg, IDC_CPUDATACACHE, cpu_selection_data_cache(workprefs.cpu_model, workprefs.cpu_compatible, workprefs.cachesize != 0));
 	ew(hDlg, IDC_CPU_PPC, workprefs.cpu_model >= 68040 && (workprefs.ppc_mode == 1 || (workprefs.ppc_mode == 0 && !is_ppc_cpu(&workprefs))));
 }
 
@@ -13971,49 +13969,21 @@ static void values_from_cpudlg(HWND hDlg, WPARAM wParam)
 	if (workprefs.cpu_model != newcpu && newcpu <= 68010)
 		newfpu = 0;
 	workprefs.cpu_model = newcpu;
+	workprefs.fpu_model = cpu_selection_fpu(newcpu,
+		newfpu == 0 ? 0 : (newfpu == 2 ? 68882 : 68881),
+		workprefs.cpu_compatible, workprefs.cpu_memory_cycle_exact);
+	workprefs.address_space_24 = cpu_selection_address24(newcpu, oldcpu, workprefs.address_space_24);
 	workprefs.mmu_model = 0;
 	workprefs.mmu_ec = false;
 	workprefs.cpu_data_cache = false;
-	switch(newcpu)
-	{
-	case 68000:
-	case 68010:
-		workprefs.fpu_model = newfpu == 0 ? 0 : (newfpu == 2 ? 68882 : 68881);
-		if (workprefs.cpu_compatible || workprefs.cpu_memory_cycle_exact)
-			workprefs.fpu_model = 0;
-		if (newcpu != oldcpu)
-			workprefs.address_space_24 = 1;
-		break;
-	case 68020:
-		workprefs.fpu_model = newfpu == 0 ? 0 : (newfpu == 2 ? 68882 : 68881);
-		break;
-	case 68030:
-		if (newcpu != oldcpu)
-			workprefs.address_space_24 = 0;
-		workprefs.fpu_model = newfpu == 0 ? 0 : (newfpu == 2 ? 68882 : 68881);
+	if (cpu_selection_mmu(newcpu, false)) {
 		workprefs.mmu_ec = ischecked(hDlg, IDC_MMUENABLEEC);
-		workprefs.mmu_model = workprefs.mmu_ec || ischecked (hDlg, IDC_MMUENABLE) ? 68030 : 0;
-		if (workprefs.cpu_compatible)
-			workprefs.cpu_data_cache = ischecked (hDlg, IDC_CPUDATACACHE);
-		break;
-	case 68040:
-		workprefs.fpu_model = newfpu ? 68040 : 0;
-		workprefs.address_space_24 = 0;
-		if (workprefs.fpu_model)
-			workprefs.fpu_model = 68040;
-		workprefs.mmu_ec = ischecked(hDlg, IDC_MMUENABLEEC);
-		workprefs.mmu_model = workprefs.mmu_ec || ischecked (hDlg, IDC_MMUENABLE) ? 68040 : 0;
-		if (workprefs.cpu_compatible)
-			workprefs.cpu_data_cache = ischecked (hDlg, IDC_CPUDATACACHE);
-		break;
-	case 68060:
-		workprefs.fpu_model = newfpu ? 68060 : 0;
-		workprefs.address_space_24 = 0;
-		workprefs.mmu_ec = ischecked(hDlg, IDC_MMUENABLEEC);
-		workprefs.mmu_model = workprefs.mmu_ec || ischecked (hDlg, IDC_MMUENABLE) ? 68060 : 0;
-		if (workprefs.cpu_compatible)
-			workprefs.cpu_data_cache = ischecked (hDlg, IDC_CPUDATACACHE);
-		break;
+		if (workprefs.mmu_ec || ischecked(hDlg, IDC_MMUENABLE)) {
+			workprefs.mmu_model = newcpu;
+		}
+		if (cpu_selection_data_cache(newcpu, workprefs.cpu_compatible, false)) {
+			workprefs.cpu_data_cache = ischecked(hDlg, IDC_CPUDATACACHE);
+		}
 	}
 
 	if (newcpu != oldcpu && workprefs.cpu_compatible) {
@@ -14045,7 +14015,7 @@ static void values_from_cpudlg(HWND hDlg, WPARAM wParam)
 
 #ifdef JIT
 	oldcache = workprefs.cachesize;
-	jitena = (ischecked (hDlg, IDC_JITENABLE) ? 1 : 0) && !workprefs.address_space_24 && workprefs.cpu_model >= 68020;
+	jitena = (ischecked (hDlg, IDC_JITENABLE) ? 1 : 0) && cpu_selection_jit(workprefs.cpu_model, workprefs.address_space_24, false);
 	idx = (int)SendMessage (GetDlgItem (hDlg, IDC_CACHE), TBM_GETPOS, 0, 0);
 	workprefs.cachesize = 1024 << idx;
 	if (workprefs.cachesize <= 1024)
@@ -14819,50 +14789,9 @@ static int archivehd;
 
 static void hardfile_testrdb (struct hfdlg_vals *hdf)
 {
-	uae_u8 id[512];
-	int i;
-	struct hardfiledata hfd;
-	uae_u32 error = 0;
-
-	memset (id, 0, sizeof id);
-	memset (&hfd, 0, sizeof hfd);
-	hfd.ci.readonly = true;
-	hfd.ci.blocksize = 512;
-	hdf->rdb = 0;
-	if (hdf_open (&hfd, hdf->ci.rootdir) > 0) {
-		for (i = 0; i < 16; i++) {
-			hdf_read_rdb (&hfd, id, i * 512, 512, &error);
-			if (!error && i == 0 && !memcmp (id + 2, "CIS", 3)) {
-				hdf->ci.controller_type = HD_CONTROLLER_TYPE_CUSTOM_FIRST;
-				hdf->ci.controller_type_unit = 0;
-				break;
-			}
-			bool babe = id[0] == 0xBA && id[1] == 0xBE && id[2] == 0x00 && id[3] == 0x00; // A2090
-			babe |= id[0] == 0x44 && id[1] == 0x4f && id[2] == 0x53 && id[3] == 0x00 && id[4] == 0xBA && id[5] == 0xBE && id[6] == 0x00 && id[7] == 0x00; // Mast FireBall
-			if (!error && (!memcmp (id, "RDSK\0\0\0", 7) || !memcmp (id, "CDSK\0\0\0", 7) || !memcmp (id, "DRKS\0\0", 6) ||
-				(id[0] == 0x53 && id[1] == 0x10 && id[2] == 0x9b && id[3] == 0x13 && id[4] == 0 && id[5] == 0) || babe)) {
-				// RDSK or ADIDE "encoded" RDSK
-				int blocksize = 512;
-				if (!babe) {
-					blocksize = (id[16] << 24)  | (id[17] << 16) | (id[18] << 8) | (id[19] << 0);
-					if (!blocksize) {
-						blocksize = 512;
-					}
-				}
-				hdf->ci.cyls = hdf->ci.highcyl = hdf->forcedcylinders = 0;
-				hdf->ci.sectors = 0;
-				hdf->ci.surfaces = 0;
-				hdf->ci.reserved = 0;
-				hdf->ci.filesys[0] = 0;
-				hdf->ci.bootpri = 0;
-				hdf->ci.devname[0] = 0;
-				if (blocksize >= 512)
-					hdf->ci.blocksize = blocksize;
-				hdf->rdb = 1;
-				break;
-			}
-		}
-		hdf_close (&hfd);
+	hdf->rdb = hdf_probe_rdb(&hdf->ci);
+	if (hdf->rdb) {
+		hdf->forcedcylinders = 0;
 	}
 }
 

@@ -29,6 +29,7 @@ CM_CFLAGS += @MIR_CFLAGS@
 CM_CFLAGS += @MPG123_CFLAGS@
 CM_CFLAGS += @OPENGL_CFLAGS@
 # CM_CFLAGS += @OS_CFLAGS@
+CM_CFLAGS += @PCAP_CFLAGS@
 CM_CFLAGS += @PNG_CFLAGS@
 CM_CFLAGS += @PYTHON3_CFLAGS@
 CM_CFLAGS += @SDL3_CFLAGS@
@@ -495,6 +496,7 @@ libuae_a_SOURCES = \
 	include/uaeexe.h \
 	include/uaeipc.h \
 	include/uaenative.h \
+	include/uaenet_common.h \
 	include/uaeresource.h \
 	include/uaeserial.h \
 	include/uni_common.h \
@@ -537,6 +539,7 @@ libuae_a_SOURCES = \
 	od-generic/clipboard.cpp \
 	od-generic/mman.cpp \
 	od-generic/mman_host.h \
+	od-generic/uaenet.cpp \
 	od-fs/blkdev-linux.cpp \
 	od-fs/bridge.cpp \
 	od-fs/bsdsocket_posix.cpp \
@@ -633,7 +636,6 @@ libuae_a_SOURCES = \
 	od-unix/sysconfig.h \
 	od-win32/sysconfig.h \
 	od-win32/win32_scaler.cpp \
-	od-win32/win32_uaenet.cpp \
 	od-win32/win32_uaenet.h \
 	od-win32/win32.cpp \
 	od-win32/win32.h \
@@ -732,6 +734,15 @@ if WINDOWS
 libuae_a_SOURCES += od-win32/mman_win32.cpp
 else
 libuae_a_SOURCES += od-unix/mman.cpp
+endif
+
+# Host backends for the shared packet networking code (od-generic/uaenet.cpp)
+if WITH_UAENET_PCAP
+if WINDOWS
+libuae_a_SOURCES += od-win32/win32_uaenet.cpp
+else
+libuae_a_SOURCES += od-unix/uaenet_unix.cpp
+endif
 endif
 
 #nodist__libs_libuae_a_SOURCES = \
@@ -2171,6 +2182,7 @@ fs_uae_LDADD += @IOKIT_LIBS@
 fs_uae_LDADD += @MIDI_LIBS@
 fs_uae_LDADD += @MPG123_LIBS@
 fs_uae_LDADD += @OPENGL_LIBS@
+fs_uae_LDADD += @PCAP_LIBS@
 fs_uae_LDADD += @PNG_LIBS@
 fs_uae_LDADD += @PYTHON3_LIBS@
 fs_uae_LDADD += @SDL3_IMAGE_LIBS@

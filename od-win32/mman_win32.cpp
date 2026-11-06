@@ -29,7 +29,13 @@ void host_mman_get_memory(uae_u64 *totalphys, uae_u64 *total, bool *is_64bit)
 			*total = memstatsex.ullAvailPageFile + memstatsex.ullTotalPhys;
 		}
 	}
+#ifdef FSUAE
+	// os_64bit is set by WinUAE's startup code in win32.cpp, which FS-UAE does not use. FS-UAE is
+	// only built as a 64-bit executable on Windows, so the OS is always 64-bit.
+	*is_64bit = sizeof(void *) == 8;
+#else
 	*is_64bit = os_64bit != 0;
+#endif
 }
 
 int mman_GetWriteWatch (PVOID lpBaseAddress, SIZE_T dwRegionSize, PVOID *lpAddresses, PULONG_PTR lpdwCount, PULONG lpdwGranularity)
@@ -94,6 +100,9 @@ void mman_set_barriers(bool disable)
 	}
 }
 
+#ifdef HAVE_ISINF
+// The function isinf is provided by libc (MinGW's math.h defines it as a macro).
+#else
 int isinf (double x)
 {
 	const int nClass = _fpclass (x);
@@ -104,3 +113,4 @@ int isinf (double x)
 		result = 0;
 	return result;
 }
+#endif

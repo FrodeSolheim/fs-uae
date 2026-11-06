@@ -374,6 +374,22 @@ OS_NAME="windows"
 OS_NAME_2="Windows"
 OS_NAME_3="Windows"
 OS_CPPFLAGS="-DWINDOWS"
+
+# When cross-compiling on a case-sensitive file system (e.g. Linux), mixed-case includes such as
+# <Windows.h> in shared WinUAE/86Box code do not match MinGW's lowercase headers. If so, add
+# forwarding headers, searched after the system directories (see the directory's README.md).
+# This tests for the problem directly instead of checking $build_os, since cross environments
+# like quasi-msys2 set build_alias to the MinGW triplet as well.
+AC_MSG_CHECKING([whether <Windows.h> can be included with mixed case])
+AC_PREPROC_IFELSE([AC_LANG_SOURCE([[#include <Windows.h>]])], [
+    AC_MSG_RESULT([yes])
+], [
+    AC_MSG_RESULT([no])
+    MINGW_CROSS_INCLUDE_DIR="$(cd "$srcdir" && pwd)/od-fs/mingw-cross-include"
+    AC_MSG_NOTICE([Adding $MINGW_CROSS_INCLUDE_DIR (-idirafter) for mixed-case Windows headers])
+    CPPFLAGS="$CPPFLAGS -idirafter $MINGW_CROSS_INCLUDE_DIR"
+])
+
 AS_CASE([$host_cpu],
 [x86_64], [
     OS_LDFLAGS="-mwindows -Wl,--image-base=0x400000"

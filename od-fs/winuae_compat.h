@@ -43,6 +43,20 @@ typedef void * HWND;
 
 #ifdef _WIN32
 
+#ifndef UNICODE
+// Shared WinUAE code calls swscanf_s with TCHAR strings, but TCHAR is char here, so map it to the
+// char version as on other platforms. Include the headers which declare the real (wchar_t)
+// swscanf_s first, so the macro does not rename those declarations.
+// FIXME: The proper fix is for the caller (debug.cpp, which passes a _T() format string) to use
+// the TCHAR variant _stscanf_s instead (swscanf_s with UNICODE, sscanf_s without), preferably
+// upstream in WinUAE. Then this mapping can go, and the swscanf_s mapping in the non-Windows
+// branch below can be replaced with "#define _stscanf_s sscanf" (MinGW's tchar.h already
+// provides _stscanf_s).
+#include <stdio.h>
+#include <wchar.h>
+#define swscanf_s sscanf
+#endif
+
 #else
 extern int _timezone;
 extern int _daylight;

@@ -540,6 +540,15 @@ void fillPTKtable (uint8_t poss[37][2])
   return;
 }
 
+#ifndef htonl
+unsigned int htonl(unsigned int v)
+{
+  return ((v >> 24) & 0x000000ff) | ((v >> 8) & 0x0000ff00) | ((v << 8) & 0x00ff0000) | ((v << 24) & 0xff000000);
+}
+#endif
+
+
+
 int16_t	testDietDataPacker ( void )
 {
   PW_Start_Address = PW_i;

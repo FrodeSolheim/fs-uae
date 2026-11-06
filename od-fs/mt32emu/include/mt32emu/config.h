@@ -40,7 +40,9 @@
  * For shared library builds, MT32EMU_SHARED is defined, so that compiler-specific attributes are assigned
  * to all the exported symbols as appropriate. MT32EMU_SHARED is undefined for static library builds.
  */
-#define MT32EMU_SHARED
+// FS-UAE builds mt32emu as a static library (libmt32emu.a). With MT32EMU_SHARED defined, the
+// C interface is declared dllimport on Windows, and linking against the static library fails.
+/* #undef MT32EMU_SHARED */
 
 /* Whether the library is built as a shared object with a version tag to enable runtime version checks. */
 #define MT32EMU_WITH_VERSION_TAGGING 0

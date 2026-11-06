@@ -166,7 +166,7 @@ int caps_init (void)
 			h = uae_dlopen(tmp);
 		}
 	}
-#else
+#elif !defined(_WIN32)
 	if (!h)
 		h = caps_open_unix();
 #endif

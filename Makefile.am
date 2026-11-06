@@ -537,7 +537,6 @@ libuae_a_SOURCES = \
 	od-generic/clipboard.cpp \
 	od-generic/mman.cpp \
 	od-generic/mman_host.h \
-	od-unix/mman.cpp \
 	od-fs/blkdev-linux.cpp \
 	od-fs/bridge.cpp \
 	od-fs/bsdsocket_posix.cpp \
@@ -727,6 +726,13 @@ EXTRA_DIST += \
 	p96_blit.cpp \
 	sinctable.cpp \
 	table68k
+
+# Host parts of the natmem memory manager (od-generic/mman.cpp)
+if WINDOWS
+libuae_a_SOURCES += od-win32/mman_win32.cpp
+else
+libuae_a_SOURCES += od-unix/mman.cpp
+endif
 
 #nodist__libs_libuae_a_SOURCES = \
 #	gen/blit.h \

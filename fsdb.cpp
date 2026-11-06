@@ -15,11 +15,6 @@
 #include "fsdb.h"
 #include "uae/io.h"
 
-#ifdef FSUAE
-// We want the generic fsdb_search_dir also for the Windows version of FS-UAE
-#undef _WIN32
-#endif
-
 /* The on-disk format is as follows:
 * Offset 0, 1 byte, valid
 * Offset 1, 4 bytes, mode
@@ -49,14 +44,12 @@ TCHAR *nname_begin (TCHAR *nname)
 * has the same name when compared case-insensitively, return a
 * malloced string that contains the name we found.  If no file
 * exists that compares equal to REL, return 0.  */
-TCHAR *fsdb_search_dir (const TCHAR *dirname, TCHAR *rel, TCHAR **relalt)
+TCHAR *fsdb_search_dir (const TCHAR *dirname, TCHAR *rel)
 {
 	TCHAR *p = 0;
 	int de;
 	my_opendir_s *dir;
 	TCHAR fn[MAX_DPATH];
-
-	*relalt = NULL;
 
 	dir = my_opendir (dirname);
 	/* This really shouldn't happen...  */
@@ -73,6 +66,34 @@ TCHAR *fsdb_search_dir (const TCHAR *dirname, TCHAR *rel, TCHAR **relalt)
 	return p;
 }
 #endif
+
+#ifdef FSUAE
+// FIXME: Move to another module. Also compare with od-win32 and od-unix versions.
+TCHAR *fsdb_search_dir (const TCHAR *dirname, TCHAR *rel, TCHAR **relalt)
+{
+        TCHAR *p = 0;
+        int de;
+        my_opendir_s *dir;
+        TCHAR fn[MAX_DPATH];
+
+        *relalt = NULL;
+
+        dir = my_opendir (dirname);
+        /* This really shouldn't happen...  */
+        if (! dir)
+                return 0;
+
+        while (p == 0 && (de = my_readdir (dir, fn)) != 0) {
+                if (strcmp (fn, rel) == 0)
+                        p = rel;
+                else if (strcasecmp (fn, rel) == 0)
+                        p = my_strdup (fn);
+        }
+        my_closedir (dir);
+        return p;
+}
+#endif
+
 
 static FILE *get_fsdb (a_inode *dir, const TCHAR *mode)
 {

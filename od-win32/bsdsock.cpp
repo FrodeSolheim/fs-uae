@@ -35,6 +35,11 @@
 #include "native2amiga.h"
 #include "win32gui.h"
 #include "win32.h"
+#ifdef FSUAE
+// Upstream removed this include, but FS-UAE needs it for __try / __except with non-MSVC
+// compilers (MinGW).
+#include "uae/seh.h"
+#endif
 
 int rawsockets = 0;
 static int hWndSelector = 0; /* Set this to zero to get hSockWnd */

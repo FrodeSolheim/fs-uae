@@ -139,7 +139,15 @@ static HWND myGetConsoleWindow (void)
 	return GetConsoleWindow ();
 }
 
-static void set_console_input_mode(int line)
+// Upstream WinUAE returns !logtostdoutput here. FS-UAE does not have that option; return true
+// so activate_debugger (debug.cpp) still opens the console debugger on Windows, as it did
+// before the check was added upstream.
+bool is_interactive_console(void)
+{
+	return true;
+}
+
+void set_console_input_mode(int line)
 {
 	if (console_input_linemode < 0)
 		return;

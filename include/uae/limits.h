@@ -9,8 +9,9 @@
 #include <limits.h>
 #endif
 
-#ifdef _WIN32
-// Include Windows header files first to avoid warnings about re-defining MAX_PATH
+#if defined(_WIN32) && defined(FSUAE)
+// Include Windows header files first to avoid warnings about re-defining MAX_PATH. Not for
+// WinUAE: there sysdeps.h has already included <winsock.h>, which conflicts with winsock2.h.
 #include "winsock2.h"
 #include "windows.h"
 #endif

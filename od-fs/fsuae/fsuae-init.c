@@ -21,6 +21,9 @@
 #include "fsuae-path.h"
 #include "fsuae-plugins.h"
 
+// Defined in od-fs/lhafile/lzhlib.c (used by the lhafile Python package)
+PyMODINIT_FUNC PyInit_lzhlib(void);
+
 static FILE* g_fsuae_init_log_file = NULL;
 SDL_Mutex* g_log_file_mutex;
 
@@ -157,6 +160,7 @@ static bool init_python(int argc, char* argv[]) {
     }
 
     fsemu_python_init();
+    PyImport_AppendInittab("lzhlib", &PyInit_lzhlib);
 
     PyStatus status;
 

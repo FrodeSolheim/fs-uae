@@ -2172,6 +2172,15 @@ EXTRA_DIST += od-fs/mt32emu
 
 # --------------------------------------------------------------------------------------------------
 
+# LHA decompression used by the lhafile Python package (od-fs/Python/lhafile), compiled into the
+# executable and registered as the embedded Python module lzhlib
+fs_uae_SOURCES += \
+	od-fs/lhafile/lzhlib.c
+# License, readme and tests
+EXTRA_DIST += od-fs/lhafile
+
+# --------------------------------------------------------------------------------------------------
+
 fs_uae_LDADD += @ALSA_LIBS@
 fs_uae_LDADD += @CARBON_LIBS@
 fs_uae_LDADD += @FLAC_LIBS@
@@ -2642,6 +2651,8 @@ EXTRA_DIST += \
 	od-fs/Python/fsuae/workspace/shellwindow.py \
 	od-fs/Python/fsuae/workspace/systemicon.py \
 	od-fs/Python/fsuae/workspace/systemwindow.py \
+	od-fs/Python/lhafile/__init__.py \
+	od-fs/Python/lhafile/lhafile.py \
 	od-fs/Python/sdl3/__doc__.py \
 	od-fs/Python/sdl3/__init__.py \
 	od-fs/Python/sdl3/SDL_assert.py \

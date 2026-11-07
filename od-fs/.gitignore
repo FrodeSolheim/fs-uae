@@ -26,8 +26,13 @@ windows/fs-uae.rc
 
 #_build/
 #.deps/
+/Libs/
 /fs-uae
+/FS-UAE
+/FS-UAE.exe
 /FS-UAE.app/
+/plugins/
+/winuae
 
 # Files created by running FS-UAE
 

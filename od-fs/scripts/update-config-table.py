@@ -5,7 +5,7 @@ import os
 
 
 def main() -> None:
-    configurations_path = "od-fs/python/uae/configurations"
+    configurations_path = "od-fs/Python/uae/configurations"
     csv_file = "Work/Options.csv"
 
     lines: list[str] = []

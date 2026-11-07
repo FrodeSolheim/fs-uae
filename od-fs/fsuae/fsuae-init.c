@@ -32,20 +32,23 @@ static void init_development_mode(void) {
     char path[FS_MAX_PATH];
     FS_CopyPath(path, SDL_GetBasePath());
     SDL_Log("SDL_GetBasePath() = %s\n", path);
-    int reset = strlen(path);
-    FS_AppendDirName(path, "od-fs");
-    if (!FS_PathExists(path)) {
-        // Try one level up
-        path[reset] = '\0';
-        FS_ParentDir(path);
-        reset = strlen(path);
+    // Look for an od-fs folder next to the executable and up to three levels above it. The
+    // executable can be in a build directory (.build/<name>/, which has its own od-fs folder), in
+    // od-fs/ (two levels: the project root), or in od-fs/Libs/<triplet>/ or
+    // .build/<name>/Libs/<triplet>/ (Windows, laid out like a dist; three or two levels).
+    for (int level = 0; level <= 3; level++) {
+        int reset = strlen(path);
         FS_AppendDirName(path, "od-fs");
-    }
-
-    if (FS_PathExists(path)) {
+        bool found = FS_PathExists(path);
         path[reset] = '\0';
-        fsapp_development_dir = strdup(path);
-        // SDL_setenv_unsafe("FSAPP_DEVELOPMENT_DIR", path, 1);
+        if (found) {
+            fsapp_development_dir = strdup(path);
+            // SDL_setenv_unsafe("FSAPP_DEVELOPMENT_DIR", path, 1);
+            return;
+        }
+        if (!FS_ParentDir(path)) {
+            return;
+        }
     }
 }
 
@@ -169,15 +172,23 @@ static bool init_python(int argc, char* argv[]) {
     // FIXME: fslib_misc / fslib_path ?
     if (fsapp_development_dir) {
         SDL_Log("Development mode\n");
+        python_dir = g_build_filename(fsapp_development_dir, "od-fs", "Python", NULL);
 #ifdef _WIN32
-        const char* dll_directory = "C:\\msys64\\mingw64\\bin";
-        SDL_Log("SetDllDirectory %s\n", dll_directory);
-        SetDllDirectoryA(dll_directory);
-        python_home = g_strdup("C:\\msys64\\mingw64");
+        // When cross-compiling, build-windows lays out Libs/<triplet>/ like a dist: FS-UAE.exe,
+        // the DLLs, and lib/ linked to the MinGW lib folder. If the executable's folder has
+        // lib/python3.X, use the folder as the Python home. Otherwise (e.g. native MSYS2, with
+        // libpython loaded from the MSYS2 bin folder), leave it unset; Python then finds the
+        // standard library from where libpython was loaded.
+        char* exe_dir = g_canonicalize_filename(SDL_GetBasePath(), NULL);
+        char* stdlib_dir = g_strdup_printf("%s/lib/python3.%d", exe_dir, PY_MINOR_VERSION);
+        if (g_file_test(stdlib_dir, G_FILE_TEST_IS_DIR)) {
+            python_home = exe_dir;
+        } else {
+            g_free(exe_dir);
+        }
+        g_free(stdlib_dir);
 #endif
-        python_dir = g_build_filename(fsapp_development_dir, "od-fs", "python", NULL);
-        python_home = NULL;
-        resources_dir = g_build_filename(fsapp_development_dir, "od-fs", "resources", NULL);
+        resources_dir = g_build_filename(fsapp_development_dir, "od-fs", "Resources", NULL);
     } else {
 #ifdef PORTABLE_MODE
 

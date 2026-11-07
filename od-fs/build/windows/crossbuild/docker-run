@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+#
+# Run one of the scripts in this directory (or another command) in a throwaway Docker container
+# with the tools from the Dockerfile, so they do not have to be installed on the host. Used by the
+# configure-windows, build-windows and clean-windows targets in od-fs/Makefile.
+#
+# Usage: docker-run <script> [args...]    e.g. docker-run build -j8
+#        docker-run <command> [args...]   e.g. docker-run bash
+#
+# The image is built first (quick when cached). The container runs as your own user, with the
+# project directory (and QUASI_MSYS2_DIR, if outside it) mounted at the same path as on the host,
+# since quasi-msys2 and the configured build directory contain absolute paths. Builds in Docker and
+# directly on the host can therefore share the same directories.
+#
+# Environment variables (see also common.sh and quasi-msys2.sh):
+#
+#   DOCKER                       Docker command (default: docker)
+#   FSUAE_WINDOWS_DOCKER_IMAGE   Image tag (default: fs-uae-windows-crossbuild)
+#   FSUAE_WINDOWS_DOCKER_ARGS    Extra arguments for "docker run"
+
+set -e
+
+source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
+
+if [ $# -eq 0 ]; then
+    sed -n '3,9p' "$0" | sed 's/^# \{0,1\}//' >&2
+    exit 2
+fi
+if [[ "$1" != */* ]] && [ -f "$HERE/$1" ]; then
+    set -- "$HERE/$1" "${@:2}"
+fi
+
+docker="${DOCKER:-docker}"
+image="${FSUAE_WINDOWS_DOCKER_IMAGE:-fs-uae-windows-crossbuild}"
+
+echo "Building Docker image $image..."
+"$docker" build -q -t "$image" - < "$HERE/Dockerfile" > /dev/null
+
+mounts=(-v "$PROJECT_DIR:$PROJECT_DIR")
+case "$QUASI_MSYS2_DIR/" in
+    "$PROJECT_DIR"/*) ;;
+    *)
+        # Create it first, otherwise Docker creates it owned by root.
+        mkdir -p "$QUASI_MSYS2_DIR"
+        mounts+=(-v "$QUASI_MSYS2_DIR:$QUASI_MSYS2_DIR")
+        ;;
+esac
+
+run_args=(--rm --init --user "$(id -u):$(id -g)" -w "$OD_FS_DIR")
+if [ -t 0 ] && [ -t 1 ]; then
+    run_args+=(-it -e TERM)
+fi
+# Nothing needs to persist in HOME (gpg creates ~/.gnupg when quasi-msys2 sets up its keyring).
+run_args+=(-e HOME=/tmp -e WINDOWS_BUILD -e QUASI_MSYS2_DIR)
+if [ -n "$MSYS2_MIRROR_URL" ]; then
+    run_args+=(-e MSYS2_MIRROR_URL)
+fi
+
+# shellcheck disable=SC2086
+exec "$docker" run "${run_args[@]}" "${mounts[@]}" ${FSUAE_WINDOWS_DOCKER_ARGS:-} "$image" "$@"

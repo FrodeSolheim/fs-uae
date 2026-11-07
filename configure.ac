@@ -116,6 +116,10 @@ AS_IF([test "x$enable_static" = xyes], [PKG_CONFIG="$PKG_CONFIG --static"])
 
 DIS_FEATURE([PORTABLE_MODE], [portable_mode], [portable-mode], [self-contained/portable mode])
 
+# Host triplet (e.g. x86_64-w64-mingw32), used to find the per-platform Python home
+
+AC_DEFINE_UNQUOTED([HOST_TRIPLET], ["$host"], [Host triplet])
+
 # Share directory name
 
 AC_ARG_WITH([share-dir-name], AS_HELP_STRING([--with-share-dir-name=NAME], [set share directory name (default: fs-uae)]))

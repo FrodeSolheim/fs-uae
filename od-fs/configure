@@ -19,10 +19,19 @@ cd "$BUILD_DIR"
 "$PROJECT_DIR/configure" "$@"
 
 # In development mode the binary looks for the Python GUI code and resources relative to its own
-# location (SDL_GetBasePath), i.e. <build dir>/od-fs/{python,resources}. Link these to the source
+# location (SDL_GetBasePath), i.e. <build dir>/od-fs/{Python,Resources}. Link these to the source
 # tree so the binary can be run directly from the build directory.
 mkdir -p "$BUILD_DIR/od-fs"
-for name in python resources; do
+# od-fs/python and od-fs/resources were renamed to od-fs/Python and od-fs/Resources; remove the old
+# links from earlier configure runs. Check the target, since on case-insensitive file systems
+# "python" also matches a new "Python" link.
+for old_name in python resources; do
+    old_link="$BUILD_DIR/od-fs/$old_name"
+    if [ -L "$old_link" ] && [ "$(readlink "$old_link")" = "../../../od-fs/$old_name" ]; then
+        rm "$old_link"
+    fi
+done
+for name in Python Resources; do
     link="$BUILD_DIR/od-fs/$name"
     if [ -L "$link" ] || [ ! -e "$link" ]; then
         ln -sfn "../../../od-fs/$name" "$link"

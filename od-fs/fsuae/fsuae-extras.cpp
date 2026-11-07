@@ -19,7 +19,7 @@
 
 static void save_config(struct uae_prefs* prefs, const char* name) {
     char path[PATH_MAX];
-    SDL_strlcpy(path, "od-fs/python/uae/configurations/", PATH_MAX);
+    SDL_strlcpy(path, "od-fs/Python/uae/configurations/", PATH_MAX);
     SDL_strlcat(path, name, PATH_MAX);
     SDL_strlcat(path, ".py", PATH_MAX);
 

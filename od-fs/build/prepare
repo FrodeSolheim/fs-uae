@@ -1,0 +1,348 @@
+#!/bin/sh
+#
+# Install the dependencies needed to build and develop FS-UAE.
+#
+# Detects the operating system / distribution and installs the build tools and development
+# libraries. Currently supported:
+#
+# - Ubuntu / Debian (and derivatives with ID_LIKE=debian/ubuntu): native Linux build.
+# - MSYS2 (MINGW64, UCRT64, ... shells): native Windows build.
+#
+# Usage: od-fs/build/prepare [-y]
+#
+#   -y, --yes       Do not ask for confirmation before installing packages
+#
+# --------------------------------------------------------------------------------------------------
+
+set -e
+
+OD_FS_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+
+ASSUME_YES=0
+for arg in "$@"; do
+    case "$arg" in
+        -y|--yes) ASSUME_YES=1 ;;
+        -h|--help)
+            sed -n '3,13p' "$0" | sed 's/^# \{0,1\}//'
+            exit 0
+            ;;
+        *)
+            echo "Unknown option: $arg" >&2
+            exit 1
+            ;;
+    esac
+done
+
+# --------------------------------------------------------------------------------------------------
+# Helpers
+# --------------------------------------------------------------------------------------------------
+
+# download, in_temp_dir, build_libmpeg2 and build_portmidi (shared with the Windows cross build)
+. "$OD_FS_DIR/build/windows/extra-libs.sh"
+
+if [ "$(id -u)" = "0" ]; then
+    SUDO=""
+elif command -v sudo >/dev/null 2>&1; then
+    SUDO="sudo"
+else
+    SUDO=""
+fi
+
+# --------------------------------------------------------------------------------------------------
+# Ubuntu / Debian
+# --------------------------------------------------------------------------------------------------
+
+# Tools needed for ./bootstrap, ./configure, make and packaging.
+DEBIAN_TOOLS="
+    autoconf
+    automake
+    build-essential
+    gettext
+    git
+    libtool
+    pkgconf
+    zip
+    unzip
+"
+
+# Libraries checked (required) by configure.ac.
+DEBIAN_LIBS_REQUIRED="
+    libflac-dev
+    libgl-dev
+    libglib2.0-dev
+    libmpeg2-4-dev
+    libmpg123-dev
+    libpng-dev
+    libpython3-dev
+    libsdl3-dev
+    libsdl3-image-dev
+    libsdl3-ttf-dev
+    libzstd-dev
+    zlib1g-dev
+"
+
+# Libraries for optional features, enabled automatically by configure when present.
+#   libportmidi-dev: serial MIDI support
+#   libpcap-dev:     native pcap/TAP/TUN networking (uaenet)
+DEBIAN_LIBS_OPTIONAL="
+    libportmidi-dev
+    libpcap-dev
+"
+
+# Development tools (debugging, Python linting/formatting, headless testing with Mesa).
+DEBIAN_DEV_TOOLS="
+    gdb
+    black
+    isort
+    ruff
+    libgl1-mesa-dri
+"
+
+debian_package_available() {
+    # apt-cache policy prints "Candidate: (none)" or nothing for unknown packages.
+    candidate=$(apt-cache policy "$1" 2>/dev/null | sed -n 's/^ *Candidate: *//p')
+    [ -n "$candidate" ] && [ "$candidate" != "(none)" ]
+}
+
+prepare_debian() {
+    echo "Detected $PRETTY_NAME"
+    echo
+
+    if [ -z "$SUDO" ] && [ "$(id -u)" != "0" ]; then
+        echo "Error: not running as root, and sudo is not available" >&2
+        exit 1
+    fi
+
+    echo "Updating package lists..."
+    $SUDO apt-get update
+
+    required="$DEBIAN_TOOLS $DEBIAN_LIBS_REQUIRED"
+    optional="$DEBIAN_LIBS_OPTIONAL $DEBIAN_DEV_TOOLS"
+
+    missing=""
+    packages=""
+    for pkg in $required; do
+        if debian_package_available "$pkg"; then
+            packages="$packages $pkg"
+        else
+            missing="$missing $pkg"
+        fi
+    done
+
+    skipped=""
+    for pkg in $optional; do
+        if debian_package_available "$pkg"; then
+            packages="$packages $pkg"
+        else
+            skipped="$skipped $pkg"
+        fi
+    done
+
+    if [ -n "$missing" ]; then
+        echo
+        echo "Error: the following required packages are not available in this release:" >&2
+        for pkg in $missing; do
+            echo "    $pkg" >&2
+        done
+        case "$missing" in
+            *libsdl3*)
+                echo >&2
+                echo "SDL3 is not packaged for this release (Ubuntu 25.04+ / Debian 13+ have it)." >&2
+                echo "Either upgrade, or build SDL3, SDL3_image and SDL3_ttf from source" >&2
+                echo "(see od-fs/build/raspberrypi-deps.sh for an example)." >&2
+                ;;
+        esac
+        exit 1
+    fi
+
+    if [ -n "$skipped" ]; then
+        echo
+        echo "Note: skipping optional packages not available in this release:$skipped"
+    fi
+
+    echo
+    if [ "$ASSUME_YES" = "1" ]; then
+        # shellcheck disable=SC2086
+        $SUDO env DEBIAN_FRONTEND=noninteractive apt-get install -y $packages
+    else
+        # shellcheck disable=SC2086
+        $SUDO apt-get install $packages
+    fi
+}
+
+# --------------------------------------------------------------------------------------------------
+# MSYS2
+# --------------------------------------------------------------------------------------------------
+
+# MSYS (Cygwin-based) tools needed for ./bootstrap, ./configure, make and packaging.
+MSYS2_TOOLS="
+    autoconf
+    automake
+    libtool
+    make
+    gettext
+    git
+    zip
+    unzip
+"
+
+# MinGW packages (without the mingw-w64-<arch>- prefix). Toolchain and libraries checked
+# (required) by configure.ac, plus SDL3_ttf dependencies and cmake/ninja for building PortMidi.
+MSYS2_MINGW_REQUIRED="
+    toolchain
+    pkgconf
+    cmake
+    ninja
+    flac
+    freetype
+    glib2
+    harfbuzz
+    libpng
+    mpg123
+    python
+    sdl3
+    sdl3-image
+    sdl3-ttf
+    zlib
+    zstd
+"
+
+# Optional MinGW development tools.
+MSYS2_MINGW_OPTIONAL="
+    gdb
+    python-black
+    python-isort
+    ruff
+"
+
+msys2_package_available() {
+    pacman -Si "$1" >/dev/null 2>&1
+}
+
+prepare_msys2() {
+    echo "Detected MSYS2 ($MSYSTEM)"
+    echo
+
+    if [ -z "$MINGW_PACKAGE_PREFIX" ] || [ "$MSYSTEM" = "MSYS" ]; then
+        echo "Error: run this from a MinGW shell (e.g. \"MSYS2 MINGW64\"), not the MSYS shell" >&2
+        exit 1
+    fi
+    if [ "$MSYSTEM" != "MINGW64" ]; then
+        echo "Note: release builds use MINGW64; $MSYSTEM may work but is not tested."
+        echo
+    fi
+
+    pacman_flags="--needed"
+    if [ "$ASSUME_YES" = "1" ]; then
+        pacman_flags="$pacman_flags --noconfirm"
+    fi
+
+    echo "Updating package database..."
+    pacman -Sy
+
+    missing=""
+    packages=""
+    for pkg in $MSYS2_TOOLS; do
+        if msys2_package_available "$pkg"; then
+            packages="$packages $pkg"
+        else
+            missing="$missing $pkg"
+        fi
+    done
+    for pkg in $MSYS2_MINGW_REQUIRED; do
+        pkg="$MINGW_PACKAGE_PREFIX-$pkg"
+        if msys2_package_available "$pkg"; then
+            packages="$packages $pkg"
+        else
+            missing="$missing $pkg"
+        fi
+    done
+
+    skipped=""
+    for pkg in $MSYS2_MINGW_OPTIONAL; do
+        pkg="$MINGW_PACKAGE_PREFIX-$pkg"
+        if msys2_package_available "$pkg"; then
+            packages="$packages $pkg"
+        else
+            skipped="$skipped $pkg"
+        fi
+    done
+
+    if [ -n "$missing" ]; then
+        echo
+        echo "Error: the following required packages are not available:" >&2
+        for pkg in $missing; do
+            echo "    $pkg" >&2
+        done
+        exit 1
+    fi
+
+    if [ -n "$skipped" ]; then
+        echo
+        echo "Note: skipping optional packages not available:$skipped"
+    fi
+
+    echo
+    # shellcheck disable=SC2086
+    pacman -S $pacman_flags $packages
+
+    # libmpeg2 (CD32 FMV) and PortMidi (serial MIDI) have been removed from MSYS2, so use the
+    # package if it exists, otherwise build from source.
+    if [ ! -f "$MINGW_PREFIX/lib/pkgconfig/libmpeg2.pc" ]; then
+        if msys2_package_available "$MINGW_PACKAGE_PREFIX-libmpeg2"; then
+            pacman -S $pacman_flags "$MINGW_PACKAGE_PREFIX-libmpeg2"
+        else
+            echo
+            echo "Building libmpeg2..."
+            in_temp_dir build_libmpeg2 "$MINGW_PREFIX"
+        fi
+    fi
+    if [ ! -f "$MINGW_PREFIX/lib/pkgconfig/portmidi.pc" ]; then
+        if msys2_package_available "$MINGW_PACKAGE_PREFIX-portmidi"; then
+            pacman -S $pacman_flags "$MINGW_PACKAGE_PREFIX-portmidi"
+        else
+            echo
+            echo "Building PortMidi..."
+            in_temp_dir build_portmidi -G Ninja -DCMAKE_INSTALL_PREFIX="$MINGW_PREFIX"
+        fi
+    fi
+}
+
+# --------------------------------------------------------------------------------------------------
+# Main
+# --------------------------------------------------------------------------------------------------
+
+case "$(uname -s)" in
+    Linux)
+        if [ ! -f /etc/os-release ]; then
+            echo "Error: cannot detect Linux distribution (/etc/os-release missing)" >&2
+            exit 1
+        fi
+        . /etc/os-release
+        case " $ID $ID_LIKE " in
+            *" debian "*|*" ubuntu "*)
+                prepare_debian
+                ;;
+            *)
+                echo "Error: unsupported Linux distribution: ${PRETTY_NAME:-$ID}" >&2
+                echo "Install the equivalents of the packages listed in od-fs/build/prepare" >&2
+                echo "manually." >&2
+                exit 1
+                ;;
+        esac
+        ;;
+    MINGW*|UCRT*|CLANG*|MSYS*)
+        prepare_msys2
+        ;;
+    *)
+        echo "Error: unsupported operating system: $(uname -s)" >&2
+        exit 1
+        ;;
+esac
+
+echo
+echo "Done! You can now build FS-UAE:"
+echo
+echo "    od-fs/bootstrap"
+echo "    od-fs/configure"
+echo "    make -C od-fs"

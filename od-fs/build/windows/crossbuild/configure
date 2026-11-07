@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+#
+# Configure the Windows build in .build/$WINDOWS_BUILD (default: .build/windows), cross-compiling
+# with quasi-msys2, which is set up first if needed. Arguments are passed to od-fs/configure.
+# See common.sh for the environment variables.
+
+set -e
+
+source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
+source "$HERE/quasi-msys2.sh"
+
+setup_quasi_msys2
+check_tools
+
+if [ ! -f "$PROJECT_DIR/configure" ]; then
+    "$OD_FS_DIR/bootstrap"
+fi
+
+windows_env
+FSUAE_BUILD="$WINDOWS_BUILD" "$OD_FS_DIR/configure" --host="$WINDOWS_TRIPLET" "$@"

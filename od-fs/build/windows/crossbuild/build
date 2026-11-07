@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+#
+# Build .build/$WINDOWS_BUILD/fs-uae.exe (default: .build/windows), configuring first if needed.
+# Arguments are passed to make (e.g. -j8). See common.sh for the environment variables.
+#
+# Afterwards, Libs/x86_64-w64-mingw32/ is laid out like a dist (FS-UAE.exe, the DLLs it needs and
+# lib/ with the Python standard library): in od-fs for the default build, otherwise in the build
+# directory, so other builds (e.g. claude-windows in the sandbox) do not overwrite od-fs/Libs.
+
+set -e
+
+source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
+source "$HERE/quasi-msys2.sh"
+
+setup_quasi_msys2
+
+if [ ! -f "$WINDOWS_BUILD_DIR/Makefile" ]; then
+    "$HERE/configure"
+fi
+
+(
+    windows_env
+    make -C "$WINDOWS_BUILD_DIR" "$@"
+)
+
+if [ "$WINDOWS_BUILD" = "windows" ]; then
+    libs_dir="$OD_FS_DIR/Libs/$WINDOWS_TRIPLET"
+else
+    libs_dir="$WINDOWS_BUILD_DIR/Libs/$WINDOWS_TRIPLET"
+fi
+
+# An earlier version made Libs/<triplet> a link to the MinGW prefix; never copy into that.
+if [ -L "$libs_dir" ]; then
+    rm "$libs_dir"
+fi
+mkdir -p "$libs_dir"
+cp -a "$WINDOWS_BUILD_DIR/fs-uae.exe" "$libs_dir/FS-UAE.exe"
+python3 "$OD_FS_DIR/build/windows/copy-windows-dlls.py" "$QUASI_MSYS2_DIR/root/mingw64" \
+    "$libs_dir" "$libs_dir/FS-UAE.exe"
+# FS-UAE uses the executable's folder as the Python home in Windows development mode when it has
+# lib/python3.X (see init_python in fsuae/fsuae-init.c). Never put lib/python3.X next to the
+# executables in od-fs: the Linux od-fs/fs-uae would find it too. The link is relative.
+ln -sfnr "$QUASI_MSYS2_DIR/root/mingw64/lib" "$libs_dir/lib"
+
+if [ "$WINDOWS_BUILD" = "windows" ]; then
+    # The proxy, as in a dist: runs Libs/<triplet>/FS-UAE.exe, passing on stdio and the exit code.
+    cp -a "$WINDOWS_BUILD_DIR/proxy.exe" "$OD_FS_DIR/FS-UAE.exe"
+fi
+
+echo "Built $libs_dir/FS-UAE.exe"

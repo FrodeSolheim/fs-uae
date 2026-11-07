@@ -389,6 +389,10 @@ extern int16_t test_smps ( int32_t, int32_t, int32_t, uint8_t, uint8_t );
 extern int32_t PWGetFileSize ( char * );		/* xigh: Should be 64-bits */
 extern FILE * PW_fopen ( char *, char * );
 extern void fillPTKtable ( uint8_t[37][2] );
+#ifdef FSUAE
+// Hack to avoid htonl from being redeclared
+#define htonl htonl
+#endif
 #ifndef htonl
 extern unsigned int htonl(unsigned int);
 #endif

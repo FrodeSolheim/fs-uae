@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+#
+# Run "make clean" in the Windows build directory .build/$WINDOWS_BUILD (default: .build/windows),
+# keeping the configuration. See common.sh for the environment variables.
+
+set -e
+
+source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
+
+if [ -f "$WINDOWS_BUILD_DIR/Makefile" ]; then
+    windows_env
+    make -C "$WINDOWS_BUILD_DIR" clean
+fi

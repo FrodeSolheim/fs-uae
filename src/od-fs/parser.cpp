@@ -590,7 +590,7 @@ int readseravail (void)
 		tv.tv_usec = 0;
 		FD_ZERO(&fd);
 		FD_SET(ser_fd, &fd);
-		int num_ready = select (FD_SETSIZE, &fd, NULL, NULL, &tv);
+		int num_ready = select (ser_fd + 1, &fd, NULL, NULL, &tv);
 		return (num_ready == 1);
 #endif
 	}

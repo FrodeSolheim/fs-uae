@@ -35,6 +35,11 @@
 #include "native2amiga.h"
 #include "bsdsocket.h"
 
+#ifdef __sun
+/* FIONREAD */
+#include <sys/filio.h>
+#endif
+
 #ifndef BSDSOCKET
 
 volatile int bsd_int_requested;

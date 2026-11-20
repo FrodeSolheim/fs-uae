@@ -1,24 +1,26 @@
 #define FSEMU_INTERNAL
 #include "fsemu-application.h"
 
+#include "fs/log.h"
+#include "fs/path.h"
+#include "fsapp-util.h"
 #include "fsemu-glib.h"
-#include "fsemu-log.h"
 #include "fsemu-module.h"
-#include "fsemu-util.h"
 
 // ----------------------------------------------------------------------------
 
-int fsemu_application_log_level = FSEMU_LOG_LEVEL_INFO;
+int fsemu_application_log_level = SDL_LOG_PRIORITY_INFO;
 
 static struct {
     bool initialized;
-    char* name;
-    char* base_dir_name;
-    char* base_dir;
+    char *name;
+    char *base_dir_name;
+    char *base_dir;
 } fsemu_application;
 
-void fsemu_application_set_name(const char* name) {
-    fsemu_assert_release(name != NULL);
+void fsemu_application_set_name(const char *name)
+{
+    fsapp_assert_release(name != NULL);
     if (fsemu_application.name) {
         fsemu_application_log("Changing name might not work in practice\n");
         free(fsemu_application.name);
@@ -26,20 +28,23 @@ void fsemu_application_set_name(const char* name) {
     fsemu_application.name = strdup(name);
 }
 
-const char* fsemu_application_name(void) {
-    fsemu_assert_release(fsemu_application.name != NULL);
+const char *fsemu_application_name(void)
+{
+    fsapp_assert_release(fsemu_application.name != NULL);
     return fsemu_application.name;
 }
 
-void fsemu_application_set_base_dir(const char* dir_path) {
-    fsemu_assert(dir_path == NULL);
-    fsemu_assert(fsemu_application.base_dir == NULL);
+void fsemu_application_set_base_dir(const char *dir_path)
+{
+    fsapp_assert(dir_path == NULL);
+    fsapp_assert(fsemu_application.base_dir == NULL);
     fsemu_application.base_dir = strdup(dir_path);
 }
 
-void fsemu_application_set_base_dir_name(const char* dir_name) {
-    fsemu_assert_release(dir_name != NULL);
-    fsemu_assert(fsemu_application.base_dir_name == NULL);
+void fsemu_application_set_base_dir_name(const char *dir_name)
+{
+    fsapp_assert_release(dir_name != NULL);
+    fsapp_assert(fsemu_application.base_dir_name == NULL);
 #if 0
     if (fsemu_application.base_dir_name) {
         fsemu_application_log(
@@ -52,20 +57,21 @@ void fsemu_application_set_base_dir_name(const char* dir_name) {
 
 // ----------------------------------------------------------------------------
 
-const char* fsemu_application_base_dir(void) {
-    fsemu_assert_release(fsemu_application.initialized);
-    // fsemu_assert_release(fsemu_application.base_dir_name != NULL);
+const char *fsemu_application_base_dir(void)
+{
+    fsapp_assert_release(fsemu_application.initialized);
+    // fsapp_assert_release(fsemu_application.base_dir_name != NULL);
 
     if (fsemu_application.base_dir == NULL) {
-        const char* home_dir = g_get_home_dir();
-        const char* name = fsemu_application.base_dir_name;
+        const char *home_dir = g_get_home_dir();
+        const char *name = fsemu_application.base_dir_name;
         if (name == NULL) {
             name = fsemu_application.name;
         }
-        fsemu_assert_release(name != NULL);
+        fsapp_assert_release(name != NULL);
 
-        fsemu_application.base_dir = g_build_filename(home_dir, name, NULL);
-        if (g_file_test(fsemu_application.base_dir, G_FILE_TEST_IS_DIR)) {
+        fsemu_application.base_dir = FS_JoinPath(home_dir, name);
+        if (FS_IsDirectory(fsemu_application.base_dir)) {
             // OK
         } else {
             int error = g_mkdir_with_parents(fsemu_application.base_dir, 0755);
@@ -76,18 +82,20 @@ const char* fsemu_application_base_dir(void) {
         }
     }
 
-    fsemu_assert_release(fsemu_application.base_dir != NULL);
+    fsapp_assert_release(fsemu_application.base_dir != NULL);
     return fsemu_application.base_dir;
 }
 
 // ----------------------------------------------------------------------------
 
-static void fsemu_application_quit(void) {
+static void fsemu_application_quit(void)
+{
 }
 
 // ----------------------------------------------------------------------------
 
-void fsemu_application_init(void) {
+void fsemu_application_init(void)
+{
     if (FSEMU_MODULE_INIT(application)) {
         return;
     }

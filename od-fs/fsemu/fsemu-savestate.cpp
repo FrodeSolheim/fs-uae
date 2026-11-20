@@ -3,42 +3,44 @@
 
 #include <stdio.h>
 
+#include "fsapp-file.h"
+#include "fsapp-time.h"
+#include "fsapp-util.h"
 #include "fsemu-action.h"
 #include "fsemu-glib.h"
-#include "fsemu-path.h"
 #include "fsemu-recording.h"
-#include "fsemu-thread.h"
-#include "fsemu-time.h"
-#include "fsemu-util.h"
 
 #define FSEMU_SAVESTATE_MAX_SLOT 9
 
 // FIXME: REMOVE
 #define FSEMU_SAVESTATE_SLOTS 9
 
-int fsemu_savestate_log_level = FSEMU_LOG_LEVEL_INFO;
+int fsemu_savestate_log_level = SDL_LOG_PRIORITY_INFO;
 
 static struct {
     bool initialized;
-    fsuae_savestate_path_function_t path_function;
+    fsemu_savestate_path_function_t path_function;
     bool has_state[FSEMU_SAVESTATE_MAX_SLOT + 1];
-    char* descriptions[FSEMU_SAVESTATE_MAX_SLOT + 1];
+    char *descriptions[FSEMU_SAVESTATE_MAX_SLOT + 1];
 
 } fsemu_savestate;
 
-void fsemu_savestate_set_path_function(fsuae_savestate_path_function_t function) {
+void fsemu_savestate_set_path_function(fsemu_savestate_path_function_t function)
+{
     fsemu_savestate.path_function = function;
 }
 
-bool fsemu_savestate_available(void) {
+bool fsemu_savestate_available(void)
+{
     return fsemu_savestate.path_function != NULL;
 }
 
-uintptr_t fsemu_savestate_on_load_finished(void* data) {
+uintptr_t fsemu_savestate_on_load_finished(void *data)
+{
     int slot = (int)(intptr_t)data;
     fsemu_savestate_log_debug("fsemu_savestate_on_load_finished slot=%d\n", slot);
 
-    const char* path;
+    const char *path;
     if (fsemu_savestate.path_function) {
         path = fsemu_savestate.path_function(slot);
     } else {
@@ -49,11 +51,12 @@ uintptr_t fsemu_savestate_on_load_finished(void* data) {
     return 0;
 }
 
-uintptr_t fsemu_savestate_on_save_finished(void* data) {
+uintptr_t fsemu_savestate_on_save_finished(void *data)
+{
     int slot = (int)(intptr_t)data;
     fsemu_savestate_log_debug("fsemu_savestate_on_save_finished slot=%d\n", slot);
 
-    const char* path;
+    const char *path;
     if (fsemu_savestate.path_function) {
         path = fsemu_savestate.path_function(slot);
     } else {
@@ -64,19 +67,21 @@ uintptr_t fsemu_savestate_on_save_finished(void* data) {
     return 0;
 }
 
-bool fsemu_savestate_has_state(int slot) {
-    fsemu_thread_assert_main();
+bool fsemu_savestate_has_state(int slot)
+{
+    SDL_assert(SDL_IsMainThread());
 
     return fsemu_savestate.has_state[slot];
 }
 
-void fsemu_savestate_update_slot(int slot) {
-    char* path = NULL;
-    char* description = NULL;
+void fsemu_savestate_update_slot(int slot)
+{
+    char *path = NULL;
+    char *description = NULL;
     if (fsemu_savestate.path_function) {
         path = fsemu_savestate.path_function(slot);
     }
-    if (path && fsemu_path_exists(path)) {
+    if (path && SDL_GetPathInfo(path, NULL)) {
         fsemu_savestate.has_state[slot] = true;
 
         // FIXME: Store/cache tm_struct and only recreate string description
@@ -84,13 +89,13 @@ void fsemu_savestate_update_slot(int slot) {
 
         // char *state_file = get_state_file(slot, "uss");
         fsemu_savestate_log_debug("Check %s\n", path);
-        struct fsemu_path_stat_t buf;
-        if (fsemu_path_stat(path, &buf) == 0) {
+        struct fsapp_file_stat_t buf;
+        if (fsapp_file_stat(path, &buf) == 0) {
             // GDate date;
             // g_date_clear(&date, 1);
             // g_date_set_time_t(&date, buf.mtime);
             struct tm tm_struct;
-            fsemu_time_localtime_r(&buf.mtime, &tm_struct);
+            fsapp_time_localtime_r(&buf.mtime, &tm_struct);
             char strbuf[32];
             // g_date_strftime(strbuf, 32, "");
             strftime(strbuf, 32, "%Y-%m-%d %H:%M:%S", &tm_struct);
@@ -119,8 +124,9 @@ void fsemu_savestate_update_slot(int slot) {
 
 // FIXME: Consider changing this to return a const string instead, and let
 // users of this function copy the string if desired, for better efficiency.
-char* fsemu_savestate_description(int slot) {
-    char* description = fsemu_savestate.descriptions[slot];
+char *fsemu_savestate_description(int slot)
+{
+    char *description = fsemu_savestate.descriptions[slot];
     if (description) {
         return g_strdup(description);
     } else {
@@ -128,15 +134,17 @@ char* fsemu_savestate_description(int slot) {
     }
 }
 
-int fsemu_savestate_slots(void) {
-    fsemu_thread_assert_main();
+int fsemu_savestate_slots(void)
+{
+    SDL_assert(SDL_IsMainThread());
 
     return FSEMU_SAVESTATE_SLOTS;
 }
 
-void fsemu_savestate_load(int slot) {
-    fsemu_thread_assert_main();
-    fsemu_assert(slot >= 0 && slot <= FSEMU_SAVESTATE_MAX_SLOT);
+void fsemu_savestate_load(int slot)
+{
+    SDL_assert(SDL_IsMainThread());
+    fsapp_assert(slot >= 0 && slot <= FSEMU_SAVESTATE_MAX_SLOT);
 
     fsemu_savestate_log_debug("FIXME: fsemu_savestate_load slot=%d\n", slot);
     // Slot 0 is also allowed, but not exposed in GUI.
@@ -147,9 +155,10 @@ void fsemu_savestate_load(int slot) {
     }
 }
 
-void fsemu_savestate_save(int slot) {
-    fsemu_thread_assert_main();
-    fsemu_assert(slot >= 0 && slot <= FSEMU_SAVESTATE_MAX_SLOT);
+void fsemu_savestate_save(int slot)
+{
+    SDL_assert(SDL_IsMainThread());
+    fsapp_assert(slot >= 0 && slot <= FSEMU_SAVESTATE_MAX_SLOT);
 
     fsemu_savestate_log_debug("FIXME: fsemu_savestate_save slot=%d\n", slot);
     // Slot 0 is also allowed, but not exposed in GUI.
@@ -179,13 +188,13 @@ void fsemu_savestate_handle_action(int action)
 }
 #endif
 
-void fsemu_savestate_init(void) {
+void fsemu_savestate_init(void)
+{
     if (fsemu_savestate.initialized) {
         return;
     }
     fsemu_savestate.initialized = true;
-    fsemu_thread_init();
-    fsemu_time_init();
+    fsapp_time_init();
     fsemu_savestate_log("fsemu_savestate_init\n");
 
     for (int i = 1; i <= FSEMU_SAVESTATE_MAX_SLOT; i++) {
@@ -193,7 +202,7 @@ void fsemu_savestate_init(void) {
         /*
         if (fsemu_savestate.path_function) {
             char *path = fsemu_savestate.path_function(i);
-            if (fsemu_path_exists(path)) {
+            if (SDL_GetPathInfo(path, NULL)) {
                 fsemu_savestate.has_state[i] = true;
             } else {
                 printf("No state found for slot %d\n", i);

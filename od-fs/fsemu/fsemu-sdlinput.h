@@ -13,12 +13,12 @@ extern "C" {
 void fsemu_sdlinput_init(void);
 void fsemu_sdlinput_work(void);
 
-bool fsemu_sdlinput_handle_event(SDL_Event* event);
+bool fsemu_sdlinput_handle_event(SDL_Event *event);
 
-void fsemu_sdlinput_add_controller(SDL_Gamepad* sdl_controller);
+void fsemu_sdlinput_add_controller(SDL_Gamepad *sdl_controller);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif  // FSEMU_SDLINPUT_H
+#endif /* FSEMU_SDLINPUT_H */

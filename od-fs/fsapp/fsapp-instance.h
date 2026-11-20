@@ -1,5 +1,13 @@
+/*
+ * The single-instance lock: only one instance of the program runs at a time.
+ *
+ * Copyright (c) 2025-2026 Frode Solheim
+ */
+
 #ifndef FSAPP_INSTANCE_H
 #define FSAPP_INSTANCE_H
+
+#include <stdbool.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -7,9 +15,9 @@ extern "C" {
 
 // Single instance guard return codes
 typedef enum {
-    FSAPP_INSTANCE_OK = 0,           // Successfully acquired instance lock
-    FSAPP_INSTANCE_ALREADY_RUNNING,  // Another instance is already running
-    FSAPP_INSTANCE_ERROR             // Error occurred (permissions, etc.)
+    FSAPP_INSTANCE_OK = 0,          // Successfully acquired instance lock
+    FSAPP_INSTANCE_ALREADY_RUNNING, // Another instance is already running
+    FSAPP_INSTANCE_ERROR            // Error occurred (permissions, etc.)
 } fsapp_instance_result_t;
 
 /**
@@ -19,7 +27,7 @@ typedef enum {
  * @param app_name Unique application identifier (e.g., "FS-UAE", "MyApp")
  * @return FSAPP_INSTANCE_OK if successful, error code otherwise
  */
-fsapp_instance_result_t fsapp_instance_acquire_lock(const char* app_name);
+fsapp_instance_result_t fsapp_instance_acquire_lock(const char *app_name);
 
 /**
  * Release the single instance lock.
@@ -31,4 +39,4 @@ void fsapp_instance_release_lock(void);
 }
 #endif
 
-#endif  // FSAPP_INSTANCE_H
+#endif /* FSAPP_INSTANCE_H */

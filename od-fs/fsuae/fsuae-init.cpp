@@ -13,10 +13,21 @@
 #include <glib.h>
 #include <glib/gstdio.h>
 
-#include "FS/FS.h"
+#include "fs/log.h"
 #include "fsapp-main.h"
+#include "fsapp-time.h"
+
+#define FSEMU_INTERNAL
+#include "fs/path.h"
+#include "fsemu-application.h"
+#include "fsemu-audio.h"
+#include "fsemu-frame.h"
+#include "fsemu-input.h"
+#include "fsemu-inputdevice.h"
+#include "fsemu-inputport.h"
+#include "fsemu-mainloop.h"
+#include "fsemu-option.h"
 #include "fsemu-python.h"
-#include "fslib-path.h"
 #include "fsuae-main.h"
 #include "fsuae-path.h"
 #include "fsuae-plugins.h"
@@ -24,47 +35,18 @@
 // Defined in od-fs/3rdparty/lhafile/lzhlib.c (used by the lhafile Python package)
 PyMODINIT_FUNC PyInit_lzhlib(void);
 
-static FILE* g_fsuae_init_log_file = NULL;
-SDL_Mutex* g_log_file_mutex;
-
 // -------------------------------------------------------------------------------------------------
 
-const char* fsapp_development_dir = NULL;
+static const char *g_cache_dir = NULL;
+static const char *g_data_dir = NULL;
 
-static void init_development_mode(void) {
-    char path[FS_MAX_PATH];
-    FS_CopyPath(path, SDL_GetBasePath());
-    SDL_Log("SDL_GetBasePath() = %s\n", path);
-    // Look for an od-fs folder next to the executable and up to three levels above it. The
-    // executable can be in a build directory (.build/<name>/, which has its own od-fs folder), in
-    // od-fs/ (two levels: the project root), or in od-fs/Libs/<triplet>/ or
-    // .build/<name>/Libs/<triplet>/ (Windows, laid out like a dist; three or two levels).
-    for (int level = 0; level <= 3; level++) {
-        int reset = strlen(path);
-        FS_AppendDirName(path, "od-fs");
-        bool found = FS_PathExists(path);
-        path[reset] = '\0';
-        if (found) {
-            fsapp_development_dir = strdup(path);
-            // SDL_setenv_unsafe("FSAPP_DEVELOPMENT_DIR", path, 1);
-            return;
-        }
-        if (!FS_ParentDir(path)) {
-            return;
-        }
-    }
-}
-
-// -------------------------------------------------------------------------------------------------
-
-const char* fsapp_cache_directory = NULL;
-const char* fsapp_data_directory = NULL;
-
-static bool check_portable_ini(const char* path) {
-    FILE* f = g_fopen(path, "r");
+static bool check_portable_ini(const char *path)
+{
+    FILE *f = g_fopen(path, "r");
     if (f != NULL) {
         char buffer[9];
         int read = fread(buffer, 1, 8, f);
+        fclose(f);
         buffer[8] = '\0';
         if (read == 8 && strcmp(buffer, "# FS-UAE") == 0) {
             SDL_Log("Portable.ini starts with # FS-UAE");
@@ -78,81 +60,107 @@ static bool check_portable_ini(const char* path) {
     return false;
 }
 
-static void use_base_directory(char* path) {
-    int reset = strlen(path);
-    FS_AppendDirName(path, "Data");
-    fsapp_data_directory = strdup(path);
-    path[reset] = '\0';
-    FS_AppendDirName(path, "Cache");
-    fsapp_cache_directory = strdup(path);
+static void use_base_directory(const char *path)
+{
+    g_data_dir = FS_JoinPath(path, "Data");
+    g_cache_dir = FS_JoinPath(path, "Cache");
 }
 
-static void init_data_and_cache_directories(void) {
-    char path[FS_MAX_PATH];
-    FS_CopyPath(path, SDL_GetBasePath());  // Path ends with /
-    while (true) {
-        int reset = strlen(path);
-        FS_AppendFileName(path, "Portable.ini");
+static void init_data_and_cache_directories(void)
+{
+    // The portable directory is the closest one, from the executable's directory upwards, with a
+    // Portable.ini file starting with "# FS-UAE".
+    const char *base_path = SDL_GetBasePath();
+    char *dir = SDL_strdup(base_path ? base_path : "");
+    while (dir[0] != '\0') {
+        char *path = FS_JoinPath(dir, "Portable.ini");
         SDL_Log("Checking %s", path);
-        if (FS_PathExists(path)) {
+        bool portable = false;
+        if (SDL_GetPathInfo(path, NULL)) {
             SDL_Log("Found potential portable directory!");
-            if (check_portable_ini(path)) {
-                path[reset] = '\0';
-                use_base_directory(path);
-                break;
-            }
+            portable = check_portable_ini(path);
         }
-        path[reset] = '\0';
-        if (!FS_ParentDir(path)) {
-            // Got to top level
+        SDL_free(path);
+        if (portable) {
+            use_base_directory(dir);
             break;
         }
+        char *parent = FS_GetParentPath(dir);
+        SDL_free(dir);
+        dir = parent;
+    }
+    SDL_free(dir);
+
+    if (g_data_dir == NULL) {
+        char *pref_path = SDL_GetPrefPath("", "FS-UAE");
+        SDL_Log("SDL_GetPrefPath(...) = %s\n", pref_path);
+        // FIXME: SDL_GetPrefPath returns NULL when it cannot create the directory, which is not
+        // handled.
+        use_base_directory(pref_path);
+        SDL_free(pref_path);
     }
 
-    if (fsapp_data_directory == NULL) {
-        FS_CopyPath(path, SDL_GetPrefPath("", "FS-UAE"));
-        SDL_Log("SDL_GetPrefPath(...) = %s\n", path);
-        use_base_directory(path);
-    }
+    SDL_Log("   Data dir: %s", g_data_dir);
+    SDL_setenv_unsafe("FSAPP_DATA_DIR", g_data_dir, 1);
 
-    SDL_Log("   Data dir: %s", fsapp_data_directory);
-    SDL_setenv_unsafe("FSAPP_DATA_DIR", fsapp_data_directory, 1);
-
-    SDL_Log("  Cache dir: %s", fsapp_cache_directory);
-    SDL_setenv_unsafe("FSAPP_CACHE_DIR", fsapp_cache_directory, 1);
+    SDL_Log("  Cache dir: %s", g_cache_dir);
+    SDL_setenv_unsafe("FSAPP_CACHE_DIR", g_cache_dir, 1);
 }
 
 // -------------------------------------------------------------------------------------------------
 
-void SDLCALL sdl_log_output_function(void* userdata, int category, SDL_LogPriority priority,
-                                     const char* message) {
-    SDL_LogOutputFunction log_function = SDL_GetDefaultLogOutputFunction();
-    log_function(userdata, category, priority, message);
-
-    SDL_LockMutex(g_log_file_mutex);
-    FILE* f = g_fsuae_init_log_file;
-    if (f == NULL) {
+#ifdef _WIN32
+// Python loads extension modules (.pyd) with LoadLibraryEx, which since Python 3.8 does not search
+// PATH for their dependencies, only the executable's folder, the module's own folder, the system
+// folders and folders added with AddDllDirectory. The executable in a native MSYS2 build directory
+// (run from the MINGW64 shell) is not next to the DLLs (they are in the MinGW bin folder, found
+// through PATH when the program starts), so a module whose DLL nothing else has loaded yet
+// (_ctypes, which needs libffi-8.dll) fails to load. Adding the folder Python's own DLL was loaded
+// from fixes that. In a dist and in a development build's Libs/<triplet>/, that is the
+// executable's folder already.
+// REVIEW: With the dist layout, the build directory's own fs-uae.exe no longer starts (its root
+// would be two levels above it, see fsuae-path.cpp): Windows development builds run from
+// Libs/<triplet>/ (build/windows/dev_layout.py). Kept as ticket 35 decided, for a Python DLL that
+// is not next to the executable; remove it if nothing needs that any more.
+static void add_python_dll_directory(void)
+{
+    // By name: the address of a Python function would be that of its import stub in the
+    // executable. libpython3.X.dll is MinGW's name, python3X.dll MSVC's.
+    wchar_t name[32];
+    swprintf(name, 32, L"libpython%d.%d.dll", PY_MAJOR_VERSION, PY_MINOR_VERSION);
+    HMODULE module = GetModuleHandleW(name);
+    if (module == NULL) {
+        swprintf(name, 32, L"python%d%d.dll", PY_MAJOR_VERSION, PY_MINOR_VERSION);
+        module = GetModuleHandleW(name);
+    }
+    if (module == NULL) {
+        SDL_Log("Could not find the Python DLL (error %lu)", GetLastError());
         return;
     }
-
-    fputs(message, f);
-    fputc('\n', f);
-
-    // Don't always flush, in order to avoid emulation thread having to wait for flush to finish
-    // (not sure if that's a real problem or not). -But if we log a warning or error message,
-    // definitively do flush!
-
-    if (priority >= SDL_LOG_PRIORITY_WARN) {
-        printf("Flushing!\n");
-        fflush(f);
+    wchar_t path[MAX_PATH];
+    DWORD length = GetModuleFileNameW(module, path, MAX_PATH);
+    if (length == 0 || length == MAX_PATH) {
+        SDL_Log("Could not get the path of the Python DLL (error %lu)", GetLastError());
+        return;
     }
-
-    SDL_UnlockMutex(g_log_file_mutex);
+    wchar_t *separator = wcsrchr(path, L'\\');
+    if (separator == NULL) {
+        return;
+    }
+    *separator = L'\0';
+    char *utf8 = g_utf16_to_utf8((const gunichar2 *)path, -1, NULL, NULL, NULL);
+    if (AddDllDirectory(path) == NULL) {
+        SDL_Log("Could not add %s to the DLL search (error %lu)", utf8 ? utf8 : "?",
+                GetLastError());
+    } else {
+        SDL_Log("Added the Python DLL's folder to the DLL search: %s", utf8 ? utf8 : "?");
+    }
+    g_free(utf8);
 }
+#endif
 
-// -------------------------------------------------------------------------------------------------
-
-static bool init_python(int argc, char* argv[]) {
+static bool init_python(int argc, char *argv[])
+{
     SDL_Log("Initialize Python");
 
     for (int i = 0; i < argc; i++) {
@@ -160,6 +168,9 @@ static bool init_python(int argc, char* argv[]) {
     }
 
     fsemu_python_init();
+#ifdef _WIN32
+    add_python_dll_directory();
+#endif
     PyImport_AppendInittab("lzhlib", &PyInit_lzhlib);
 
     PyStatus status;
@@ -169,84 +180,15 @@ static bool init_python(int argc, char* argv[]) {
     config.isolated = 1;
     // PyConfig_SetString(&config, &config.home, value);
 
-    char* python_home = NULL;
-    char* python_dir = NULL;
-    char* resources_dir = NULL;
-
-    // FIXME: fslib_misc / fslib_path ?
-    if (fsapp_development_dir) {
-        SDL_Log("Development mode\n");
-        python_dir = g_build_filename(fsapp_development_dir, "od-fs", "Python", NULL);
-#ifdef _WIN32
-        // When cross-compiling, build-windows lays out Libs/<triplet>/ like a dist: FS-UAE.exe,
-        // the DLLs, and lib/ linked to the MinGW lib folder. If the executable's folder has
-        // lib/python3.X, use the folder as the Python home. Otherwise (e.g. native MSYS2, with
-        // libpython loaded from the MSYS2 bin folder), leave it unset; Python then finds the
-        // standard library from where libpython was loaded.
-        char* exe_dir = g_canonicalize_filename(SDL_GetBasePath(), NULL);
-        char* stdlib_dir = g_strdup_printf("%s/lib/python3.%d", exe_dir, PY_MINOR_VERSION);
-        if (g_file_test(stdlib_dir, G_FILE_TEST_IS_DIR)) {
-            python_home = exe_dir;
-        } else {
-            g_free(exe_dir);
-        }
-        g_free(stdlib_dir);
-#endif
-        resources_dir = g_build_filename(fsapp_development_dir, "od-fs", "Resources", NULL);
-    } else {
-#ifdef PORTABLE_MODE
-
-        // char temp[FSLIB_PATH_MAX];
-        const char* temp = g_build_filename(SDL_GetBasePath(),
-#if defined(WINDOWS)
-                                            "..", "..",
-#endif
-                                            NULL);
-        // #if defined(WINDOWS)
-        //         SDL_strlcpy(temp, SDL_GetBasePath(), FSLIB_PATH_MAX);
-        //         SDL_strlcat(temp, "..\\..\\Python", FSLIB_PATH_MAX);
-        // #else  // FIXME: Same as MACOS actually
-        //         SDL_strlcpy(temp, SDL_GetBasePath(), FSLIB_PATH_MAX);
-        //         SDL_strlcat(temp, "Python", FSLIB_PATH_MAX);
-        // #endif
-        char* base_dir = g_canonicalize_filename(temp, NULL);
-        python_dir = g_build_filename(base_dir, "Python", NULL);
-        python_home = g_strdup(python_dir);
-#ifdef MACOS
-        resources_dir = g_strdup(base_dir);
-#else
-        resources_dir = g_build_filename(base_dir, "Resources", NULL);
-#endif
-
-#else  // !PORTABLE_MODE
-
-        python_home = NULL;
-
-        gchar* temp = g_build_filename(SDL_GetBasePath(), "..", "share", SHARE_DIR_NAME, NULL);
-        gchar* share_fs_uae_dir = g_canonicalize_filename(temp, NULL);
-        g_free(temp);
-        resources_dir = g_build_filename(share_fs_uae_dir, "resources", NULL);
-        python_dir = g_build_filename(share_fs_uae_dir, "python", NULL);
-        g_free(share_fs_uae_dir);
-
-#endif  // !PORTABLE_MODE
-    }
-
-    SDL_Log("python_dir: %s", python_dir ? python_dir : "NULL");
-    SDL_Log("python_home: %s", python_home ? python_home : "NULL");
-    SDL_Log("resources_dir: %s", resources_dir ? resources_dir : "NULL");
-
     // FIXME: Initialize elsewhere? (we're in init python now)
     // FIXME: Why does not SDL_setenv_unsafe work here...? g_setenv does work...
-    g_setenv("FSAPP_RESOURCES_DIR", resources_dir, true);
-    g_free(resources_dir);
-    resources_dir = NULL;
+    g_setenv("FSAPP_RESOURCES_DIR", fsuae_path_get_resources_dir(), true);
 
+    // The Python home, when the layout has the standard library (see fsuae_path_get_python_home).
+    const char *python_home = fsuae_path_get_python_home();
     if (python_home != NULL) {
         SDL_Log("Setting Python Home to %s\n", python_home);
         PyConfig_SetBytesString(&config, &config.home, python_home);
-        g_free(python_home);
-        python_home = NULL;
     }
 
     // Optional but recommended, according to Python docs
@@ -282,46 +224,37 @@ static bool init_python(int argc, char* argv[]) {
 
     // printf("--- c ---\n");
 
-    PyRun_SimpleString("print('Hello from Python')\n");
+    PyObject *sys_path = PySys_GetObject("path");
+    PyObject *str_object;
 
-    PyObject* sys_path = PySys_GetObject("path");
-    PyObject* str_object;
-
-    const char* python_zip = fsuae_path_python_zip();
+    const char *python_zip = fsuae_path_get_python_zip();
     SDL_Log("Adding zip file to python sys.path: %s", python_zip);
     // FIXME: This only works when the (glib) locale is UTF-8!?!
     str_object = PyUnicode_FromString(python_zip);
     PyList_Insert(sys_path, 0, str_object);
 
-    // const char *fs_uae_dat = fsuae_path_fs_uae_dat();
+    // const char *fs_uae_dat = fsuae_path_get_fs_uae_dat();
     // SDL_Log("Adding dat file to python sys.path: %s", fs_uae_dat);
     // // FIXME: This only works when the (glib) locale is UTF-8!?!
     // str_object = PyUnicode_FromString(python_zip);
     // PyList_Insert(sys_path, 0, str_object);
 
-#ifdef MACOS
-#warning in non-development mode, do not add python dir to path?
-#endif
+    // In a dist, the Python code folder only has FS-UAE.zip (added above), so adding the folder
+    // itself does no harm; in a development build, it is the source tree's od-fs/Python.
+    const char *python_dir = fsuae_path_get_python_dir();
+    SDL_Log("Adding directory to python sys.path: %s", python_dir);
+    // FIXME: This only works when the (glib) locale is UTF-8!?!
+    // FIXME: Possibly just require UTF-8 as a locale on startup, and fail if not? Probably
+    // not the only UTF-8 assumption around
+    str_object = PyUnicode_FromString(python_dir);
+    PyList_Insert(sys_path, 0, str_object);
 
-    if (python_dir != NULL) {
-        SDL_Log("Adding directory to python sys.path: %s", python_dir);
-        // FIXME: This only works when the (glib) locale is UTF-8!?!
-        // FIXME: Possibly just require UTF-8 as a locale on startup, and fail if not? Probably
-        // not the only UTF-8 assumption around
-        str_object = PyUnicode_FromString(python_dir);
-        PyList_Insert(sys_path, 0, str_object);
-        g_free(python_dir);
-        python_dir = NULL;
-    }
+    // Python's print, logging and tracebacks go to the log from here on (fsapp needs the path
+    // above to import its Python side).
+    fsapp_main_install_python_log();
 
-    // const char* python_dir = fsuae_path_python_dir();
-    // SDL_Log("Adding directory to python sys.path: %s", python_dir);
-    // // FIXME: This only works when the (glib) locale is UTF-8!?!
-    // str_object = PyUnicode_FromString(python_dir);
-    // PyList_Insert(sys_path, 0, str_object);
-
+    PyRun_SimpleString("print('Hello from Python')\n");
     PyRun_SimpleString("import sys; print('sys.path =', end=''); print(sys.path)\n");
-    PyRun_SimpleString("from fsgui import init; init()");
     PyRun_SimpleString("import time; print('Today is', time.ctime(time.time()))\n");
 
     // PyEval_InitThreads();
@@ -340,60 +273,113 @@ static bool init_python(int argc, char* argv[]) {
 
 // -------------------------------------------------------------------------------------------------
 
-void init_logging(void) {
-    char path[FS_MAX_PATH];
-    FS_CopyPath(path, fsapp_cache_directory);
-    FS_AppendDirName(path, "Log");
-    SDL_Log("Log dir: %s", path);
-    if (!FS_PathExists(path)) {
-        SDL_Log("Log directory does not exist, creating!");
-        if (!SDL_CreateDirectory(path)) {
-            SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Could not create directory '%s'", path);
+// Opens the log file, by default FS-UAE.log.txt in the cache directory's Log folder (FS_LOG_FILE
+// puts it elsewhere, fs/log.h). It gets every line logged since the start, the build header first.
+static void open_log_file(void)
+{
+    char *dir = FS_JoinPath(g_cache_dir, "Log");
+    if (!SDL_GetPathInfo(dir, NULL)) {
+        SDL_Log("Creating the log directory %s", dir);
+        if (!SDL_CreateDirectory(dir)) {
+            SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Could not create directory '%s'", dir);
         }
     }
-
-    FS_AppendFileName(path, "FS-UAE.log.txt");
-    SDL_Log("Log file: %s", path);
-    g_log_file_mutex = SDL_CreateMutex();
-    g_fsuae_init_log_file = g_fopen(path, "w");
-    if (g_fsuae_init_log_file != NULL) {
-        SDL_SetLogOutputFunction(sdl_log_output_function, NULL);
-    } else {
-        SDL_Log("Could not open log file %s", path);
-    }
+    char *path = FS_JoinPath(dir, "FS-UAE.log.txt");
+    FS_OpenLogFile(path);
+    SDL_free(path);
+    SDL_free(dir);
 }
 
-bool fsuae_init(int argc, char* argv[], int* error) {
+// Checks that the Python code folder and the resources folder of the layout are there. If one is
+// missing, logs an error naming the folder and the layout, shows it in a message box if it can, and
+// returns false, so that FS-UAE stops at startup instead of failing later on a Python import.
+static bool check_layout(void)
+{
+    const char *what = NULL;
+    const char *missing = NULL;
+    if (!FS_IsDirectory(fsuae_path_get_python_dir())) {
+        what = "Python code";
+        missing = fsuae_path_get_python_dir();
+    } else if (!FS_IsDirectory(fsuae_path_get_resources_dir())) {
+        what = "resources";
+        missing = fsuae_path_get_resources_dir();
+    } else {
+        return true;
+    }
+    char *message = g_strdup_printf("FS-UAE cannot start: the %s folder is missing.\n\n"
+                                    "Expected: %s\n\n"
+                                    "FS-UAE was built for %s.",
+                                    what, missing, fsuae_path_get_layout_name());
+    SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "%s", message);
+    // Fails (and returns at once) when there is no display.
+    SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "FS-UAE", message, NULL);
+    g_free(message);
+    return false;
+}
+
+// Set when fsemu has been initialized; the UAE glue checks it (declared in sysdeps.h).
+int fsemu = 0;
+
+static void init_fsemu(void)
+{
+    fsemu = 1;
+
+    // The input modules, which also add their Python module definitions (before init_python).
+    fsemu_input_init_module();
+    fsemu_inputdevice_init_module();
+    fsemu_inputport_init_module();
+
+    fsapp_time_init();
+
+    // Needed by fsemu_frame (maybe fsemu_frame should call it...)
+    fsemu_option_init();
+
+    fsemu_application_init();
+    fsemu_application_set_name("FS-UAE");
+
+    fsemu_audio_init();
+
+    fsemu_frame_init();
+    fsemu_input_init();
+
+    // The emulation surface, and fsemu's hooks and pacer for fsapp's main loop.
+    fsemu_mainloop_init();
+}
+
+bool fsuae_init(int argc, char *argv[], int *error)
+{
     if (error != NULL) {
         *error = 0;
     }
     if (!SDL_Init(SDL_INIT_VIDEO)) {
         SDL_Log("Couldn't initialize SDL: %s", SDL_GetError());
-        return SDL_APP_FAILURE;
+        if (error != NULL) {
+            *error = 1;
+        }
+        return false;
     }
 
-    // Determine development mode and directory/file structure
-
-    init_development_mode();
     init_data_and_cache_directories();
 
-    // Enable logging to file
+    // The log file, now that the cache directory is known.
+    open_log_file();
 
-    init_logging();
+    // Where FS-UAE's own files are (the layout it was built for), and stop now if they are not
+    // there.
 
-    // Modules must be initialized before calling fsemu_init, because that will
-    // create the Python interpreter and Python module definitions must be
-    // registered first.
+    fsuae_path_init();
+    if (!check_layout()) {
+        if (error != NULL) {
+            *error = 1;
+        }
+        return false;
+    }
+
+    // Modules must be initialized before init_python creates the Python interpreter, because
+    // Python module definitions must be registered first.
 
     fsuae_main_init();
     fsuae_plugins_init();
-
-    fsuae_path_init();
-
-    // FIXME: This is only partially used...
-    // g_setenv("FSAPP_DATA_DIR", fsuae_path_appdata_dir(), true);
-    g_setenv("FSUAE_BASE_DIR", fsuae_path_base_dir(), true);
-    g_setenv("FSUAE_SYSTEM_DIR", fsuae_path_system_dir(), true);
 
     // FIXME: Can also set data dir directly now?
     // fslib_data_init_directory() ?
@@ -401,20 +387,18 @@ bool fsuae_init(int argc, char* argv[], int* error) {
     // FIXME: This is only partially used...
     // fslib_data_init_prefix("../../Data");
     // fslib_data_init_dev_prefix("System/FS-UAE/Data");
-    // fslib_data_init_dev_test("od-fs/fsuae/fsuae-main.cpp");
+    // fslib_data_init_dev_test("od-fs/fsuae/fsuae-main.c");
     // fslib_data_init();
 
     // exit(1);
 
     // Initialize fsemu/fsapp - and implicitly, Python!
 
-    if (!fsapp_init(argc, argv, error)) {
+    if (!fsapp_main_init(argc, argv, error)) {
         return false;
     }
 
-    if (!fsemu_init(argc, argv, error)) {
-        return false;
-    }
+    init_fsemu();
 
     if (!init_python(argc, argv)) {
         SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Could not init Python\n");
@@ -427,11 +411,12 @@ bool fsuae_init(int argc, char* argv[], int* error) {
     return true;
 }
 
-void fsuae_init_close_log_file() {
-    SDL_LockMutex(g_log_file_mutex);
-    if (g_fsuae_init_log_file != NULL) {
-        SDL_Log("Closing log file\n");
-        fclose(g_fsuae_init_log_file);
-    }
-    SDL_UnlockMutex(g_log_file_mutex);
+const char *fsuae_init_get_data_dir(void)
+{
+    return g_data_dir;
+}
+
+const char *fsuae_init_get_cache_dir(void)
+{
+    return g_cache_dir;
 }

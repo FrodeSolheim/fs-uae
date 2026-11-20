@@ -3,13 +3,13 @@
 
 #include <stdlib.h>
 
+#include "fs/log.h"
 #include "fsemu-config.h"
 #include "fsemu-glib.h"
-#include "fsemu-log.h"
 #include "fsemu-option.h"
 #include "fsemu-options.h"
 
-int fsemu_gamemode_log_level = FSEMU_LOG_LEVEL_INFO;
+int fsemu_gamemode_log_level = SDL_LOG_PRIORITY_INFO;
 
 #ifdef FSEMU_OS_LINUX
 
@@ -20,7 +20,8 @@ static bool gamemode_suspended;
 
 #endif
 
-void fsemu_gamemode_suspend(void) {
+void fsemu_gamemode_suspend(void)
+{
 #ifdef FSEMU_OS_LINUX
     if (!gamemode_enabled || gamemode_suspended) {
         return;
@@ -29,7 +30,8 @@ void fsemu_gamemode_suspend(void) {
     gamemode_suspended = true;
 #endif
 }
-void fsemu_gamemode_resume(void) {
+void fsemu_gamemode_resume(void)
+{
 #ifdef FSEMU_OS_LINUX
     if (!gamemode_enabled || !gamemode_suspended) {
         return;
@@ -39,10 +41,10 @@ void fsemu_gamemode_resume(void) {
 #endif
 }
 
-void fsemu_gamemode_check_linux_cpu_governor() {
-    // fsemu_warning_2("Test", "Test");
+void fsemu_gamemode_check_linux_cpu_governor()
+{
 #ifdef FSEMU_OS_LINUX
-    gchar* governor;
+    gchar *governor;
     if (!g_file_get_contents("/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor", &governor,
                              NULL, NULL)) {
         return;
@@ -53,19 +55,18 @@ void fsemu_gamemode_check_linux_cpu_governor() {
         if (fsemu_option_disabled(FSEMU_OPTION_GOVERNOR_WARNING)) {
             fsemu_gamemode_log("CPU Governor check/warning disabled\n");
         } else {
-            // fsemu_warning(_("CPU scaling governor is '%s', not '%s'"),
-            //               governor,
-            //               "performance");
-            // fsemu_warning(_("Emulation frame rate may suffer"));
-            // fsemu_warning_2(_("CPU is not in performance mode"),
-            //                 _("This can cause stuttering"));
+#if 0
+            SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION, _("CPU scaling governor is '%s', not '%s'"),
+                        governor, "performance");
+            SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION, _("Emulation frame rate may suffer"));
+            SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION, "%s - %s", _("CPU is not in performance mode"),
+                        _("This can cause stuttering"));
+#endif
 
-            char* message = g_strdup_printf(_("CPU governor is '%s'"), governor);
-            fsemu_warning_2(message, _("Switch to 'performance' to avoid stuttering"));
+            char *message = g_strdup_printf(_("CPU governor is '%s'"), governor);
+            SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION, "%s - %s", message,
+                        _("Switch to 'performance' to avoid stuttering"));
             free(message);
-
-            // fsemu_warning_2(_("CPU is not in performance mode"),
-            //                 _("This can cause stuttering"));
         }
     }
     g_free(governor);
@@ -74,7 +75,8 @@ void fsemu_gamemode_check_linux_cpu_governor() {
 
 // ----------------------------------------------------------------------------
 
-void fsemu_gamemode_init(void) {
+void fsemu_gamemode_init(void)
+{
 #ifdef FSEMU_OS_LINUX
     if (fsemu_option_disabled(FSEMU_OPTION_GAME_MODE)) {
         fsemu_gamemode_log("GameMode is explicitly disabled via option\n");

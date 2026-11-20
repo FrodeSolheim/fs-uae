@@ -1,5 +1,5 @@
-#ifndef FSEMU_OPTIONS_H_
-#define FSEMU_OPTIONS_H_
+#ifndef FSEMU_OPTIONS_H
+#define FSEMU_OPTIONS_H
 
 #include "fsemu-common.h"
 
@@ -48,9 +48,7 @@
 
 #define FSEMU_OPTION_SYSTEM_TITLEBAR "system_titlebar"
 
-#define FSEMU_OPTION_VIDEO_DRIVER "video_driver"
-#define FSEMU_OPTION_VIDEO_SYNC "video_sync"  // Legacy option?
-#define FSEMU_OPTION_VIDEO_THREAD "video_thread"
+#define FSEMU_OPTION_VIDEO_SYNC "video_sync" // Legacy option?
 
 #define FSEMU_OPTION_VOLUME "volume"
 
@@ -65,4 +63,4 @@
 #define FSEMU_OPTION_WINDOW_X "window_x"
 #define FSEMU_OPTION_WINDOW_Y "window_y"
 
-#endif  // FSEMU_OPTIONS_H_
+#endif /* FSEMU_OPTIONS_H */

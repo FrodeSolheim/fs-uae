@@ -1,114 +1,82 @@
 #define FSEMU_INTERNAL
 #include "fsemu-video.h"
 
+#include "fsapp-bitmap.h"
+#include "fsapp-frame.h"
+#include "fsapp-mutex.h"
+#include "fsapp-surface.h"
+#include "fsapp-time.h"
+#include "fs/trace.h"
+#include "fsapp-tsan.h"
+#include "fsapp-util.h"
+#include "fsemu-emuthread.h"
 #include "fsemu-frame.h"
 #include "fsemu-frameinfo.h"
 #include "fsemu-glib.h"
-#include "fsemu-glvideo.h"
-#include "fsemu-gui.h"
-#include "fsemu-image.h"
 #include "fsemu-layout.h"
+#include "fsemu-mainloop.h"
 #include "fsemu-module.h"
-#include "fsemu-mutex.h"
 #include "fsemu-option.h"
+#include "fsemu-perfgui.h"
 #include "fsemu-screenshot.h"
 #include "fsemu-sdl.h"
-#include "fsemu-sdlvideo.h"
-#include "fsemu-sdlwindow.h"
-#include "fsemu-thread.h"
-#include "fsemu-time.h"
 #include "fsemu-types.h"
-#include "fsemu-util.h"
-#include "fsemu-videothread.h"
-#include "fsemu-window.h"
 #include "fsemu.h"
 
-int fsemu_video_log_level = FSEMU_LOG_LEVEL_INFO;
-// int fsemu_video_log_level = FSEMU_LOG_LEVEL_DEBUG;
+#include <algorithm>
+#include <deque>
+#include <vector>
 
-#define FSEMU_VIDEO_MAX_FRAME_STATS (1 << 8)  // 256
-
-#if 0
-struct fsemu_video_thread_data {
-    fsemu_size_t window_size;
-    fsemu_rect_t client_area;
-    fsemu_rect_t video_area;
-    fsemu_rect_t video_rect;
-};
-#endif
+int fsemu_video_log_level = SDL_LOG_PRIORITY_INFO;
+// int fsemu_video_log_level = SDL_LOG_PRIORITY_DEBUG;
 
 static struct {
     bool initialized;
-    fsemu_video_driver_t driver;
-    fsemu_video_renderer_t renderer;
-    bool renderer_decided;
-    bool threaded;
-
     fsemu_video_format_t format;
     fsemu_rect_t rect;
     int ready;
-    int emu_us_avg;
     int vsync;
-    int64_t vsync_time;
     // int rendered_frame;
     // 1 - disallow vsync, 2 - tried (and refused) to enable vsync
     int disallow_vsync;
 
     // Drawable size, used for layout and rendering. Not necessarily the same
-    // as window size (for high-DPI windows on some platforms). Note, this
-    // variable is not for the renderer. The video thread has its own copy.
+    // as window size (for high-DPI windows on some platforms).
     fsemu_size_t drawable_size;
 
     bool must_render_frame;
-    int64_t must_render_frame_until;
-    bool did_render_frame;
+    int64_t must_render_frame_until_ns;
 
-    fsemu_gui_item_t* gui_snapshot;
-    fsemu_mutex_t* gui_snapshot_mutex;
-
-    double vsync_interval_avg;
-    int vsync_intervals_count;
-    GList* vsync_intervals;
-    GList* vsync_intervals_sorted;
+    // The measured host refresh interval in nanoseconds, from the swapped hook (drawing side), also
+    // read by the emulation thread (fsemu_video_get_host_refresh_interval_ns): written and read
+    // under vsync_interval_lock. The intervals it is made from are the drawing side's
+    // (fsemu_video_vsync_intervals_ns).
+    double vsync_interval_avg_ns;
+    SDL_SpinLock vsync_interval_lock;
 
     // Used with fsemu_video_frame_queue
     int last_posted_frame;
     int last_retrieved_frame;
+    // fsemu_video_get_last_whole_posted_frame, plus one (so that 0 is none; emulation thread).
+    int last_whole_posted_frame_plus_one;
     // FIXME: Move fsemu_video_frame_queue here
 
-#if 0
-    // Mutex used to copy consistent data from UI thread over to video thread.
-    fsemu_mutex_t *ui_video_mutex;
-    // Data from UI thread
-    struct fsemu_video_thread_data ui_thread_d;
-    // Data (copy) for UI thread
-    struct fsemu_video_thread_data thread_d;
-#endif
 } fsemu_video;
 
-static GAsyncQueue* fsemu_video_frame_queue;
+static GAsyncQueue *fsemu_video_frame_queue;
 
-bool fsemu_video_is_threaded(void) {
-    return fsemu_video.threaded;
-}
-
-void fsemu_video_set_renderer(fsemu_video_renderer_t renderer) {
-    fsemu_video.renderer = renderer;
-}
-
-fsemu_video_renderer_t fsemu_video_get_renderer(void) {
-    return fsemu_video.renderer;
-}
-
-fsemu_video_format_t fsemu_video_format(void) {
+fsemu_video_format_t fsemu_video_format(void)
+{
     return fsemu_video.format;
 }
 
-void fsemu_video_set_format(fsemu_video_format_t format) {
+void fsemu_video_set_format(fsemu_video_format_t format)
+{
     fsemu_video.format = format;
 }
 
-static int fsemu_video_default_format(void) {
+static fsemu_video_format_t fsemu_video_default_format(void)
+{
 #ifdef FSEMU_LINUX_ARM
 #warning not supprting RGB565 format anymore?
     // return FSEMU_VIDEO_FORMAT_RGB565;
@@ -118,7 +86,8 @@ static int fsemu_video_default_format(void) {
 #endif
 }
 
-void fsemu_video_finalize_and_free_frame(fsemu_video_frame_t* frame) {
+void fsemu_video_finalize_and_free_frame(fsemu_video_frame_t *frame)
+{
     // printf("free\n");
     if (frame->finalize) {
         // printf("finalize\n");
@@ -129,82 +98,48 @@ void fsemu_video_finalize_and_free_frame(fsemu_video_frame_t* frame) {
 
 // ----------------------------------------------------------------------------
 
-void fsemu_video_drawable_size(fsemu_size_t* size) {
+void fsemu_video_drawable_size(fsemu_size_t *size)
+{
     *size = fsemu_video.drawable_size;
 }
 
-void fsemu_video_set_drawable_size(fsemu_size_t* size) {
+void fsemu_video_set_drawable_size(fsemu_size_t *size)
+{
     fsemu_video.drawable_size = *size;
     // Also automatically set layout size to drawable size?
     fsemu_layout_set_size(size);
 }
 
 // ----------------------------------------------------------------------------
-#if 0
-void fsemu_video_set_data_from_ui_thread(fsemu_size_t *window_size,
-                                         fsemu_rect_t *client_area,
-                                         fsemu_rect_t *video_area,
-                                         fsemu_rect_t *video_rect)
+
+void fsemu_video_set_size_2(int width, int height, int drawable_width, int drawable_height)
 {
-    fsemu_mutex_lock(fsemu_video.ui_video_mutex);
-    fsemu_video.ui_thread_d.window_size = *window_size;
-    fsemu_video.ui_thread_d.client_area = *client_area;
-    fsemu_video.ui_thread_d.video_area = *video_area;
-    fsemu_video.ui_thread_d.video_rect = *video_rect;
-    fsemu_mutex_unlock(fsemu_video.ui_video_mutex);
+    fsemu_video_log_info("Window size %dx%d : drawable size %dx%d\n", width, height, drawable_width,
+                         drawable_height);
+    fsemu_size_t drawable_size = {drawable_width, drawable_height};
+    fsemu_video_set_drawable_size(&drawable_size);
 }
 
-static void fsemu_video_copy_thread_data(void)
+int fsemu_video_vsync(void)
 {
-    fsemu_mutex_lock(fsemu_video.ui_video_mutex);
-    fsemu_video.thread_d = fsemu_video.ui_thread_d;
-    fsemu_mutex_unlock(fsemu_video.ui_video_mutex);
-}
-
-void fsemu_video_thread_window_size(fsemu_size_t *size)
-{
-    *size = fsemu_video.thread_d.window_size;
-}
-
-void fsemu_video_thread_client_area(fsemu_rect_t *rect)
-{
-    *rect = fsemu_video.thread_d.client_area;
-}
-
-void fsemu_video_thread_video_area(fsemu_rect_t *rect)
-{
-    *rect = fsemu_video.thread_d.video_area;
-}
-
-void fsemu_video_thread_video_rect(fsemu_rect_t *rect)
-{
-    *rect = fsemu_video.thread_d.video_rect;
-}
-#endif
-// ----------------------------------------------------------------------------
-
-void fsemu_video_set_size_2(int width, int height) {
-    if (fsemu_video.renderer == FSEMU_VIDEO_RENDERER_GL) {
-        fsemu_glvideo_set_size_2(width, height);
-    }
-}
-
-int fsemu_video_vsync(void) {
     return fsemu_video.vsync;
 }
 
-void fsemu_video_disallow_vsync(int disallow_vsync) {
+void fsemu_video_disallow_vsync(int disallow_vsync)
+{
     fsemu_video.disallow_vsync = disallow_vsync;
 }
 
-bool fsemu_video_vsync_prevented(void) {
+bool fsemu_video_vsync_prevented(void)
+{
     return fsemu_video.disallow_vsync == 2;
 }
 
-void fsemu_video_set_vsync(int vsync) {
-    // fsemu_log("Set vsync=%d\n", vsync);
+void fsemu_video_set_vsync(int vsync)
+{
+    // SDL_Log("Set vsync=%d\n", vsync);
     if (vsync && fsemu_video.disallow_vsync) {
-        // fsemu_log("Set vsync=%d disabled\n", vsync);
+        // SDL_Log("Set vsync=%d disabled\n", vsync);
         fsemu_video_log("Wanted to enable vsync, but disabled by emulator");
         fsemu_video.disallow_vsync = 2;
         return;
@@ -212,108 +147,284 @@ void fsemu_video_set_vsync(int vsync) {
     fsemu_video.vsync = vsync;
 }
 
-void fsemu_video_toggle_vsync(void) {
+void fsemu_video_toggle_vsync(void)
+{
     fsemu_video_set_vsync(!fsemu_video_vsync());
 }
 
-int64_t fsemu_video_vsync_time(void) {
-    return fsemu_video.vsync_time;
-}
+// ----------------------------------------------------------------------------
+// The emulated picture, handed to fsapp as the emulation surface's streamed content (fsapp owns
+// the textures and draws it; fsemu makes no GL call). All on the main loop's drawing side: the
+// pacer's wait hook takes in the slices (fsemu_video_work), uploading each and committing at frame
+// ready, and the drawing hook refits the picture in every frame (fsemu_video_update_picture).
 
-// void fsemu_video_set_vsync_time(int frame_number, int64_t vsync_time)
-// {
-//     // FSEMU_VIDEO_FRAME_STATS(frame_number).vsync_at = vsync_time;
-//     fsemu_video_set_frame_vsync_at(frame_number, vsync_time);
+static struct {
+    // The frame being uploaded, from its first slice until it is committed or abandoned.
+    bool begun;
+    int number;
+    // Whether the frame was cropped under the auto crop policy (its first slice's mark).
+    bool auto_crop;
+    // The upload region in the frame's coordinates (the core's buffer): the crop with a fixed crop
+    // policy, the whole frame with auto-crop.
+    fsemu_rect_t region;
+    // The frame's rows taken in so far (from row 0, in the frame's coordinates).
+    int rows_taken;
+    // Whether fsapp has content (committed, and not dropped since), and its source rectangle (in
+    // the upload region).
+    bool has_content;
+    SDL_Rect source;
+    // The picture rectangle last given to fsapp (the surface's coordinates).
+    SDL_Rect picture;
+    // The emulation surface's rectangle (window coordinates) as last seen by the drawing hook
+    // (surface_known), and whether it is in the frame being drawn.
+    bool surface_known;
+    bool surface_visible;
+    SDL_Rect surface_rect;
+    // The window's pixels per window coordinate in the frame being drawn (from its snapshot), for
+    // placing the sidebars: the drawing side does not ask the window itself.
+    double pixel_scale;
+    // The session has stopped: the content is dropped, and no frame is committed.
+    bool stopped;
+    // The filter last passed to fsapp (fsapp's default is linear).
+    fsemu_layout_filter_t filter;
+} fsemu_video_stream;
 
-//     // FIXME: Not nedded?
-//     fsemu_video.vsync_time = vsync_time;
-//     // fsemu_video_set_frame_swapped_at(fsemu_video_rendered_frame(),
-//     vsync_time);
-//     fsemu_video_set_frame_swapped_at(fsemu_video_rendered_frame(),
-//     vsync_time);
-// }
-
-void fsemu_video_background_color_rgb(int* r, int* g, int* b) {
-    *r = 0x0c;
-    *g = 0x0c;
-    *b = 0x0c;
-}
-
-void fsemu_video_work(int timeout_us) {
-    if (fsemu_video.renderer == FSEMU_VIDEO_RENDERER_SDL) {
-        fsemu_sdlvideo_work(timeout_us);
-    } else if (fsemu_video.renderer == FSEMU_VIDEO_RENDERER_GL) {
-        fsemu_glvideo_work(timeout_us);
+// The picture rectangle for the content shown (its source size) in the emulation surface's
+// rectangle, by fsemu's layout code under the fit policy, in the surface's coordinates. Places the
+// performance graph's sidebars from it when the surface is in this frame.
+static SDL_Rect fsemu_video_fit_picture(void)
+{
+    SDL_Rect picture = {0, 0, 0, 0};
+    if (!fsemu_video_stream.surface_known) {
+        // The surface has not been in a frame yet: the drawing hook refits when it is.
+        return picture;
     }
+    const SDL_Rect *surface_rect = &fsemu_video_stream.surface_rect;
+    const SDL_Rect *source = &fsemu_video_stream.source;
+    // The layout is made in the emulation surface's rectangle (window coordinates).
+    fsemu_layout_set_client_area(surface_rect);
+    fsemu_layout_set_size_2(surface_rect->w, surface_rect->h);
+    fsemu_layout_set_video_size(source->w, source->h);
+    fsemu_layout_set_pixel_aspect(((double)source->w / source->h) / (4.0 / 3.0));
+    fsemu_layout_video_rect(&picture);
+    if (fsemu_video_stream.surface_visible) {
+        fsemu_perfgui_place_sidebars(surface_rect, &picture, fsemu_video_stream.pixel_scale);
+    }
+    picture.x -= surface_rect->x;
+    picture.y -= surface_rect->y;
+    return picture;
 }
 
-void fsemu_video_render(int window_width, int window_height, int x, int y, int w, int h) {
-    fsemu_frame_number_rendering = fsemu_frame_number_posted;
-    fsemu_video_log_trace("fsemu_video_render frame_number_rendering=%d\n",
-                          fsemu_frame_number_rendering);
+// Takes in one slice (drawing side, in the pacer's wait): begins a frame at the first slice of a
+// frame not begun, uploads the slice's rows of the upload region, and at the frame's last slice
+// commits it (frame ready).
+static void fsemu_video_take_in_slice(fsemu_video_frame_t *frame)
+{
+    fsemu_video_must_render_frame();
+    fsapp_surface_t *surface = fsemu_mainloop_emulation_surface();
+    // The posting side always posts BGRA (4 bytes per pixel), and the content is attached as BGRA.
+    const int bytes_per_pixel = 4;
 
-    if (fsemu_video_vsync()) {
-        // printf("fsemu_video_render (vsync)\n");
-    }
-    if (fsemu_video_can_skip_rendering_this_frame()) {
-        fsemu_video.did_render_frame = false;
-    } else {
-        fsemu_frame_log_epoch("Render\n");
-        if (fsemu_video.renderer == FSEMU_VIDEO_RENDERER_SDL) {
-            fsemu_sdlvideo_render();
-        } else if (fsemu_video.renderer == FSEMU_VIDEO_RENDERER_GL) {
-            fsemu_glvideo_render(window_width, window_height, x, y, w, h);
+    // The rows of the frame drawn so far: partial is the rows drawn, the frame's height at its
+    // last slice, or 0 for a whole frame at once (RTG).
+    bool last = frame->partial == 0 || frame->partial == frame->height;
+    int rows = frame->partial == 0 ? frame->height : SDL_min(frame->partial, frame->height);
+
+    if (!fsemu_video_stream.begun || frame->number != fsemu_video_stream.number ||
+        rows <= fsemu_video_stream.rows_taken) {
+        // A new frame begins: at the first slice of a frame number not begun, and also at a slice
+        // of the same number with no more rows than were taken in: the emulation has started
+        // drawing that frame again from its top, so the rows taken in so far are stale. One half
+        // uploaded (its later slices dropped from the queue, or a frame started again) is
+        // abandoned: fsapp never shows it.
+        fsemu_video_stream.begun = false;
+        fsemu_rect_t frame_rect = {0, 0, frame->width, frame->height};
+        fsemu_rect_t region;
+        // The crop policy the frame was cropped under, read once at its first slice.
+        bool auto_crop = (frame->flags & FSEMU_FRAME_FLAG_AUTO_CROP) != 0;
+        if (auto_crop) {
+            // The crop is only known when the frame is complete: the whole frame is uploaded.
+            region = frame_rect;
+        } else if (!SDL_GetRectIntersection(&frame->limits, &frame_rect, &region)) {
+            region = {0, 0, 0, 0};
         }
-        fsemu_video.did_render_frame = true;
+        if (region.w <= 0 || region.h <= 0) {
+            // Nothing to show (no crop yet): the frame is left out, as before.
+            fsemu_video_log_debug("Empty upload region\n");
+            return;
+        }
+        fsapp_surface_begin_streamed_frame(surface, region.w, region.h);
+        fsemu_video_stream.begun = true;
+        fsemu_video_stream.number = frame->number;
+        fsemu_video_stream.auto_crop = auto_crop;
+        fsemu_video_stream.region = region;
+        fsemu_video_stream.rows_taken = 0;
     }
+
+    // The slice's new rows inside the upload region.
+    const fsemu_rect_t *region = &fsemu_video_stream.region;
+    int first = SDL_max(fsemu_video_stream.rows_taken, region->y);
+    int end = SDL_min(rows, region->y + region->h);
+    if (first < end) {
+        const uint8_t *pixels =
+            frame->buffer + (size_t)first * frame->stride + (size_t)region->x * bytes_per_pixel;
+        fsapp_surface_upload_streamed_slice(surface, first - region->y, end - first, pixels,
+                                            frame->stride);
+    }
+    fsemu_video_stream.rows_taken = rows;
+    if (FS_IsTraceEnabled()) {
+        FS_AddTraceInstant("slice taken in", (int64_t)SDL_GetTicksNS(), frame->number, "lines",
+                           rows);
+    }
+    if (!last) {
+        return;
+    }
+
+    // Frame ready: the source rectangle is the whole region with a fixed crop, and the last
+    // slice's crop (relative to the region) with auto-crop.
+    fsemu_video_stream.begun = false;
+    SDL_Rect source = {0, 0, region->w, region->h};
+    if (fsemu_video_stream.auto_crop) {
+        SDL_Rect crop;
+        if (!SDL_GetRectIntersection(&frame->limits, region, &crop)) {
+            fsemu_video_log_debug("Empty crop\n");
+            return;
+        }
+        source = {crop.x - region->x, crop.y - region->y, crop.w, crop.h};
+    }
+    if (fsemu_video_stream.stopped) {
+        // The session has stopped (its content dropped): its last frames, still in the queue, are
+        // not shown, so that the next session starts from the fill colour, never this session's
+        // picture (fsemu_video_update_picture).
+        return;
+    }
+    fsemu_video_stream.source = source;
+    fsemu_video_stream.has_content = true;
+    fsemu_video_stream.picture = fsemu_video_fit_picture();
+    fsapp_surface_commit_streamed_frame(surface, &source, &fsemu_video_stream.picture);
+
+    fsemu_frame_number_posted = frame->number;
+    fsemu_video_set_ready(true);
+    int64_t ready_ns = (int64_t)SDL_GetTicksNS();
+    // For the performance graph's frame ready mark, and the pacer's hold and the slot margin.
+    FSEMU_FRAMEINFO(frame->number).frame_ready_ns = ready_ns;
+    if (FS_IsTraceEnabled()) {
+        FS_AddTraceInstant("frame ready", ready_ns, frame->number, FS_TRACE_NO_VALUE, 0);
+    }
+}
+
+bool fsemu_video_work(int64_t timeout_ns)
+{
+    fsemu_video_frame_t *frame = fsemu_video_get_frame(timeout_ns);
+    if (frame == NULL) {
+        return false;
+    }
+    fsemu_video_take_in_slice(frame);
+    fsemu_video_finalize_and_free_frame(frame);
+    return true;
+}
+
+void fsemu_video_update_picture(bool session_stopped, double pixel_scale)
+{
+    fsapp_surface_t *surface = fsemu_mainloop_emulation_surface();
+    fsemu_video_stream.pixel_scale = pixel_scale;
+    SDL_Rect surface_rect;
+    fsemu_video_stream.surface_visible = fsapp_surface_get_frame_rectangle(surface, &surface_rect);
+    if (fsemu_video_stream.surface_visible) {
+        fsemu_video_stream.surface_rect = surface_rect;
+        fsemu_video_stream.surface_known = true;
+    }
+
+    fsemu_layout_filter_t filter = fsemu_layout_get_filter();
+    if (filter != fsemu_video_stream.filter) {
+        fsapp_surface_set_streamed_filter(surface, filter == FSEMU_LAYOUT_FILTER_NEAREST
+                                                       ? FSAPP_SURFACE_STREAM_FILTER_NEAREST
+                                                       : FSAPP_SURFACE_STREAM_FILTER_LINEAR);
+        fsemu_video_stream.filter = filter;
+    }
+
+    // TODO: A second session in one process (not possible yet) must clear stopped when it starts,
+    // and must not take in slices the stopped session left in the queue.
+    fsemu_video_stream.stopped = session_stopped;
+    if (session_stopped && fsemu_video_stream.has_content) {
+        // The next session starts from the fill colour, never the old picture.
+        fsemu_video_log("Session stopped: dropping the emulated picture\n");
+        fsapp_surface_drop_streamed_content(surface);
+        fsemu_video_stream.has_content = false;
+    }
+
+    if (!fsemu_video_stream.surface_visible) {
+        return;
+    }
+    if (!fsemu_video_stream.has_content) {
+        // The fill shows in the whole surface, so no sidebars are shown.
+        fsemu_perfgui_place_sidebars(&surface_rect, &surface_rect, pixel_scale);
+        return;
+    }
+    // A refit to the surface's rectangle in this frame (a resize, Alt+S, also while paused).
+    SDL_Rect picture = fsemu_video_fit_picture();
+    if (!SDL_RectsEqual(&picture, &fsemu_video_stream.picture)) {
+        fsapp_surface_set_streamed_picture(surface, &picture);
+        fsemu_video_stream.picture = picture;
+    }
+    fsemu_frame_number_rendered = fsemu_frame_number_rendering;
+}
+
+void fsemu_video_take_frame(void)
+{
+    fsemu_frame_number_rendering = fsemu_frame_number_posted;
+    fsemu_video_log_trace("fsemu_video_take_frame frame_number_rendering=%d\n",
+                          fsemu_frame_number_rendering);
     fsemu_video.ready = false;
     // Reset this variable, will be set again if a new (actual) frame is
     // posted.
     // FIXME: Check if this is still needed / used
     fsemu_video.must_render_frame = false;
-
-    fsemu_frame_number_rendered = fsemu_frame_number_rendering;
-
-    fsemu_window_notify_frame_rendered_vt();
 }
 
-bool fsemu_video_ready(void) {
+bool fsemu_video_initialized(void)
+{
+    return fsemu_video.initialized;
+}
+
+bool fsemu_video_ready(void)
+{
     return fsemu_video.ready;
 }
 
-void fsemu_video_set_ready(bool ready) {
+void fsemu_video_set_ready(bool ready)
+{
     fsemu_video.ready = ready;
 }
 
-void fsemu_video_display(void) {
-    if (!fsemu_video.did_render_frame) {
-        // Did not render frame, nothing to display
-        printf("No frame rendered, skipping display\n");
-        if (fsemu_video_vsync()) {
-            printf("fsemu_video_display NOT (vsync)\n");
-        }
-        return;
-    }
-
-    fsemu_frame_number_displaying = fsemu_frame_number_rendered;
-
-    if (fsemu_video_vsync()) {
-        // printf("fsemu_video_display (vsync)\n");
-    }
-
-    fsemu_frame_log_epoch("Display\n");
-    if (fsemu_video.renderer == FSEMU_VIDEO_RENDERER_SDL) {
-        fsemu_sdlvideo_display();
-    } else if (fsemu_video.renderer == FSEMU_VIDEO_RENDERER_GL) {
-        fsemu_glvideo_display();
-    }
-
-    // fsemu_assert(fsemu_frame_number_displayed == fsemu_frame_number_posted -
-    // 1);
-    fsemu_frame_number_displayed = fsemu_frame_number_displaying;
+int fsemu_video_get_posting_frame_number(bool after_frame_end)
+{
+    // A picture posted after its frame's end comes when fsemu_frame_number_began has already moved
+    // on. The first picture comes before any frame has begun (fsemu_frame_number_began is still
+    // -1); it is part of frame 0.
+    int number = after_frame_end ? fsemu_frame_number_began - 1 : fsemu_frame_number_began;
+    return SDL_max(number, 0);
 }
 
-void fsemu_video_post_frame(fsemu_video_frame_t* frame) {
+// The crop policy of the frame being posted, and its frame number (emulation thread only).
+static struct {
+    bool read;
+    int number;
+    fsemu_layout_crop_policy_t policy;
+} fsemu_video_posting_crop;
+
+fsemu_layout_crop_policy_t fsemu_video_get_frame_crop_policy(int number)
+{
+    if (!fsemu_video_posting_crop.read || number != fsemu_video_posting_crop.number) {
+        fsemu_video_posting_crop.read = true;
+        fsemu_video_posting_crop.number = number;
+        fsemu_video_posting_crop.policy = fsemu_layout_get_crop_policy();
+    }
+    return fsemu_video_posting_crop.policy;
+}
+
+void fsemu_video_post_frame(fsemu_video_frame_t *frame)
+{
     // printf("Posted frame %d %d\n", frame->width, frame->height);
 
     // FIXME: There is currently an issue with fast-forward; the queue will
@@ -324,22 +435,25 @@ void fsemu_video_post_frame(fsemu_video_frame_t* frame) {
 
     // if (frame->partial == frame->height) {
     //     static int64_t last;
-    //     int64_t t = fsemu_time_us();
+    //     int64_t t = (int64_t)SDL_NS_TO_US(SDL_GetTicksNS());
     //     printf("START_OR_POST post %d %d %d %d + %lld\n", frame->partial,
     //     frame->height, fsemu_frame_number_posted, fsemu_frame_number_began,
     //     lld((t - last) / 1000)); last = t;
-    //     fsemu_assert(fsemu_frame_number_posted == fsemu_frame_number_began -
+    //     fsapp_assert(fsemu_frame_number_posted == fsemu_frame_number_began -
     //     1);
     // }
 
     // FIXME: fsemu_frame_counter conflict with new vars
     // frame->number = fsemu_frame_counter();
 
-    int frame_number = fsemu_frame_number_began;
-
-    frame->number = frame_number;
+    int frame_number = frame->number;
+    if (fsemu_video_get_frame_crop_policy(frame_number) == FSEMU_LAYOUT_CROP_POLICY_AUTO) {
+        frame->flags |= FSEMU_FRAME_FLAG_AUTO_CROP;
+    }
 
     g_async_queue_lock(fsemu_video_frame_queue);
+    // GAsyncQueue's lock is not seen by ThreadSanitizer (fsapp-tsan.h).
+    FSAPP_TSAN_ACQUIRE(fsemu_video_frame_queue);
 
     static int last_skipped_frame;
 
@@ -349,9 +463,10 @@ void fsemu_video_post_frame(fsemu_video_frame_t* frame) {
         //        frame_number,
         //        fsemu_video.last_posted_frame,
         //        fsemu_video.last_retrieved_frame);
-        GList* keep = NULL;
-        fsemu_video_frame_t* f;
-        while ((f = g_async_queue_try_pop_unlocked(fsemu_video_frame_queue))) {
+        GList *keep = NULL;
+        fsemu_video_frame_t *f;
+        while (
+            (f = (fsemu_video_frame_t *)g_async_queue_try_pop_unlocked(fsemu_video_frame_queue))) {
             if (f->number == fsemu_video.last_retrieved_frame) {
                 // Need to keep this
                 keep = g_list_append(keep, f);
@@ -359,25 +474,51 @@ void fsemu_video_post_frame(fsemu_video_frame_t* frame) {
                 fsemu_video_finalize_and_free_frame(f);
             }
         }
-        GList* item = g_list_last(keep);
+        GList *item = g_list_last(keep);
         while (item) {
-            g_async_queue_push_front_unlocked(fsemu_video_frame_queue, f);
+            g_async_queue_push_front_unlocked(fsemu_video_frame_queue, item->data);
             item = item->prev;
         }
         g_list_free(keep);
-        // fsemu_assert(frame);
+        // fsapp_assert(frame);
 
         int from = MAX(last_skipped_frame, fsemu_video.last_retrieved_frame + 1);
         for (int i = from; i < frame->number; i++) {
             // printf("SKIPPED FRAME %d\n", i);
             last_skipped_frame = i;
             FSEMU_FRAMEINFO(i).render_skipped = true;
+            if (FS_IsTraceEnabled()) {
+                FS_AddTraceInstant("frame dropped", (int64_t)SDL_GetTicksNS(), i, FS_TRACE_NO_VALUE,
+                                   0);
+            }
         }
     }
 
+    // Read before the push: from then on the main thread may take the slice in and free it. The
+    // time too, so that the slice is posted in the trace before it is taken in, and the last
+    // slice's in the frame info (for the performance graph's hand-over) before the drawing side
+    // reads it.
+    bool last_slice = frame->partial == 0 || frame->partial == frame->height;
+    int lines = frame->partial == 0 ? frame->height : frame->partial;
+    int64_t posted_ns = FS_IsTraceEnabled() || last_slice ? (int64_t)SDL_GetTicksNS() : 0;
+    if (last_slice) {
+        FSEMU_FRAMEINFO(frame_number).last_slice_posted_ns = posted_ns;
+    }
     g_async_queue_push_unlocked(fsemu_video_frame_queue, frame);
     fsemu_video.last_posted_frame = frame_number;
+    FSAPP_TSAN_RELEASE(fsemu_video_frame_queue);
     g_async_queue_unlock(fsemu_video_frame_queue);
+    if (last_slice) {
+        fsemu_video.last_whole_posted_frame_plus_one = frame_number + 1;
+    }
+    if (FS_IsTraceEnabled()) {
+        FS_AddTraceInstant(last_slice ? "last slice posted" : "slice posted", posted_ns,
+                           frame_number, "lines", lines);
+    }
+
+    // fsemu's pacer takes the slices in on the main loop's drawing side: end its frame wait. Never
+    // blocks.
+    fsapp_frame_wake();
 
     // g_async_queue_push(fsemu_video_frame_queue, frame);
 
@@ -386,19 +527,25 @@ void fsemu_video_post_frame(fsemu_video_frame_t* frame) {
     // }
 }
 
+int fsemu_video_get_last_whole_posted_frame(void)
+{
+    return fsemu_video.last_whole_posted_frame_plus_one - 1;
+}
+
 // Developer/test aid: FSEMU_AUTO_SCREENSHOT_FRAMES="250,500,1000" requests a screenshot (saved to
 // FSEMU_SCREENSHOTS_DIR) once each listed frame number has been reached. Allows capturing output
 // when running headless, where keyboard shortcuts cannot be used.
-static void fsemu_video_auto_screenshot(const fsemu_video_frame_t* frame) {
+static void fsemu_video_auto_screenshot(const fsemu_video_frame_t *frame)
+{
     static bool initialized = false;
     static int frames[32];
     static int count = 0;
     static int next = 0;
     if (!initialized) {
         initialized = true;
-        const char* env = getenv("FSEMU_AUTO_SCREENSHOT_FRAMES");
+        const char *env = getenv("FSEMU_AUTO_SCREENSHOT_FRAMES");
         while (env && *env && count < 32) {
-            char* end = NULL;
+            char *end = NULL;
             long value = strtol(env, &end, 10);
             if (end == env) {
                 break;
@@ -413,21 +560,29 @@ static void fsemu_video_auto_screenshot(const fsemu_video_frame_t* frame) {
     }
 }
 
-fsemu_video_frame_t* fsemu_video_get_frame(int timeout_us) {
-    fsemu_assert(timeout_us >= -1);
-    fsemu_video_frame_t* frame;
+fsemu_video_frame_t *fsemu_video_get_frame(int64_t timeout_ns)
+{
+    fsapp_assert(timeout_ns >= -1);
+    fsemu_video_frame_t *frame;
 
     g_async_queue_lock(fsemu_video_frame_queue);
-    if (timeout_us == 0) {
+    // GAsyncQueue's lock is not seen by ThreadSanitizer (fsapp-tsan.h).
+    FSAPP_TSAN_ACQUIRE(fsemu_video_frame_queue);
+    if (timeout_ns == 0) {
         // Maybe not necessary, but did not test timeout 0
-        frame = g_async_queue_try_pop_unlocked(fsemu_video_frame_queue);
-    } else if (timeout_us == -1) {
-        frame = g_async_queue_pop_unlocked(fsemu_video_frame_queue);
+        frame = (fsemu_video_frame_t *)g_async_queue_try_pop_unlocked(fsemu_video_frame_queue);
+    } else if (timeout_ns == -1) {
+        frame = (fsemu_video_frame_t *)g_async_queue_pop_unlocked(fsemu_video_frame_queue);
     } else {
-        frame = g_async_queue_timeout_pop_unlocked(fsemu_video_frame_queue, timeout_us);
+        // GLib's queue takes microseconds: rounded up, so that the wait does not end early.
+        frame = (fsemu_video_frame_t *)g_async_queue_timeout_pop_unlocked(
+            fsemu_video_frame_queue, (guint64)SDL_NS_TO_US(timeout_ns + SDL_NS_PER_US - 1));
     }
+    // Again after the pop, which may have waited (and taken the lock again).
+    FSAPP_TSAN_ACQUIRE(fsemu_video_frame_queue);
 
     if (frame == NULL) {
+        FSAPP_TSAN_RELEASE(fsemu_video_frame_queue);
         g_async_queue_unlock(fsemu_video_frame_queue);
         return NULL;
     }
@@ -442,17 +597,8 @@ fsemu_video_frame_t* fsemu_video_get_frame(int timeout_us) {
 
     fsemu_video.last_retrieved_frame = frame->number;
 
+    FSAPP_TSAN_RELEASE(fsemu_video_frame_queue);
     g_async_queue_unlock(fsemu_video_frame_queue);
-
-    // if (timeout_us == 0) {
-    //     // Maybe not necessary, but did not test timeout 0
-    //     frame = g_async_queue_try_pop(fsemu_video_frame_queue);
-    // } else if (timeout_us == -1) {
-    //     frame = g_async_queue_pop(fsemu_video_frame_queue);
-    // } else {
-    //     frame = g_async_queue_timeout_pop(fsemu_video_frame_queue,
-    //     timeout_us);
-    // }
 
 #if 0
     // See if there are more events, and only consider the last one.
@@ -508,193 +654,100 @@ static void fsemu_video_convert_coordinates(SDL_Rect *out,
 }
 */
 
-void fsemu_video_render_gui_early(fsemu_gui_item_t* items) {
-    fsemu_frame_log_epoch("Render GUI (early)\n");
-
-    // FIXME: Consider moving this elsewhere.
-    fsemu_videothread_copy_thread_data();
-
-    if (items == NULL) {
-        printf("WARNING: fsemu_video_render_gui_early items=NULL\n");
-        return;
-    }
-    // fsemu_video_log_debug("render_gui_early\n");
-    if (fsemu_video.renderer == FSEMU_VIDEO_RENDERER_SDL) {
-        fsemu_sdlvideo_render_gui_early(items);
-    } else if (fsemu_video.renderer == FSEMU_VIDEO_RENDERER_GL) {
-        // fsemu_glvideo_render_gui_early(items);
-    }
-}
-
-void fsemu_video_render_gui(fsemu_gui_item_t* items) {
-    fsemu_frame_log_epoch("Render GUI\n");
-    if (items == NULL) {
-        printf("WARNING: fsemu_video_render_gui items=NULL\n");
-        return;
-    }
-#if 0
-    // fsemu_video_log_debug("render_gui\n");
-    printf("fsemu_video_render_gui %p\n", items);
-#endif
-    if (fsemu_video.renderer == FSEMU_VIDEO_RENDERER_SDL) {
-        fsemu_sdlvideo_render_gui(items);
-    } else if (fsemu_video.renderer == FSEMU_VIDEO_RENDERER_GL) {
-        // fsemu_glvideo_render_gui(items);
-    }
-}
-
-static void fsemu_video_update_stats(void) {
-    fsemu_thread_assert_emu();
-
-    // static int64_t last;
-    // int64_t now = fsemu_time_us();
-
-    static fsemu_mavgi_t emu_us_mavgi;
-    static int emu_us_mavgi_values[FSEMU_VIDEO_MAX_FRAME_STATS];
-    // stats->emu_us_mavg = fsemu_mavgi(
-    //     &emu_us_mavgi, emu_us_mavgi_values, 60, stats->emu_us);
-    fsemu_video.emu_us_avg =
-        fsemu_mavgi(&emu_us_mavgi, emu_us_mavgi_values, FSEMU_VIDEO_MAX_FRAME_STATS,
-                    FSEMU_FRAMEINFO(fsemu_frame_number_began).emu_us);
-
-    // last = now;
-}
-
-// FIXME: Should probably be fsemu_frame_emutime_avg_us
-// FIXME: move
-int fsemu_frame_emutime_avg_us(void) {
-    return fsemu_video.emu_us_avg;
-}
-
 #if 1
 
-// int fsemu_video_rendered_frame(void)
-// {
-//     // Currently only set via fsemu_video_set_frame_rendered_at
-//     return fsemu_video.rendered_frame;
-// }
-
-// void fsemu_video_set_frame_began_at(int frame, int64_t began_at)
-// {
-//     fsemu_video.stats[frame % FSEMU_VIDEO_MAX_FRAME_STATS].began_at =
-//     began_at;
-// }
-
-void fsemu_video_set_frame_rendered_at(int frame, int64_t rendered_at) {
-    FSEMU_FRAMEINFO(frame).rendered_at = rendered_at;
+void fsemu_video_set_frame_swapped(int frame, int64_t swapped_ns)
+{
+    FSEMU_FRAMEINFO(frame).swapped_ns = swapped_ns;
 }
 
-void fsemu_video_set_frame_swapped_at(int frame, int64_t swapped_at) {
-    FSEMU_FRAMEINFO(frame).swapped_at = swapped_at;
+void fsemu_video_set_frame_rendered(int frame, int64_t rendered_ns)
+{
+    FSEMU_FRAMEINFO(frame).rendered_ns = rendered_ns;
 }
 
-static gint fsemu_video_compare_vsync_intervals(gconstpointer a, gconstpointer b) {
-    return GPOINTER_TO_INT(a) - GPOINTER_TO_INT(b);
-}
+// The host refresh interval is the mean of the middle half of the last intervals measured: the
+// intervals in the order they came, and sorted (drawing side).
+#define FSEMU_VIDEO_VSYNC_INTERVALS 512
+static std::deque<int64_t> fsemu_video_vsync_intervals_ns;
+static std::vector<int64_t> fsemu_video_vsync_intervals_sorted_ns;
 
-static void fsemu_video_update_vsync_interval(int vsync_interval) {
-    const int target_count = 512;
-    if (fsemu_video.vsync_intervals_count == target_count) {
-        int remove_vsync_interval =
-            GPOINTER_TO_INT(g_list_first(fsemu_video.vsync_intervals)->data);
-        fsemu_video.vsync_intervals =
-            g_list_remove(fsemu_video.vsync_intervals, GINT_TO_POINTER(remove_vsync_interval));
-        fsemu_video.vsync_intervals_sorted = g_list_remove(fsemu_video.vsync_intervals_sorted,
-                                                           GINT_TO_POINTER(remove_vsync_interval));
-        // fsemu_video.vsync_intervals_count -= 1;
-    } else {
-        fsemu_video.vsync_intervals_count += 1;
+static void fsemu_video_update_vsync_interval(int64_t vsync_interval_ns)
+{
+    std::deque<int64_t> &intervals = fsemu_video_vsync_intervals_ns;
+    std::vector<int64_t> &sorted = fsemu_video_vsync_intervals_sorted_ns;
+    if (intervals.size() == FSEMU_VIDEO_VSYNC_INTERVALS) {
+        // The oldest interval goes (one of its value from the sorted ones).
+        sorted.erase(std::lower_bound(sorted.begin(), sorted.end(), intervals.front()));
+        intervals.pop_front();
     }
-    fsemu_video.vsync_intervals =
-        g_list_append(fsemu_video.vsync_intervals, GINT_TO_POINTER(vsync_interval));
-    fsemu_video.vsync_intervals_sorted =
-        g_list_insert_sorted(fsemu_video.vsync_intervals_sorted, GINT_TO_POINTER(vsync_interval),
-                             fsemu_video_compare_vsync_intervals);
-    // fsemu_video.vsync_intervals_count += 1;
+    intervals.push_back(vsync_interval_ns);
+    sorted.insert(std::upper_bound(sorted.begin(), sorted.end(), vsync_interval_ns),
+                  vsync_interval_ns);
 
     // Only consider the middle part of the sorted list to remove noise
-    int start_index = fsemu_video.vsync_intervals_count / 4;
-    int include_count = fsemu_video.vsync_intervals_count / 2;
-    // int end_index = start_index + count / 2;  // not inclusive
-    GList* it = fsemu_video.vsync_intervals_sorted;
-    int k = 0;
-    while (it && k < start_index) {
-        it = it->next;
-        k += 1;
+    size_t start_index = sorted.size() / 4;
+    size_t include_count = sorted.size() / 2;
+    int64_t sum_ns = 0;
+    for (size_t i = start_index; i < start_index + include_count; i++) {
+        sum_ns += sorted[i];
     }
 
-    int sum = 0;
-
-    k = 0;
-    while (it && k < include_count) {
-        sum += GPOINTER_TO_INT(it->data);
-        it = it->next;
-        k += 1;
-    }
-
-    if (include_count == 0) {
-        // FIXME: Calculate from monitor refresh or just use dummy value?
-        fsemu_video.vsync_interval_avg = 16667;
-    } else {
-        fsemu_video.vsync_interval_avg = (double)sum / include_count;
-    }
-    // printf("vsync_interval (%d) = %.1f => %0.2f Hz\n",
-    //        fsemu_video.vsync_intervals_count,
-    //        fsemu_video.vsync_interval_avg,
-    //        1000000.0 / fsemu_video.vsync_interval_avg);
+    // FIXME: Calculate from monitor refresh or just use dummy value?
+    double vsync_interval_avg_ns =
+        include_count == 0 ? 16667000.0 : (double)sum_ns / (double)include_count;
+    SDL_LockSpinlock(&fsemu_video.vsync_interval_lock);
+    fsemu_video.vsync_interval_avg_ns = vsync_interval_avg_ns;
+    SDL_UnlockSpinlock(&fsemu_video.vsync_interval_lock);
 }
 
-int fsemu_video_vsync_interval(void) {
-    return (int)fsemu_video.vsync_interval_avg;
+int64_t fsemu_video_get_vsync_interval_ns(void)
+{
+    return (int64_t)fsemu_video_get_host_refresh_interval_ns();
 }
 
-int fsemu_video_vsync_frequency(void) {
-    return 1000000.0 / fsemu_video.vsync_interval_avg;
+double fsemu_video_get_host_refresh_interval_ns(void)
+{
+    SDL_LockSpinlock(&fsemu_video.vsync_interval_lock);
+    double interval_ns = fsemu_video.vsync_interval_avg_ns;
+    SDL_UnlockSpinlock(&fsemu_video.vsync_interval_lock);
+    return interval_ns;
 }
 
-void fsemu_video_set_frame_vsync_at(int frame, int64_t vsync_at) {
-    static int64_t last_vsync_at = 0;
+int fsemu_video_vsync_frequency(void)
+{
+    return (int)((double)SDL_NS_PER_SECOND / fsemu_video_get_host_refresh_interval_ns());
+}
 
-    FSEMU_FRAMEINFO(frame).vsync_at = vsync_at;
+void fsemu_video_set_frame_vsync(int frame, int64_t vsync_ns, int64_t vsync_predicted_ns)
+{
+    static int64_t last_vsync_ns = 0;
 
-    // FSEMU_FRAMEINFO(frame + 3).vsync_allow_start_at = SDL_MAX_SINT64;
-    // FSEMU_FRAMEINFO(frame + 4).vsync_allow_start_at = SDL_MAX_SINT64;
-    // FSEMU_FRAMEINFO(frame + 5).vsync_allow_start_at = SDL_MAX_SINT64;
-    // FSEMU_FRAMEINFO(frame + 6).vsync_allow_start_at = SDL_MAX_SINT64;
+    // The start gate reads vsync_ns first, as the sign that the frame was swapped, and then the
+    // prediction (fsemu_frame_can_start_frame_vsync), so the prediction is written first.
+    FSEMU_FRAMEINFO(frame).vsync_predicted_ns = vsync_predicted_ns;
+    SDL_MemoryBarrierRelease();
+    FSEMU_FRAMEINFO(frame).vsync_ns = vsync_ns;
 
-    FSEMU_FRAMEINFO(frame + 3).vsync_allow_start_at = 0;
-    // FSEMU_FRAMEINFO(frame + 4).vsync_allow_start_at = 0;
-    // FSEMU_FRAMEINFO(frame + 5).vsync_allow_start_at = 0;
-    // FSEMU_FRAMEINFO(frame + 6).vsync_allow_start_at = 0;
-
-    // FSEMU_FRAMEINFO(frame + 1).vsync_allow_start_at = vsync_time_us -
-    // 10000; FSEMU_FRAMEINFO(frame + 2).vsync_allow_start_at =
-    // vsync_time_us + 10000; FSEMU_FRAMEINFO(frame +
-    // 3).vsync_allow_start_at = vsync_time_us + 30000;
-    // FSEMU_FRAMEINFO(frame + 3).vsync_allow_start_at = vsync_time_us +
-    // 50000;
-
-    FSEMU_FRAMEINFO(frame + 2).vsync_allow_start_at = vsync_at + 9000;
-    // FSEMU_FRAMEINFO(frame + 3).vsync_allow_start_at = vsync_time_us +
-    // 25000;
-    if (last_vsync_at > 0) {
-        int vsync_interval = (int)(vsync_at - last_vsync_at);
+    FSEMU_FRAMEINFO(frame + 3).vsync_allow_start_ns = 0;
+    FSEMU_FRAMEINFO(frame + 2).vsync_allow_start_ns = vsync_ns + SDL_US_TO_NS(9000);
+    if (last_vsync_ns > 0) {
+        int64_t vsync_interval_ns = vsync_ns - last_vsync_ns;
         // Small hack here; assume we have missed a vblank, so we divide by
         // two in order to try avoiding a feedback effect where emulation
         // length is increased, thereby missing more vblank intervals.
-        if (vsync_interval > 30000) {
-            vsync_interval = vsync_interval / 2;
+        if (vsync_interval_ns > SDL_MS_TO_NS(30)) {
+            vsync_interval_ns = vsync_interval_ns / 2;
         }
-        fsemu_video_update_vsync_interval(vsync_interval);
+        fsemu_video_update_vsync_interval(vsync_interval_ns);
     }
-    last_vsync_at = vsync_at;
+    last_vsync_ns = vsync_ns;
 }
 
 #endif
 
-void fsemu_video_end_frame(void) {
-    fsemu_video_update_stats();
-
+void fsemu_video_end_frame(void)
+{
     // FIXME
     // int next_frame = (fsemu_frame_counter() + 1) %
     // FSEMU_VIDEO_MAX_FRAME_STATS;
@@ -731,13 +784,14 @@ void fsemu_video_fix_bottom_edge(uint8_t *pixels, int vw, int vh, int tw, int wh
 
 #endif
 
-bool fsemu_video_can_skip_rendering_this_frame(void) {
+bool fsemu_video_can_skip_rendering_this_frame(void)
+{
     if (fsemu_video.must_render_frame) {
         // printf("must render frame\n");
         return false;
     }
-    if (fsemu_time_us() < fsemu_video.must_render_frame_until) {
-        printf("fsemu_time_us() < fsemu_video.must_render_frame_until\n");
+    if ((int64_t)SDL_GetTicksNS() < fsemu_video.must_render_frame_until_ns) {
+        printf("now < fsemu_video.must_render_frame_until_ns\n");
         return false;
     }
     // FIXME: Possible check state such as adaptive sync / v-sync / fullscreen
@@ -747,116 +801,57 @@ bool fsemu_video_can_skip_rendering_this_frame(void) {
     return true;
 }
 
-void fsemu_video_must_render_frame(void) {
+void fsemu_video_must_render_frame(void)
+{
     fsemu_video.must_render_frame = true;
 }
 
-void fsemu_video_must_render_frame_until(int64_t until_us) {
-    fsemu_video.must_render_frame_until = until_us;
-}
-
-void fsemu_video_force_display(void) {
-    fsemu_frame_number_rendering += 1;
-    fsemu_frame_number_rendered += 1;
-    fsemu_video.did_render_frame = true;
-    fsemu_video_display();
-}
-
-fsemu_video_driver_t fsemu_video_driver(void) {
-    return fsemu_video.driver;
-}
-
-void fsemu_video_decide_driver(void) {
-    const char* driver = fsemu_option_const_string(FSEMU_OPTION_VIDEO_DRIVER);
-    if (driver) {
-        fsemu_video_log("Want video driver: %s\n", driver);
-    }
-    if (0) {
-#ifdef FSEMU_OPENAL
-    } else if (!driver || strcmp(driver, "openal") == 0) {
-        fse_init_openal_audio();
-#endif
-#ifdef FSEMU_ALSA
-    } else if (!driver || strcmp(driver, "alsa") == 0) {
-        fsemu_audio_alsa_init();
-#endif
-#ifdef FSEMU_PULSE
-    } else if (!driver || strcmp(driver, "pulse") == 0) {
-        fsemu_audio_pulse_init();
-#endif
-#ifdef FSEMU_SDL
-    } else if (!driver || strcmp(driver, "sdl") == 0) {
-        fsemu_video.driver = FSEMU_VIDEO_DRIVER_SDL;
-        // fsemu_sdlaudio_init();
-#endif
-    } else {
-        fsemu_video.driver = FSEMU_VIDEO_DRIVER_NULL;
-        // fsemu_nullaudio_init();
-        // fse_init_dummy_audio();
-    }
-
-    const char* chosen_driver_name;
-    if (fsemu_video.driver == FSEMU_VIDEO_DRIVER_SDL) {
-        chosen_driver_name = "SDL";
-    } else {
-        chosen_driver_name = "Null";
-    }
-
-    fsemu_video_log("Video driver: %s\n", chosen_driver_name);
-    fsemu_video.renderer_decided = true;
+void fsemu_video_must_render_frame_until(int64_t until_ns)
+{
+    fsemu_video.must_render_frame_until_ns = until_ns;
 }
 
 // ----------------------------------------------------------------------------
 
-void fsemu_video_set_gui_snapshot_mt(fsemu_gui_item_t* snapshot) {
-    fsemu_thread_assert_main();
-    fsemu_mutex_lock(fsemu_video.gui_snapshot_mutex);
-    if (fsemu_video.gui_snapshot) {
-        fsemu_gui_free_snapshot(fsemu_video.gui_snapshot);
-    }
-    fsemu_video.gui_snapshot = snapshot;
-    fsemu_mutex_unlock(fsemu_video.gui_snapshot_mutex);
-}
-
-fsemu_gui_item_t* fsemu_video_get_gui_snapshot_vt(void) {
-    fsemu_thread_assert_video();
-    fsemu_mutex_lock(fsemu_video.gui_snapshot_mutex);
-    fsemu_gui_item_t* snapshot = fsemu_video.gui_snapshot;
-    fsemu_video.gui_snapshot = NULL;
-    fsemu_mutex_unlock(fsemu_video.gui_snapshot_mutex);
-    return snapshot;
-}
-
-void fsemu_video_set_startup_done_mt(void) {
-    if (fsemu_video_is_threaded()) {
-        fsemu_videothread_start();
-    }
+static void fsemu_video_quit(void)
+{
 }
 
 // ----------------------------------------------------------------------------
 
-static void fsemu_video_quit(void) {
+// The options the video setup reads (fsemu_video_read_options).
+static struct {
+    // Whether they have been read. Written on the main thread only; in render thread mode the
+    // drawing side reads it (and the options) only after the host window side has handed it a
+    // snapshot written after they were read, under the snapshot slot's lock, so a plain bool.
+    bool read;
+    bool vsync;
+    bool video_sync;
+} fsemu_video_options;
+
+void fsemu_video_read_options(void)
+{
+    if (fsemu_video_options.read) {
+        return;
+    }
+    SDL_assert(SDL_IsMainThread());
+    fsemu_video_options.read = true;
+    fsemu_layout_init();
+    fsemu_frame_init();
+    fsemu_screenshot_init();
+    fsemu_video_options.vsync = fsemu_option_enabled(FSEMU_OPTION_VSYNC);
+    fsemu_video_options.video_sync = fsemu_option_enabled(FSEMU_OPTION_VIDEO_SYNC);
 }
 
-// ----------------------------------------------------------------------------
-
-void fsemu_video_init(void) {
+void fsemu_video_init(void)
+{
     if (FSEMU_MODULE_INIT(video)) {
         return;
     }
 
     printf("\n\n\nfsemu_video_init\n");
 
-    fsemu_layout_init();
-    fsemu_frame_init();
-    fsemu_videothread_init();
-    fsemu_screenshot_init();
-
-    fsemu_video.gui_snapshot_mutex = fsemu_mutex_create();
-
-    // Video renderer is already known, The fsemu-window module should have
-    // called fsemu_video_decide_driver by now.
-    fsemu_assert(fsemu_video.renderer_decided);
+    fsemu_video_read_options();
 
     // FIXME:
     // fsemu_option_read_bool_default(
@@ -864,9 +859,8 @@ void fsemu_video_init(void) {
 
     fsemu_video_frame_queue = g_async_queue_new();
 
-    // fsemu_video.renderer = FSEMU_VIDEO_RENDERER_GL;
     if (fsemu_video.format == FSEMU_VIDEO_FORMAT_UNKNOWN) {
-        int default_format = fsemu_video_default_format();
+        fsemu_video_format_t default_format = fsemu_video_default_format();
         int format_flags = fsemu_video_format_flags();
         if (format_flags == 0) {
             fsemu_video_log("No format flags, setting default format\n");
@@ -878,9 +872,6 @@ void fsemu_video_init(void) {
             } else if (format_flags & FSEMU_VIDEO_FORMAT_FLAG_BGRA) {
                 fsemu_video_log("Format flags allow BGRA\n");
                 fsemu_video.format = FSEMU_VIDEO_FORMAT_BGRA;
-            } else if (format_flags & FSEMU_VIDEO_FORMAT_FLAG_RGBA) {
-                fsemu_video_log("Format flags allow RGBA\n");
-                fsemu_video.format = FSEMU_VIDEO_FORMAT_RGBA;
             } else if (format_flags & FSEMU_VIDEO_FORMAT_FLAG_RGB565) {
                 fsemu_video_log("Format flags allow RGB565\n");
                 fsemu_video.format = FSEMU_VIDEO_FORMAT_RGB565;
@@ -888,43 +879,21 @@ void fsemu_video_init(void) {
         }
     }
 
-    if (fsemu_video.driver == FSEMU_VIDEO_DRIVER_NULL) {
-        fsemu_video.renderer = FSEMU_VIDEO_RENDERER_NULL;
+    // The picture is the emulation surface's streamed content (attached as BGRA): fsemu makes no GL
+    // objects of its own.
+    if (fsemu_video.format != FSEMU_VIDEO_FORMAT_BGRA) {
+        // TODO: RGB565 needs the posting side's 565 path and the content attached as RGB565.
+        fsemu_video_log_warning("Only the BGRA video format is shown\n");
     }
 
-    if (fsemu_video.renderer == FSEMU_VIDEO_RENDERER_SDL) {
-        fsemu_sdlvideo_init();
-    } else if (fsemu_video.renderer == FSEMU_VIDEO_RENDERER_GL) {
-        if (fsemu_option_enabled(FSEMU_OPTION_VIDEO_THREAD)) {
-            fsemu_video.threaded = true;
-        }
-        fsemu_glvideo_init();
-    }
-
-    if (fsemu_option_enabled(FSEMU_OPTION_VSYNC)) {
+    if (fsemu_video_options.vsync) {
         fsemu_video_log("Enabling vsync (via vsync option)\n");
         fsemu_video_set_vsync(true);
-    } else if (fsemu_option_enabled(FSEMU_OPTION_VIDEO_SYNC)) {
+    } else if (fsemu_video_options.video_sync) {
         fsemu_video_log("Enabling vsync (via video_sync option)\n");
         fsemu_video_set_vsync(true);
     }
 
-    // Calling update to ensure v-sync mode is synchronized.
-    // FIXME: Should go via fsemu_window
-    fsemu_sdlwindow_update();
-
-    // FIXME: Move to here from sdlwindow?
-    // if (fsemu_sdlwindow_kmsdrm()) {
-    //     // Also setting vsync. FIXME: Unconditionally?
-    //     fsemu_video_set_vsync(true);
-    // }
-
-    // FIXME: Started by fsemu_helper_startup_loop for now...
-    // if (fsemu_video_is_threaded()) {
-    //     fsemu_videothread_start();
-    // }
-
-#if 0
-    fsemu_video.ui_video_mutex = fsemu_mutex_create();
-#endif
+    // The swap interval that the vsync setting asks for is set by fsapp's main loop, which asks
+    // fsemu's swap interval hook (fsemu-mainloop.cpp).
 }

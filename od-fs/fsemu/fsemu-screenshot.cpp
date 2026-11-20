@@ -3,46 +3,50 @@
 
 #include <time.h>
 
+#include "fsapp-bitmap.h"
+#include "fs/log.h"
+#include "fsapp-mutex.h"
+#include "fs/path.h"
+#include "fsapp-util.h"
 #include "fsemu-application.h"
 #include "fsemu-config.h"
 #include "fsemu-glib.h"
-#include "fsemu-hud.h"
-#include "fsemu-log.h"
 #include "fsemu-module.h"
-#include "fsemu-mutex.h"
 #include "fsemu-option.h"
-#include "fsemu-util.h"
 
-int fsemu_screenshot_log_level = FSEMU_LOG_LEVEL_INFO;
+int fsemu_screenshot_log_level = SDL_LOG_PRIORITY_INFO;
 
 static struct {
     bool initialized;
     bool capture;
     // int crop[4];
-    char* prefix;
-    char* screenshots_dir;
-    char* time_str;
+    char *prefix;
+    char *screenshots_dir;
+    char *time_str;
     int last_counter;
-    fsemu_mutex_t* mutex;
+    fsapp_mutex_t *mutex;
 } fsemu_screenshot;
 
-static void fsemu_screenshot_lock(void) {
-    fsemu_assert(fsemu_screenshot.initialized);
-    fsemu_mutex_lock(fsemu_screenshot.mutex);
+static void fsemu_screenshot_lock(void)
+{
+    fsapp_assert(fsemu_screenshot.initialized);
+    fsapp_mutex_lock(fsemu_screenshot.mutex);
 }
 
-static void fsemu_screenshot_unlock(void) {
-    fsemu_mutex_unlock(fsemu_screenshot.mutex);
+static void fsemu_screenshot_unlock(void)
+{
+    fsapp_mutex_unlock(fsemu_screenshot.mutex);
 }
 
-void fsemu_screenshot_capture(void) {
+void fsemu_screenshot_capture(void)
+{
     fsemu_screenshot_log("Scheduling screenshot capture\n");
     fsemu_screenshot_lock();
 
     fsemu_screenshot.capture = true;
     time_t tm1;
     time(&tm1);
-    struct tm* tm2 = localtime(&tm1);
+    struct tm *tm2 = localtime(&tm1);
     static char time_buffer[64];
     strftime(time_buffer, 64 - 1, "%y%m%d-%H%M", tm2);
     time_buffer[64 - 1] = '\0';
@@ -55,11 +59,13 @@ void fsemu_screenshot_capture(void) {
     fsemu_screenshot_unlock();
 }
 
-bool fsemu_screenshot_should_capture(void) {
+bool fsemu_screenshot_should_capture(void)
+{
     return fsemu_screenshot.capture;
 }
 
-void fsemu_screenshot_confirm_captured(void) {
+void fsemu_screenshot_confirm_captured(void)
+{
     fsemu_screenshot.capture = false;
 }
 
@@ -89,20 +95,21 @@ static const char *fsemu_screenshots_dir(void)
     if (screenshots_dir != NULL) {
         return screenshots_dir;
     }
-    if (fsemu_getenv("FSEMU_SCREENSHOTS_DIR")[0]) {
-        screenshots_dir = fsemu_getenv("FSEMU_SCREENSHOTS_DIR");
+    if (fsapp_util_get_env("FSEMU_SCREENSHOTS_DIR")[0]) {
+        screenshots_dir = fsapp_util_get_env("FSEMU_SCREENSHOTS_DIR");
     } else {
         screenshots_dir = "/tmp";
     }
     return screenshots_dir;
 }
 */
-static const char* fsemu_screenshot_prefix(void) {
-    fsemu_assert(fsemu_screenshot.initialized);
+static const char *fsemu_screenshot_prefix(void)
+{
+    fsapp_assert(fsemu_screenshot.initialized);
 
     if (fsemu_screenshot.prefix == NULL) {
-        if (fsemu_getenv("FSEMU_SCREENSHOTS_PREFIX")[0]) {
-            fsemu_screenshot.prefix = strdup(fsemu_getenv("FSEMU_SCREENSHOTS_PREFIX"));
+        if (fsapp_util_get_env("FSEMU_SCREENSHOTS_PREFIX")[0]) {
+            fsemu_screenshot.prefix = strdup(fsapp_util_get_env("FSEMU_SCREENSHOTS_PREFIX"));
         } else if (fsemu_application_name()) {
             fsemu_screenshot.prefix = strdup(fsemu_application_name());
         } else {
@@ -111,8 +118,8 @@ static const char* fsemu_screenshot_prefix(void) {
     }
     //     return screenshots_base;
     // }
-    // if (fsemu_getenv("FSEMU_SCREENSHOTS_prefix")[0]) {
-    //     screenshots_base = fsemu_getenv("FSEMU_SCREENSHOTS_prefix");
+    // if (fsapp_util_get_env("FSEMU_SCREENSHOTS_prefix")[0]) {
+    //     screenshots_base = fsapp_util_get_env("FSEMU_SCREENSHOTS_prefix");
     // } else {
     //     screenshots_base = "screenshot";
     // }
@@ -120,24 +127,26 @@ static const char* fsemu_screenshot_prefix(void) {
     return fsemu_screenshot.prefix;
 }
 
-const char* fsemu_screenshot_path(void) {
+const char *fsemu_screenshot_path(void)
+{
     return fsemu_screenshot_path_for_type("");
 }
 
-const char* fsemu_screenshot_dir(void) {
-    fsemu_assert(fsemu_screenshot.initialized);
+const char *fsemu_screenshot_dir(void)
+{
+    fsapp_assert(fsemu_screenshot.initialized);
 
     if (fsemu_screenshot.screenshots_dir == NULL) {
-        if (fsemu_getenv("FSEMU_SCREENSHOTS_DIR")[0]) {
-            fsemu_screenshot.screenshots_dir = strdup(fsemu_getenv("FSEMU_SCREENSHOTS_DIR"));
+        if (fsapp_util_get_env("FSEMU_SCREENSHOTS_DIR")[0]) {
+            fsemu_screenshot.screenshots_dir = strdup(fsapp_util_get_env("FSEMU_SCREENSHOTS_DIR"));
         } else {
-            const char* app_base_dir = fsemu_application_base_dir();
+            const char *app_base_dir = fsemu_application_base_dir();
             // const char *app_data_dir = fsemu_application_data_dir();
-            fsemu_screenshot.screenshots_dir = g_build_filename(app_base_dir, "Screenshots", NULL);
+            fsemu_screenshot.screenshots_dir = FS_JoinPath(app_base_dir, "Screenshots");
         }
         fsemu_screenshot_log("Using screenshots directory: %s\n", fsemu_screenshot.screenshots_dir);
 
-        if (!g_file_test(fsemu_screenshot.screenshots_dir, G_FILE_TEST_IS_DIR)) {
+        if (!FS_IsDirectory(fsemu_screenshot.screenshots_dir)) {
             int error = g_mkdir_with_parents(fsemu_screenshot.screenshots_dir, 0755);
             if (error) {
                 fsemu_application_log_warning("Could not create screenshots directory %s\n",
@@ -150,11 +159,12 @@ const char* fsemu_screenshot_dir(void) {
 }
 
 // FIXME: Deprecated
-const char* fsemu_screenshot_path_for_type(const char* type) {
+const char *fsemu_screenshot_path_for_type(const char *type)
+{
     int counter = 0;
     static char buffer[FSEMU_PATH_MAX];
-    const char* base = fsemu_screenshot_prefix();
-    const char* dir = fsemu_screenshot_dir();
+    const char *base = fsemu_screenshot_prefix();
+    const char *dir = fsemu_screenshot_dir();
     // time_t tm1;
     // time(&tm1);
     // struct tm *tm2 = localtime(&tm1);
@@ -170,7 +180,7 @@ const char* fsemu_screenshot_path_for_type(const char* type) {
                      fsemu_screenshot.time_str, counter);
         }
         buffer[FSEMU_PATH_MAX - 1] = '\0';
-        if (g_file_test(buffer, G_FILE_TEST_EXISTS)) {
+        if (SDL_GetPathInfo(buffer, NULL)) {
             counter += 1;
         } else {
             break;
@@ -182,13 +192,13 @@ const char* fsemu_screenshot_path_for_type(const char* type) {
 }
 
 // FIXME: Move to fsemu-video
-static SDL_Surface* fsemu_video_surface_from_frame(fsemu_video_frame_t* frame) {
-    printf("depth: %d\n", frame->depth);
-    fsemu_assert(frame->depth == 16 || frame->depth == 32);
+static SDL_Surface *fsemu_video_surface_from_frame(fsemu_video_frame_t *frame)
+{
+    fsapp_assert(frame->depth == 16 || frame->depth == 32);
     // FIXME: Get pitch from frame?
     int pitch = frame->width * frame->depth / 8;
     // FIXME: We should definitively have frame->format!
-    Uint32 format;
+    SDL_PixelFormat format;
     if (frame->depth == 16) {
         format = SDL_PIXELFORMAT_RGB565;
     } else if (frame->depth == 32) {
@@ -197,14 +207,10 @@ static SDL_Surface* fsemu_video_surface_from_frame(fsemu_video_frame_t* frame) {
 #else
         uint32_t set_alpha = 0xff000000;
 #endif
-        if (fsemu_video_format() == FSEMU_VIDEO_FORMAT_BGRA) {
-            format = SDL_PIXELFORMAT_BGRA32;
-        } else {
-            format = SDL_PIXELFORMAT_RGBA32;
-        }
+        format = SDL_PIXELFORMAT_BGRA32;
         // We're really using RGBx, not RGBA, so make sure to set alpha value
         // to full intensity.
-        uint32_t* pixels = (uint32_t*)frame->buffer;
+        uint32_t *pixels = (uint32_t *)frame->buffer;
         for (int y = 0; y < frame->height; y++) {
             for (int x = 0; x < frame->width; x++) {
                 pixels[x] |= set_alpha;
@@ -212,41 +218,36 @@ static SDL_Surface* fsemu_video_surface_from_frame(fsemu_video_frame_t* frame) {
             pixels += pitch / 4;
         }
     } else {
-        fsemu_assert(false);
+        fsapp_assert(false);
         // Should not happen, depth should be either 16 or 32
         return NULL;
     }
 
-    printf("width %d height %d depth %d pitch %d format %d\n", frame->width, frame->height,
-           frame->depth, pitch, format);
-    SDL_Surface* surface =
+    fsemu_screenshot_log_debug("width %d height %d depth %d pitch %d format %d\n", frame->width,
+                               frame->height, frame->depth, pitch, (int)format);
+    SDL_Surface *surface =
         SDL_CreateSurfaceFrom(frame->width, frame->height, format, frame->buffer, pitch);
     return surface;
 }
 
 // ----------------------------------------------------------------------
 
-void fsemu_screenshot_capture_video_frame(fsemu_video_frame_t* frame) {
+void fsemu_screenshot_capture_video_frame(fsemu_video_frame_t *frame)
+{
     fsemu_screenshot_lock();
 
     // For simplicity (?) we always generate 32-bit PNG screenshots
-    SDL_Surface* dst = SDL_CreateSurface(frame->width, frame->height, SDL_PIXELFORMAT_RGBA32);
+    SDL_Surface *dst = SDL_CreateSurface(frame->width, frame->height, SDL_PIXELFORMAT_RGBA32);
     // SDL_Surface *dst = SDL_CreateRGBSurfaceWithFormat(
     //      0, frame->width, frame->height, 32, SDL_PIXELFORMAT_RGBX8888);
-    SDL_Surface* src = fsemu_video_surface_from_frame(frame);
-    printf("src %p\n", src);
+    SDL_Surface *src = fsemu_video_surface_from_frame(frame);
     SDL_Rect rect = {0, 0, frame->width, frame->height};
     SDL_BlitSurface(src, &rect, dst, &rect);
 
-    const char* path = fsemu_screenshot_path_for_type("Full");
-    fsemu_image_save_png_file_from_rgba_data(path, dst->pixels, frame->width, frame->height);
+    const char *path = fsemu_screenshot_path_for_type("Full");
+    fsapp_bitmap_save_png_file_from_rgba_data(path, dst->pixels, frame->width, frame->height);
     SDL_DestroySurface(src);
     SDL_DestroySurface(dst);
-#if 0
-    char buffer[32];
-    g_snprintf(buffer, 32, "%s_%02d", fsemu_screenshot.time_str, fsemu_screenshot.last_counter);
-    fsemu_hud_notify(FSEMU_HUD_ID("SSHOTTED"), "camera", "Screenshot captured", buffer);
-#endif
     fsemu_screenshot.capture = false;
     free(fsemu_screenshot.time_str);
     fsemu_screenshot.time_str = NULL;
@@ -255,33 +256,32 @@ void fsemu_screenshot_capture_video_frame(fsemu_video_frame_t* frame) {
 
 // ----------------------------------------------------------------------
 
-static void fsemu_screenshot_quit(void) {
+static void fsemu_screenshot_quit(void)
+{
 }
 
 // ----------------------------------------------------------------------------
 
-void fsemu_screenshot_init(void) {
+void fsemu_screenshot_init(void)
+{
     if (FSEMU_MODULE_INIT(screenshot)) {
         return;
     }
     fsemu_application_init();
 
-    fsemu_screenshot.mutex = fsemu_mutex_create();
+    fsemu_screenshot.mutex = fsapp_mutex_create();
 
-    const char* prefix = fsemu_option_const_string(FSEMU_OPTION_SCREENSHOTS_OUTPUT_PREFIX);
+    const char *prefix = fsemu_option_const_string(FSEMU_OPTION_SCREENSHOTS_OUTPUT_PREFIX);
     if (prefix) {
         fsemu_screenshot.prefix = g_strdup(prefix);
     } else {
-#ifdef FSUAE
-        fsemu_screenshot.prefix = strdup("FS-UAE");
-#else
-        fsemu_screenshot.prefix = strdup("FSEMU");
-#endif
+        // The program's name (fsemu_application_set_name), which it sets before the video starts.
+        fsemu_screenshot.prefix = strdup(fsemu_application_name());
     }
 
-    // if (fsemu_getenv("FSEMU_SCREENSHOTS_DIR")[0]) {
+    // if (fsapp_util_get_env("FSEMU_SCREENSHOTS_DIR")[0]) {
     //     fsemu_screenshot.screenshots_dir =
-    //         strdup(fsemu_getenv("FSEMU_SCREENSHOTS_DIR"));
+    //         strdup(fsapp_util_get_env("FSEMU_SCREENSHOTS_DIR"));
     // } else {
     //     const char *app_base_dir = fsemu_application_base_dir();
     //     // const char *app_data_dir = fsemu_application_data_dir();

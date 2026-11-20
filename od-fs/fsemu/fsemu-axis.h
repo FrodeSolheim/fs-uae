@@ -1,5 +1,5 @@
-#ifndef FSEMU_AXIS_H_
-#define FSEMU_AXIS_H_
+#ifndef FSEMU_AXIS_H
+#define FSEMU_AXIS_H
 
 #include "fsemu-button.h"
 #include "fsemu-common.h"
@@ -38,4 +38,4 @@ enum {
 }
 #endif
 
-#endif  // FSEMU_AXIS_H_
+#endif /* FSEMU_AXIS_H */

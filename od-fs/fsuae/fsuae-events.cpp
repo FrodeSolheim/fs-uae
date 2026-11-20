@@ -3,22 +3,26 @@
 #include <glib.h>
 #include <uae/uae.h>
 
+#include "fsapp-time.h"
+#include "fs/trace.h"
+#include "fsapp-util.h"
+#include "fsemu-frame.h"
 #include "fsemu-input.h"
 #include "fsemu-media.h"
-#include "fsemu-util.h"
 
 #define fsuae_log SDL_Log
 
-static void fsuae_handle_media_action(int drive_index, int media_index) {
+static void fsuae_handle_media_action(int drive_index, int media_index)
+{
     if (drive_index >= fsemu_media_drive_count()) {
         return;
     }
-    fsemu_media_drive_t* drive = fsemu_media_drive_at_index(drive_index);
+    fsemu_media_drive_t *drive = fsemu_media_drive_at_index(drive_index);
     int type = fsemu_media_drive_type(drive);
     int type_index = fsemu_media_drive_type_index(drive);
     if (type == FSEMU_MEDIA_DRIVE_TYPE_FLOPPY) {
         if (type_index >= 4) {
-            fsemu_warning("Cannot deal with with floppy driveindex >= 4\n");
+            SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION, "Cannot deal with floppy driveindex >= 4");
             return;
         }
         if (media_index < 0) {
@@ -27,16 +31,16 @@ static void fsuae_handle_media_action(int drive_index, int media_index) {
             amiga_send_input_event(INPUTEVENT_SPC_DISKSWAPPER_0_0 + drive_index * 20 + media_index,
                                    1);
         } else {
-            fsemu_warning("Cannot deal with media index >= 20\n");
+            SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION, "Cannot deal with media index >= 20");
         }
     } else if (type == FSEMU_MEDIA_DRIVE_TYPE_CDROM) {
         // Only one CD-ROM drive supported currently.
         if (type_index >= 1) {
-            fsemu_warning("Cannot deal with with CD-ROM driveindex >= 1\n");
+            SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION, "Cannot deal with CD-ROM driveindex >= 1");
             return;
         }
 
-        fsemu_warning("CURRENTLY DISABLED / NOT IMPLEMENTED\n");
+        SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION, "CURRENTLY DISABLED / NOT IMPLEMENTED");
 #if 0
         if (media_index < 0) {
             amiga_cdrom_set_file(type_index, "");
@@ -52,18 +56,19 @@ static void fsuae_handle_media_action(int drive_index, int media_index) {
             amiga_cdrom_set_file(type_index, path);
             free(path);
         } else {
-            fsemu_warning("Cannot deal with media index >= 20\n");
+            SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION, "Cannot deal with media index >= 20");
         }
 
         // FIXME: Something similar to gui_disk_image_change /
         // UAE_EVENT_CD0PATH, to update the currently inserted path
 #endif
     } else {
-        fsemu_warning("FIXME: Support this media type\n");
+        SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION, "FIXME: Support this media type");
     }
 }
 
-static void fsuae_handle_port_action(int port_index, int mode_index) {
+static void fsuae_handle_port_action(int port_index, int mode_index)
+{
     // The first two parts are switched in FS-UAE, so the joystick port is
     // listed first.
     if (port_index < 2) {
@@ -72,7 +77,8 @@ static void fsuae_handle_port_action(int port_index, int mode_index) {
     amiga_set_joystick_port_mode(port_index, mode_index);
 }
 
-static void fsuae_events_process_input_event(int line, int action, int state, int playback) {
+static void fsuae_events_process_input_event(int line, int action, int state, int playback)
+{
     // printf("... action %d %d\n", action, FSEMU_ACTION_DRIVE0EJECT);
     static int first_time = 1;
 #if 0
@@ -113,16 +119,16 @@ static void fsuae_events_process_input_event(int line, int action, int state, in
         fsuae_handle_media_action(drive_index, -1);
     } else if (action >= FSEMU_ACTION_DRIVE0INSERT0 && action <= FSEMU_ACTION_DRIVE7INSERT255) {
         int offset = action - FSEMU_ACTION_DRIVE0INSERT0;
-        int drive_index = offset / 256;  // FSEMU_MEDIA_MAX_FILE_COUNT;
-        int media_index = offset % 256;  // FSEMU_MEDIA_MAX_FILE_COUNT;
+        int drive_index = offset / 256; // FSEMU_MEDIA_MAX_FILE_COUNT;
+        int media_index = offset % 256; // FSEMU_MEDIA_MAX_FILE_COUNT;
         fsuae_log("Got drive insert event drive_index=%d media_index=%d", drive_index, media_index);
         fsuae_handle_media_action(drive_index, media_index);
     }
 
     else if (action >= FSEMU_ACTION_PORT0TYPE0 && action < FSEMU_ACTION_PORT3TYPE255) {
         int offset = action - FSEMU_ACTION_PORT0TYPE0;
-        int port_index = offset / 256;  // FSEMU_INPUTPORT_MAX_MODES;
-        int mode_index = offset % 256;  // FSEMU_INPUTPORT_MAX_MODES;
+        int port_index = offset / 256; // FSEMU_INPUTPORT_MAX_MODES;
+        int mode_index = offset % 256; // FSEMU_INPUTPORT_MAX_MODES;
         fsuae_log("[INPUT] Got port change event port_index=%d mode_index=%d\n", port_index,
                   mode_index);
         fsuae_handle_port_action(port_index, mode_index);
@@ -221,7 +227,36 @@ static void fsuae_events_process_input_event(int line, int action, int state, in
 
 static int g_fs_uae_frame = 0;
 
-static int fsuae_events_input_handler_loop(int line) {
+// The timing trace of input taken in: the core takes input in at every scanline, so an instant for
+// each would make the trace many times larger. `input taken in` is recorded only when there were
+// input actions, and `input reads` once per emulated frame with how often input was taken in
+// during it (recorded at the first read of the next frame).
+static struct {
+    int64_t frame;
+    int reads;
+} fsuae_events_trace = {-1, 0};
+
+static void fsuae_events_trace_input(int line, int actions)
+{
+    int64_t frame = fsemu_frame_get_number();
+    int64_t now_ns = (int64_t)SDL_GetTicksNS();
+    if (frame != fsuae_events_trace.frame) {
+        if (fsuae_events_trace.frame >= 0) {
+            FS_AddTraceInstant("input reads", now_ns, fsuae_events_trace.frame, "count",
+                               fsuae_events_trace.reads);
+        }
+        fsuae_events_trace.frame = frame;
+        fsuae_events_trace.reads = 0;
+    }
+    fsuae_events_trace.reads++;
+    if (actions > 0) {
+        FS_TraceValue values[] = {{"line", line}, {"actions", actions}};
+        FS_AddTraceInstantWithValues("input taken in", now_ns, frame, values, 2);
+    }
+}
+
+static int fsuae_events_input_handler_loop(int line)
+{
     static int last_frame = -1;
     if (g_fs_uae_frame != last_frame) {
         // only run this for the first input handler loop per frame
@@ -236,11 +271,17 @@ static int fsuae_events_input_handler_loop(int line) {
 #endif
         uint16_t action;
         int16_t state;
-        while (fsemu_input_next_action(&action, &state)) {
+        int actions = 0;
+        // Input is taken in at every scanline: only lock the queue when something is in it.
+        while (fsemu_input_has_actions() && fsemu_input_next_action(&action, &state)) {
             // g_fs_uae_last_input_event = action;
             // g_fs_uae_last_input_event_state = state;
 
             fsuae_events_process_input_event(line, action, state, 0);
+            actions++;
+        }
+        if (FS_IsTraceEnabled()) {
+            fsuae_events_trace_input(line, actions);
         }
 #ifdef FSUAE_LEGACY
     } else {
@@ -327,7 +368,8 @@ static int fsuae_events_input_handler_loop(int line) {
     return 1;
 }
 
-void fsuae_events_event_handler(int line) {
+void fsuae_events_on_line(int line)
+{
 #if 0
     if (fsemu) {
         if (line <= 1) {
@@ -382,16 +424,10 @@ void fsuae_events_event_handler(int line) {
 
     // fs_emu_lua_run_handler("on_fs_uae_frame_start");
 
-    fsemu_assert(line == -1);
+    fsapp_assert(line == -1);
 
     // printf("line %d\n", line);
 #ifdef FSEMU
-    // FIXME: Move away from event handler!
-    // FIXME: Move somewhere else??
-    // Move to custom.cpp after/when starting new frame?
-    // EDIT: YES
-    // double adjust = fsemu_audiobuffer_calculate_adjustment();
-    // amiga_set_audio_frequency_adjust(adjust);
     // printf("[INPUT] g_fs_uae_frame = %d\n", g_fs_uae_frame);
 #else
     fs_emu_wait_for_frame(g_fs_uae_frame);
@@ -435,6 +471,6 @@ void fsuae_events_event_handler(int line) {
             break;
         }
     }
-#endif  // FSUAE_LEGACY
+#endif // FSUAE_LEGACY
     // last_time = fs_emu_monotonic_time();
 }

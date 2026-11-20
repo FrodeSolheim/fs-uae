@@ -1,6 +1,0 @@
-BasedOnStyle: Google
-
-AllowShortFunctionsOnASingleLine: None
-ColumnLimit: 100
-DerivePointerAlignment: false
-IndentWidth: 4

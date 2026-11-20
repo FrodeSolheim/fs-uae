@@ -1,5 +1,5 @@
-#ifndef FSEMU_MANYMOUSE_H_
-#define FSEMU_MANYMOUSE_H_
+#ifndef FSEMU_MANYMOUSE_H
+#define FSEMU_MANYMOUSE_H
 
 #include "fsemu-config.h"
 
@@ -15,6 +15,6 @@ void fsemu_manymouse_init(void);
 }
 #endif
 
-#endif  // FSEMU_MANYMOUSE
+#endif // FSEMU_MANYMOUSE
 
-#endif  // FSEMU_MANYMOUSE_H_
+#endif /* FSEMU_MANYMOUSE_H */

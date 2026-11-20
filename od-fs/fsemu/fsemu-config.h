@@ -1,5 +1,5 @@
-#ifndef FSEMU_CONFIG_H_
-#define FSEMU_CONFIG_H_
+#ifndef FSEMU_CONFIG_H
+#define FSEMU_CONFIG_H
 
 // ----------------------------------------------------------------------------
 // Diagnostics
@@ -45,13 +45,13 @@
 // #pragma GCC diagnostic warning "-Wconversion"
 // #pragma GCC diagnostic warning "-Wfloat-conversion"
 // #pragma GCC diagnostic warning "-Wsign-conversion"
-#endif  // FSEMU_DEVELOPMENT
+#endif // FSEMU_DEVELOPMENT
 
 #ifndef __cplusplus
 #pragma GCC diagnostic error "-Wimplicit-function-declaration"
 #endif
 
-#endif  // FSEMU_INTERNAL
+#endif // FSEMU_INTERNAL
 
 // ----------------------------------------------------------------------------
 // OS defines
@@ -103,8 +103,14 @@
 #define FSEMU_CPU_32_BIT 1
 #endif
 
-#if defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+// __BYTE_ORDER__ decides when the compiler defines it. The fallback must not be reached otherwise:
+// glibc's <endian.h> defines __BIG_ENDIAN (as a byte order value) on little-endian systems too.
+#if defined(__BYTE_ORDER__)
+#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
 #define FSEMU_CPU_BIGENDIAN 1
+#else
+#define FSEMU_CPU_LITTLEENDIAN 1
+#endif
 #elif defined(__BIG_ENDIAN__) || defined(__BIG_ENDIAN) || defined(_BIG_ENDIAN)
 #define FSEMU_CPU_BIGENDIAN 1
 #else
@@ -115,26 +121,18 @@
 // Feature defines
 // ----------------------------------------------------------------------------
 
-// #define FSEMU_GLAD 1
 #define FSEMU_GLIB 1
 // #define FSEMU_MANYMOUSE 1
-#define FSEMU_OPENGL 1
 #define FSEMU_PNG 1
 #define FSEMU_SDL 1
 
-#ifdef FSUAE
-// FS-UAE adjusts audio frequency internally
-#else
-#define FSEMU_SAMPLERATE 1
-#endif
-
-/*
+#if 0
 #ifdef FSEMU_OS_LINUX
 #ifndef FSEMU_ALSA
 #define FSEMU_ALSA
 #endif
 #endif
-*/
+#endif
 
 // ----------------------------------------------------------------------------
 // Other
@@ -148,7 +146,7 @@
 #define FSEMU_DEPRECATED
 #endif
 
-#if 1  // def HAVE___BUILTIN_EXPECT
+#if 1 // def HAVE___BUILTIN_EXPECT
 #define fsemu_likely(x) (__builtin_expect(!!(x), 1))
 #define fsemu_unlikely(x) (__builtin_expect(!!(x), 0))
 #else
@@ -172,4 +170,4 @@
 
 #include "fsemu-common.h"
 
-#endif  // FSEMU_CONFIG_H_
+#endif /* FSEMU_CONFIG_H */

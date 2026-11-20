@@ -4,28 +4,32 @@
 #include <SDL3/SDL.h>
 #include <glib.h>
 
+#include "fsapp-surface.h"
 #include "fsemu-input.h"
+#include "fsemu-mainloop.h"
+#include "fsemu-perfgui.h"
 
 // A global list of queued emu options to apply at the next "checkpoint"
 // (between frames typically).
-static GList* g_options = NULL;
-static SDL_Mutex* g_mutex;
+static GList *g_options = NULL;
+static SDL_Mutex *g_mutex;
 
 typedef struct {
-    char* name;
-    char* value;
+    char *name;
+    char *value;
 } fsemu_python_option;
 
 // ----------------------
 
-void fsemu_python_apply_options(void (*callback)(const char* name, const char* value)) {
+void fsemu_python_apply_options(void (*callback)(const char *name, const char *value))
+{
     SDL_LockMutex(g_mutex);
-    GList* options = g_options;
+    GList *options = g_options;
     g_options = NULL;
     SDL_UnlockMutex(g_mutex);
 
-    for (GList* item = options; item; item = item->next) {
-        fsemu_python_option* option = (fsemu_python_option*)item->data;
+    for (GList *item = options; item; item = item->next) {
+        fsemu_python_option *option = (fsemu_python_option *)item->data;
         callback(option->name, option->value);
         SDL_free(option->name);
         SDL_free(option->value);
@@ -34,7 +38,8 @@ void fsemu_python_apply_options(void (*callback)(const char* name, const char* v
     g_list_free(options);
 }
 
-static PyObject* fsemu_python_post(PyObject* self, PyObject* args) {
+static PyObject *fsemu_python_post(PyObject *self, PyObject *args)
+{
     int action;
     if (!PyArg_ParseTuple(args, "i", &action)) {
         return NULL;
@@ -48,14 +53,15 @@ static PyObject* fsemu_python_post(PyObject* self, PyObject* args) {
     Py_RETURN_NONE;
 }
 
-static PyObject* fsemu_python_set_option(PyObject* self, PyObject* args) {
+static PyObject *fsemu_python_set_option(PyObject *self, PyObject *args)
+{
     const char *name, *value;
     if (!PyArg_ParseTuple(args, "ss", &name, &value)) {
         return NULL;
     }
     SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "Set option %s = %s", name, value);
 
-    fsemu_python_option* option = (fsemu_python_option*)SDL_malloc(sizeof(fsemu_python_option));
+    fsemu_python_option *option = (fsemu_python_option *)SDL_malloc(sizeof(fsemu_python_option));
     option->name = SDL_strdup(name);
     option->value = SDL_strdup(value);
 
@@ -64,6 +70,17 @@ static PyObject* fsemu_python_set_option(PyObject* self, PyObject* args) {
     SDL_UnlockMutex(g_mutex);
 
     Py_RETURN_NONE;
+}
+
+// Sets the performance graph's mode from a performance_gui value (off, sidebars, detailed, or the
+// old values 1 and 2), as given in a config. Returns False for another value (which is logged).
+static PyObject *fsemu_python_set_performance_gui(PyObject *self, PyObject *args)
+{
+    const char *value;
+    if (!PyArg_ParseTuple(args, "s:set_performance_gui", &value)) {
+        return NULL;
+    }
+    return PyBool_FromLong(fsemu_perfgui_set_mode_from_string(value));
 }
 
 // ----------------------
@@ -116,36 +133,40 @@ static PyObject *fsemu_python_inputport_add_mode(PyObject *self,
 }
 #endif
 
-static void fsemu_inputmode_destructor(PyObject* object) {
+static void fsemu_inputmode_destructor(PyObject *object)
+{
     SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION, "fsemu_inputmode_destructor IS NOT IMPLEMENTED");
 }
 
-static PyObject* fsemu_python_inputmode_new(PyObject* self, PyObject* args) {
-    fsemu_inputmode_t* mode = fsemu_inputmode_new();
-    PyObject* capsule = PyCapsule_New(mode, "fsemu_inputmode_t", fsemu_inputmode_destructor);
+static PyObject *fsemu_python_inputmode_new(PyObject *self, PyObject *args)
+{
+    fsemu_inputmode_t *mode = fsemu_inputmode_new();
+    PyObject *capsule = PyCapsule_New(mode, "fsemu_inputmode_t", fsemu_inputmode_destructor);
     return capsule;
 }
 
-static PyObject* fsemu_python_inputmode_set_name(PyObject* self, PyObject* args) {
-    PyObject* capsule;
-    const char* name;
+static PyObject *fsemu_python_inputmode_set_name(PyObject *self, PyObject *args)
+{
+    PyObject *capsule;
+    const char *name;
     if (!PyArg_ParseTuple(args, "Os:inputmode_set_name", &capsule, &name)) {
         return NULL;
     }
-    fsemu_inputmode_t* mode =
-        (fsemu_inputmode_t*)PyCapsule_GetPointer(capsule, "fsemu_inputmode_t");
+    fsemu_inputmode_t *mode =
+        (fsemu_inputmode_t *)PyCapsule_GetPointer(capsule, "fsemu_inputmode_t");
     fsemu_inputmode_set_name(mode, name);
     Py_RETURN_NONE;
 }
 
-static PyObject* fsemu_python_inputmode_map(PyObject* self, PyObject* args) {
-    PyObject* capsule;
+static PyObject *fsemu_python_inputmode_map(PyObject *self, PyObject *args)
+{
+    PyObject *capsule;
     int input, action;
     if (!PyArg_ParseTuple(args, "Oii:inputmode_map", &capsule, &input, &action)) {
         return NULL;
     }
-    fsemu_inputmode_t* mode =
-        (fsemu_inputmode_t*)PyCapsule_GetPointer(capsule, "fsemu_inputmode_t");
+    fsemu_inputmode_t *mode =
+        (fsemu_inputmode_t *)PyCapsule_GetPointer(capsule, "fsemu_inputmode_t");
     if (!fsemu_inputmode_map(mode, input, action)) {
         return NULL;
     }
@@ -154,9 +175,32 @@ static PyObject* fsemu_python_inputmode_map(PyObject* self, PyObject* args) {
 
 // ----------------------
 
+// Hands the emulation surface (created by fsemu) over to the program's emulator window. Unstable:
+// for the program only, not for plugins. Always returns the same capsule, which is kept for the
+// life of the process.
+static PyObject *fsemu_python_emulation_surface(PyObject *self, PyObject *args)
+{
+    static PyObject *capsule;
+    if (!PyArg_ParseTuple(args, ":emulation_surface")) {
+        return NULL;
+    }
+    if (capsule == NULL) {
+        capsule = fsapp_surface_create_python_capsule(fsemu_mainloop_emulation_surface());
+        if (capsule == NULL) {
+            return NULL;
+        }
+    }
+    Py_INCREF(capsule);
+    return capsule;
+}
+
+// ----------------------
+
 static PyMethodDef fsemu_python_methods[] = {
+    {"emulation_surface", fsemu_python_emulation_surface, METH_VARARGS, "..."},
     {"post", fsemu_python_post, METH_VARARGS, "..."},
     {"set_option", fsemu_python_set_option, METH_VARARGS, "..."},
+    {"set_performance_gui", fsemu_python_set_performance_gui, METH_VARARGS, "..."},
 #if 0
     {"inputport_new", fsemu_python_inputport_new, METH_VARARGS, "..."},
     {"inputport_set_name",
@@ -181,11 +225,13 @@ static PyMethodDef fsemu_python_methods[] = {
 static PyModuleDef fsemu_python_module = {
     PyModuleDef_HEAD_INIT, "fsemu_c", NULL, -1, fsemu_python_methods, NULL, NULL, NULL, NULL};
 
-static PyObject* fsemu_python_init_module(void) {
+static PyObject *fsemu_python_init_module(void)
+{
     return PyModule_Create(&fsemu_python_module);
 }
 
-void fsemu_python_init(void) {
+void fsemu_python_init(void)
+{
     PyImport_AppendInittab("fsemu_c", &fsemu_python_init_module);
 
     g_mutex = SDL_CreateMutex();

@@ -1,5 +1,5 @@
-#ifndef FSEMU_ACTION_H_
-#define FSEMU_ACTION_H_
+#ifndef FSEMU_ACTION_H
+#define FSEMU_ACTION_H
 
 #include <stdint.h>
 
@@ -30,8 +30,6 @@ typedef int32_t fsemu_action_and_state_t;
 // FIXME: EMU should imply SYNC
 
 // #define FSEMU_ACTION_NONE 0x0000
-// #define FSEMU_ACTION_OSKEYBOARD 0x0001
-// #define FSEMU_ACTION_OSMENU 0x0002
 
 // #define FSEMU_DEFINE_ACTION()
 
@@ -40,9 +38,9 @@ void fsemu_action_update(void);
 
 // ----------------------------------------------------------------------------
 
-void fsemu_action_register(const char* name, uint16_t action);
+void fsemu_action_register(const char *name, uint16_t action);
 
-uint16_t fsemu_action_from_name(const char* name);
+uint16_t fsemu_action_from_name(const char *name);
 
 // ----------------------------------------------------------------------------
 
@@ -63,22 +61,23 @@ void fsemu_action_post_to_main(int action);
 
 extern int fsemu_action_log_level;
 
-#define fsemu_action_log(format, ...) FSEMU_LOG(action, "[FSE] [ACT]", format, ##__VA_ARGS__)
+#define fsemu_action_log(format, ...)                                                              \
+    FS_LOG_INFO(fsemu_action_log_level, "[FSE] [ACT]", format, ##__VA_ARGS__)
 
-#define fsemu_action_log_debug(format, ...) \
-    FSEMU_LOG_DEBUG(action, "[FSE] [ACT]", format, ##__VA_ARGS__)
+#define fsemu_action_log_debug(format, ...)                                                        \
+    FS_LOG_DEBUG(fsemu_action_log_level, "[FSE] [ACT]", format, ##__VA_ARGS__)
 
-#define fsemu_action_log_error(format, ...) \
-    FSEMU_LOG_ERROR(action, "[FSE] [ACT]", format, ##__VA_ARGS__)
+#define fsemu_action_log_error(format, ...)                                                        \
+    FS_LOG_ERROR(fsemu_action_log_level, "[FSE] [ACT]", format, ##__VA_ARGS__)
 
-#define fsemu_action_log_info(format, ...) \
-    FSEMU_LOG_INFO(action, "[FSE] [ACT]", format, ##__VA_ARGS__)
+#define fsemu_action_log_info(format, ...)                                                         \
+    FS_LOG_INFO(fsemu_action_log_level, "[FSE] [ACT]", format, ##__VA_ARGS__)
 
-#define fsemu_action_log_trace(format, ...) \
-    FSEMU_LOG_TRACE(action, "[FSE] [ACT]", format, ##__VA_ARGS__)
+#define fsemu_action_log_trace(format, ...)                                                        \
+    FS_LOG_TRACE(fsemu_action_log_level, "[FSE] [ACT]", format, ##__VA_ARGS__)
 
-#define fsemu_action_log_warning(format, ...) \
-    FSEMU_LOG_WARNING(action, "[FSE] [ACT]", format, ##__VA_ARGS__)
+#define fsemu_action_log_warning(format, ...)                                                      \
+    FS_LOG_WARNING(fsemu_action_log_level, "[FSE] [ACT]", format, ##__VA_ARGS__)
 
 // ----------------------------------------------------------------------------
 
@@ -88,4 +87,4 @@ extern int fsemu_action_log_level;
 
 #include "fsemu-actions.h"
 
-#endif  // FSEMU_ACTION_H_
+#endif /* FSEMU_ACTION_H */

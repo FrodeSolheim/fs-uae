@@ -1,12 +1,12 @@
-#ifndef FSEMU_INPUTDEVICE_H_
+#ifndef FSEMU_INPUTDEVICE_H_ /* Not FSEMU_INPUTDEVICE_H, which is the H key below. */
 #define FSEMU_INPUTDEVICE_H_
 
 #include <stdbool.h>
 
+#include "fsapp-refable.h"
 #include "fsemu-common.h"
 #include "fsemu-keyboard.h"
 #include "fsemu-types.h"
-#include "fslib-refable.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -20,21 +20,21 @@ typedef struct fsemu_inputdevice fsemu_inputdevice_t;
 #define FSEMU_INPUTDEVICE_TYPE_MOUSE 'm'
 #define FSEMU_INPUTDEVICE_TYPE_JOYSTICK 'j'
 
-fsemu_inputdevice_t* fsemu_inputdevice_new(void);
+fsemu_inputdevice_t *fsemu_inputdevice_new(void);
 
-void fsemu_inputdevice_ref(fsemu_inputdevice_t* device);
-void fsemu_inputdevice_unref(fsemu_inputdevice_t* device);
+void fsemu_inputdevice_ref(fsemu_inputdevice_t *device);
+void fsemu_inputdevice_unref(fsemu_inputdevice_t *device);
 
-int fsemu_inputdevice_get_instance_id(fsemu_inputdevice_t* device);
-void fsemu_inputdevice_set_instance_id(fsemu_inputdevice_t* device, int instance_id);
+int fsemu_inputdevice_get_instance_id(fsemu_inputdevice_t *device);
+void fsemu_inputdevice_set_instance_id(fsemu_inputdevice_t *device, int instance_id);
 
-bool fsemu_inputdevice_matches(fsemu_inputdevice_t* device, int type, int instance_id);
+bool fsemu_inputdevice_matches(fsemu_inputdevice_t *device, int type, int instance_id);
 
-int fsemu_inputdevice_type(fsemu_inputdevice_t* device);
-void fsemu_inputdevice_set_type(fsemu_inputdevice_t* device, int type);
+int fsemu_inputdevice_type(fsemu_inputdevice_t *device);
+void fsemu_inputdevice_set_type(fsemu_inputdevice_t *device, int type);
 
-const char* fsemu_inputdevice_name(fsemu_inputdevice_t* device);
-void fsemu_inputdevice_set_name(fsemu_inputdevice_t* device, const char* name);
+const char *fsemu_inputdevice_name(fsemu_inputdevice_t *device);
+void fsemu_inputdevice_set_name(fsemu_inputdevice_t *device, const char *name);
 
 void fsemu_inputdevice_init_module(void);
 
@@ -301,14 +301,14 @@ enum {
     FSEMU_INPUTDEVICE_CONTROLLER_OFFSET = 512 * 3 - 1,
     FSEMU_INPUTDEVICE_BEFORE_FIRST_BUTTON = FSEMU_INPUTDEVICE_CONTROLLER_OFFSET,
     // Buttons in the same order as SDL2 gamecontroller
-    FSEMU_INPUTDEVICE_BUTTON_A,  // FSEMU_INPUTDEVICE_SOUTH,  //
-                                 // FSEMU_INPUTDEVICE_A,
-    FSEMU_INPUTDEVICE_BUTTON_B,  // FSEMU_INPUTDEVICE_EAST,   //
-                                 // FSEMU_INPUTDEVICE_B,
-    FSEMU_INPUTDEVICE_BUTTON_X,  // FSEMU_INPUTDEVICE_WEST,   //
-                                 // FSEMU_INPUTDEVICE_X,
-    FSEMU_INPUTDEVICE_BUTTON_Y,  // FSEMU_INPUTDEVICE_NORTH,  //
-                                 // FSEMU_INPUTDEVICE_Y,
+    FSEMU_INPUTDEVICE_BUTTON_A, // FSEMU_INPUTDEVICE_SOUTH,  //
+                                // FSEMU_INPUTDEVICE_A,
+    FSEMU_INPUTDEVICE_BUTTON_B, // FSEMU_INPUTDEVICE_EAST,   //
+                                // FSEMU_INPUTDEVICE_B,
+    FSEMU_INPUTDEVICE_BUTTON_X, // FSEMU_INPUTDEVICE_WEST,   //
+                                // FSEMU_INPUTDEVICE_X,
+    FSEMU_INPUTDEVICE_BUTTON_Y, // FSEMU_INPUTDEVICE_NORTH,  //
+                                // FSEMU_INPUTDEVICE_Y,
     FSEMU_INPUTDEVICE_BACK,
     FSEMU_INPUTDEVICE_GUIDE,
     FSEMU_INPUTDEVICE_START,
@@ -483,21 +483,21 @@ enum {
 #include <SDL3/SDL.h>
 
 struct fsemu_inputdevice {
-    FSLIB_REFABLE;
+    FSAPP_REFABLE;
     int index;
     int port_index;
     int type;
-    char* name;
+    char *name;
     int instance_id;
 
-    SDL_Joystick* joystick;
-    SDL_Gamepad* gamepad;
+    SDL_Joystick *joystick;
+    SDL_Gamepad *gamepad;
 };
 
-#endif  // FSEMU_INTERNAL
+#endif // FSEMU_INTERNAL
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif  // FSEMU_INPUTDEVICE_H_
+#endif /* FSEMU_INPUTDEVICE_H_ */

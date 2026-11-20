@@ -4,17 +4,18 @@
 #include <stddef.h>
 #include <stdlib.h>
 
-#include "fsemu-font.h"
+#include "fs/log.h"
 #include "fsemu-glib.h"
 #include "fsemu-module.h"
 
 static struct fsemu_module {
-    GList* quit_callbacks;
+    GList *quit_callbacks;
     bool initialized;
 } fsemu_module;
 
-fsemu_error_t fsemu_module_init(const char* name, bool* init, fsemu_module_on_quit_f quit) {
-    fsemu_log("[...] Init %s module\n", name);
+fsemu_error_t fsemu_module_init(const char *name, bool *init, fsemu_module_on_quit_f quit)
+{
+    SDL_Log("[...] Init %s module\n", name);
     if (*init) {
         // Already initialized
         return 1;
@@ -26,16 +27,18 @@ fsemu_error_t fsemu_module_init(const char* name, bool* init, fsemu_module_on_qu
     return 0;
 }
 
-void fsemu_module_on_quit(fsemu_module_on_quit_f function) {
-    fsemu_module.quit_callbacks = g_list_append(fsemu_module.quit_callbacks, function);
+void fsemu_module_on_quit(fsemu_module_on_quit_f function)
+{
+    fsemu_module.quit_callbacks = g_list_append(fsemu_module.quit_callbacks, (gpointer)function);
 }
 
-void fsemu_module_quit(void) {
-    fsemu_log("[FSE] [...] fsemu_module_quit\n");
+void fsemu_module_quit(void)
+{
+    SDL_Log("[FSE] [...] fsemu_module_quit\n");
     // It is probably cleanest to deinit modules in reverse order of
     // initialization.
     fsemu_module.quit_callbacks = g_list_reverse(fsemu_module.quit_callbacks);
-    GList* list = fsemu_module.quit_callbacks;
+    GList *list = fsemu_module.quit_callbacks;
     while (list) {
         fsemu_module_on_quit_f function = (fsemu_module_on_quit_f)list->data;
         function();

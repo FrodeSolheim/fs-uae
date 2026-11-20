@@ -1,19 +1,18 @@
 #define FSEMU_INTERNAL
 #include "fsemu-mouse.h"
 
+#include <stdio.h>
+
+#include "fs/log.h"
 #include "fsemu-config.h"
 #include "fsemu-input.h"
 #include "fsemu-inputdevice.h"
-#include "fsemu-log.h"
 #include "fsemu-manymouse.h"
 #include "fsemu-option.h"
-#include "fsemu-osmenu.h"
-#include "fsemu-thread.h"
-#include "fsemu-titlebar.h"
 
 // ----------------------------------------------------------------------------
 
-int fsemu_mouse_log_level = 1;
+int fsemu_mouse_log_level = SDL_LOG_PRIORITY_ERROR;
 
 // ----------------------------------------------------------------------------
 
@@ -26,14 +25,15 @@ static struct fsemu_mouse {
     bool automatic_grab;
     // True if middle clicking should grab/ungrab input
     bool middle_click_ungrab;
-    fsemu_inputdevice_t* system_mouse;
+    fsemu_inputdevice_t *system_mouse;
 } fsemu_mouse;
 
 // ----------------------------------------------------------------------------
 
-static void fsemu_mouse_add_system_device(void) {
+static void fsemu_mouse_add_system_device(void)
+{
     fsemu_mouse_log("Adding system mouse device\n");
-    fsemu_inputdevice_t* device = fsemu_inputdevice_new();
+    fsemu_inputdevice_t *device = fsemu_inputdevice_new();
     fsemu_inputdevice_set_type(device, FSEMU_INPUTDEVICE_TYPE_MOUSE);
     fsemu_inputdevice_set_name(device, "Mouse");
     int error;
@@ -47,17 +47,20 @@ static void fsemu_mouse_add_system_device(void) {
 
 // ----------------------------------------------------------------------------
 
-bool fsemu_mouse_captured(void) {
+bool fsemu_mouse_captured(void)
+{
     return fsemu_mouse.captured;
 }
 
 // ----------------------------------------------------------------------------
 
-void fsemu_mouse_set_captured(bool captured) {
+void fsemu_mouse_set_captured(bool captured)
+{
     fsemu_mouse.captured = captured;
 }
 
-void fsemu_mouse_toggle_captured(void) {
+void fsemu_mouse_toggle_captured(void)
+{
     fsemu_mouse_set_captured(!fsemu_mouse_captured());
 }
 
@@ -65,7 +68,7 @@ void fsemu_mouse_toggle_captured(void) {
 #if 0
 void fsemu_mouse_handle_position(int window_x, int window_y)
 {
-    fsemu_thread_assert_main();
+    SDL_assert(SDL_IsMainThread());
 
     fsemu_mouse_log("%d,%d\n", window_x, window_y);
 }
@@ -77,7 +80,7 @@ void fsemu_mouse_handle_click(int button,
                               int window_x,
                               int window_y)
 {
-    fsemu_thread_assert_main();
+    SDL_assert(SDL_IsMainThread());
 
     fsemu_mouse_log("Button %d clicked (%d) at %d,%d\n",
                     button,
@@ -108,7 +111,8 @@ static int g_fs_emu_mouse_speed = 100;
 // subjective opinion).
 #define FSEMU_MOUSE_SLOWDOWN 2.0
 
-static void fsemu_mouse_adjust_movement(int mouse, int axis, int* movement) {
+static void fsemu_mouse_adjust_movement(int mouse, int axis, int *movement)
+{
     // FIXME: Maybe these fractional values should decay over time? So that
     // the mouse does not stay at the "edge" of triggering movement for long.
     static double fract[FSEMU_MOUSE_MAX_MICE][FSEMU_MOUSE_MAX_MICE_AXES];
@@ -124,45 +128,29 @@ static void fsemu_mouse_adjust_movement(int mouse, int axis, int* movement) {
 // ----------------------------------------------------------------------------
 
 // void fsemu_mouse_handle_mouse(int x, int y, int button, int state)
-bool fsemu_mouse_handle_mouse(fsemu_mouse_event_t* event) {
-    fsemu_thread_assert_main();
-#if 0
-    if (fsemu_titlebar_handle_mouse(event)) {
-        return true;
-    }
-#endif
+bool fsemu_mouse_handle_mouse(fsemu_mouse_event_t *event)
+{
+    SDL_assert(SDL_IsMainThread());
     if (event->button > 0) {
         // printf("click\n");
         fsemu_mouse_log_debug("Button %d clicked (%d) at %d,%d\n", event->button, event->state,
                               event->x, event->y);
 
         if (event->state) {
-            // if (fsemu_osmenu_open()) {
-            //     return true;
-            // } else
             if (event->button == 2) {
                 if (fsemu_mouse_captured()) {
                     fsemu_mouse_set_captured(false);
-                } else if (fsemu_osmenu_open()) {
-                    // Don't want to grab while menu is open
                 } else {
                     fsemu_mouse_set_captured(true);
                 }
                 return true;
             } else {
-                if (fsemu_mouse.automatic_grab && !fsemu_mouse_captured() && !fsemu_osmenu_open()) {
+                if (fsemu_mouse.automatic_grab && !fsemu_mouse_captured()) {
                     fsemu_mouse_set_captured(true);
                     return true;
                 }
             }
         }
-    } else {
-        // fsemu_mouse_log("%d,%d\n", event->x, event->y);
-#if 0
-        if (y == 0) { // FIXME: CHECK GRAB?
-            fsemu_titlebar_handle_mouse(x, y, button, state);
-        }
-#endif
     }
 
     // FIXME: Hardcoded for now.. :-/
@@ -205,18 +193,16 @@ bool fsemu_mouse_handle_mouse(fsemu_mouse_event_t* event) {
     return false;
 }
 
-void fsemu_mouse_add_devices(void) {
+void fsemu_mouse_add_devices(void)
+{
     fsemu_mouse_add_system_device();
 }
 
 // ----------------------------------------------------------------------------
 
-void fsemu_mouse_init_module(void) {
+void fsemu_mouse_init_module(void)
+{
     fsemu_return_if_already_initialized();
-    fsemu_thread_init();
-#if 0
-    fsemu_titlebar_init();
-#endif
 
     fsemu_mouse_log_debug("Init\n");
 

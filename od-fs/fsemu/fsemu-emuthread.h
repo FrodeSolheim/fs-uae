@@ -1,21 +1,19 @@
-#ifndef FSEMU_EMUTHREAD_H_
-#define FSEMU_EMUTHREAD_H_
+#ifndef FSEMU_EMUTHREAD_H
+#define FSEMU_EMUTHREAD_H
 
 // This module contains data which can be safely used from the emulation
 // thread.
 
+#include <SDL3/SDL.h>
+
 #include "fsemu-common.h"
-#include "fsemu-gui.h"
 #include "fsemu-types.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-// Initialize the videothread subsystem. Can safely be called more than once.
-// FIXME:
-// Will be called from fsemu_video_init, so no reason to call this from other
-// contexts.
+// Initialize the emuthread module. Can safely be called more than once.
 void fsemu_emuthread_init(void);
 
 void fsemu_emuthread_lock(void);
@@ -23,12 +21,23 @@ void fsemu_emuthread_unlock(void);
 
 bool fsemu_emuthread_paused(void);
 
-// Alias for fsemu_thread_set_emu.
+// Registers the current thread as the emulation thread.
 void fsemu_emuthread_set_from_current(void);
 
-void fsemu_emuthread_check_load_state(int* slot);
+extern SDL_ThreadID fsemu_emuthread_thread_id;
 
-void fsemu_emuthread_check_save_state(int* slot);
+static inline bool fsemu_emuthread_is_current(void)
+{
+    SDL_assert(fsemu_emuthread_thread_id);
+    return SDL_GetCurrentThreadID() == fsemu_emuthread_thread_id;
+}
+
+// Using a define to get source file/line location correct in error messages.
+#define fsemu_emuthread_assert_current() SDL_assert(fsemu_emuthread_is_current());
+
+void fsemu_emuthread_check_load_state(int *slot);
+
+void fsemu_emuthread_check_save_state(int *slot);
 
 // FIXME: fsemu_emuthread_(next_)action
 
@@ -36,4 +45,4 @@ void fsemu_emuthread_check_save_state(int* slot);
 }
 #endif
 
-#endif  // FSEMU_EMUTHREAD_H_
+#endif /* FSEMU_EMUTHREAD_H */

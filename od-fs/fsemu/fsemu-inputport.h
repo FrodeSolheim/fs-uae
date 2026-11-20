@@ -1,5 +1,5 @@
-#ifndef FSEMU_INPUTPORT_H_
-#define FSEMU_INPUTPORT_H_
+#ifndef FSEMU_INPUTPORT_H
+#define FSEMU_INPUTPORT_H
 
 #include <stdint.h>
 
@@ -18,32 +18,32 @@ struct fsemu_inputport;
 typedef struct fsemu_inputport fsemu_inputport_t;
 
 // fsemu_inputport_t *fsemu_inputport_alloc(void);
-fsemu_inputport_t* fsemu_inputport_new(void);
-void fsemu_inputport_init(fsemu_inputport_t* port);
+fsemu_inputport_t *fsemu_inputport_new(void);
+void fsemu_inputport_init(fsemu_inputport_t *port);
 
-int fsemu_inputport_index(fsemu_inputport_t* port);
+int fsemu_inputport_index(fsemu_inputport_t *port);
 
-const char* fsemu_inputport_name(fsemu_inputport_t* port);
-void fsemu_inputport_set_name(fsemu_inputport_t* port, const char* name);
+const char *fsemu_inputport_name(fsemu_inputport_t *port);
+void fsemu_inputport_set_name(fsemu_inputport_t *port, const char *name);
 
-const char* fsemu_inputport_config_name(fsemu_inputport_t* port);
-void fsemu_inputport_set_config_name(fsemu_inputport_t* port, const char* config_name);
+const char *fsemu_inputport_config_name(fsemu_inputport_t *port);
+void fsemu_inputport_set_config_name(fsemu_inputport_t *port, const char *config_name);
 
-void fsemu_inputport_add_mode(fsemu_inputport_t* port, fsemu_inputmode_t* mode);
-void fsemu_inputport_set_mode(fsemu_inputport_t* port,
-                              fsemu_inputmode_t* mode);  // FIXME: mode id?
+void fsemu_inputport_add_mode(fsemu_inputport_t *port, fsemu_inputmode_t *mode);
+void fsemu_inputport_set_mode(fsemu_inputport_t *port,
+                              fsemu_inputmode_t *mode); // FIXME: mode id?
 
-int fsemu_inputport_mode_count(fsemu_inputport_t* port);
-fsemu_inputmode_t* fsemu_inputport_mode_by_index(fsemu_inputport_t* port, int mode_index);
+int fsemu_inputport_mode_count(fsemu_inputport_t *port);
+fsemu_inputmode_t *fsemu_inputport_mode_by_index(fsemu_inputport_t *port, int mode_index);
 
-void fsemu_inputport_set_mode_by_index(fsemu_inputport_t* port, int mode_index);
+void fsemu_inputport_set_mode_by_index(fsemu_inputport_t *port, int mode_index);
 
-fsemu_inputmode_t* fsemu_inputport_mode(fsemu_inputport_t* port);
-const char* fsemu_inputport_mode_name(fsemu_inputport_t* port);
+fsemu_inputmode_t *fsemu_inputport_mode(fsemu_inputport_t *port);
+const char *fsemu_inputport_mode_name(fsemu_inputport_t *port);
 
-fsemu_inputdevice_t* fsemu_inputport_device(fsemu_inputport_t* port);
-void fsemu_inputport_set_device(fsemu_inputport_t* port, fsemu_inputdevice_t* device);
-void fsemu_inputport_set_device_by_index(fsemu_inputport_t* port, int device_index);
+fsemu_inputdevice_t *fsemu_inputport_device(fsemu_inputport_t *port);
+void fsemu_inputport_set_device(fsemu_inputport_t *port, fsemu_inputdevice_t *device);
+void fsemu_inputport_set_device_by_index(fsemu_inputport_t *port, int device_index);
 
 void fsemu_inputport_init_module(void);
 
@@ -55,11 +55,11 @@ struct fsemu_inputport {
     // A unique (amongst the ports) instance id that will never be reused for other ports.
     int instance_id;
 
-    char* config_name;
-    char* name;
+    char *config_name;
+    char *name;
     int dummy;
     int num_modes;
-    fsemu_inputmode_t* modes[FSEMU_INPUTPORT_MAX_MODES];
+    fsemu_inputmode_t *modes[FSEMU_INPUTPORT_MAX_MODES];
     int mode_index;
     // Automatically add controller to this port when connected?
     // bool autofill_controller;
@@ -70,10 +70,10 @@ struct fsemu_inputport {
     int device_index;
 };
 
-#endif  // FSEMU_INTERNAL
+#endif // FSEMU_INTERNAL
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif  // FSEMU_INPUTPORT_H_
+#endif /* FSEMU_INPUTPORT_H */

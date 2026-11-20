@@ -5,4 +5,4 @@
 // further messages until the next reset??
 // #define FSUAE_MESSAGE_WAIT_RESET
 
-#endif  // FSEMU_CONSTANTS_H
+#endif /* FSEMU_CONSTANTS_H */

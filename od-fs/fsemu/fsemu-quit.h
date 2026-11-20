@@ -1,5 +1,5 @@
-#ifndef FSEMU_QUIT_H_
-#define FSEMU_QUIT_H_
+#ifndef FSEMU_QUIT_H
+#define FSEMU_QUIT_H
 
 #include <stdbool.h>
 
@@ -15,4 +15,4 @@ void fsemu_quit_maybe(void);
 }
 #endif
 
-#endif  // FSEMU_QUIT_H_
+#endif /* FSEMU_QUIT_H */

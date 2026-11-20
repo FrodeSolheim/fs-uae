@@ -5,33 +5,60 @@
 #include <stdlib.h>
 #include <strings.h>
 
+#include "fs/log.h"
+#include "fsapp-util.h"
 #include "fsemu-glib.h"
 #include "fsemu-inifile.h"
-#include "fsemu-log.h"
-#include "fsemu-thread.h"
-#include "fsemu-util.h"
 
-int fsemu_option_log_level = FSEMU_LOG_LEVEL_INFO;
+int fsemu_option_log_level = SDL_LOG_PRIORITY_INFO;
 
 static struct {
     bool initialized;
-    GHashTable* hash_table;
+    GHashTable *hash_table;
 } fsemu_option;
 
-const char** fsemu_option_keys(void) {
-    fsemu_assert(fsemu_option.initialized);
-    return (const char**)g_hash_table_get_keys_as_array(fsemu_option.hash_table, NULL);
+// Reads the option from the environment variable FSEMU_<NAME>; returns "" if not set.
+static const char *fsemu_read_env_option(const char *name)
+{
+    gchar *key = g_strdup_printf("FSEMU_%s", name);
+    char *c = key;
+    while (*c) {
+        *c = g_ascii_toupper(*c);
+        c++;
+    }
+    const char *value = getenv(key);
+    g_free(key);
+    if (value != NULL) {
+        return value;
+    }
+#if 0
+    key = g_strdup_printf("FSGS_%s", name);
+    value = getenv(key);
+    g_free(key);
+    if (value != NULL) {
+        return value;
+    }
+#endif
+    return "";
 }
 
-void fsemu_option_keys_free(const char** keys) {
+const char **fsemu_option_keys(void)
+{
+    fsapp_assert(fsemu_option.initialized);
+    return (const char **)g_hash_table_get_keys_as_array(fsemu_option.hash_table, NULL);
+}
+
+void fsemu_option_keys_free(const char **keys)
+{
     g_free(keys);
 }
 
-int fsemu_option_read_bool_default(const char* name, bool* result, bool default_value) {
-    fsemu_thread_assert_main();
-    fsemu_assert(fsemu_option.initialized);
+int fsemu_option_read_bool_default(const char *name, bool *result, bool default_value)
+{
+    SDL_assert(SDL_IsMainThread());
+    fsapp_assert(fsemu_option.initialized);
 
-    const char* value = fsemu_read_env_option(name);
+    const char *value = fsemu_read_env_option(name);
     if (value[0]) {
         if (strcasecmp(value, "1") == 0 || strcasecmp(value, "true") == 0) {
             *result = true;
@@ -46,11 +73,12 @@ int fsemu_option_read_bool_default(const char* name, bool* result, bool default_
     return 0;
 }
 
-int fsemu_option_read_int(const char* name, int* result) {
-    fsemu_thread_assert_main();
-    fsemu_assert(fsemu_option.initialized);
+int fsemu_option_read_int(const char *name, int *result)
+{
+    SDL_assert(SDL_IsMainThread());
+    fsapp_assert(fsemu_option.initialized);
 
-    const char* value = fsemu_read_env_option(name);
+    const char *value = fsemu_read_env_option(name);
     if (value[0]) {
         sscanf(value, "%d", result);
         return 1;
@@ -58,11 +86,12 @@ int fsemu_option_read_int(const char* name, int* result) {
     return 0;
 }
 
-int fsemu_option_read_const_string(const char* name, const char** result) {
-    fsemu_thread_assert_main();
-    fsemu_assert(fsemu_option.initialized);
+int fsemu_option_read_const_string(const char *name, const char **result)
+{
+    SDL_assert(SDL_IsMainThread());
+    fsapp_assert(fsemu_option.initialized);
 
-    const char* value = fsemu_read_env_option(name);
+    const char *value = fsemu_read_env_option(name);
     *result = value;
     if (value[0]) {
         return 1;
@@ -70,11 +99,12 @@ int fsemu_option_read_const_string(const char* name, const char** result) {
     return 0;
 }
 
-const char* fsemu_option_const_string(const char* name) {
-    fsemu_thread_assert_main();
-    fsemu_assert(fsemu_option.initialized);
+const char *fsemu_option_const_string(const char *name)
+{
+    SDL_assert(SDL_IsMainThread());
+    fsapp_assert(fsemu_option.initialized);
 
-    const char* value = (const char*)g_hash_table_lookup(fsemu_option.hash_table, name);
+    const char *value = (const char *)g_hash_table_lookup(fsemu_option.hash_table, name);
     if (value && !value[0]) {
         // An empty string is treated as non-existing (unset value).
         return NULL;
@@ -82,16 +112,18 @@ const char* fsemu_option_const_string(const char* name) {
     return value;
 }
 
-const char* fsemu_option_const_string_default(const char* name, const char* default_value) {
-    const char* value = fsemu_option_const_string(name);
+const char *fsemu_option_const_string_default(const char *name, const char *default_value)
+{
+    const char *value = fsemu_option_const_string(name);
     if (value == NULL) {
         return default_value;
     }
     return value;
 }
 
-int fsemu_option_int(const char* name) {
-    const char* value = fsemu_option_const_string(name);
+int fsemu_option_int(const char *name)
+{
+    const char *value = fsemu_option_const_string(name);
     if (value == NULL) {
         return FSEMU_OPTION_NO_INT;
     }
@@ -99,7 +131,8 @@ int fsemu_option_int(const char* name) {
     return atoi(value);
 }
 
-int fsemu_option_int_default(const char* name, int default_value) {
+int fsemu_option_int_default(const char *name, int default_value)
+{
     int value = fsemu_option_int(name);
     if (value == FSEMU_OPTION_NO_INT) {
         return default_value;
@@ -107,7 +140,8 @@ int fsemu_option_int_default(const char* name, int default_value) {
     return value;
 }
 
-int fsemu_option_int_clamped(const char* name, int min, int max) {
+int fsemu_option_int_clamped(const char *name, int min, int max)
+{
     int value = fsemu_option_int(name);
     if (value == FSEMU_OPTION_NO_INT) {
         return value;
@@ -123,7 +157,8 @@ int fsemu_option_int_clamped(const char* name, int min, int max) {
     return value;
 }
 
-int fsemu_option_int_clamped_default(const char* name, int min, int max, int default_value) {
+int fsemu_option_int_clamped_default(const char *name, int min, int max, int default_value)
+{
     int value = fsemu_option_int_clamped(name, min, max);
     if (value == FSEMU_OPTION_NO_INT) {
         return default_value;
@@ -131,8 +166,9 @@ int fsemu_option_int_clamped_default(const char* name, int min, int max, int def
     return value;
 }
 
-static void fsemu_option_process_key_value(const char* key, char* value, int force) {
-    char* key_lower = g_ascii_strdown(key, -1);
+static void fsemu_option_process_key_value(const char *key, char *value, int force)
+{
+    char *key_lower = g_ascii_strdown(key, -1);
     g_strdelimit(key_lower, "-", '_');
     // Using fsemu_option_const_string here instead of just
     // g_hash_table_lookup, since that also checks for empty strings, which
@@ -151,16 +187,17 @@ static void fsemu_option_process_key_value(const char* key, char* value, int for
     }
 }
 
-void fsemu_option_load_from_argv(int argc, char** argv) {
-    fsemu_thread_assert_main();
+void fsemu_option_load_from_argv(int argc, char **argv)
+{
+    SDL_assert(SDL_IsMainThread());
     int first = 1;
     for (int i = 0; i < argc; i++) {
-        const char* arg = argv[i];
+        const char *arg = argv[i];
         if (!g_str_has_prefix(arg, "--")) {
             continue;
         }
-        const char* key = arg + 2;
-        char* value = strchr(arg, '=');
+        const char *key = arg + 2;
+        const char *value = strchr(arg, '=');
         char *k, *v;
         if (value) {
             k = g_strndup(key, value - key);
@@ -195,7 +232,8 @@ void fsemu_option_load_from_argv(int argc, char** argv) {
 #endif
 #endif
 
-static void fsemu_option_parse_env_string(char* string) {
+static void fsemu_option_parse_env_string(char *string)
+{
     /*
     printf("ENV: %s\n", string);
     char key[1024];
@@ -207,7 +245,7 @@ static void fsemu_option_parse_env_string(char* string) {
     }
     */
 
-    for (char* p = string; *p; p++) {
+    for (char *p = string; *p; p++) {
         if (*p == '=') {
             // We can modify the environment string since we use a copy
             // allocated by glib.
@@ -221,9 +259,10 @@ static void fsemu_option_parse_env_string(char* string) {
     }
 }
 
-static void fsemu_option_init_from_env(void) {
-    gchar** env = g_get_environ();
-    for (char** p = env; *p; p++) {
+static void fsemu_option_init_from_env(void)
+{
+    gchar **env = g_get_environ();
+    for (char **p = env; *p; p++) {
         fsemu_option_parse_env_string(*p);
     }
     g_strfreev(env);
@@ -256,22 +295,23 @@ static void fsemu_option_process_key_value(const char *key, char *value, int for
 }
 #endif
 
-static void fsemu_option_parse_inifile(fsemu_inifile_t* inifile, int force) {
+static void fsemu_option_parse_inifile(fsemu_inifile_t *inifile, int force)
+{
     printf("Parse ini file\n");
 
-    char** groups = fsemu_inifile_get_groups(inifile, NULL);
-    for (char** group = groups; *group; group++) {
-        const char* prefix = "";
+    char **groups = fsemu_inifile_get_groups(inifile, NULL);
+    for (char **group = groups; *group; group++) {
+        const char *prefix = "";
 #if 0
         if (strcmp(*group, "theme") == 0) {
             prefix = "theme_";
         }
 #endif
-        char** keys = fsemu_inifile_get_keys(inifile, *group, NULL);
-        for (char** key = keys; *key; key++) {
-            char* value = fsemu_inifile_get_value(inifile, *group, *key);
+        char **keys = fsemu_inifile_get_keys(inifile, *group, NULL);
+        for (char **key = keys; *key; key++) {
+            char *value = fsemu_inifile_get_value(inifile, *group, *key);
             if (value) {
-                char* key2 = g_strconcat(prefix, *key, NULL);
+                char *key2 = g_strconcat(prefix, *key, (char *)NULL);
                 fsemu_option_process_key_value(key2, value, force);
                 g_free(key2);
             }
@@ -281,14 +321,15 @@ static void fsemu_option_parse_inifile(fsemu_inifile_t* inifile, int force) {
     g_strfreev(groups);
 }
 
-fsemu_error_t fsemu_option_read_config_file(const char* path) {
+fsemu_error_t fsemu_option_read_config_file(const char *path)
+{
     fsemu_option_log("Load config file: %s\n", path);
-    if (!fsemu_path_exists(path)) {
+    if (!SDL_GetPathInfo(path, NULL)) {
         fsemu_option_log_info("Config file does not exist\n");
         return 1;
     }
 
-    fsemu_inifile* inifile = fsemu_inifile_open(path);
+    fsemu_inifile *inifile = fsemu_inifile_open(path);
     if (inifile == NULL) {
         fsemu_option_log_error("Error loading config file\n");
         return 2;
@@ -299,17 +340,18 @@ fsemu_error_t fsemu_option_read_config_file(const char* path) {
     return 0;
 }
 
-void fsemu_option_init_from_argv(int argc, char** argv) {
+void fsemu_option_init_from_argv(int argc, char **argv)
+{
     fsemu_option_init();
     fsemu_option_load_from_argv(argc, argv);
 }
 
-void fsemu_option_init(void) {
+void fsemu_option_init(void)
+{
     if (fsemu_option.initialized) {
         return;
     }
     fsemu_option.initialized = true;
-    fsemu_thread_init();
 
     fsemu_option.hash_table = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_free);
     fsemu_option_init_from_env();

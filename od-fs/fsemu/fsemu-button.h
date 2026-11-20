@@ -1,5 +1,5 @@
-#ifndef FSEMU_BUTTON_H_
-#define FSEMU_BUTTON_H_
+#ifndef FSEMU_BUTTON_H
+#define FSEMU_BUTTON_H
 
 #include "fsemu-common.h"
 #include "fsemu-key.h"
@@ -39,4 +39,4 @@ enum {
 }
 #endif
 
-#endif  // FSEMU_BUTTON_H_
+#endif /* FSEMU_BUTTON_H */

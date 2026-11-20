@@ -1,5 +1,5 @@
-#ifndef FSEMU_MOUSE_H_
-#define FSEMU_MOUSE_H_
+#ifndef FSEMU_MOUSE_H
+#define FSEMU_MOUSE_H
 
 #include <stdbool.h>
 
@@ -35,25 +35,11 @@ extern int fsemu_mouse_log_level;
 
 #ifdef FSEMU_INTERNAL
 
-/*
-#define fsemu_mouse_log(format, ...) \
-    fsemu_log("[FSE] [MOUSE] " format, ##__VA_ARGS__)
+#define fsemu_mouse_log(format, ...)                                                               \
+    FS_LOG_INFO(fsemu_mouse_log_level, "[FSE] [MOU]", format, ##__VA_ARGS__)
 
-#define fsemu_mouse_log(level, format, ...)                  \
-    if (fsemu_mouse_log_level >= level) {                    \
-        fsemu_log("[FSE] [AUD] " format, ##__VA_ARGS__); \
-    }
-*/
-
-#define fsemu_mouse_log(format, ...)                                   \
-    if (fsemu_likely(fsemu_mouse_log_level >= FSEMU_LOG_LEVEL_INFO)) { \
-        fsemu_log("[FSE] [MOU] " format, ##__VA_ARGS__);               \
-    }
-
-#define fsemu_mouse_log_debug(format, ...)                                \
-    if (fsemu_unlikely(fsemu_mouse_log_level >= FSEMU_LOG_LEVEL_DEBUG)) { \
-        fsemu_log("[FSE] [MOU] " format, ##__VA_ARGS__);                  \
-    }
+#define fsemu_mouse_log_debug(format, ...)                                                         \
+    FS_LOG_DEBUG(fsemu_mouse_log_level, "[FSE] [MOU]", format, ##__VA_ARGS__)
 
 #if 0
 
@@ -79,7 +65,7 @@ typedef struct fsemu_mouse_event {
     int state;
 } fsemu_mouse_event_t;
 
-bool fsemu_mouse_handle_mouse(fsemu_mouse_event_t* event);
+bool fsemu_mouse_handle_mouse(fsemu_mouse_event_t *event);
 
 enum {
     // Make sure to keep these in the same order as in fsemu-inputdevice.
@@ -95,10 +81,10 @@ enum {
     FSEMU_MOUSE_YPOS,
 };
 
-#endif  // FSEMU_INTERNAL
+#endif // FSEMU_INTERNAL
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif  // FSEMU_MOUSE_H_
+#endif /* FSEMU_MOUSE_H */

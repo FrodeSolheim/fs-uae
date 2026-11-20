@@ -1,3 +1,9 @@
+/*
+ * The single-instance lock: only one instance of the program runs at a time.
+ *
+ * Copyright (c) 2025-2026 Frode Solheim
+ */
+
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -12,7 +18,7 @@
 #ifdef _WIN32
 #include <windows.h>
 static HANDLE g_instance_mutex = NULL;
-static char* g_mutex_name = NULL;
+static char *g_mutex_name = NULL;
 #else
 #include <errno.h>
 #include <fcntl.h>
@@ -20,14 +26,15 @@ static char* g_mutex_name = NULL;
 #include <sys/stat.h>
 #include <unistd.h>
 static int g_lock_fd = -1;
-static char* g_lock_path = NULL;
+static char *g_lock_path = NULL;
 #endif
 
 static bool g_lock_acquired = false;
 
 #ifndef _WIN32
-static char* get_lock_file_path(const char* app_name) {
-    const char* temp_dir = getenv("TMPDIR");
+static char *get_lock_file_path(const char *app_name)
+{
+    const char *temp_dir = getenv("TMPDIR");
     if (temp_dir == NULL) {
         temp_dir = getenv("TMP");
     }
@@ -36,8 +43,8 @@ static char* get_lock_file_path(const char* app_name) {
     }
 
     // Include user ID in lock file name to avoid conflicts between users
-    size_t path_len = strlen(temp_dir) + strlen(app_name) + 64;  // Extra space for filename and uid
-    char* lock_path = malloc(path_len);
+    size_t path_len = strlen(temp_dir) + strlen(app_name) + 64; // Extra space for filename and uid
+    char *lock_path = (char *)malloc(path_len);
     if (lock_path == NULL) {
         return NULL;
     }
@@ -47,19 +54,20 @@ static char* get_lock_file_path(const char* app_name) {
 }
 #endif
 
-fsapp_instance_result_t fsapp_instance_acquire_lock(const char* app_name) {
+fsapp_instance_result_t fsapp_instance_acquire_lock(const char *app_name)
+{
     if (app_name == NULL || strlen(app_name) == 0) {
         return FSAPP_INSTANCE_ERROR;
     }
 
     if (g_lock_acquired) {
-        return FSAPP_INSTANCE_OK;  // Already acquired
+        return FSAPP_INSTANCE_OK; // Already acquired
     }
 
 #ifdef _WIN32
     // Create mutex name: "Global\\AppName-InstanceMutex"
-    size_t mutex_name_len = strlen(app_name) + 32;  // Extra space for prefix/suffix
-    g_mutex_name = malloc(mutex_name_len);
+    size_t mutex_name_len = strlen(app_name) + 32; // Extra space for prefix/suffix
+    g_mutex_name = (char *) malloc(mutex_name_len);
     if (g_mutex_name == NULL) {
         return FSAPP_INSTANCE_ERROR;
     }
@@ -127,9 +135,10 @@ fsapp_instance_result_t fsapp_instance_acquire_lock(const char* app_name) {
 #endif
 }
 
-void fsapp_instance_release_lock(void) {
+void fsapp_instance_release_lock(void)
+{
     if (!g_lock_acquired) {
-        return;  // Nothing to release
+        return; // Nothing to release
     }
 
 #ifdef _WIN32

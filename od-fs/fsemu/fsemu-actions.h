@@ -1,5 +1,5 @@
-#ifndef FSEMU_ACTIONS_H_
-#define FSEMU_ACTIONS_H_
+#ifndef FSEMU_ACTIONS_H
+#define FSEMU_ACTIONS_H
 
 #include <stdint.h>
 
@@ -10,16 +10,11 @@ extern "C" {
 #endif
 
 #define FSEMU_ACTION_NONE 0x0000
-// #define FSEMU_ACTION_OSKEYBOARD 0x0001
-// #define FSEMU_ACTION_OSMENU 0x0002
 
 // ----------------------------------------------------------------------------
 
 enum {
     FSEMU_ACTION_BEFORE_FIRST_SOMETHING = 0x0A00 | FSEMU_ACTION_NONEMU_FLAG,
-
-    FSEMU_ACTION_OSKEYBOARD,
-    FSEMU_ACTION_OSMENU,
 
     FSEMU_ACTION_QUIT,
 };
@@ -64,7 +59,7 @@ enum {
 };
 
 enum {
-    FSEMU_ACTION_BEFORE_FIRST_EMU = 0x1000,  // EMU ACTIONS
+    FSEMU_ACTION_BEFORE_FIRST_EMU = 0x1000, // EMU ACTIONS
 
     FSEMU_ACTION_SOFTRESET,
     FSEMU_ACTION_HARDRESET,
@@ -389,4 +384,4 @@ enum {
 }
 #endif
 
-#endif  // FSEMU_ACTIONS_H_
+#endif /* FSEMU_ACTIONS_H */

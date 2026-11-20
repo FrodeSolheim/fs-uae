@@ -1,5 +1,5 @@
-#ifndef FSEMU_GLIB_H_
-#define FSEMU_GLIB_H_
+#ifndef FSEMU_GLIB_H
+#define FSEMU_GLIB_H
 
 #include "fsemu-common.h"
 
@@ -10,4 +10,4 @@
 
 #endif
 
-#endif  // FSEMU_GLIB_H_
+#endif /* FSEMU_GLIB_H */

@@ -1,5 +1,5 @@
-#ifndef FSEMU_CONTROLLER_H_
-#define FSEMU_CONTROLLER_H_
+#ifndef FSEMU_CONTROLLER_H
+#define FSEMU_CONTROLLER_H
 
 #include <stdbool.h>
 
@@ -72,7 +72,7 @@ enum {
 // } fsemu_action_t;
 
 struct fsemu_controller {
-    const char* name;
+    const char *name;
     int sdl_joystick_index;
     int sdl_instance_id;
 
@@ -124,4 +124,4 @@ typedef struct fsemu_controller fsemu_controller_t;
 }
 #endif
 
-#endif  // FSEMU_CONTROLLER_H_
+#endif /* FSEMU_CONTROLLER_H */

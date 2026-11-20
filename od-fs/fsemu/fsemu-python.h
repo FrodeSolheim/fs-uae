@@ -1,5 +1,5 @@
-#ifndef FSEMU_PYTHON_H_
-#define FSEMU_PYTHON_H_
+#ifndef FSEMU_PYTHON_H
+#define FSEMU_PYTHON_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -7,10 +7,10 @@ extern "C" {
 
 void fsemu_python_init(void);
 
-void fsemu_python_apply_options(void (*callback)(const char* name, const char* value));
+void fsemu_python_apply_options(void (*callback)(const char *name, const char *value));
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif  // FSEMU_PYTHON_H_
+#endif /* FSEMU_PYTHON_H */

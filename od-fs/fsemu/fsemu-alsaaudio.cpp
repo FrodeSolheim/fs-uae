@@ -1,11 +1,10 @@
 #define FSEMU_INTERNAL
 #include "fsemu-alsaaudio.h"
 
+#include "fs/log.h"
+#include "fsapp-time.h"
 #include "fsemu-audio.h"
 #include "fsemu-audiobuffer.h"
-#include "fsemu-log.h"
-#include "fsemu-thread.h"
-#include "fsemu-time.h"
 
 #ifdef FSEMU_ALSA
 
@@ -19,7 +18,7 @@ static struct {
     int buffer_bytes;
 } fsemu_alsaaudio;
 
-snd_pcm_t* playback_handle;
+snd_pcm_t *playback_handle;
 
 #if 0
 int playback_callback(snd_pcm_sframes_t nframes)
@@ -38,7 +37,8 @@ int playback_callback(snd_pcm_sframes_t nframes)
 }
 #endif
 
-static void fsemu_alsaaudio_handle_underrun(void) {
+static void fsemu_alsaaudio_handle_underrun(void)
+{
     // fsemu_audio_log_inflight_estimate();
     fsemu_audio_log("----------\n");
     if (fsemu_audio_log_buffer_stats() <= 1) {
@@ -53,10 +53,11 @@ static void fsemu_alsaaudio_handle_underrun(void) {
 
     // FIXME: Race condition (with emulation thread) on updating the write
     // buffer
-    // fsemu_audiobuffer_write_silence_ms(1);
+    // fsemu_audiobuffer_write_silence_ns(SDL_MS_TO_NS(1));
 }
 
-static int fsemu_alsaaudio_write(void* buffer, int bytes) {
+static int fsemu_alsaaudio_write(void *buffer, int bytes)
+{
     int err;
     if ((err = snd_pcm_writei(playback_handle, buffer, bytes / 4)) < 0) {
         fprintf(stderr, "write failed (%s)\n", snd_strerror(err));
@@ -74,13 +75,17 @@ static int fsemu_alsaaudio_write(void* buffer, int bytes) {
     }
 }
 
-static void fsemu_alsaaudio_callback(snd_pcm_sframes_t want_frames) {
-    static int64_t last_time;
-    int64_t now = fsemu_time_us();
+static void fsemu_alsaaudio_callback(snd_pcm_sframes_t want_frames)
+{
+    // REVIEW: This driver is not built (FSEMU_ALSA is off in fsemu-config.h) and no longer
+    // compiles against the audio buffer; its times were moved to nanoseconds (sdl-clock 07)
+    // without compiling them.
+    static int64_t last_time_ns;
+    int64_t now_ns = (int64_t)SDL_GetTicksNS();
 #if 0
     printf("[FSE] Audio buffer: %3d ms (dt %2d ms) want %5d B (%4d frames)\n",
            fsemu_audiobuffer_fill_ms(),
-           (int)((now - last_time) / 1000),
+           (int)SDL_NS_TO_MS(now_ns - last_time_ns),
            (int) want_frames * 4,
            (int) want_frames);
 #endif
@@ -112,8 +117,8 @@ static void fsemu_alsaaudio_callback(snd_pcm_sframes_t want_frames) {
 
     int err;
 
-    uint8_t volatile* read = fsemu_audiobuffer.read;
-    uint8_t volatile* write = fsemu_audiobuffer.write;
+    uint8_t volatile *read = fsemu_audiobuffer.read;
+    uint8_t volatile *write = fsemu_audiobuffer.write;
 
     int bytes = 0;
     int bytes_written = 0;
@@ -131,7 +136,7 @@ static void fsemu_alsaaudio_callback(snd_pcm_sframes_t want_frames) {
     }
     // printf("[FSE] bytes %d\n", bytes);
 
-    int error = fsemu_alsaaudio_write((void*)read, bytes);
+    int error = fsemu_alsaaudio_write((void *)read, bytes);
     // FIXME: Check for underrun
     want_bytes -= bytes;
     bytes_written += bytes;
@@ -144,7 +149,7 @@ static void fsemu_alsaaudio_callback(snd_pcm_sframes_t want_frames) {
             if (bytes > want_bytes) {
                 bytes = want_bytes;
             }
-            error = fsemu_alsaaudio_write((void*)read, bytes);
+            error = fsemu_alsaaudio_write((void *)read, bytes);
             // FIXME: Check for underrun
             want_bytes -= bytes;
             bytes_written += bytes;
@@ -161,14 +166,15 @@ static void fsemu_alsaaudio_callback(snd_pcm_sframes_t want_frames) {
 
     int wanted_bytes = want_frames * 4;
     int buffered_bytes = fsemu_audio_alsa.buffer_bytes - wanted_bytes + bytes_written;
-    fsemu_audio_register_data_sent(buffered_bytes, now, (void*)read, (void*)write);
+    fsemu_audio_register_data_sent(buffered_bytes, now_ns, (void *)read, (void *)write);
 
-    last_time = now;
+    last_time_ns = now_ns;
     fsemu_audiobuffer.read = read;
 }
 
-static void* fsemu_alsaaudio_thread(void* data) {
-    fsemu_thread_set_priority();
+static int fsemu_alsaaudio_thread(void *data)
+{
+    SDL_SetCurrentThreadPriority(SDL_THREAD_PRIORITY_TIME_CRITICAL);
 
     snd_pcm_sframes_t frames_to_deliver;
     int err;
@@ -195,7 +201,8 @@ static void* fsemu_alsaaudio_thread(void* data) {
             if (err == EPIPE) {
                 fprintf(stderr, "an xrun occured\n");
             } else {
-                fsemu_warning("Unknown ALSA error from snd_pcm_avail_update (%d)", err);
+                SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION,
+                            "Unknown ALSA error from snd_pcm_avail_update (%d)", err);
                 fprintf(stderr, "unknown ALSA avail update return value (%d)\n", err);
             }
 
@@ -203,7 +210,7 @@ static void* fsemu_alsaaudio_thread(void* data) {
 
             if (err = snd_pcm_recover(playback_handle, err, 0)) {
                 fprintf(stderr, "snd_pcm_recover (%s)\n", snd_strerror(err));
-                // FIXME: fsemu_warning
+                // FIXME: SDL_LogWarn
                 break;
             }
             continue;
@@ -228,20 +235,21 @@ static void* fsemu_alsaaudio_thread(void* data) {
 
     snd_pcm_close(playback_handle);
 
-    return NULL;
+    return 0;
 }
 
-void fsemu_alsaaudio_init(void) {
+void fsemu_alsaaudio_init(void)
+{
     fsemu_audio_log("Initialize ALSA audio driver\n");
 
-    snd_pcm_hw_params_t* hw_params;
-    snd_pcm_sw_params_t* sw_params;
+    snd_pcm_hw_params_t *hw_params;
+    snd_pcm_sw_params_t *sw_params;
     int nfds;
     int err;
-    struct pollfd* pfds;
+    struct pollfd *pfds;
 
     // const char *device_name = "default";
-    const char* device_name = "hw:0,0";
+    const char *device_name = "hw:0,0";
 
     if ((err = snd_pcm_open(&playback_handle, device_name, SND_PCM_STREAM_PLAYBACK, 0)) < 0) {
         fprintf(stderr, "cannot open audio device %s (%s)\n", device_name, snd_strerror(err));
@@ -289,7 +297,8 @@ void fsemu_alsaaudio_init(void) {
         return;
     }
     if (frequency != fsemu_audio_frequency()) {
-        fsemu_warning("Configured ALSA frequency not same as configured");
+        SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION,
+                    "Configured ALSA frequency not same as configured");
         // FIXME: Handle
     }
 
@@ -305,14 +314,14 @@ void fsemu_alsaaudio_init(void) {
     fsemu_audio_log("ALSA frequency: %u Hz)\n", frequency);
 
     if (err = snd_pcm_hw_params_get_period_size(hw_params, &period_size, NULL) < 0) {
-        fsemu_warning("[FSE] Could not query ALSA period size\n");
+        SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION, "[FSE] Could not query ALSA period size\n");
         snd_strerror(err);
     }
     fsemu_audio_log("ALSA period size: %ld frames\n", period_size);
 
     buffer_size = 0;
     if (err = snd_pcm_hw_params_get_buffer_size(hw_params, &buffer_size) < 0) {
-        fsemu_warning("[FSE] Could not query ALSA period size\n");
+        SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION, "[FSE] Could not query ALSA period size\n");
         snd_strerror(err);
     }
     fsemu_audio_log("ALSA buffer size: %ld frames (%ld ms)\n", buffer_size,
@@ -363,7 +372,12 @@ void fsemu_alsaaudio_init(void) {
         return;
     }
 
-    fsemu_thread_create("alsa", fsemu_alsaaudio_thread, NULL);
+    SDL_Thread *thread = SDL_CreateThread(fsemu_alsaaudio_thread, "alsa", NULL);
+    if (thread == NULL) {
+        fprintf(stderr, "cannot start the ALSA thread (%s)\n", SDL_GetError());
+        return;
+    }
+    SDL_DetachThread(thread);
 }
 
-#endif  // FSEMU_ALSA
+#endif // FSEMU_ALSA

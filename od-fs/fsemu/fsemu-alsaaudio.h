@@ -1,5 +1,5 @@
-#ifndef FSEMU_ALSAAUDIO_H_
-#define FSEMU_ALSAAUDIO_H_
+#ifndef FSEMU_ALSAAUDIO_H
+#define FSEMU_ALSAAUDIO_H
 
 #include "fsemu-common.h"
 
@@ -15,6 +15,6 @@ void fsemu_alsaaudio_init(void);
 }
 #endif
 
-#endif  // FSEMU_ALSA
+#endif // FSEMU_ALSA
 
-#endif  // FSEMU_ALSAAUDIO_H_
+#endif /* FSEMU_ALSAAUDIO_H */

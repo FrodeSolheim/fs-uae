@@ -1,5 +1,6 @@
 #include "fsuae-bridge.h"
 
+#include <SDL3/SDL.h>
 #include <stdlib.h>
 #include <uae/uae.h>
 
@@ -7,18 +8,18 @@
 #include "fsuae-events.h"
 #include "libuae.h"
 
-static void fsuae_bridge_gui_message(const char* message) {
-    printf(
-        ",--------------------------------------------------------------------"
-        "-----------\n");
-    printf("| GUI MSG: %s\n", message);
+static void fsuae_bridge_gui_message(const char *message)
+{
+    SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION, "GUI message: %s", message);
 }
 
-static void fsuae_bridge_write_log(const char* message) {
-    printf("[UAE] %s\n", message);
+static void fsuae_bridge_write_log(const char *message)
+{
+    SDL_Log("[UAE] %s", message);
 }
 
-void fsuae_bridge_configure_libuae(void) {
+void fsuae_bridge_configure_libuae(void)
+{
     // Register libuae callbacks
     libuae_cb_free = free;
     libuae_cb_gui_message = fsuae_bridge_gui_message;
@@ -38,5 +39,5 @@ void fsuae_bridge_configure_libuae(void) {
     // FIXME: Check if this is the most efficient format?
     amiga_set_video_format(AMIGA_VIDEO_FORMAT_BGRA);
 
-    amiga_set_event_function(fsuae_events_event_handler);
+    amiga_set_event_function(fsuae_events_on_line);
 }

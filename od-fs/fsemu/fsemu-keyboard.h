@@ -1,4 +1,4 @@
-#ifndef FSEMU_KEYBOARD_H_
+#ifndef FSEMU_KEYBOARD_H_ /* Not FSEMU_KEYBOARD_H, which is the H key below. */
 #define FSEMU_KEYBOARD_H_
 
 #include "fsemu-common.h"
@@ -298,4 +298,4 @@ typedef enum {
 }
 #endif
 
-#endif  // FSEMU_KEYBOARD_H_
+#endif /* FSEMU_KEYBOARD_H_ */

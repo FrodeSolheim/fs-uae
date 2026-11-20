@@ -7,10 +7,10 @@
 extern "C" {
 #endif
 
-extern const char* fsemu_sdlgamecontrollerdb_mappings[];
+extern const char *fsemu_sdlgamecontrollerdb_mappings[];
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif  // FSEMU_SDLGAMECONTROLLERDB_H
+#endif /* FSEMU_SDLGAMECONTROLLERDB_H */

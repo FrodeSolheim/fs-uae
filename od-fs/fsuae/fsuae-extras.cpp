@@ -17,7 +17,8 @@
 
 // #define UAE_FS_H
 
-static void save_config(struct uae_prefs* prefs, const char* name) {
+static void save_config(struct uae_prefs *prefs, const char *name)
+{
     char path[PATH_MAX];
     SDL_strlcpy(path, "od-fs/Python/uae/configurations/", PATH_MAX);
     SDL_strlcat(path, name, PATH_MAX);
@@ -25,8 +26,8 @@ static void save_config(struct uae_prefs* prefs, const char* name) {
 
     // python/uae/configurations/a500.uae
     size_t len;
-    char* s = (char*)save_configuration(&len, true);
-    FILE* f = fopen(path, "wb");
+    char *s = (char *)save_configuration(&len, true);
+    FILE *f = fopen(path, "wb");
     if (f == NULL) {
         printf("Could not open file %s\n", path);
         exit(1);
@@ -37,7 +38,8 @@ static void save_config(struct uae_prefs* prefs, const char* name) {
     fclose(f);
 }
 
-static void load_prefs(int model, int config, int compa) {
+static void load_prefs(int model, int config, int compa)
+{
     // FIXME: Investigate a bit more? Get different results when clearing
     // memory vs not doing it. Seems built_in_prefs does not reset everything?
     // memset(&currprefs, 0x00, sizeof(currprefs));
@@ -51,7 +53,8 @@ static void load_prefs(int model, int config, int compa) {
     built_in_prefs(&currprefs, model, config, compa, false);
 }
 
-static void dump_quickstarts(void) {
+static void dump_quickstarts(void)
+{
     printf("dump_quickstarts\n");
 
     keyboard_settrans();
@@ -103,7 +106,8 @@ static void dump_quickstarts(void) {
 extern "C" {
 #endif
 
-void fsuae_extras(int argc, char* argv[]) {
+void fsuae_extras_run(int argc, char *argv[])
+{
     if (argc > 1) {
         if (strcasecmp(argv[1], "spc:dump-quickstarts") == 0) {
             dump_quickstarts();

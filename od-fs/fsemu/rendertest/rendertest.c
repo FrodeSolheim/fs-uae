@@ -1,8 +1,8 @@
 #include <SDL.h>
 #include <SDL_opengl.h>
 
-static char* image_rgba;
-static SDL_Window* sdl_window;
+static char *image_rgba;
+static SDL_Window *sdl_window;
 static SDL_GLContext sdl_glcontext;
 static int want_quit;
 static int fullscreen;
@@ -12,9 +12,10 @@ static int screen_width;
 static int screen_height;
 static int frames;
 
-static void create_images(void) {
+static void create_images(void)
+{
     image_rgba = malloc(1024 * 768 * 4);
-    char* p = image_rgba;
+    char *p = image_rgba;
     for (int y = 0; y < 768; y++) {
         for (int x = 0; x < 1024; x++) {
             if ((x / 32) % 2 == 0) {
@@ -31,7 +32,8 @@ static void create_images(void) {
     }
 }
 
-static int check_opengl_error(const char* operation) {
+static int check_opengl_error(const char *operation)
+{
     int error = glGetError();
     if (error != 0) {
         printf("%s OpenGL error: %d\n", operation, error);
@@ -39,7 +41,8 @@ static int check_opengl_error(const char* operation) {
     return error;
 }
 
-static void create_sdl_window(int opengl) {
+static void create_sdl_window(int opengl)
+{
     int flags = SDL_WINDOW_RESIZABLE;
     if (opengl) {
         flags |= SDL_WINDOW_OPENGL;
@@ -64,24 +67,25 @@ static void create_sdl_window(int opengl) {
     SDL_ShowWindow(sdl_window);
 }
 
-void handle_events(void) {
+void handle_events(void)
+{
     SDL_Event Event;
     while (SDL_PollEvent(&Event)) {
         if (Event.type == SDL_KEYDOWN) {
             switch (Event.key.keysym.sym) {
-                case SDLK_ESCAPE:
-                    want_quit = 1;
-                    break;
-                case 'f':
-                    fullscreen = !fullscreen;
-                    if (fullscreen) {
-                        SDL_SetWindowFullscreen(sdl_window, SDL_WINDOW_FULLSCREEN_DESKTOP);
-                    } else {
-                        SDL_SetWindowFullscreen(sdl_window, 0);
-                    }
-                    break;
-                default:
-                    break;
+            case SDLK_ESCAPE:
+                want_quit = 1;
+                break;
+            case 'f':
+                fullscreen = !fullscreen;
+                if (fullscreen) {
+                    SDL_SetWindowFullscreen(sdl_window, SDL_WINDOW_FULLSCREEN_DESKTOP);
+                } else {
+                    SDL_SetWindowFullscreen(sdl_window, 0);
+                }
+                break;
+            default:
+                break;
             }
         } else if (Event.type == SDL_QUIT) {
             want_quit = 1;
@@ -89,7 +93,8 @@ void handle_events(void) {
     }
 }
 
-static void create_texture(int n) {
+static void create_texture(int n)
+{
     glGenTextures(1, gl_textures + n);
     check_opengl_error("glGenTextures");
     glBindTexture(GL_TEXTURE_2D, gl_textures[n]);
@@ -108,7 +113,8 @@ static void create_texture(int n) {
     check_opengl_error("glTexParameteri");
 }
 
-static void setup_opengl(void) {
+static void setup_opengl(void)
+{
     SDL_GL_SetSwapInterval(0);
     glDisable(GL_BLEND);
     glEnable(GL_TEXTURE_2D);
@@ -119,7 +125,8 @@ static void setup_opengl(void) {
     check_opengl_error("glColor3f");
 }
 
-static void update_texture(void) {
+static void update_texture(void)
+{
     //    int n = frames % 3;
     //    glBindTexture(GL_TEXTURE_2D, gl_textures[n]);
 
@@ -133,7 +140,8 @@ static void update_texture(void) {
     );
 }
 
-static void render_texture(void) {
+static void render_texture(void)
+{
     glBegin(GL_QUADS);
     glTexCoord2f(0.0, 0.0);
     glVertex2f(-1.0, -1.0);
@@ -146,10 +154,11 @@ static void render_texture(void) {
     glEnd();
 }
 
-double benchmark(GLint internal_format, GLenum format, GLenum type) {
+double benchmark(GLint internal_format, GLenum format, GLenum type)
+{
     int width = 768;
     int height = 576;
-    const void* data = image_rgba;
+    const void *data = image_rgba;
     GLuint texture;
     glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_2D, texture);
@@ -199,15 +208,17 @@ double benchmark(GLint internal_format, GLenum format, GLenum type) {
     return 0;
 }
 
-void benchmark3(GLint iformat, const char* iformat_desc, GLenum format, const char* format_desc,
-                GLenum type, const char* type_desc) {
+void benchmark3(GLint iformat, const char *iformat_desc, GLenum format, const char *format_desc,
+                GLenum type, const char *type_desc)
+{
     int error = benchmark(iformat, format, type);
     if (error == 0) {
         printf("%s %s %s\n", iformat_desc, format_desc, type_desc);
     }
 }
 
-void benchmark2(GLint iformat, const char* iformat_desc, GLenum format, const char* format_desc) {
+void benchmark2(GLint iformat, const char *iformat_desc, GLenum format, const char *format_desc)
+{
     benchmark3(iformat, iformat_desc, format, format_desc, GL_UNSIGNED_BYTE, "GL_UNSIGNED_BYTE");
     benchmark3(iformat, iformat_desc, format, format_desc, GL_UNSIGNED_SHORT_5_6_5,
                "GL_UNSIGNED_SHORT_5_6_5");
@@ -219,13 +230,15 @@ void benchmark2(GLint iformat, const char* iformat_desc, GLenum format, const ch
                "GL_UNSIGNED_INT_8_8_8_8_REV");
 }
 
-void benchmark1(GLint iformat, const char* iformat_desc) {
+void benchmark1(GLint iformat, const char *iformat_desc)
+{
     benchmark2(iformat, iformat_desc, GL_RGB, "GL_RGB");
     benchmark2(iformat, iformat_desc, GL_RGBA, "GL_RGBA");
     benchmark2(iformat, iformat_desc, GL_BGRA, "GL_BGRA");
 }
 
-void benchmark0(void) {
+void benchmark0(void)
+{
     benchmark1(GL_RGB565, "GL_RGB565");
     benchmark1(GL_RGB5, "GL_RGB5");
     benchmark1(GL_RGB5_A1, "GL_RGB5_A1");
@@ -234,7 +247,8 @@ void benchmark0(void) {
     benchmark1(GL_BGRA_EXT, "GL_BGRA_EXT");
 }
 
-void benchmarks(void) {
+void benchmarks(void)
+{
     benchmark0();
 #if 0
     double dt;
@@ -252,7 +266,8 @@ void benchmarks(void) {
 #endif
 }
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[])
+{
     int mode = 0;
     if (argc >= 2) {
         mode = argv[1][0] - '0';

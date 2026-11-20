@@ -1,4 +1,4 @@
-#ifndef FSEMU_KEY_H_
+#ifndef FSEMU_KEY_H_ /* Not FSEMU_KEY_H, which is the H key below. */
 #define FSEMU_KEY_H_
 
 #include "fsemu-common.h"
@@ -295,4 +295,4 @@ typedef enum {
 }
 #endif
 
-#endif  // FSEMU_KEY_H_
+#endif /* FSEMU_KEY_H_ */

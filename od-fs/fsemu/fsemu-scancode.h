@@ -1,4 +1,4 @@
-#ifndef FSEMU_SCANCODE_H_
+#ifndef FSEMU_SCANCODE_H_ /* Not FSEMU_SCANCODE_H, which is the H key below. */
 #define FSEMU_SCANCODE_H_
 
 #ifdef __cplusplus
@@ -270,4 +270,4 @@ typedef enum {
 }
 #endif
 
-#endif  // FSEMU_SCANCODE_H_
+#endif /* FSEMU_SCANCODE_H_ */

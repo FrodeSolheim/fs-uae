@@ -4,20 +4,19 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-#include "fsuae-config.h"
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-// extern FILE* g_fsuae_init_log_file;
+bool fsuae_init(int argc, char *argv[], int *error);
 
-bool fsuae_init(int argc, char* argv[], int* error);
-
-void fsuae_init_close_log_file(void);
+// FS-UAE's data and cache directories: Data and Cache in the portable directory (the closest one
+// with a Portable.ini), or else in SDL's pref path for FS-UAE. NULL before fsuae_init.
+const char *fsuae_init_get_data_dir(void);
+const char *fsuae_init_get_cache_dir(void);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif  // FSUAE_INIT_H
+#endif /* FSUAE_INIT_H */

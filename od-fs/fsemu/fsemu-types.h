@@ -1,5 +1,5 @@
-#ifndef FSEMU_TYPES_H_
-#define FSEMU_TYPES_H_
+#ifndef FSEMU_TYPES_H
+#define FSEMU_TYPES_H
 
 #include "fsemu-config.h"
 
@@ -39,11 +39,13 @@ typedef struct fsemu_drect {
 
 // Makes it easier to use the %lld format specifier without using the ugly
 // PRI64 defines, casts or getting compiler warnings.
-static inline long long fsemu_lld(int64_t value) {
+static inline long long fsemu_lld(int64_t value)
+{
     return value;
 }
 
-static inline unsigned long long fsemu_llu(uint64_t value) {
+static inline unsigned long long fsemu_llu(uint64_t value)
+{
     return value;
 }
 
@@ -52,6 +54,6 @@ static inline unsigned long long fsemu_llu(uint64_t value) {
 #define lld(x) fsemu_lld(x)
 #define llu(x) fsemu_llu(x)
 
-#endif  // FSEMU_INTERNAL
+#endif // FSEMU_INTERNAL
 
-#endif  // FSEMU_TYPES_H_
+#endif /* FSEMU_TYPES_H */

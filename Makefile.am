@@ -535,7 +535,7 @@ libuae_a_SOURCES = \
 	ncr9x_scsi.cpp \
 	newcpu_common.cpp \
 	newcpu.cpp \
-	od-fs/clipboard-fs.cpp \
+	od-fs/clipboard_fs.cpp \
 	od-generic/clipboard.cpp \
 	od-generic/mman.cpp \
 	od-generic/mman_host.h \
@@ -548,7 +548,7 @@ libuae_a_SOURCES = \
 	od-fs/charset.cpp \
 	od-fs/clock.cpp \
 	od-fs/defines.h \
-	od-fs/driveclick.cpp \
+	od-fs/driveclick_fs.cpp \
 	od-fs/filesys_host.cpp \
 	od-fs/flac/include/FLAC/all.h \
 	od-fs/flac/include/FLAC/assert.h \
@@ -566,12 +566,12 @@ libuae_a_SOURCES = \
 	od-fs/include/resource.h \
 	od-fs/include/uae/uae_inputevents_def.h \
 	od-fs/include/uae/uae.h \
-	od-fs/input-fs.cpp \
+	od-fs/input_fs.cpp \
 	od-fs/inputrecord.cpp \
 	od-fs/ioport.cpp \
 	od-fs/ioport.h \
-	od-fs/joystick-fs.cpp \
-	od-fs/keyboard-fs.cpp \
+	od-fs/joystick_fs.cpp \
+	od-fs/keyboard_fs.cpp \
 	od-fs/libamiga.cpp \
 	od-fs/libuae.cpp \
 	od-fs/libuae.h \
@@ -585,33 +585,33 @@ libuae_a_SOURCES = \
 	od-fs/machdep/x86/maccess.h \
 	od-fs/midi.cpp \
 	od-fs/midi.h \
-	od-fs/mouse-fs.cpp \
-	od-fs/mp3decoder.cpp \
+	od-fs/mouse_fs.cpp \
+	od-fs/mp3decoder_fs.cpp \
 	od-fs/non-windows/tchar.h \
-	od-fs/options-fs.cpp \
-	od-fs/parser-fs.cpp \
+	od-fs/options_fs.cpp \
+	od-fs/parser_fs.cpp \
 	od-fs/paths.cpp \
 	od-fs/random.cpp \
 	od-fs/roms.cpp \
 	od-fs/sleep.h \
-	od-fs/sound-fs.cpp \
+	od-fs/sound_fs.cpp \
 	od-fs/spin.cpp \
-	od-fs/statusline-fs.cpp \
+	od-fs/statusline_fs.cpp \
 	od-fs/stubs.cpp \
 	od-fs/support.cpp \
 	od-fs/sysconfig-fs.h \
 	od-fs/target.h \
 	od-fs/threaddep/thread.h \
-	od-fs/threading-fs.cpp \
+	od-fs/threading_fs.cpp \
 	od-fs/uae_host.cpp \
 	od-fs/uae-fs.h \
 	od-fs/uaemisc.cpp \
-	od-fs/video-fs.cpp \
-	od-fs/videograb-fs.cpp \
+	od-fs/video_fs.cpp \
+	od-fs/videograb_fs.cpp \
 	od-fs/vpar.cpp \
 	od-fs/vpar.h \
 	od-fs/winuae_compat.h \
-	od-fs/writelog-fs.cpp \
+	od-fs/writelog_fs.cpp \
 	od-win32/ahidsound_new.h \
 	od-win32/ahidsound.h \
 	od-win32/avioutput.h \

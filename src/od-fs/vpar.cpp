@@ -158,7 +158,7 @@ static int vpar_low_read(uae_u8 data[2])
     FD_SET(par_fd, &fds);
     FD_ZERO(&fde);
     FD_SET(par_fd, &fde);
-    int num_ready = select (FD_SETSIZE, &fds, NULL, &fde, NULL);
+    int num_ready = select (par_fd + 1, &fds, NULL, &fde, NULL);
     if (num_ready > 0) {
         if (FD_ISSET(par_fd, &fde)) {
             if (vpar_debug) {

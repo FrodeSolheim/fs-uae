@@ -1370,8 +1370,13 @@ static uae_u32 akiko_bget2 (uaecptr addr, int msg)
 
 	switch (addr)
 	{
-		/* "CAFE" = Akiko identification.
-		* Kickstart ignores Akiko C2P if this ID isn't correct */
+		/* "C0CACAFE" = Akiko identification.
+		 * Kickstart Akiko C2P support requires $CAFE at $B80002.W
+		 * $B80000 $C0CA is not checked.
+		 */
+	case 0x00:
+		return 0xC0;
+	case 0x01:
 	case 0x02:
 		return 0xCA;
 	case 0x03:

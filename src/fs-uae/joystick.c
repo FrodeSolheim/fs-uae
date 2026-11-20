@@ -424,26 +424,9 @@ void fs_uae_reconfigure_input_ports_host()
 
     fs_uae_input_port *port0 = g_fs_uae_input_ports;
 
-#if 0
-    int autoswitch = fs_config_get_boolean("joystick_port_0_autoswitch");
-    if (autoswitch == FS_CONFIG_NONE) {
-        autoswitch = 0;
-    }
-
-    if (!autoswitch) {
-        if (mouse_mapped_to_port == -1 && port0->mode != AMIGA_JOYPORT_NONE) {
-            // there is a device in port 0, but mouse is not use in either
-            // port
-            fs_log("additionally mapping mouse buttons to port 0\n");
-            fs_emu_configure_mouse("MOUSE", 0, 0, INPUTEVENT_JOY1_FIRE_BUTTON,
-                    0, INPUTEVENT_JOY1_2ND_BUTTON, 0);
-        }
-    }
-#endif
-
     int autoswitch = fs_config_get_boolean(OPTION_JOYSTICK_PORT_0_AUTOSWITCH);
     if (autoswitch != 0) {
-        if (mouse_mapped_to_port == -1 && port0->mode == AMIGA_JOYPORT_DJOY) {
+        if (mouse_mapped_to_port == -1 && (port0->mode == AMIGA_JOYPORT_DJOY || port0->mode == AMIGA_JOYPORT_CD32JOY)) {
             fs_log("additionally mapping mouse to port 0\n");
             map_mouse("mouse", 0);
         }

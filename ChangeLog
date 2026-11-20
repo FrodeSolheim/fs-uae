@@ -1,5 +1,6 @@
 Version 3.2.36:
 
+* Allow autoswitching between mouse and cd32 mode for joystick port 1 also.
 * Better handling of (weird) joystick devices with newlines in name.
 
 Version 3.2.35:

@@ -8819,7 +8819,7 @@ int amiga_handle_input_event (int nr, int state, int max,
     case INPUTEVENT_MOUSE1_HORIZ:
     case INPUTEVENT_MOUSE1_VERT:
         if (mouse_port[0] == 0 && g_amiga_allow_auto_mouse_mode) {
-            if (g_requested_port_modes[0] == AMIGA_JOYPORT_DJOY) {
+            if (g_requested_port_modes[0] == AMIGA_JOYPORT_DJOY || g_requested_port_modes[0] == AMIGA_JOYPORT_CD32JOY) {
                 /* Require a bit more than the minimum registered motion
                  * activity to switch mode. */
                 if (state < -3 || state > 3) {
@@ -8838,9 +8838,21 @@ int amiga_handle_input_event (int nr, int state, int max,
                 gui_message ("%s", _("[ Port 0 ] Switched to joystick mode"));
                 amiga_set_joystick_port_mode_2 (0, AMIGA_JOYPORT_DJOY);
             }
-        }
-        break;
-    }
+		}
+		// Fall through
+	case INPUTEVENT_JOY1_CD32_BLUE:
+	case INPUTEVENT_JOY1_CD32_RED:
+	case INPUTEVENT_JOY1_CD32_GREEN:
+	case INPUTEVENT_JOY1_CD32_YELLOW:
+        if (mouse_port[0] == 1 && g_amiga_allow_auto_mouse_mode) {
+            if (g_requested_port_modes[0] == AMIGA_JOYPORT_CD32JOY) {
+                gui_message ("%s", _("[ Port 0 ] Switched to CD32 mode"));
+                amiga_set_joystick_port_mode_2 (0, AMIGA_JOYPORT_CD32JOY);
+            }
+		}
+
+	}
+
 
     return handle_input_event (nr, state, max, autofire, canstopplayback,
             playbackevent);

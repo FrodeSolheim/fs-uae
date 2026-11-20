@@ -171,66 +171,66 @@ EXTRA_DIST =
 fs_uae_SOURCES = \
 	od-fs/FS/FS.c \
 	od-fs/FS/FS.h \
-	od-fs/fsapp/fsapp-channel.c \
+	od-fs/fsapp/fsapp-channel.cpp \
 	od-fs/fsapp/fsapp-channel.h \
 	od-fs/fsapp/fsapp-channel.h \
 	od-fs/fsapp/fsapp-config.h \
-	od-fs/fsapp/fsapp-events.c \
+	od-fs/fsapp/fsapp-events.cpp \
 	od-fs/fsapp/fsapp-events.h \
-	od-fs/fsapp/fsapp-instance.c \
+	od-fs/fsapp/fsapp-instance.cpp \
 	od-fs/fsapp/fsapp-instance.h \
-	od-fs/fsapp/fsapp-main.c \
+	od-fs/fsapp/fsapp-main.cpp \
 	od-fs/fsapp/fsapp-main.h \
-	od-fs/fsapp/fsapp-mainloop.c \
+	od-fs/fsapp/fsapp-mainloop.cpp \
 	od-fs/fsapp/fsapp-mainloop.h \
-	od-fs/fsapp/fsapp-pythonthread.c \
+	od-fs/fsapp/fsapp-pythonthread.cpp \
 	od-fs/fsapp/fsapp-pythonthread.h \
-	od-fs/fsapp/fsapp-surface.c \
+	od-fs/fsapp/fsapp-surface.cpp \
 	od-fs/fsapp/fsapp-surface.h \
 	od-fs/fsapp/fsapp.h \
 	od-fs/fsgui/fsgui-config.h \
-	od-fs/fsgui/fsgui-font.c \
+	od-fs/fsgui/fsgui-font.cpp \
 	od-fs/fsgui/fsgui-font.h \
-	od-fs/fsgui/fsgui-image.c \
+	od-fs/fsgui/fsgui-image.cpp \
 	od-fs/fsgui/fsgui-image.h \
-	od-fs/fsgui/fsgui-window.c \
+	od-fs/fsgui/fsgui-window.cpp \
 	od-fs/fsgui/fsgui-window.h \
-	od-fs/fsgui/fsgui-windows.c \
+	od-fs/fsgui/fsgui-windows.cpp \
 	od-fs/fsgui/fsgui-windows.h \
 	od-fs/fslib/fslib-config.h \
-	od-fs/fslib/fslib-log.c \
+	od-fs/fslib/fslib-log.cpp \
 	od-fs/fslib/fslib-log.h \
-	od-fs/fslib/fslib-os.c \
+	od-fs/fslib/fslib-os.cpp \
 	od-fs/fslib/fslib-os.h \
-	od-fs/fslib/fslib-path.c \
+	od-fs/fslib/fslib-path.cpp \
 	od-fs/fslib/fslib-path.h \
-	od-fs/fslib/fslib-refable.c \
+	od-fs/fslib/fslib-refable.cpp \
 	od-fs/fslib/fslib-refable.h \
-	od-fs/fslib/fslib-stream.c \
+	od-fs/fslib/fslib-stream.cpp \
 	od-fs/fslib/fslib-stream.h \
-	od-fs/fsuae/fsuae-bridge.c \
+	od-fs/fsuae/fsuae-bridge.cpp \
 	od-fs/fsuae/fsuae-bridge.h \
 	od-fs/fsuae/fsuae-config.h \
 	od-fs/fsuae/fsuae-constants.h \
-	od-fs/fsuae/fsuae-events.c \
+	od-fs/fsuae/fsuae-events.cpp \
 	od-fs/fsuae/fsuae-events.h \
 	od-fs/fsuae/fsuae-extras.cpp \
 	od-fs/fsuae/fsuae-extras.h \
-	od-fs/fsuae/fsuae-hack.c \
+	od-fs/fsuae/fsuae-hack.cpp \
 	od-fs/fsuae/fsuae-hack.h \
-	od-fs/fsuae/fsuae-init.c \
+	od-fs/fsuae/fsuae-init.cpp \
 	od-fs/fsuae/fsuae-init.h \
-	od-fs/fsuae/fsuae-main.c \
+	od-fs/fsuae/fsuae-main.cpp \
 	od-fs/fsuae/fsuae-main.h \
-	od-fs/fsuae/fsuae-mainthread.c \
+	od-fs/fsuae/fsuae-mainthread.cpp \
 	od-fs/fsuae/fsuae-mainthread.h \
 	od-fs/fsuae/fsuae-messages.cpp \
 	od-fs/fsuae/fsuae-messages.h \
-	od-fs/fsuae/fsuae-path.c \
+	od-fs/fsuae/fsuae-path.cpp \
 	od-fs/fsuae/fsuae-path.h \
-	od-fs/fsuae/fsuae-plugins.c \
+	od-fs/fsuae/fsuae-plugins.cpp \
 	od-fs/fsuae/fsuae-plugins.h \
-	od-fs/fsuae/fsuae-renderer.c \
+	od-fs/fsuae/fsuae-renderer.cpp \
 	od-fs/fsuae/fsuae-renderer.h \
 	od-fs/fsuae/fsuae.h \
 	od-fs/libuae/libuae-config.h \
@@ -1216,176 +1216,176 @@ noinst_LIBRARIES += libfsemu.a
 AM_CPPFLAGS += -I$(srcdir)/od-fs/fsemu
 fs_uae_LDADD += libfsemu.a
 libfsemu_a_SOURCES = \
-	od-fs/fsemu/fsemu-action.c \
+	od-fs/fsemu/fsemu-action.cpp \
 	od-fs/fsemu/fsemu-action.h \
 	od-fs/fsemu/fsemu-actions.h \
 	od-fs/fsemu/fsemu-all.h \
-	od-fs/fsemu/fsemu-alsaaudio.c \
+	od-fs/fsemu/fsemu-alsaaudio.cpp \
 	od-fs/fsemu/fsemu-alsaaudio.h \
-	od-fs/fsemu/fsemu-application.c \
+	od-fs/fsemu/fsemu-application.cpp \
 	od-fs/fsemu/fsemu-application.h \
-	od-fs/fsemu/fsemu-audio.c \
+	od-fs/fsemu/fsemu-audio.cpp \
 	od-fs/fsemu/fsemu-audio.h \
-	od-fs/fsemu/fsemu-audiobuffer.c \
+	od-fs/fsemu/fsemu-audiobuffer.cpp \
 	od-fs/fsemu/fsemu-audiobuffer.h \
 	od-fs/fsemu/fsemu-axis.h \
-	od-fs/fsemu/fsemu-background.c \
+	od-fs/fsemu/fsemu-background.cpp \
 	od-fs/fsemu/fsemu-background.h \
 	od-fs/fsemu/fsemu-button.h \
 	od-fs/fsemu/fsemu-color.h \
-	od-fs/fsemu/fsemu-common.c \
+	od-fs/fsemu/fsemu-common.cpp \
 	od-fs/fsemu/fsemu-common.h \
 	od-fs/fsemu/fsemu-compat.h \
-	od-fs/fsemu/fsemu-config.c \
+	od-fs/fsemu/fsemu-config.cpp \
 	od-fs/fsemu/fsemu-config.h \
 	od-fs/fsemu/fsemu-constants.h \
-	od-fs/fsemu/fsemu-control.c \
+	od-fs/fsemu/fsemu-control.cpp \
 	od-fs/fsemu/fsemu-control.h \
-	od-fs/fsemu/fsemu-controller.c \
+	od-fs/fsemu/fsemu-controller.cpp \
 	od-fs/fsemu/fsemu-controller.h \
-	od-fs/fsemu/fsemu-data.c \
+	od-fs/fsemu/fsemu-data.cpp \
 	od-fs/fsemu/fsemu-data.h \
-	od-fs/fsemu/fsemu-emuthread.c \
+	od-fs/fsemu/fsemu-emuthread.cpp \
 	od-fs/fsemu/fsemu-emuthread.h \
-	od-fs/fsemu/fsemu-events.c \
+	od-fs/fsemu/fsemu-events.cpp \
 	od-fs/fsemu/fsemu-events.h \
-	od-fs/fsemu/fsemu-fade.c \
+	od-fs/fsemu/fsemu-fade.cpp \
 	od-fs/fsemu/fsemu-fade.h \
-	od-fs/fsemu/fsemu-font.c \
+	od-fs/fsemu/fsemu-font.cpp \
 	od-fs/fsemu/fsemu-font.h \
-	od-fs/fsemu/fsemu-fontcache.c \
+	od-fs/fsemu/fsemu-fontcache.cpp \
 	od-fs/fsemu/fsemu-fontcache.h \
-	od-fs/fsemu/fsemu-frame.c \
+	od-fs/fsemu/fsemu-frame.cpp \
 	od-fs/fsemu/fsemu-frame.h \
-	od-fs/fsemu/fsemu-frameinfo.c \
+	od-fs/fsemu/fsemu-frameinfo.cpp \
 	od-fs/fsemu/fsemu-frameinfo.h \
-	od-fs/fsemu/fsemu-gamemode.c \
+	od-fs/fsemu/fsemu-gamemode.cpp \
 	od-fs/fsemu/fsemu-gamemode.h \
 	od-fs/fsemu/fsemu-glib.h \
-	od-fs/fsemu/fsemu-glvideo.c \
+	od-fs/fsemu/fsemu-glvideo.cpp \
 	od-fs/fsemu/fsemu-glvideo.h \
-	od-fs/fsemu/fsemu-gui.c \
+	od-fs/fsemu/fsemu-gui.cpp \
 	od-fs/fsemu/fsemu-gui.h \
-	od-fs/fsemu/fsemu-helpbar.c \
+	od-fs/fsemu/fsemu-helpbar.cpp \
 	od-fs/fsemu/fsemu-helpbar.h \
-	od-fs/fsemu/fsemu-helper.c \
+	od-fs/fsemu/fsemu-helper.cpp \
 	od-fs/fsemu/fsemu-helper.h \
-	od-fs/fsemu/fsemu-hud.c \
+	od-fs/fsemu/fsemu-hud.cpp \
 	od-fs/fsemu/fsemu-hud.h \
-	od-fs/fsemu/fsemu-image.c \
+	od-fs/fsemu/fsemu-image.cpp \
 	od-fs/fsemu/fsemu-image.h \
-	od-fs/fsemu/fsemu-inifile.c \
+	od-fs/fsemu/fsemu-inifile.cpp \
 	od-fs/fsemu/fsemu-inifile.h \
-	od-fs/fsemu/fsemu-input.c \
+	od-fs/fsemu/fsemu-input.cpp \
 	od-fs/fsemu/fsemu-input.h \
-	od-fs/fsemu/fsemu-inputdevice.c \
+	od-fs/fsemu/fsemu-inputdevice.cpp \
 	od-fs/fsemu/fsemu-inputdevice.h \
-	od-fs/fsemu/fsemu-inputmode.c \
+	od-fs/fsemu/fsemu-inputmode.cpp \
 	od-fs/fsemu/fsemu-inputmode.h \
-	od-fs/fsemu/fsemu-inputport.c \
+	od-fs/fsemu/fsemu-inputport.cpp \
 	od-fs/fsemu/fsemu-inputport.h \
 	od-fs/fsemu/fsemu-internal.h \
 	od-fs/fsemu/fsemu-key.h \
-	od-fs/fsemu/fsemu-keyboard.c \
+	od-fs/fsemu/fsemu-keyboard.cpp \
 	od-fs/fsemu/fsemu-keyboard.h \
 	od-fs/fsemu/fsemu-layer.h \
-	od-fs/fsemu/fsemu-layout.c \
+	od-fs/fsemu/fsemu-layout.cpp \
 	od-fs/fsemu/fsemu-layout.h \
-	od-fs/fsemu/fsemu-led.c \
+	od-fs/fsemu/fsemu-led.cpp \
 	od-fs/fsemu/fsemu-led.h \
-	od-fs/fsemu/fsemu-leds.c \
+	od-fs/fsemu/fsemu-leds.cpp \
 	od-fs/fsemu/fsemu-leds.h \
-	od-fs/fsemu/fsemu-log.c \
+	od-fs/fsemu/fsemu-log.cpp \
 	od-fs/fsemu/fsemu-log.h \
-	od-fs/fsemu/fsemu-main.c \
+	od-fs/fsemu/fsemu-main.cpp \
 	od-fs/fsemu/fsemu-main.h \
-	od-fs/fsemu/fsemu-mainloop.c \
+	od-fs/fsemu/fsemu-mainloop.cpp \
 	od-fs/fsemu/fsemu-mainloop.h \
-	od-fs/fsemu/fsemu-mainmenu.c \
+	od-fs/fsemu/fsemu-mainmenu.cpp \
 	od-fs/fsemu/fsemu-mainmenu.h \
-	od-fs/fsemu/fsemu-manymouse.c \
+	od-fs/fsemu/fsemu-manymouse.cpp \
 	od-fs/fsemu/fsemu-manymouse.h \
-	od-fs/fsemu/fsemu-media.c \
+	od-fs/fsemu/fsemu-media.cpp \
 	od-fs/fsemu/fsemu-media.h \
-	od-fs/fsemu/fsemu-menu.c \
+	od-fs/fsemu/fsemu-menu.cpp \
 	od-fs/fsemu/fsemu-menu.h \
-	od-fs/fsemu/fsemu-module.c \
+	od-fs/fsemu/fsemu-module.cpp \
 	od-fs/fsemu/fsemu-module.h \
-	od-fs/fsemu/fsemu-monitor.c \
+	od-fs/fsemu/fsemu-monitor.cpp \
 	od-fs/fsemu/fsemu-monitor.h \
-	od-fs/fsemu/fsemu-mouse.c \
+	od-fs/fsemu/fsemu-mouse.cpp \
 	od-fs/fsemu/fsemu-mouse.h \
-	od-fs/fsemu/fsemu-mutex.c \
+	od-fs/fsemu/fsemu-mutex.cpp \
 	od-fs/fsemu/fsemu-mutex.h \
-	od-fs/fsemu/fsemu-opengl.c \
+	od-fs/fsemu/fsemu-opengl.cpp \
 	od-fs/fsemu/fsemu-opengl.h \
 	od-fs/fsemu/fsemu-opengl.h \
-	od-fs/fsemu/fsemu-option.c \
+	od-fs/fsemu/fsemu-option.cpp \
 	od-fs/fsemu/fsemu-option.h \
 	od-fs/fsemu/fsemu-options.h \
-	od-fs/fsemu/fsemu-oskeyboard.c \
-	od-fs/fsemu/fsemu-oskeyboard.c \
+	od-fs/fsemu/fsemu-oskeyboard.cpp \
+	od-fs/fsemu/fsemu-oskeyboard.cpp \
 	od-fs/fsemu/fsemu-oskeyboard.h \
 	od-fs/fsemu/fsemu-oskeyboard.h \
-	od-fs/fsemu/fsemu-osmenu.c \
+	od-fs/fsemu/fsemu-osmenu.cpp \
 	od-fs/fsemu/fsemu-osmenu.h \
-	od-fs/fsemu/fsemu-path.c \
+	od-fs/fsemu/fsemu-path.cpp \
 	od-fs/fsemu/fsemu-path.h \
-	od-fs/fsemu/fsemu-perfgui.c \
+	od-fs/fsemu/fsemu-perfgui.cpp \
 	od-fs/fsemu/fsemu-perfgui.h \
-	od-fs/fsemu/fsemu-python.c \
+	od-fs/fsemu/fsemu-python.cpp \
 	od-fs/fsemu/fsemu-python.h \
-	od-fs/fsemu/fsemu-quit.c \
+	od-fs/fsemu/fsemu-quit.cpp \
 	od-fs/fsemu/fsemu-quit.h \
-	od-fs/fsemu/fsemu-recording.c \
+	od-fs/fsemu/fsemu-recording.cpp \
 	od-fs/fsemu/fsemu-recording.h \
-	od-fs/fsemu/fsemu-render.c \
+	od-fs/fsemu/fsemu-render.cpp \
 	od-fs/fsemu/fsemu-render.h \
-	od-fs/fsemu/fsemu-savestate.c \
+	od-fs/fsemu/fsemu-savestate.cpp \
 	od-fs/fsemu/fsemu-savestate.h \
-	od-fs/fsemu/fsemu-screenshot.c \
+	od-fs/fsemu/fsemu-screenshot.cpp \
 	od-fs/fsemu/fsemu-screenshot.h \
 	od-fs/fsemu/fsemu-sdl.h \
-	od-fs/fsemu/fsemu-sdlaudio.c \
+	od-fs/fsemu/fsemu-sdlaudio.cpp \
 	od-fs/fsemu/fsemu-sdlaudio.h \
-	od-fs/fsemu/fsemu-sdlgamecontrollerdb.c \
+	od-fs/fsemu/fsemu-sdlgamecontrollerdb.cpp \
 	od-fs/fsemu/fsemu-sdlgamecontrollerdb.h \
-	od-fs/fsemu/fsemu-sdlinput.c \
+	od-fs/fsemu/fsemu-sdlinput.cpp \
 	od-fs/fsemu/fsemu-sdlinput.h \
-	od-fs/fsemu/fsemu-sdlvideo.c \
+	od-fs/fsemu/fsemu-sdlvideo.cpp \
 	od-fs/fsemu/fsemu-sdlvideo.h \
-	od-fs/fsemu/fsemu-sdlwindow.c \
+	od-fs/fsemu/fsemu-sdlwindow.cpp \
 	od-fs/fsemu/fsemu-sdlwindow.h \
-	od-fs/fsemu/fsemu-semaphore.c \
+	od-fs/fsemu/fsemu-semaphore.cpp \
 	od-fs/fsemu/fsemu-semaphore.h \
-	od-fs/fsemu/fsemu-shader.c \
+	od-fs/fsemu/fsemu-shader.cpp \
 	od-fs/fsemu/fsemu-shader.h \
-	od-fs/fsemu/fsemu-startupinfo.c \
+	od-fs/fsemu/fsemu-startupinfo.cpp \
 	od-fs/fsemu/fsemu-startupinfo.h \
-	od-fs/fsemu/fsemu-stream.c \
+	od-fs/fsemu/fsemu-stream.cpp \
 	od-fs/fsemu/fsemu-stream.h \
-	od-fs/fsemu/fsemu-theme.c \
+	od-fs/fsemu/fsemu-theme.cpp \
 	od-fs/fsemu/fsemu-theme.h \
-	od-fs/fsemu/fsemu-thread.c \
+	od-fs/fsemu/fsemu-thread.cpp \
 	od-fs/fsemu/fsemu-thread.h \
-	od-fs/fsemu/fsemu-time.c \
+	od-fs/fsemu/fsemu-time.cpp \
 	od-fs/fsemu/fsemu-time.h \
-	od-fs/fsemu/fsemu-titlebar.c \
+	od-fs/fsemu/fsemu-titlebar.cpp \
 	od-fs/fsemu/fsemu-titlebar.h \
 	od-fs/fsemu/fsemu-types.h \
-	od-fs/fsemu/fsemu-util.c \
+	od-fs/fsemu/fsemu-util.cpp \
 	od-fs/fsemu/fsemu-util.h \
-	od-fs/fsemu/fsemu-video.c \
+	od-fs/fsemu/fsemu-video.cpp \
 	od-fs/fsemu/fsemu-video.h \
-	od-fs/fsemu/fsemu-videothread.c \
+	od-fs/fsemu/fsemu-videothread.cpp \
 	od-fs/fsemu/fsemu-videothread.h \
-	od-fs/fsemu/fsemu-widget.c \
+	od-fs/fsemu/fsemu-widget.cpp \
 	od-fs/fsemu/fsemu-widget.h \
-	od-fs/fsemu/fsemu-window.c \
+	od-fs/fsemu/fsemu-window.cpp \
 	od-fs/fsemu/fsemu-window.h \
-	od-fs/fsemu/fsemu-xmlshader.c \
+	od-fs/fsemu/fsemu-xmlshader.cpp \
 	od-fs/fsemu/fsemu-xmlshader.h \
-	od-fs/fsemu/fsemu.c \
+	od-fs/fsemu/fsemu.cpp \
 	od-fs/fsemu/fsemu.h \
 	od-fs/3rdparty/gamemode/lib/gamemode_client.h
 

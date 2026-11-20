@@ -401,7 +401,7 @@ bool fsuae_init(int argc, char* argv[], int* error) {
     // FIXME: This is only partially used...
     // fslib_data_init_prefix("../../Data");
     // fslib_data_init_dev_prefix("System/FS-UAE/Data");
-    // fslib_data_init_dev_test("od-fs/fsuae/fsuae-main.c");
+    // fslib_data_init_dev_test("od-fs/fsuae/fsuae-main.cpp");
     // fslib_data_init();
 
     // exit(1);

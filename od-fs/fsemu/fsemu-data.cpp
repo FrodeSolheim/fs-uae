@@ -191,7 +191,7 @@ bool fsemu_data_development_mode(void) {
         initialized = true;
         char executable_dir[FSEMU_PATH_MAX];
         fs_get_application_exe_dir(executable_dir, FSEMU_PATH_MAX);
-        char* path = g_build_filename(executable_dir, "fsemu", "src", "fsemu-all.c", NULL);
+        char* path = g_build_filename(executable_dir, "fsemu", "src", "fsemu-all.cpp", NULL);
         printf("%s\n", path);
         if (fsemu_path_exists(path)) {
             development_mode = true;

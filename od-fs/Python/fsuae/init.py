@@ -4,7 +4,7 @@ logger = logging.getLogger(__name__)
 
 
 def init():
-    """This function is called from fsapp-pythonthread.c"""
+    """This function is called from fsapp-pythonthread.cpp"""
 
     logger.info("FS-UAE Init (Python)")
 

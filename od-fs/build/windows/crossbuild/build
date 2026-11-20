@@ -38,7 +38,7 @@ cp -a "$WINDOWS_BUILD_DIR/fs-uae.exe" "$libs_dir/FS-UAE.exe"
 python3 "$OD_FS_DIR/build/windows/copy-windows-dlls.py" "$QUASI_MSYS2_DIR/root/mingw64" \
     "$libs_dir" "$libs_dir/FS-UAE.exe"
 # FS-UAE uses the executable's folder as the Python home in Windows development mode when it has
-# lib/python3.X (see init_python in fsuae/fsuae-init.c). Never put lib/python3.X next to the
+# lib/python3.X (see init_python in fsuae/fsuae-init.cpp). Never put lib/python3.X next to the
 # executables in od-fs: the Linux od-fs/fs-uae would find it too. The link is relative.
 ln -sfnr "$QUASI_MSYS2_DIR/root/mingw64/lib" "$libs_dir/lib"
 

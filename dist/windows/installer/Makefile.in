@@ -1,0 +1,9 @@
+all:
+	rm -Rf System FS-UAE FS-UAE-Launcher
+	unzip FS-UAE_@PACKAGE_VERSION@_Windows_x86-64.zip
+	unzip FS-UAE-Launcher_@PACKAGE_VERSION@_Windows_x86-64.zip
+	mkdir System
+	mv FS-UAE-Launcher System/Launcher
+	mv FS-UAE System
+	cp fs-uae-arcade.ico System/Launcher/Windows/x86-64
+	wine $$HOME/.wine/drive_c/"Program Files (x86)"/"Inno Setup 6"/ISCC.exe fs-uae.iss

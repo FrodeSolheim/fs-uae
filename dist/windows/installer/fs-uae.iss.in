@@ -1,0 +1,50 @@
+[Setup]
+AppName=FS-UAE
+AppVersion=@PACKAGE_VERSION@
+AppVerName=FS-UAE @PACKAGE_VERSION@
+DefaultDirName={userpf}\FS-UAE
+DefaultGroupName=FS-UAE
+UninstallDisplayIcon={app}\FS-UAE\Windows\x86-64\fs-uae.exe
+OutputBaseFilename=FS-UAE_@PACKAGE_VERSION@_Windows_x86-64
+OutputDir=.
+PrivilegesRequired=lowest
+ShowLanguageDialog=no
+DisableDirPage=yes
+; DisableWelcomePage=yes
+DisableReadyPage=yes
+DisableStartupPrompt=yes
+DisableProgramGroupPage=yes
+
+[Files]
+Source: "System\*"; DestDir: "{app}"; Flags: recursesubdirs ignoreversion;
+
+[installDelete]
+Type: files; Name: "{userprograms}\FS-UAE\FS-UAE Emulator.lnk"
+Type: filesandordirs; Name: "{app}\FS-UAE"
+Type: filesandordirs; Name: "{app}\Launcher"
+Type: filesandordirs; Name: "{app}\fs_uae_launcher"
+Type: filesandordirs; Name: "{app}\fs_uae_workspace"
+Type: filesandordirs; Name: "{app}\fsgs"
+Type: filesandordirs; Name: "{app}\fsui"
+Type: filesandordirs; Name: "{app}\game_center"
+Type: filesandordirs; Name: "{app}\imageformats"
+Type: filesandordirs; Name: "{app}\licenses"
+Type: filesandordirs; Name: "{app}\platforms"
+Type: filesandordirs; Name: "{app}\share"
+Type: filesandordirs; Name: "{app}\Launcher"
+Type: files; Name: "{app}\cacert.pem"
+Type: files; Name: "{app}\*.conf"
+Type: files; Name: "{app}\*.dll"
+Type: files; Name: "{app}\fs-uae.dat"
+Type: files; Name: "{app}\fs-uae.exe"
+Type: files; Name: "{app}\fs-uae-arcade.ico"
+Type: files; Name: "{app}\fs-uae-device-helper.exe"
+Type: files; Name: "{app}\fs-uae-launcher.exe"
+Type: files; Name: "{app}\*.pyd"
+Type: files; Name: "{app}\*.txt"
+Type: files; Name: "{app}\*.zip"
+
+[Icons]
+Name: "{group}\FS-UAE"; Filename: "{app}\FS-UAE\Windows\x86-64\fs-uae.exe"
+Name: "{group}\FS-UAE Launcher"; Filename: "{app}\Launcher\Windows\x86-64\fs-uae-launcher.exe"
+Name: "{group}\FS-UAE Arcade"; Filename: "{app}\Launcher\Windows\x86-64\fs-uae-launcher.exe"; Parameters: "--fs-uae-arcade"; IconFilename: "{app}\Launcher\Windows\x86-64\fs-uae-arcade.ico"

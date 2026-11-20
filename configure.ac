@@ -811,8 +811,9 @@ AC_CONFIG_FILES([
     dist/macos/Info.plist
     dist/macos/Makefile
     dist/steamos/Makefile
-    dist/windows/fs-uae.iss
     dist/windows/Makefile
+    dist/windows/installer/fs-uae.iss
+    dist/windows/installer/Makefile
     src/fs-uae/fs-uae.rc
     Makefile
 ])

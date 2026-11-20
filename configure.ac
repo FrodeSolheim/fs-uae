@@ -330,6 +330,10 @@ AC_CHECK_LIB([Winmm], [main])
 
 AC_CHECK_LIB([Ws2_32], [main])
 
+# illumos and Solaris have the socket functions in libsocket and libnsl
+AC_SEARCH_LIBS([socket], [socket])
+AC_SEARCH_LIBS([gethostbyname], [nsl])
+
 
 # Operating system
 
@@ -396,6 +400,13 @@ AS_CASE([$host_os],
     OS_NAME_2="DragonFlyBSD"
     OS_NAME_3="DragonFlyBSD"
     OS_CPPFLAGS="-DDRAGONFLYBSD"
+    LOADABLE_MODULE_EXT=".so"
+],
+[solaris*], [
+    OS_NAME="solaris"
+    OS_NAME_2="Solaris"
+    OS_NAME_3="Solaris"
+    OS_CPPFLAGS="-DSOLARIS"
     LOADABLE_MODULE_EXT=".so"
 ],
 [

@@ -1358,71 +1358,71 @@ catalogs = \
 
 share/locale/cs/LC_MESSAGES/fs-uae.mo: po/cs.po
 	mkdir -p share/locale/cs/LC_MESSAGES
-	$(MSGFMT) --verbose $(s)/po/cs.po -o $@
+	$(MSGFMT) -v -o $@ $(s)/po/cs.po
 
 share/locale/da/LC_MESSAGES/fs-uae.mo: po/da.po
 	mkdir -p share/locale/da/LC_MESSAGES
-	$(MSGFMT) --verbose $(s)/po/da.po -o $@
+	$(MSGFMT) -v -o $@ $(s)/po/da.po
 
 share/locale/de/LC_MESSAGES/fs-uae.mo: po/de.po
 	mkdir -p share/locale/de/LC_MESSAGES
-	$(MSGFMT) --verbose $(s)/po/de.po -o $@
+	$(MSGFMT) -v -o $@ $(s)/po/de.po
 
 share/locale/eo/LC_MESSAGES/fs-uae.mo: po/eo.po
 	mkdir -p share/locale/eo/LC_MESSAGES
-	$(MSGFMT) --verbose $(s)/po/eo.po -o $@
+	$(MSGFMT) -v -o $@ $(s)/po/eo.po
 
 share/locale/es/LC_MESSAGES/fs-uae.mo: po/es.po
 	mkdir -p share/locale/es/LC_MESSAGES
-	$(MSGFMT) --verbose $(s)/po/es.po -o $@
+	$(MSGFMT) -v -o $@ $(s)/po/es.po
 
 share/locale/fi/LC_MESSAGES/fs-uae.mo: po/fi.po
 	mkdir -p share/locale/fi/LC_MESSAGES
-	$(MSGFMT) --verbose $(s)/po/fi.po -o $@
+	$(MSGFMT) -v -o $@ $(s)/po/fi.po
 
 share/locale/fr/LC_MESSAGES/fs-uae.mo: po/fr.po
 	mkdir -p share/locale/fr/LC_MESSAGES
-	$(MSGFMT) --verbose $(s)/po/fr.po -o $@
+	$(MSGFMT) -v -o $@ $(s)/po/fr.po
 
 share/locale/hu/LC_MESSAGES/fs-uae.mo: po/hu.po
 	mkdir -p share/locale/hu/LC_MESSAGES
-	$(MSGFMT) --verbose $(s)/po/hu.po -o $@
+	$(MSGFMT) -v -o $@ $(s)/po/hu.po
 
 share/locale/it/LC_MESSAGES/fs-uae.mo: po/it.po
 	mkdir -p share/locale/it/LC_MESSAGES
-	$(MSGFMT) --verbose $(s)/po/it.po -o $@
+	$(MSGFMT) -v -o $@ $(s)/po/it.po
 
 share/locale/nb/LC_MESSAGES/fs-uae.mo: po/nb.po
 	mkdir -p share/locale/nb/LC_MESSAGES
-	$(MSGFMT) --verbose $(s)/po/nb.po -o $@
+	$(MSGFMT) -v -o $@ $(s)/po/nb.po
 
 share/locale/nl/LC_MESSAGES/fs-uae.mo: po/nl.po
 	mkdir -p share/locale/nl/LC_MESSAGES
-	$(MSGFMT) --verbose $(s)/po/nl.po -o $@
+	$(MSGFMT) -v -o $@ $(s)/po/nl.po
 
 share/locale/pl/LC_MESSAGES/fs-uae.mo: po/pl.po
 	mkdir -p share/locale/pl/LC_MESSAGES
-	$(MSGFMT) --verbose $(s)/po/pl.po -o $@
+	$(MSGFMT) -v -o $@ $(s)/po/pl.po
 
 share/locale/pt/LC_MESSAGES/fs-uae.mo: po/pt.po
 	mkdir -p share/locale/pt/LC_MESSAGES
-	$(MSGFMT) --verbose $(s)/po/pt.po -o $@
+	$(MSGFMT) -v -o $@ $(s)/po/pt.po
 
 share/locale/pt_BR/LC_MESSAGES/fs-uae.mo: po/pt_BR.po
 	mkdir -p share/locale/pt_BR/LC_MESSAGES
-	$(MSGFMT) --verbose $(s)/po/pt_BR.po -o $@
+	$(MSGFMT) -v -o $@ $(s)/po/pt_BR.po
 
 share/locale/sr/LC_MESSAGES/fs-uae.mo: po/sr.po
 	mkdir -p share/locale/sr/LC_MESSAGES
-	$(MSGFMT) --verbose $(s)/po/sr.po -o $@
+	$(MSGFMT) -v -o $@ $(s)/po/sr.po
 
 share/locale/sv/LC_MESSAGES/fs-uae.mo: po/sv.po
 	mkdir -p share/locale/sv/LC_MESSAGES
-	$(MSGFMT) --verbose $(s)/po/sv.po -o $@
+	$(MSGFMT) -v -o $@ $(s)/po/sv.po
 
 share/locale/tr/LC_MESSAGES/fs-uae.mo: po/tr.po
 	mkdir -p share/locale/tr/LC_MESSAGES
-	$(MSGFMT) --verbose $(s)/po/tr.po -o $@
+	$(MSGFMT) -v -o $@ $(s)/po/tr.po
 
 mo: $(catalogs)
 

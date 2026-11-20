@@ -10,6 +10,10 @@
 #define __USE_GNU
 #endif
 #include <sys/ucontext.h>
+#ifdef __sun
+/* illumos: <sys/ucontext.h> does not bring in the REG_* gregs indices */
+#include <sys/regset.h>
+#endif
 #endif
 #include <signal.h>
 

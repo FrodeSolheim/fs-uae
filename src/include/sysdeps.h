@@ -172,7 +172,7 @@ struct utimbuf
 
 /* If char has more then 8 bits, good night. */
 typedef unsigned char uae_u8;
-typedef signed char uae_s8;
+typedef int8_t uae_s8;
 typedef char uae_char;
 
 typedef struct { uae_u8 RGB[3]; } RGB;

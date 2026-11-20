@@ -195,6 +195,14 @@ void denise_restore_registers(void);
 bool denise_is_vb(void);
 void draw_denise_vsync_queue(int);
 void draw_denise_line_queue_flush(void);
+#ifdef FSUAE
+// FS-UAE's slices: waits until the lines queued for Denise are drawn (draw_denise_line_queue_flush)
+// and returns how many rows of the display frame's picture are drawn in the draw buffer: the row
+// after the last one written, counting doubled lines (0 when none is). -1 when the picture is drawn
+// into the temporary buffer, which is copied to the draw buffer only when the display frame is
+// finished (finish_drawing_frame), so that no rows of it can be posted before then.
+int draw_denise_flush_rows_drawn(void);
+#endif
 void quick_denise_rga_queue(uae_u32 linecnt, int startpos, int endpos);
 void denise_handle_quick_strobe_queue(uae_u16 strobe, int strobe_pos, int endpos);
 bool drawing_can_lineoptimizations(void);

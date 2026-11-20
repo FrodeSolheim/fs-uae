@@ -7,16 +7,8 @@
 
 #ifdef USE_GLIB
 
-#ifdef FSUAE
-
-#include <fs/glib.h>
-
-#else
-
 #include <glib.h>
 #include <glib/gstdio.h>
-
-#endif
 
 #endif
 

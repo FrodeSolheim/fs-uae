@@ -218,7 +218,11 @@ int amiga_set_cd_audio_callback(audio_callback func);
 
 int amiga_set_audio_buffer_size(int size);
 int amiga_set_audio_frequency(int frequency);
-void amiga_set_audio_frequency_adjust(double adjust);
+// The audio rate adjustment: Paula's sample interval is the nominal one divided by
+// (1 + adjustment), from the next sample on and through the core's own recalculations of it.
+void amiga_set_audio_rate_adjustment(double adjustment);
+// The audio Paula has produced but not yet handed over (its partly filled buffer), in bytes.
+int amiga_get_pending_audio_bytes(void);
 
 void amiga_flush_audio(void);
 

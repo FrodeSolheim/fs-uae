@@ -648,7 +648,8 @@ class Generator:
         e("rc_flags = %s" % self.q(rc_inc))
         e()
         e("rule cc")
-        e("  command = $cc $base_flags $flags /showIncludes:user /Fo$out $in")
+        # "--": clang-cl would take a source path such as /Users/... for an option (/U).
+        e("  command = $cc $base_flags $flags /showIncludes:user /Fo$out -- $in")
         e("  deps = msvc")
         e("  msvc_deps_prefix = Note: including file:")
         e("  description = CC $in")

@@ -6,6 +6,8 @@
 
 static uae_u64 spincount;
 
+// TODO: REVIEW: Replace/enable, move, or merge with other UAE?
+
 #warning target_spin not really implemented
 void target_spin(int total)
 {

@@ -9,8 +9,7 @@
 #include "uae/fs.h"
 #include "uae-fs.h"
 
-#include <fs/filesys.h>
-#include <fs/glib.h>
+#include <glib.h>
 
 void romlist_init (void)
 {
@@ -175,7 +174,7 @@ extern "C" {
 #if 0
 void amiga_add_key_dir (const char *path)
 {
-	char *p = g_build_filename (path, "rom.key", NULL);
+	char *p = g_build_filename (path, "rom.key", (char *)NULL);
 	addkeyfile (p);
 	g_free (p);
 }
@@ -184,15 +183,15 @@ int amiga_add_rom_file (const char *path, const char *cache_path)
 {
 	write_log ("amiga_add_rom_file %s\n", path);
 	struct romdata *rd = NULL;
-	struct fs_stat rom_stat;
+	fsapp_file_stat_t rom_stat;
 
 	if (cache_path != NULL) {
-		if (fs_stat (path, &rom_stat) != 0) {
+		if (fsapp_file_stat (path, &rom_stat) != 0) {
 			write_log ("- could not stat rom file\n");
 			return 2;
 		}
-		struct fs_stat cache_stat;
-		if (fs_stat (cache_path, &cache_stat) == 0) {
+		fsapp_file_stat_t cache_stat;
+		if (fsapp_file_stat (cache_path, &cache_stat) == 0) {
 			if (rom_stat.mtime == cache_stat.mtime) {
 				// we should have cached ROM information...
 				unsigned char buf[4];
@@ -253,7 +252,7 @@ int amiga_add_rom_file (const char *path, const char *cache_path)
 				tv.tv_sec = rom_stat.mtime;
 				tv.tv_usec = 0;
 				//write_log("- setting file time\n");
-				fs_set_file_time (cache_path, &tv);
+				fsapp_file_set_time (cache_path, &tv);
 			} else {
 				fclose (f);
 			}

@@ -5,8 +5,8 @@
 #include "uae/fs.h"
 
 #include <time.h>
-#include <fs/base.h>
-#include <fs/time.h>
+
+#include "fsapp-time.h"
 
 int64_t g_uae_epoch = 0;
 
@@ -24,12 +24,12 @@ struct tm *uae_get_amiga_time() {
 #ifdef DEBUG_SYNC
         write_sync_log("uae_get_amiga_time: (fixed to %d)\n", 0);
 #endif
-        fs_gmtime_r(&t, &g_amiga_time);
+        fsapp_time_gmtime_r(&t, &g_amiga_time);
     }
     else {
         time_t t = time(NULL);
         //t += currprefs.cs_rtc_adjust;
-        fs_localtime_r(&t, &g_amiga_time);
+        fsapp_time_localtime_r(&t, &g_amiga_time);
         //printf("returning year %d\n", g_local_time->tm_year);
     }
     return &g_amiga_time;

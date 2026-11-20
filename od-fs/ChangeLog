@@ -1,6 +1,50 @@
 Version 5.0.8:
 
+* Merged the latest WinUAE code.
+* Built-in MT-32 / CM-32L emulation (mt32emu), see "MT-32 emulation" in od-fs/Docs.
+* Run a WHDLoad game archive directly (fs-uae Game.lha). FS-UAE prepares a run directory with
+  WHDLoad and a config for it, and removes stale run directories later.
 * Also add joystick mappings for port 0 and mouse mappings for port 1.
+* Temporary fix for basic RTG output. RTG screens wider or taller than 1024 pixels are no longer
+  cut off.
+* Reworked frame timing: FS-UAE 4's scanline pacer is back (the emulation is paced line by line),
+  input is read at every scanline, and the picture is handed over in slices while the frame is
+  drawn. With vsync, frames are planned from a predicted host vertical blank (using presentation
+  feedback on Wayland and X11).
+* Reworked audio: Paula runs at the audio device's own rate, with a small rate adjustment that keeps
+  the audio buffer at its target level.
+* New compositor drawing the window's contents with OpenGL 2.1 (FS-UAE stops at startup with a
+  message when OpenGL 2.1 is not available). The window is only redrawn when something changes
+  while no emulation runs.
+* Performance graph (Alt+O, or performance_gui=sidebars/detailed): each frame's timing and the
+  audio buffer level, see "Performance graphs" in od-fs/Docs.
+* Alt+P toggles pause. On macOS, the emulation shortcuts use Cmd instead of Alt.
+* macOS: the app is in the games category (Game Mode), and FS-UAE asks for latency-critical timing.
+* Wayland: SDL's double buffering is on by default, so frames are shown a refresh earlier.
+* One log for everything (also Python's output and tracebacks), on stdout and in FS-UAE.log.txt,
+  each line with its time, thread and level, written without stalling the emulation. The last
+  lines before a crash are kept.
+* A timing trace of each thread (FS_TRACE_FILE=<file>), for Perfetto.
+* JIT (x86): faults that the JIT does not handle are passed on to the handler installed before.
+* Validate Promizer 2.0 depacker sizes. Updated Italian translation.
+* The version, build origin (official, OBS or unofficial), commit and build environment are shown
+  at the top of FS-UAE.log.txt. Development builds have versions like
+  5.0.8-dev.20261120T2017+gHASH (the commit's date and time in UTC).
+* New build system for development builds and release dists on Linux, Windows and macOS, with
+  pinned dependencies. Linux dists are built in an Ubuntu 24.04 container (x86_64 and aarch64),
+  Windows dists are cross-built with Clang, and macOS dists are signed and notarized. Development
+  builds have the same layout as the dists (there is no separate development mode).
+* GitHub workflows build, check and test the dists, draft releases from version tags, and publish
+  builds of main as a rolling "dev" pre-release.
+* The macOS .dmg includes README.txt and Extras/Portable.ini. The source tarball includes the
+  WHDLoad resources.
+* Code reorganization: FS-UAE's own code split into modules with a fixed dependency order (fs,
+  fsapp, fsgui, fsemu, and the emulation on top), with the main loop and the compositor in fsapp.
+  libfsemu, fslib, FS-UAE 4's on-screen UI and host window code removed or merged into fsapp.
+  Third-party libraries moved to od-fs/3rdparty (built in by default), unused code removed or
+  moved to .attic, FS-UAE's C code compiled as C++ and formatted consistently, times taken from
+  SDL's clock in nanoseconds, the Python code checked with ruff and mypy, and tests added to the
+  repository.
 
 Version 5.0.7:
 

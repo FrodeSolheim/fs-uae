@@ -9,12 +9,6 @@
  * Copyright 2012 Frode Solheim
  */
 
-#include "libfsemu/include/fs/fs.h"
-
-#include <fs/filesys.h>
-#include <fs/time.h>
-#include <fs/util.h>
-
 #include "sysconfig.h"
 #include "sysdeps.h"
 #include "options.h"
@@ -38,6 +32,8 @@
 #include <limits.h>
 
 #include "fsdb_host.h"
+#include "fsapp-file.h"
+#include "fsapp-time.h"
 
 enum uaem_write_flags_t {
     WF_NEVER = (1 << 0),
@@ -133,7 +129,7 @@ static uae_u32 filesys_parse_mask(uae_u32 mask)
 
 int fsdb_exists(const TCHAR *nname)
 {
-    return fs_path_exists(nname);
+    return g_file_test(nname, G_FILE_TEST_EXISTS);
 }
 
 #define PERM_OFFSET 0
@@ -159,10 +155,10 @@ void fsdb_init_file_info(fsdb_file_info *info)
     if (uae_deterministic_mode()) {
         uae_deterministic_amiga_time(&info->days, &info->mins, &info->ticks);
     } else {
-        fs_time_val tv;
-        fs_get_current_time(&tv);
+        fsapp_time_val_t tv;
+        fsapp_time_get_current(&tv);
         struct mytimeval mtv;
-        mtv.tv_sec = tv.tv_sec + fs_get_local_time_offset(tv.tv_sec);
+        mtv.tv_sec = tv.tv_sec + fsapp_time_get_local_offset(tv.tv_sec);
         mtv.tv_usec = tv.tv_usec;
         timeval_to_amiga (&mtv, &info->days, &info->mins, &info->ticks, 50);
         if (g_fsdb_debug) {
@@ -283,7 +279,7 @@ static char *aname_to_nname(const char *aname, int ascii)
         return buf;
     }
 
-    char* result = fs_utf8_from_latin1(buf, -1);
+    char* result = fsdb_utf8_from_latin1(buf, -1);
     free(buf);
 
     if (g_fsdb_debug) {
@@ -319,7 +315,7 @@ static char *nname_to_aname(const char *nname, int noconvert)
     if (noconvert) {
         cresult = strdup(nname);
     } else {
-        cresult = fs_utf8_to_latin1(nname, -1);
+        cresult = fsdb_utf8_to_latin1(nname, -1);
 //        free(result);
     }
 
@@ -352,7 +348,7 @@ static char *nname_to_aname(const char *nname, int noconvert)
         return result;
     }
 
-    char* cresult = fs_utf8_to_latin1(result, -1);
+    char* cresult = fsdb_utf8_to_latin1(result, -1);
     free(result);
 
     if (cresult) {
@@ -398,7 +394,7 @@ static int fsdb_get_file_info(const char *nname, fsdb_file_info *info)
         write_log("fsdb_get_file_info %s\n", nname);
     }
     info->comment = NULL;
-    if (!fs_path_exists(nname)) {
+    if (!g_file_test(nname, G_FILE_TEST_EXISTS)) {
         if (g_fsdb_debug) {
             write_log("- file does not exist: %s\n", nname);
         }
@@ -406,18 +402,18 @@ static int fsdb_get_file_info(const char *nname, fsdb_file_info *info)
         return ERROR_OBJECT_NOT_AROUND;
     }
 
-    info->type = fs_path_is_dir(nname) ? 2 : 1;
+    info->type = g_file_test(nname, G_FILE_TEST_IS_DIR) ? 2 : 1;
     info->mode = 0;
 
     int read_perm = 0;
     int read_time = 0;
 
-    char *meta_file = g_strconcat(nname, ".uaem", NULL);
+    char *meta_file = g_strconcat(nname, ".uaem", (char *)NULL);
 
     FILE *f = fsdb_open_meta_file(meta_file, "rb");
     int file_size = 0;
     if (f == NULL) {
-        if (fs_path_exists(meta_file)) {
+        if (g_file_test(meta_file, G_FILE_TEST_EXISTS)) {
             error = host_errno_to_dos_errno(errno);
             write_log("WARNING: fsdb_get_file_info - could not open "
                       "meta file for reading\n");
@@ -515,7 +511,7 @@ static int fsdb_get_file_info(const char *nname, fsdb_file_info *info)
         //printf("sub: %d\n", sub);
 
         struct mytimeval mtv;
-        mtv.tv_sec = fs_timegm(&tm);
+        mtv.tv_sec = fsapp_time_timegm(&tm);
         if (mtv.tv_sec == -1) {
             // an error occured while parsing time - invalid time
             write_log("- warning, error reading time from metadata\n");
@@ -562,15 +558,15 @@ static int fsdb_get_file_info(const char *nname, fsdb_file_info *info)
         if (uae_deterministic_mode()) {
             uae_deterministic_amiga_time(&info->days, &info->mins, &info->ticks);
         } else {
-            struct fs_stat buf;
-            if (fs_stat(nname, &buf) != 0) {
+            fsapp_file_stat_t buf;
+            if (fsapp_file_stat(nname, &buf) != 0) {
                 if (g_fsdb_debug) {
                     write_log("- error stating %s (%d)\n", nname, errno);
                 }
             }
 
             mytimeval mtv;
-            mtv.tv_sec = buf.mtime + fs_get_local_time_offset(buf.mtime);
+            mtv.tv_sec = buf.mtime + fsapp_time_get_local_offset(buf.mtime);
             mtv.tv_usec = buf.mtime_nsec / 1000;
             timeval_to_amiga(&mtv, &info->days, &info->mins, &info->ticks, 50);
 
@@ -593,7 +589,7 @@ int fsdb_set_file_info(const char *nname, fsdb_file_info *info)
         write_log("fsdb_set_file_info %s\n", nname);
     }
     int error = 0;
-    if (!fs_path_exists(nname)) {
+    if (!g_file_test(nname, G_FILE_TEST_EXISTS)) {
         error = ERROR_OBJECT_NOT_AROUND;
     }
 
@@ -643,19 +639,19 @@ int fsdb_set_file_info(const char *nname, fsdb_file_info *info)
 
     struct mytimeval mtv;
     amiga_to_timeval(&mtv, info->days, info->mins, info->ticks, 50);
-    mtv.tv_sec -= fs_get_local_time_offset(mtv.tv_sec);
+    mtv.tv_sec -= fsapp_time_get_local_offset(mtv.tv_sec);
     if (g_fsdb_debug) {
         write_log("- days %d mins %d ticks %d - %lld %d\n",
                 info->days, info->mins, info->ticks, mtv.tv_sec,
                 mtv.tv_usec);
-        write_log("- fs_get_local_time_offset %d\n",
-                fs_get_local_time_offset(mtv.tv_sec));
+        write_log("- fsapp_time_get_local_offset %d\n",
+                fsapp_time_get_local_offset(mtv.tv_sec));
     }
 
     struct timeval tv;
     tv.tv_sec = mtv.tv_sec;
     tv.tv_usec = mtv.tv_usec;
-    if (fs_set_file_time(nname, &tv) != 0) {
+    if (fsapp_file_set_time(nname, &tv) != 0) {
         if (g_fsdb_debug) {
             write_log("- errno %d setting file mtime\n", errno);
         }
@@ -665,8 +661,8 @@ int fsdb_set_file_info(const char *nname, fsdb_file_info *info)
         if (g_fsdb_debug) {
             write_log("- checking if precision is good enough!\n");
         }
-        struct fs_stat buf;
-        if (fs_stat(nname, &buf) == 0) {
+        fsapp_file_stat_t buf;
+        if (fsapp_file_stat(nname, &buf) == 0) {
 #if 0
             write_log("- %d vs %d\n", (int) buf.mtime, (int) mtv.tv_sec);
             write_log("- %d vs %d\n", (int) buf.mtime_nsec, (int) (mtv.tv_usec * 1000));
@@ -693,8 +689,8 @@ int fsdb_set_file_info(const char *nname, fsdb_file_info *info)
         need_metadata_file |= WF_ALWAYS;
     }
 
-    char *meta_file = g_strconcat(nname, ".uaem", NULL);
-    if (fs_path_exists(meta_file)) {
+    char *meta_file = g_strconcat(nname, ".uaem", (char *)NULL);
+    if (g_file_test(meta_file, G_FILE_TEST_EXISTS)) {
         need_metadata_file |= WF_EXISTS;
     }
     if (!error && need_metadata_file) {
@@ -836,17 +832,17 @@ bool my_utime(const char *name, struct mytimeval *tv)
         if (uae_deterministic_mode()) {
             uae_deterministic_amiga_time(&days, &mins, &ticks);
         } else {
-            fs_time_val tv;
-            fs_get_current_time(&tv);
+            fsapp_time_val_t tv;
+            fsapp_time_get_current(&tv);
             struct mytimeval mtv;
-            mtv.tv_sec = tv.tv_sec + fs_get_local_time_offset(tv.tv_sec);
+            mtv.tv_sec = tv.tv_sec + fsapp_time_get_local_offset(tv.tv_sec);
             mtv.tv_usec = tv.tv_usec;
             timeval_to_amiga (&mtv, &days, &mins, &ticks, 50);
         }
     }
     else {
         struct mytimeval mtv2;
-        // mtv2.tv_sec = tv->tv_sec + fs_get_local_time_offset(tv->tv_sec);
+        // mtv2.tv_sec = tv->tv_sec + fsapp_time_get_local_offset(tv->tv_sec);
         mtv2.tv_sec = tv->tv_sec;
         mtv2.tv_usec = tv->tv_usec;
         timeval_to_amiga(&mtv2, &days, &mins, &ticks, 50);
@@ -855,7 +851,7 @@ bool my_utime(const char *name, struct mytimeval *tv)
     if (g_fsdb_debug) {
         write_log("fsdb_set_file_time nname is %s\n", name);
     }
-    if (!fs_path_exists(name)) {
+    if (!g_file_test(name, G_FILE_TEST_EXISTS)) {
         write_log("WARNING: fsdb_set_file_time file \"%s\" does not exist\n",
                 name);
         my_errno = ERROR_OBJECT_NOT_AROUND;
@@ -913,7 +909,7 @@ int fsdb_set_file_attrs(a_inode *aino)
     if (g_fsdb_debug) {
         write_log("fsdb_set_file_attrs nname is %s\n", aino->nname);
     }
-    if (!fs_path_exists(aino->nname)) {
+    if (!g_file_test(aino->nname, G_FILE_TEST_EXISTS)) {
         write_log("WARNING: fsdb_set_file_attrs file \"%s\" does not exist\n",
                 aino->nname);
         return ERROR_OBJECT_NOT_AROUND;
@@ -949,7 +945,7 @@ static void find_nname_case(const char *dir_path, char **name)
     //gsize read, written;
     //gchar *cmp_name = g_convert(*name, -1, "ISO-8859-1", "UTF-8", &read,
     //        &written, NULL);
-    char *cmp_name = fs_utf8_to_latin1(*name, -1);
+    char *cmp_name = fsdb_utf8_to_latin1(*name, -1);
     if (cmp_name == NULL) {
         write_log("WARNING: could not convert to latin1: %s", *name);
         g_dir_close(dir);
@@ -966,7 +962,7 @@ static void find_nname_case(const char *dir_path, char **name)
 
         //char *cmp_result = g_convert(result, -1, "ISO-8859-1", "UTF-8", &read,
         //        &written, NULL);
-        char *cmp_result = fs_utf8_to_latin1(result, -1);
+        char *cmp_result = fsdb_utf8_to_latin1(result, -1);
         //printf("%s %s\n", result, cmp_result);
         if (cmp_result == NULL) {
             // file name could not be represented as ISO-8859-1, so it
@@ -1008,7 +1004,7 @@ char *fsdb_native_path(const char *root_dir, const char *amiga_path)
         char *nname = aname_to_nname(*part, 0);
         find_nname_case(current_path, &nname);
         char *free_me = current_path;
-        current_path = g_build_filename(current_path, nname, NULL);
+        current_path = g_build_filename(current_path, nname, (char *)NULL);
         g_free(free_me);
         g_free(nname);
         part++;

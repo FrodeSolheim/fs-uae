@@ -26,6 +26,9 @@ static bool xD3D_alloctexture (int monid, int w, int h)
 
 bool (*D3D_alloctexture)(int, int, int) = xD3D_alloctexture;
 
+// The buffer that the emulation draws into (the chipset's frames and the RTG screen), with rows of
+// VIDEO_MEMORY_SIZE pixels of 4 bytes, and as many rows.
+#define VIDEO_MEMORY_SIZE 2048
 static uae_u8 *video_memory = NULL;
 
 static uae_u8 *xD3D11_locktexture(int monid, int *pitch, int *width, int *height, int fullupdate)
@@ -35,14 +38,14 @@ static uae_u8 *xD3D11_locktexture(int monid, int *pitch, int *width, int *height
 #endif
 	// FIXME: Temporary hack
 	if (video_memory == NULL) {
-		video_memory = (uae_u8 *) malloc(2048 * 2048 * 4);
+		video_memory = (uae_u8 *) malloc(VIDEO_MEMORY_SIZE * VIDEO_MEMORY_SIZE * 4);
 	}
 
-	*pitch = 2048 * 4;
+	*pitch = VIDEO_MEMORY_SIZE * 4;
 	if (height)
-		*height = 2048;
+		*height = VIDEO_MEMORY_SIZE;
 	if (width)
-		*width = 2048;
+		*width = VIDEO_MEMORY_SIZE;
 
 	return video_memory;
 }
@@ -58,15 +61,15 @@ void (*D3D_unlocktexture)(int, int, int) = xD3D11_unlocktexture;
 
 static bool uae_fsvideo_renderframe(int monid, int mode, bool immediate);
 
+// render_screen (win32gfx.cpp, included below) renders through this.
 static bool xD3D11_renderframe(int monid, int mode, bool immediate)
 {
 	// static int counter = 0;
 	// printf("RENDER FRAME %d\n", counter);
 	// counter += 1;
 
-	uae_fsvideo_renderframe(monid, mode, immediate);
-
-	return true;
+	// False for a last slice that is not the whole picture, so that WinUAE's framewait posts it.
+	return uae_fsvideo_renderframe(monid, mode, immediate);
 }
 
 bool (*D3D_renderframe)(int, int, bool) = xD3D11_renderframe;
@@ -962,14 +965,14 @@ int lockscr(struct vidbuffer *vb, bool fullupdate, bool first)
 	if (!vb->bufmem) {
 		if (fsemu) {
 			if (uae_fsvideo.chipset_framebuffer == NULL) {
-				printf("bpp: %d\n", uae_fsvideo.bytes_per_pixel);
 				// FIXME * bytesperpixel instead
 				int max_bytes =
 					uae_fsvideo.bytes_per_pixel * AMIGA_WIDTH * AMIGA_HEIGHT;
 				uae_fsvideo.chipset_framebuffer_bytes = max_bytes;
 				uae_fsvideo.chipset_framebuffer =
 					(uae_u8 *) malloc(uae_fsvideo.chipset_framebuffer_bytes);
-				printf("malloc %d bytes\n", uae_fsvideo.chipset_framebuffer_bytes);
+				uae_fsvideo_log("chipset framebuffer: %d bytes (%d bytes per pixel)\n",
+					uae_fsvideo.chipset_framebuffer_bytes, uae_fsvideo.bytes_per_pixel);
 				//memset(frame->buffer, 0xff, frame->width * frame->height * g_amiga_video_bpp);
 				/*
 				for (int i = 0; i < max_bytes; i+=4) {
@@ -1506,7 +1509,6 @@ void init_colors(int monid)
 {
 	struct AmigaMonitor *mon = &AMonitors[monid];
 	/* init colors */
-	printf("init_colors\n");
 #ifdef FSUAE
 	uae_fsvideo_log("init_colors\n");
 
@@ -2488,8 +2490,11 @@ void toggle_fullscreen(int monid, int mode)
 
 #endif
 
-#include "fsuae-hack.h"
+#include "fsemu-layout.h"
 #include "fsemu-video.h"
+#include "uae/fs.h"
+
+struct uae_fs_slice uae_fs_slice;
 
 bool uae_fsvideo_renderframe(int monid, int mode, bool immediate)
 {
@@ -2502,11 +2507,21 @@ bool uae_fsvideo_renderframe(int monid, int mode, bool immediate)
 	static int prev_raw_x = -1, prev_raw_y = -1, prev_raw_w = -1, prev_raw_h = -1;
 
 	// Check custom limits for changes and log if different
-	int custom_w, custom_h, custom_x, custom_y, custom_realh, custom_hres, custom_vres;
-	int raw_w, raw_h, raw_x, raw_y;
+	static int limits_w, limits_h, limits_x, limits_y, limits_realh, limits_hres, limits_vres;
+	static int limits_raw_w, limits_raw_h, limits_raw_x, limits_raw_y;
 
-	get_custom_limits(&custom_w, &custom_h, &custom_x, &custom_y, &custom_realh, &custom_hres, &custom_vres);
-	get_custom_raw_limits(&raw_w, &raw_h, &raw_x, &raw_y);
+	// Only for a frame's last slice or a picture posted whole, not for the slices before the last:
+	// get_custom_limits works out the limits from the lines drawn so far, so in the middle of a
+	// frame they look changed at every slice, and each change resets the core's centering and line
+	// state (and counts an interlaced field). The slices before the last keep the limits of the
+	// frame before (with the auto crop, the last slice sets the crop).
+	if (!uae_fs_slice.posting || uae_fs_slice.last) {
+		get_custom_limits(&limits_w, &limits_h, &limits_x, &limits_y, &limits_realh, &limits_hres, &limits_vres);
+		get_custom_raw_limits(&limits_raw_w, &limits_raw_h, &limits_raw_x, &limits_raw_y);
+	}
+	// Copies, which the code below adjusts for this picture only.
+	int custom_w = limits_w, custom_h = limits_h, custom_x = limits_x, custom_y = limits_y;
+	int raw_w = limits_raw_w, raw_h = limits_raw_h, raw_x = limits_raw_x, raw_y = limits_raw_y;
 
 	const char* changed = NULL;
 	// Check if custom limits changed
@@ -2528,7 +2543,7 @@ bool uae_fsvideo_renderframe(int monid, int mode, bool immediate)
 
 	if (changed != NULL) {
 		const char *padding = "             ";
-		printf(" -- changed: %s %s raw: %3d %3d %3d %3d / custom: %3d %3d %3d %3d\n",
+		uae_fsvideo_log("Limits changed: %s %s raw: %3d %3d %3d %3d / custom: %3d %3d %3d %3d\n",
 			changed, padding,
 			raw_x, raw_y, raw_w, raw_h, custom_x, custom_y, custom_w, custom_h);
 	}
@@ -2656,6 +2671,15 @@ bool uae_fsvideo_renderframe(int monid, int mode, bool immediate)
 #endif
 	// printf("ALLOCATE FRAME!\n");
 	fsemu_video_frame_t *frame = fsemu_video_alloc_frame();
+	// A slice is posted while the frame's lines are drawn (custom.cpp), and has the lines of the
+	// frame being emulated; a whole picture posted otherwise (WinUAE's framewait at the display's
+	// vertical sync, RTG) comes after the end of the frame whose lines it has.
+	bool slice = uae_fs_slice.posting && !mon->screen_is_picasso;
+	bool posted_after_frame_end = !slice;
+	frame->number = fsemu_video_get_posting_frame_number(posted_after_frame_end);
+	// Whether render_screen tells the core that the picture was posted (whole, or a slice before
+	// the last).
+	bool rendered = true;
 	frame->layer = 0;
 	frame->flags = 0;
 	frame->depth = g_amiga_video_bpp * 8;
@@ -2663,6 +2687,19 @@ bool uae_fsvideo_renderframe(int monid, int mode, bool immediate)
 		frame->flags |= FSEMU_FRAME_FLAG_TURBO;
 	}
 	if (mon->screen_is_picasso) {
+		// RTG pixels are written to video_memory via D3D_locktexture (see gfx_lock_picasso2), a
+		// VIDEO_MEMORY_SIZE x VIDEO_MEMORY_SIZE buffer, so clamp to that (fsapp's textures grow with
+		// the frame).
+		struct picasso96_state_struct *state = &picasso96_state[monid];
+		frame->buffer = video_memory;
+		frame->stride = VIDEO_MEMORY_SIZE * 4;
+		frame->width = state->Width < VIDEO_MEMORY_SIZE ? state->Width : VIDEO_MEMORY_SIZE;
+		frame->height = state->Height < VIDEO_MEMORY_SIZE ? state->Height : VIDEO_MEMORY_SIZE;
+		frame->partial = 0;
+		frame->limits.x = 0;
+		frame->limits.y = 0;
+		frame->limits.w = frame->width;
+		frame->limits.h = frame->height;
 #if 0
 		frame->buffer = uae_fsvideo.picasso_framebuffer;
 		frame->stride =
@@ -2685,7 +2722,7 @@ bool uae_fsvideo_renderframe(int monid, int mode, bool immediate)
 		frame->buffer = video_memory;
 		// frame->buffer = uae_fsvideo.chipset_framebuffer;
 		// frame->stride = AMIGA_WIDTH * g_amiga_video_bpp;
-		frame->stride = 2048 * 4;
+		frame->stride = VIDEO_MEMORY_SIZE * 4;
 		// frame->stride = AMIGA_WIDTH * 4;
 		
 		// FIXME: AMIGA_WIDTH / HEIGHT ARE NOT ALWAYS CORRECT ANY MORE...?
@@ -2724,12 +2761,28 @@ bool uae_fsvideo_renderframe(int monid, int mode, bool immediate)
 				//((unsigned char*) frame->buffer)[i + 3] = 0xff;
 		}
 
-		if (mode == 1) {
+		// The whole height for a picture posted whole, and for the last slice when all of the
+		// picture's rows are drawn. Otherwise the rows drawn so far: for a slice before the last,
+		// and for a last slice whose picture has rows drawn after the frame's last line (the
+		// display frame ends at the display's vertical sync, a few lines into the next frame),
+		// which then is not the last: render_screen returns false, so that WinUAE's framewait
+		// posts the whole picture. A slice with no rows, or no more than the frame's slice before
+		// it, is not posted: the drawing side would take it for the start of a new frame.
+		static int last_slice_number = -1;
+		static int last_slice_rows;
+		bool whole = !slice || (uae_fs_slice.last && uae_fs_slice.rows >= frame->height);
+		if (whole) {
 			frame->partial = frame->height;
-		} else if (mode == 2) {
-			frame->partial = avidinfo->drawbuffer.last_drawn_line;
 		} else {
-			uae_fsvideo_log("WARNING: Expected mode to be 1 or 2\n");
+			rendered = !uae_fs_slice.last;
+			frame->partial = uae_fs_slice.rows < frame->height ? uae_fs_slice.rows : frame->height - 1;
+			if (frame->partial <= 0 ||
+				(frame->number == last_slice_number && frame->partial <= last_slice_rows)) {
+				fsemu_video_finalize_and_free_frame(frame);
+				return rendered;
+			}
+			last_slice_number = frame->number;
+			last_slice_rows = frame->partial;
 		}
 
 		// { "692x540", NULL, 48, 22, 692, 540 },
@@ -2769,7 +2822,8 @@ bool uae_fsvideo_renderframe(int monid, int mode, bool immediate)
 		// frame->limits.h = frame->height;
 
 
-		if (hack_auto_crop_mode) {
+		// The frame's crop policy, read once at its first slice.
+		if (fsemu_video_get_frame_crop_policy(frame->number) == FSEMU_LAYOUT_CROP_POLICY_AUTO) {
 			frame->limits.x = custom_x;
 			frame->limits.y = custom_y;
 			frame->limits.w = custom_w;
@@ -2779,7 +2833,7 @@ bool uae_fsvideo_renderframe(int monid, int mode, bool immediate)
 			int center_x = 74 + 640 / 2;
 			int center_y;
 
-			if (hack_ntsc_mode) {
+			if (fsemu_layout_ntsc_mode()) {
 				center_y = 46 + 400 / 2;
 
 				frame->limits.w = 692;
@@ -2821,13 +2875,14 @@ bool uae_fsvideo_renderframe(int monid, int mode, bool immediate)
 	// frame->limits.h = 540;
 
 	int isntsc = (beamcon0 & BEAMCON0_PAL) ? 0 : 1;		
-	hack_ntsc_mode = isntsc == 1;
+	// FIXME: Set after the crop above is chosen, so the crop uses the previous frame's mode.
+	fsemu_layout_set_ntsc_mode(isntsc == 1);
 
 	// fsemu_video_post_partial_frame(avidinfo->);
 	fsemu_video_post_frame(frame);
 	// notice_screen_contents_lost(monid);
 
-	return 1;
+	return rendered;
 }
 
 #if 0

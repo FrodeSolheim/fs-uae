@@ -1,0 +1,63 @@
+# Files in od-fs that clang-format (18 or newer) skips, so that they are not reformatted by
+# accident. Paths are relative to od-fs.
+
+# Third-party code is kept as upstream has it, so that it can be updated from upstream (this also
+# covers libslirp, which has the .clang-format from its upstream).
+3rdparty/**
+
+# Files that use od-fs/.clang-format but are not in its style: UAE code that still uses tabs, and
+# other code kept as it is. Reformatting them causes churn and makes it harder to compare and merge
+# code with WinUAE and Amiberry. Remove a file from the list when converting it to the style.
+#
+# The list was made by running clang-format on all tracked files that od-fs/.clang-format applies
+# to and listing those it would change.
+blkdev-linux.cpp
+bridge.cpp
+bsdsocket_posix.cpp
+callbacks.h
+cdimage_stubs.cpp
+charset.cpp
+clipboard_fs.cpp
+clock.cpp
+defines.h
+filesys_host.cpp
+fsdb_host.cpp
+gui.cpp
+hardfile_host.cpp
+include/resource.h
+include/uae/uae.h
+input_fs.cpp
+ioport.cpp
+ioport.h
+joystick_fs.cpp
+keyboard_fs.cpp
+libamiga.cpp
+libuae.cpp
+libuae.h
+machdep/m68k.h
+midi.cpp
+midi.h
+mouse_fs.cpp
+options_fs.cpp
+parser_fs.cpp
+paths.cpp
+random.cpp
+roms.cpp
+sleep.h
+sound_fs.cpp
+statusline_fs.cpp
+stubs.cpp
+sysconfig-fs.h
+target.h
+threaddep/thread.h
+threading_fs.cpp
+uae-fs.h
+uae_host.cpp
+uaemisc.cpp
+video_fs.cpp
+vpar.cpp
+vpar.h
+winuae_compat.h
+writelog_fs.cpp
+tests/scale-rounding-test.c
+tools/motion-test/motion-test.c

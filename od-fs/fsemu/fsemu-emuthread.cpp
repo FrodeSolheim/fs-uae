@@ -1,28 +1,26 @@
 #define FSEMU_INTERNAL
 #include "fsemu-emuthread.h"
 
-#include "fsapp-mutex.h"
-
 static struct {
     bool paused;
     // Mutex used to copy consistent data from UI thread over to emu thread.
-    fsapp_mutex_t *ui_emu_mutex;
+    SDL_Mutex *ui_emu_mutex;
 } fsemu_emuthread;
 
 void fsemu_emuthread_init(void)
 {
     fsemu_return_if_already_initialized();
-    fsemu_emuthread.ui_emu_mutex = fsapp_mutex_create();
+    fsemu_emuthread.ui_emu_mutex = SDL_CreateMutex();
 }
 
 void fsemu_emuthread_lock(void)
 {
-    fsapp_mutex_lock(fsemu_emuthread.ui_emu_mutex);
+    SDL_LockMutex(fsemu_emuthread.ui_emu_mutex);
 }
 
 void fsemu_emuthread_unlock(void)
 {
-    fsapp_mutex_unlock(fsemu_emuthread.ui_emu_mutex);
+    SDL_UnlockMutex(fsemu_emuthread.ui_emu_mutex);
 }
 
 SDL_ThreadID fsemu_emuthread_thread_id;

@@ -3,7 +3,6 @@
 
 #include "fsapp-bitmap.h"
 #include "fsapp-frame.h"
-#include "fsapp-mutex.h"
 #include "fsapp-surface.h"
 #include "fsapp-time.h"
 #include "fs/trace.h"

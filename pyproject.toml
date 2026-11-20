@@ -1,30 +1,139 @@
-[tool.black]
-line-length = 100
-exclude = "/(\\.git|\\.mypy_cache|\\.nox|\\.tox|\\.venv|_build|buck-out|build|dist)/"
-
-[tool.isort]
-profile = "black"
-multi_line_output = 3
-skip = [".git"]
-skip_gitignore = true
-line_length = 100
-case_sensitive = false
-follow_links = false
+[project]
+name = "FS-UAE"
+version = "0.0.0"
+# Minimum Python version: see docs/adr/0002-python-3-12-baseline.md
+requires-python = ">=3.12"
 
 [tool.mypy]
+python_version = "3.12"
 #strict = true
 follow_imports = "silent"
 # warn_unused = false
 enable_error_code = ["truthy-bool"]
+# Check what a fresh checkout has (as lint.yml does), not ignored files such as od-fs/Libs.
+exclude_gitignore = true
+# For scripts outside od-fs/Python that import its packages, for the tests that import the test
+# tiers module (od-fs/tests/tiers.py), and for the WHDLoad smoke test (checked in a run of its own)
+# that imports the PNG reader (od-fs/build/dist/png_reader.py), as they do with sys.path.
+mypy_path = "od-fs/Python:od-fs/tests:od-fs/build/dist"
 exclude = [
-    "od-fs/Python/sdl3"
+    "(^|/)\\.attic/",
+    "od-fs/Python/sdl3",
+    # Third-party and upstream WinUAE code (also excluded from ruff below).
+    "^od-fs/3rdparty/",
+    "^od-fs/Python/lhafile/",
+    "^tools/[^/]*\\.py$",
+    # A second module named smoke (with od-fs/build/dist/smoke.py), which mypy cannot check in the
+    # same run: od-fs/build/lint checks it in a run of its own.
+    "^od-fs/tests/whdload-smoke/",
+    # Scripts that had type errors when lint.yml started checking the whole tree (ticket 17), by
+    # path, since their module names (settings, standalone, update) say nothing; see the
+    # ignore_errors list below for modules. od-fs/build/dist/macos/settings.py is a dmgbuild
+    # settings file, run with "defines" given.
+    "^od-fs/build/dist/macos/settings\\.py$",
+    "^od-fs/build/scripts/standalone\\.py$",
+    "^od-fs/Docs/old/scripts/update\\.py$",
 ]
 #exclude = "(.*/)?od-fs/Python/sdl3(/|$)"
 
+# Fully typed modules (docs/adr/0003-fully-typed-python.md). mypy cannot set `strict` per module,
+# so these are the checks --strict enables (except the global-only warn_redundant_casts). Add new
+# modules here; once every module is listed, replace this with `strict = true` above.
+[[tool.mypy.overrides]]
+module = [
+    "dev_layout",
+    "dev_release",
+    "fsapp.connectable",
+    "fsapp.frameservice",
+    "fsapp.log",
+    "fsuae.gui.inputgrabnotification",
+    "fsuae.rundirectory",
+    "fsuae.whdload.*",
+    "module_order",
+    "png_reader",
+    "run",
+    "test_compositor",
+    "test_dev_layout",
+    "test_dev_release",
+    "test_export",
+    "test_module_order",
+    "test_tiers",
+    "test_trace_summary",
+    "tiers",
+    "trace_summary",
+]
+disallow_any_generics = true
+disallow_subclassing_any = true
+disallow_untyped_calls = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+warn_unused_ignores = true
+warn_return_any = true
+no_implicit_reexport = true
+strict_equality = true
+extra_checks = true
+
+# Modules without type information: lzhlib is lhafile's C extension, built by the WHDLoad tests
+# (od-fs/tests/whdload/build_lzhlib.py); PIL (Pillow) is not a development dependency, and only the
+# icon script (icon/images_to_ico.py) uses it.
+[[tool.mypy.overrides]]
+module = ["lzhlib", "PIL", "PIL.*"]
+ignore_missing_imports = true
+
+# Modules that had type errors when lint.yml started checking the whole tree (ticket 17): their
+# errors are not reported, so that the check passes and catches new errors everywhere else. Remove
+# a module from the list when its errors are fixed, and never add one
+# (docs/adr/0003-fully-typed-python.md). Scripts with errors are excluded by path above.
+[[tool.mypy.overrides]]
+module = [
+    "app.app_init",
+    "fsapp._frame",
+    "fsgui.container",
+    "fsgui.decoratedwindow",
+    "fsgui.drawingcontext",
+    "fsgui.internal.surface",
+    "fsgui.mainwindow",
+    "fsgui.mainwindowborder",
+    "fsgui.mainwindowtitlebar",
+    "fsgui.spacer",
+    "fsgui.valuewidget",
+    "fsgui.widget",
+    "fsgui.window",
+    "fsgui.windowmanager",
+    "fsuae.cpuwindow",
+    "fsuae.floppycontrolwindow",
+    "fsuae.gui.notificationservice",
+    "fsuae.reactive2",
+    "fsuae.roms.rommanagerwindow",
+    "fsuae.uaeconfigwidgets",
+    "fsuae.vfs.vfsicon",
+]
+ignore_errors = true
+
 [tool.ruff]
-target-version = "py313"
-exclude = [".venv", "attic", "od-fs/Python/sdl3", "stuff", "util"]
+required-version = "==0.17.4"
+target-version = "py312"
+exclude = [
+    ".attic",
+    ".venv",
+    "attic",
+    "od-fs/Python/sdl3",
+    "stuff",
+    "util",
+    # Third-party and upstream WinUAE code: not formatted or linted here, so that it stays as it is
+    # upstream (also excluded from mypy above).
+    "od-fs/3rdparty",
+    "od-fs/Python/lhafile",
+    "tools/*.py",
+]
 line-length = 100
+
+[tool.ruff.per-file-target-version]
+# Run with the macOS system Python (3.9) before the dist's env prefix is set up, an exception to
+# docs/adr/0002-python-3-12-baseline.md (see the script's docstring).
+"od-fs/build/dist/version.py" = "py39"
 
 [tool.ruff.lint]
 # Enable Pyflakes (`F`) and a subset of the pycodestyle (`E`)  codes by default.
@@ -34,6 +143,8 @@ select = [
     # pycodestyle
     #"E",
     "E4", "E7", "E9",
+    # line-too-long (line-length above)
+    "E501",
     # Pyflakes
     "F",
     # pyupgrade
@@ -42,7 +153,17 @@ select = [
     "B",
     # flake8-simplify
     #"SIM",
-    # isort
+    # import sorting
     "I",
 ]
 ignore = []
+
+[tool.ruff.lint.per-file-ignores]
+# Long lines in embedded non-Python text (RTF license text)
+"od-fs/build/dist/macos/settings.py" = ["E501"]
+
+[dependency-groups]
+dev = [
+    "mypy==2.4.1",
+    "ruff==0.17.4",
+]

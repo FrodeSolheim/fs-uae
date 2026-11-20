@@ -10,7 +10,68 @@
 #ifndef MACHDEP_M68K_H
 #define MACHDEP_M68K_H
 
+/*
+ * TODO: Maybe use od-win32/machdep/m68k.h instead. Its x86 (SAHF_SETO_PROFITABLE)
+ * and AArch64 flag layouts are the same as here, so layout changes would come
+ * with upstream merges. It declares cctrue() out of line (needs
+ * od-win32/machdep/m68k.cpp), GET_CZNV() is function-like, and USE_X86_FPUCW
+ * would move to FS-UAE's sysconfig. Needs a JIT test.
+ */
+
 #include <stdlib.h>
+
+#if defined(CPU_AARCH64)
+
+/*
+ * Machine dependent structure for holding the 68k CCR flags
+ */
+struct flag_struct {
+	union {
+		uae_u64 cznv;
+		uae_u64 nzcv;
+	};
+	uae_u64 x;
+};
+
+extern struct flag_struct regflags;
+
+/*
+ * The ARM64 JIT stores the 68k CZNV flags in the host NZCV bit positions
+ * (as in od-win32/machdep/m68k.h).
+ */
+
+#define FLAGBIT_N   31
+#define FLAGBIT_Z   30
+#define FLAGBIT_C   29
+#define FLAGBIT_V   28
+#define FLAGBIT_X   0
+
+#define FLAGVAL_N   (1u << FLAGBIT_N)
+#define FLAGVAL_Z   (1u << FLAGBIT_Z)
+#define FLAGVAL_C   (1u << FLAGBIT_C)
+#define FLAGVAL_V   (1u << FLAGBIT_V)
+#define FLAGVAL_X   (1u << FLAGBIT_X)
+
+#define SET_ZFLG(y) (regflags.nzcv = (regflags.nzcv & ~FLAGVAL_Z) | ((uae_u64)((y) ? 1 : 0) << FLAGBIT_Z))
+#define SET_CFLG(y) (regflags.nzcv = (regflags.nzcv & ~FLAGVAL_C) | ((uae_u64)((y) ? 1 : 0) << FLAGBIT_C))
+#define SET_VFLG(y) (regflags.nzcv = (regflags.nzcv & ~FLAGVAL_V) | ((uae_u64)((y) ? 1 : 0) << FLAGBIT_V))
+#define SET_NFLG(y) (regflags.nzcv = (regflags.nzcv & ~FLAGVAL_N) | ((uae_u64)((y) ? 1 : 0) << FLAGBIT_N))
+#define SET_XFLG(y) (regflags.x    = ((y) ? 1 : 0))
+
+#define GET_ZFLG()  ((regflags.nzcv >> FLAGBIT_Z) & 1)
+#define GET_CFLG()  ((regflags.nzcv >> FLAGBIT_C) & 1)
+#define GET_VFLG()  ((regflags.nzcv >> FLAGBIT_V) & 1)
+#define GET_NFLG()  ((regflags.nzcv >> FLAGBIT_N) & 1)
+#define GET_XFLG()  (regflags.x & 1)
+
+#define CLEAR_CZNV()    (regflags.nzcv  = 0)
+#define GET_CZNV    ((uae_u32)regflags.nzcv)
+#define IOR_CZNV(X) (regflags.nzcv |= (X))
+#define SET_CZNV(X) (regflags.nzcv  = (X))
+
+#define COPY_CARRY() (regflags.x = (regflags.nzcv >> FLAGBIT_C) & 1)
+
+#else
 
 /*
  * Machine dependent structure for holding the 68k CCR flags
@@ -40,7 +101,7 @@ extern struct flag_struct regflags;
 #define FLAGBIT_Z   14
 #define FLAGBIT_C   8
 #define FLAGBIT_V   0
-#define FLAGBIT_X   8
+#define FLAGBIT_X   0 /* The x86 JIT stores carry with SETcc. */
 
 #define FLAGVAL_N   (1 << FLAGBIT_N)
 #define FLAGVAL_Z   (1 << FLAGBIT_Z)
@@ -65,7 +126,9 @@ extern struct flag_struct regflags;
 #define IOR_CZNV(X) (regflags.cznv |= (X))
 #define SET_CZNV(X) (regflags.cznv  = (X))
 
-#define COPY_CARRY() (regflags.x = regflags.cznv)
+#define COPY_CARRY() (regflags.x = regflags.cznv >> (FLAGBIT_C - FLAGBIT_X))
+
+#endif
 
 
 /*

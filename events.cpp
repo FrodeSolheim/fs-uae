@@ -19,6 +19,11 @@
 #include "xwin.h"
 #include "audio.h"
 #include "custom.h"
+#ifdef FSUAE
+#include "memory.h"
+#include "newcpu.h"
+#include "uae/fs.h"
+#endif
 
 extern uae_u8 agnus_hpos;
 int custom_fastmode;
@@ -206,6 +211,27 @@ static bool event_check_vsync(void)
 		}
 		vsync_event_done();
 
+#ifdef FSUAE
+	} else if (is_syncline == UAE_FS_SYNCLINE_EXTRA_CPU) {
+
+		// extra CPU time from fsemu's scanline pacer, until the line's planned time, unless the CPU
+		// has stopped (STOP): with the chipset stopped, no interrupt can wake it
+		if (event_wait && !regs.stopped && uae_fs_has_line_extra_cpu_time()) {
+#ifdef WITH_PPC
+			if (ppc_state) {
+				uae_ppc_execute_check();
+			}
+#endif
+			if (currprefs.cachesize)
+				pissoff = pissoff_value;
+			else
+				pissoff = pissoff_nojit_value;
+			return true;
+		}
+		uae_fs_end_line_extra_cpu();
+		events_reset_syncline();
+
+#endif
 	} else if (is_syncline == -10) {
 
 		// wait is_syncline_end

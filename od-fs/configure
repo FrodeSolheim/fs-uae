@@ -6,34 +6,203 @@ PROJECT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 echo "PROJECT_DIR: $PROJECT_DIR"
 cd "$PROJECT_DIR"
 
-# Use FSUAE_BUILD=<name> to configure a separate build directory (default: dev)
-BUILD_DIR="$PROJECT_DIR/.build/${FSUAE_BUILD:-dev}"
+# Use FSUAE_BUILD=<name or path> to configure a separate build directory (default: dev, so
+# .build/dev; see od-fs/build/build-dir.sh)
+. "$PROJECT_DIR/od-fs/build/build-dir.sh"
+BUILD_DIR="$(build_dir "${FSUAE_BUILD:-dev}")"
 echo "BUILD_DIR: $BUILD_DIR"
+
+mkdir -p "$BUILD_DIR"
+
+# Prints the env prefix (.build/env/<triplet>, see od-fs/build/env/scripts/paths.sh), used below on
+# Linux (the SDL3 overlay) and macOS: the real path, as setup writes it in the .pc files and install
+# names, or nothing when even the base directory is missing. Neither use applies when
+# cross-compiling.
+env_prefix() {
+    (
+        BUILD_ENV_DIR="$PROJECT_DIR/od-fs/build/env"
+        . "$BUILD_ENV_DIR/scripts/paths.sh"
+        real_dir "$BUILD_ENV_PREFIX" 2> /dev/null
+    ) || true
+}
+cross_compiling=0
+for arg in "$@"; do
+    case "$arg" in
+        --host | --host=*) cross_compiling=1 ;;
+    esac
+done
+
+# The SDL3 overlay (offered by od-fs/build/prepare where the distribution has no SDL3 packages):
+# SDL3, SDL3_image and SDL3_ttf built by the env system into the env prefix. Used on Linux when the
+# prefix has SDL3 and the system does not, so a newer distribution keeps using its own SDL3 even
+# when a dist has set up the prefix, and not when cross-compiling (--host).
+# Only the three packages' .pc files are put in PKG_CONFIG_PATH (through a directory of links in
+# the build directory), so that nothing else in the prefix (such as the dists' Python) is used. It
+# is passed as a configure argument, so that reconfiguring from make keeps it. The executable gets
+# the prefix's lib directory as its rpath (from sdl3.pc) and runs from the build directory.
+SDL3_OVERLAY_PC_DIR="$BUILD_DIR/sdl3-overlay/pkgconfig"
+sdl3_overlay_wanted=0
+if [ "$(uname -s)" = Linux ] && [ "$cross_compiling" = 0 ]; then
+    sdl3_overlay_wanted=1
+fi
+pkg_config="${PKG_CONFIG:-pkg-config}"
+if ! command -v "$pkg_config" > /dev/null 2>&1; then
+    # Configure stops without it anyway, with a clearer message.
+    sdl3_overlay_wanted=0
+fi
+if [ "$sdl3_overlay_wanted" = 1 ]; then
+    # (The sdl3.pc check below covers a missing prefix.)
+    sdl3_overlay_prefix="$(env_prefix)"
+    prefix_pc_dir=""
+    for libdir in lib lib64; do
+        if [ -n "$sdl3_overlay_prefix" ] && [ -f "$sdl3_overlay_prefix/$libdir/pkgconfig/sdl3.pc" ]
+        then
+            prefix_pc_dir="$sdl3_overlay_prefix/$libdir/pkgconfig"
+            break
+        fi
+    done
+    if [ -z "$prefix_pc_dir" ]; then
+        :
+    elif "$pkg_config" --exists sdl3 2> /dev/null; then
+        echo "Not using the SDL3 overlay in $sdl3_overlay_prefix: the system has SDL3"
+    elif [ "$(PKG_CONFIG_PATH="$prefix_pc_dir" "$pkg_config" --variable=prefix sdl3)" \
+        != "$sdl3_overlay_prefix" ]; then
+        # Built by older recipes, whose .pc files say /usr/local.
+        echo "Warning: not using the SDL3 overlay in $sdl3_overlay_prefix: its .pc files are" \
+            "outdated (run od-fs/build/prepare again)" >&2
+    else
+        # Left alone otherwise: an earlier configuration may still use it (e.g. after --help).
+        rm -Rf "$SDL3_OVERLAY_PC_DIR"
+        mkdir -p "$SDL3_OVERLAY_PC_DIR"
+        for name in sdl3 sdl3-image sdl3-ttf; do
+            if [ -f "$prefix_pc_dir/$name.pc" ]; then
+                ln -s "$prefix_pc_dir/$name.pc" "$SDL3_OVERLAY_PC_DIR/$name.pc"
+            fi
+        done
+        echo "Using the SDL3 overlay in $sdl3_overlay_prefix"
+        set -- "PKG_CONFIG_PATH=$SDL3_OVERLAY_PC_DIR${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}" "$@"
+    fi
+fi
+
+# On macOS, development builds use the env prefix (set up with od-fs/build/env/setup), as the
+# dists do: the same libraries and Python, and the same minimum macOS version
+# (MACOSX_DEPLOYMENT_TARGET, default 10.13, as in the prefix's run script). Not when
+# cross-compiling (--host); run configure under "arch -x86_64" for an x86_64 build on arm64
+# instead, which uses the x86_64 prefix.
+# The settings are passed as configure arguments, so that make's reconfiguring keeps them and the
+# build works without the prefix's run script: the prefix's .pc files first in PKG_CONFIG_PATH, its
+# include and lib directories (for checks without pkg-config, such as PortMidi's, and for the CMake
+# packages' .pc files, which say /usr/local on macOS) and the minimum version in CPPFLAGS and
+# LDFLAGS, and its python3 as PYTHON (configure's Python interpreter check; the system's may be
+# older than 3.12). CPPFLAGS, LDFLAGS and PKG_CONFIG_PATH given as arguments or in the environment
+# are kept, after the prefix's, and a PYTHON given that way is used instead. The libraries have
+# their absolute paths in the prefix as install names, so the executable runs from the build
+# directory. Paths with spaces in them do not work in the flags.
+# REVIEW: Not run on a Mac.
+if [ "$(uname -s)" = Darwin ] && [ "$cross_compiling" = 0 ]; then
+    macos_env_prefix="$(env_prefix)"
+    # setup writes the run script last, so a prefix without it was never completely set up.
+    if [ -z "$macos_env_prefix" ] || [ ! -f "$macos_env_prefix/run" ]; then
+        echo "Warning: the env prefix is not set up (run od-fs/build/env/setup), so the build" \
+            "uses whatever libraries the system has" >&2
+    else
+        macos_version_min="${MACOSX_DEPLOYMENT_TARGET:-10.13}"
+        macos_cppflags="-I$macos_env_prefix/include -mmacosx-version-min=$macos_version_min"
+        macos_ldflags="-L$macos_env_prefix/lib -mmacosx-version-min=$macos_version_min"
+        macos_pc_path="$macos_env_prefix/lib/pkgconfig"
+        macos_have_cppflags=0
+        macos_have_ldflags=0
+        macos_have_pc_path=0
+        macos_have_python=0
+        # Rewrites the arguments in place (the loop goes over the original ones).
+        for arg in "$@"; do
+            shift
+            case "$arg" in
+                CPPFLAGS=*)
+                    arg="CPPFLAGS=$macos_cppflags ${arg#CPPFLAGS=}"
+                    macos_have_cppflags=1
+                    ;;
+                LDFLAGS=*)
+                    arg="LDFLAGS=$macos_ldflags ${arg#LDFLAGS=}"
+                    macos_have_ldflags=1
+                    ;;
+                PKG_CONFIG_PATH=*)
+                    arg="PKG_CONFIG_PATH=$macos_pc_path:${arg#PKG_CONFIG_PATH=}"
+                    macos_have_pc_path=1
+                    ;;
+                PYTHON=*) macos_have_python=1 ;;
+            esac
+            set -- "$@" "$arg"
+        done
+        if [ "$macos_have_cppflags" = 0 ]; then
+            set -- "$@" "CPPFLAGS=$macos_cppflags${CPPFLAGS:+ $CPPFLAGS}"
+        fi
+        if [ "$macos_have_ldflags" = 0 ]; then
+            set -- "$@" "LDFLAGS=$macos_ldflags${LDFLAGS:+ $LDFLAGS}"
+        fi
+        if [ "$macos_have_pc_path" = 0 ]; then
+            set -- "$@" "PKG_CONFIG_PATH=$macos_pc_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+        fi
+        if [ "$macos_have_python" = 0 ] && [ -z "$PYTHON" ]; then
+            set -- "$@" "PYTHON=$macos_env_prefix/bin/python3"
+        fi
+        echo "Using the env prefix in $macos_env_prefix" \
+            "(minimum macOS version $macos_version_min)"
+    fi
+fi
+
+# Native MSYS2 builds use Clang and LLD unless CC or CXX is set (see the script).
+. "$PROJECT_DIR/od-fs/build/windows/msys2-native.sh"
+msys2_use_default_compiler "$@"
+
+# Development builds have the dist layout (see configure.ac): FS-UAE finds its Python code and
+# resources relative to its executable, as in a dist. First, so that an argument can turn it off
+# again (--disable-dist-layout).
+set -- --enable-dist-layout "$@"
 
 echo
 echo Running "$PROJECT_DIR/configure" "$@"
 echo
 
-mkdir -p "$BUILD_DIR"
 cd "$BUILD_DIR"
 "$PROJECT_DIR/configure" "$@"
 
-# In development mode the binary looks for the Python GUI code and resources relative to its own
-# location (SDL_GetBasePath), i.e. <build dir>/od-fs/{Python,Resources}. Link these to the source
-# tree so the binary can be run directly from the build directory.
-mkdir -p "$BUILD_DIR/od-fs"
-# od-fs/python and od-fs/resources were renamed to od-fs/Python and od-fs/Resources; remove the old
-# links from earlier configure runs. Check the target, since on case-insensitive file systems
-# "python" also matches a new "Python" link.
-for old_name in python resources; do
+# The build directory is the root of the dist layout for the executable built there (fs-uae, or on
+# Windows Libs/<triplet>/FS-UAE.exe, see build/windows/dev_layout.py): FS-UAE looks for
+# <build dir>/Python and <build dir>/Resources. Link these to the source tree, so that the build
+# runs from its build directory. (The default builds, laid out in od-fs, need no links.)
+# The links are relative when the build directory is in the project directory (../../od-fs from
+# .build/<name>), otherwise absolute. Compared as physical paths, which relative links are followed
+# through (a linked directory in the project can lead out of it).
+physical_build_dir="$(cd "$BUILD_DIR" && pwd -P)"
+physical_project_dir="$(cd "$PROJECT_DIR" && pwd -P)"
+case "$physical_build_dir" in
+    "$physical_project_dir"/*)
+        build_dir_in_project="${physical_build_dir#"$physical_project_dir"/}"
+        od_fs_link_dir="$(echo "$build_dir_in_project" | sed 's|[^/][^/]*|..|g')/od-fs"
+        ;;
+    *) od_fs_link_dir="$PROJECT_DIR/od-fs" ;;
+esac
+# Earlier versions linked <build dir>/od-fs/Python and <build dir>/od-fs/Resources (and before that,
+# the lowercase python and resources), where FS-UAE used to look for an od-fs folder. Remove those
+# links: only links, and only ones that point to an od-fs folder's folder of the same name.
+for old_name in Python Resources python resources; do
     old_link="$BUILD_DIR/od-fs/$old_name"
-    if [ -L "$old_link" ] && [ "$(readlink "$old_link")" = "../../../od-fs/$old_name" ]; then
-        rm "$old_link"
+    if [ -L "$old_link" ]; then
+        case "$(readlink "$old_link")" in
+            od-fs/"$old_name" | */od-fs/"$old_name") rm "$old_link" ;;
+        esac
     fi
 done
-for name in Python Resources; do
-    link="$BUILD_DIR/od-fs/$name"
-    if [ -L "$link" ] || [ ! -e "$link" ]; then
-        ln -sfn "../../../od-fs/$name" "$link"
-    fi
-done
+if [ "$(uname -o 2> /dev/null)" = Msys ]; then
+    # In MSYS2, ln -s makes copies (unless MSYS=winsymlinks:nativestrict). The Windows layout step
+    # (build/windows/dev_layout.py, run by make) makes junctions instead.
+    echo "Not linking Python and Resources in $BUILD_DIR: make lays them out as junctions"
+else
+    for name in Python Resources; do
+        link="$BUILD_DIR/$name"
+        if [ -L "$link" ] || [ ! -e "$link" ]; then
+            ln -sfn "$od_fs_link_dir/$name" "$link"
+        fi
+    done
+fi

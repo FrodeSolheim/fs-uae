@@ -1,13 +1,21 @@
+/*
+ * Drive click (floppy drive sound) support functions. This is the FS-UAE counterpart of
+ * od-win32/driveclick_win32.cpp and driveclick_loadresource in od-win32/win32.cpp.
+ *
+ * driveclick_loadresource is for loading the built-in drive sounds. The driveclick_fdrawcmd_*
+ * functions, which WinUAE uses to make a real PC floppy drive click (with the fdrawcmd driver), are
+ * empty.
+ *
+ * Copyright (c) 2013-2025 Frode Solheim
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ */
+
 #include "sysconfig.h"
 #include "sysdeps.h"
-
-#include <fs/filesys.h>
 
 #include "driveclick.h"
 #include "uae/fs.h"
 #include "uae/glib.h"
-
-#include <fs/data.h>
 
 #if 0
 static const char *g_driveclick_path = "";
@@ -30,11 +38,11 @@ void amiga_set_drive_sound_name(const char *name)
 }
 #endif
 
-} // extern C
+} // extern "C"
 
 #ifdef DRIVESOUND
 
-int driveclick_loadresource (struct drvsample *sp, int drivetype)
+int driveclick_loadresource(struct drvsample *sp, int drivetype)
 {
     for (int type = 0; type < DS_END; type++) {
         const char *name = NULL;
@@ -76,7 +84,6 @@ int driveclick_loadresource (struct drvsample *sp, int drivetype)
 
 void driveclick_fdrawcmd_close(int drive)
 {
-
 }
 
 int driveclick_fdrawcmd_open(int drive)
@@ -86,22 +93,18 @@ int driveclick_fdrawcmd_open(int drive)
 
 void driveclick_fdrawcmd_detect(void)
 {
-
 }
 
 void driveclick_fdrawcmd_seek(int drive, int cyl)
 {
-
 }
 
-void driveclick_fdrawcmd_motor (int drive, int running)
+void driveclick_fdrawcmd_motor(int drive, int running)
 {
-
 }
 
 void driveclick_fdrawcmd_vsync(void)
 {
-
 }
 
-#endif /* DRIVESOUND */
+#endif // DRIVESOUND

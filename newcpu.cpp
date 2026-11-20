@@ -2121,6 +2121,29 @@ static void build_cpufunctbl (void)
 		write_log(_T(" 24-bit"));
 	}
 	write_log(_T("\n"));
+#if defined(FSUAE) && defined(JIT)
+	// Log how the JIT accesses Amiga memory. Direct access needs canbang; when canbang is zero,
+	// check_prefs_changed_comp has already switched the comp_trust* options to indirect. Natmem
+	// below 4 GB is the efficient case: on x86-64, natmem above it makes memory_reset set
+	// jit_n_addr_unsafe, which makes the JIT compile slower code for memory accesses.
+	if (currprefs.cachesize) {
+		int ndirect = !currprefs.comptrustbyte + !currprefs.comptrustword +
+			!currprefs.comptrustlong + !currprefs.comptrustnaddr;
+		const TCHAR *access = !canbang || ndirect == 0 ? _T("off") : ndirect == 4 ? _T("on") : _T("partial");
+#ifdef NATMEM_OFFSET
+		uintptr_t natmem_end = (uintptr_t)natmem_offset + natmem_reserved_size;
+		write_log(_T("JIT: Direct memory access %s (canbang=%d b=%d w=%d l=%d naddr=%d), natmem %p-%p (%s 4 GB)%s\n"),
+			access, canbang, currprefs.comptrustbyte, currprefs.comptrustword,
+			currprefs.comptrustlong, currprefs.comptrustnaddr, natmem_offset, (void *)natmem_end,
+			natmem_end <= (uintptr_t)0x100000000ULL ? _T("below") : _T("above"),
+			jit_n_addr_unsafe ? _T(", n_addr unsafe") : _T(""));
+#else
+		write_log(_T("JIT: Direct memory access %s (canbang=%d b=%d w=%d l=%d naddr=%d), no natmem\n"),
+			access, canbang, currprefs.comptrustbyte, currprefs.comptrustword,
+			currprefs.comptrustlong, currprefs.comptrustnaddr);
+#endif
+	}
+#endif // FSUAE && JIT
 
 	cpuipldelay2 = 2 * cpucycleunit;
 	cpuipldelay4 = 4 * cpucycleunit;

@@ -3,7 +3,7 @@
 
 AC_PREREQ([2.67])
 
-AC_INIT([FS-UAE], [5.0.7], [frode@fs-uae.net], [fs-uae], [https://fs-uae.net])
+AC_INIT([FS-UAE], [5.0.8], [frode@fs-uae.net], [fs-uae], [https://fs-uae.net])
 
 AC_CONFIG_AUX_DIR([od-fs/build/build-aux])
 AC_CANONICAL_HOST
@@ -52,7 +52,116 @@ AC_DEFINE_UNQUOTED([PACKAGE_REVISION], [$PACKAGE_REVISION], [Package revision])
 
 # Checks for programs
 
-AM_PATH_PYTHON([3.11])
+# Python first, since the version and commit below come from od-fs/build/dist/version.py.
+AM_PATH_PYTHON([3.12])
+
+# The version FS-UAE shows (in the log and the About window, and in the Windows version
+# information), and the dists and source tarballs are named for. Unless FSUAE_VERSION is set (as the
+# dist scripts do), it is:
+# - in a source tarball, the version it was made for (.tarball-version, written by make dist);
+# - in a git checkout, the version od-fs/build/dist/version.py makes from git: <version> for the
+#   commit tagged v<version>, otherwise a development version with the commit's hash, so that
+#   development builds identify themselves (the same in a shallow clone); or PACKAGE_VERSION, with a
+#   warning, when that fails (no git, a wrong tag), since a development build should not fail for
+#   it;
+# - otherwise PACKAGE_VERSION (the version above).
+# It is the version when configure ran: make does not update it after a commit (run configure
+# again). It must start with PACKAGE_VERSION, and only have letters, digits and ".+-".
+AC_ARG_VAR([FSUAE_VERSION],
+    [the version FS-UAE shows (default: from .tarball-version or git, else the package version)])
+FSUAE_VERSION_FROM_GIT=no
+AS_IF([test -z "$FSUAE_VERSION" && test -f "$srcdir/.tarball-version"], [
+    FSUAE_VERSION=$(cat "$srcdir/.tarball-version")
+    AC_MSG_NOTICE([the version from .tarball-version: $FSUAE_VERSION])
+])
+AS_IF([test -z "$FSUAE_VERSION" && test -e "$srcdir/.git"], [
+    AC_MSG_CHECKING([for the version from git])
+    AS_IF([fsuae_git_version=$("$PYTHON" "$srcdir/od-fs/build/dist/version.py" "$srcdir" \
+            2> conftest.err)], [
+        FSUAE_VERSION="$fsuae_git_version"
+        FSUAE_VERSION_FROM_GIT=yes
+        AC_MSG_RESULT([$FSUAE_VERSION])
+    ], [
+        AC_MSG_RESULT([none])
+        AC_MSG_WARN([$(sed 's/^Error: //' conftest.err)])
+        AC_MSG_WARN([using the version $PACKAGE_VERSION])
+    ])
+    rm -f conftest.err
+])
+# Whether the version came from git, so that make dist can check that it is still the checkout's.
+AC_SUBST([FSUAE_VERSION_FROM_GIT])
+AS_IF([test -z "$FSUAE_VERSION"], [FSUAE_VERSION="$PACKAGE_VERSION"])
+case "$FSUAE_VERSION" in
+    *[[!A-Za-z0-9.+-]]*)
+        AC_MSG_ERROR([FSUAE_VERSION ($FSUAE_VERSION) may only have letters, digits and ".+-"])
+        ;;
+    "$PACKAGE_VERSION" | "$PACKAGE_VERSION"-* | "$PACKAGE_VERSION"+*)
+        ;;
+    *)
+        AC_MSG_ERROR([FSUAE_VERSION ($FSUAE_VERSION) must start with the version $PACKAGE_VERSION])
+        ;;
+esac
+
+# The build's identity, which FS-UAE logs in the build header at the top of FS-UAE.log.txt (see
+# od-fs/fsuae/fsuae-buildinfo.cpp), and shows in the About window (the version and origin).
+# They go into od-fs/fsuae-build.h, not config.h, so that configuring again (with a new version
+# after a commit, and a new build date) only rebuilds the file that uses them.
+#
+# FSUAE_BUILD_ORIGIN says who made the build. A build that does not set it is "Unofficial build",
+# so that no build claims to be official by accident; the official dists and packages set it (see
+# od-fs/build/dist/dist and od-fs/build/dist/obs/obs-origin.sh). FSUAE_BUILD_COMMIT is the commit
+# it is made from, when known (from git in a git checkout, unless set), and FSUAE_BUILD_ENVIRONMENT
+# what it is made in (for example a Docker image or a GitHub runner image), when known; the dist
+# scripts set both. The build date is the time configure ran (dists are configured and built from
+# scratch), or SOURCE_DATE_EPOCH when set, so that builds can be reproducible.
+FSUAE_IDENTITY_CHARACTERS='A-Za-z0-9 .,:;()/+_#@=~-'
+AC_DEFUN([FSUAE_CHECK_IDENTITY], [
+    case "$$1" in
+        *[[!A-Za-z0-9\ .,:\;\(\)/+_#@=~-]]*)
+            AC_MSG_ERROR([$1 ($$1) may only have the characters $FSUAE_IDENTITY_CHARACTERS])
+            ;;
+    esac
+    AS_IF([test ${#$1} -gt 200], [AC_MSG_ERROR([$1 is longer than 200 characters])])
+])
+AC_ARG_VAR([FSUAE_BUILD_ORIGIN],
+    [who made the build, as FS-UAE shows it (default: Unofficial build)])
+AS_IF([test -z "$FSUAE_BUILD_ORIGIN"], [FSUAE_BUILD_ORIGIN="Unofficial build"])
+FSUAE_CHECK_IDENTITY([FSUAE_BUILD_ORIGIN])
+AC_ARG_VAR([FSUAE_BUILD_COMMIT],
+    [the commit FS-UAE is built from (default: from git, else unknown)])
+# (Quietly "unknown" when git fails: a checkout without git has had a warning about the version
+# above, unless FSUAE_VERSION was set.)
+AS_IF([test -z "$FSUAE_BUILD_COMMIT" && test ! -f "$srcdir/.tarball-version" &&
+        test -e "$srcdir/.git"], [
+    FSUAE_BUILD_COMMIT=$("$PYTHON" "$srcdir/od-fs/build/dist/version.py" --commit "$srcdir" \
+        2> /dev/null)
+])
+AS_IF([test -z "$FSUAE_BUILD_COMMIT"], [FSUAE_BUILD_COMMIT="unknown"])
+case "$FSUAE_BUILD_COMMIT" in
+    unknown) ;;
+    *[[!0-9a-f]]* | ?????? | ????? | ???? | ??? | ?? | ?)
+        AC_MSG_ERROR(
+            [FSUAE_BUILD_COMMIT ($FSUAE_BUILD_COMMIT) must be a commit hash (7 or more hex digits)])
+        ;;
+esac
+FSUAE_CHECK_IDENTITY([FSUAE_BUILD_COMMIT])
+AC_ARG_VAR([FSUAE_BUILD_ENVIRONMENT],
+    [what FS-UAE is built in, such as a Docker or runner image (default: unknown)])
+AS_IF([test -z "$FSUAE_BUILD_ENVIRONMENT"], [FSUAE_BUILD_ENVIRONMENT="unknown"])
+FSUAE_CHECK_IDENTITY([FSUAE_BUILD_ENVIRONMENT])
+AS_IF([test -n "$SOURCE_DATE_EPOCH"], [
+    case "$SOURCE_DATE_EPOCH" in
+        *[[!0-9]]*) AC_MSG_ERROR([SOURCE_DATE_EPOCH ($SOURCE_DATE_EPOCH) must be a number]) ;;
+    esac
+    # GNU date, or BSD date (macOS).
+    FSUAE_BUILD_DATE=$(date -u -d "@$SOURCE_DATE_EPOCH" "+%Y-%m-%d %H:%M:%S UTC" 2>/dev/null ||
+        date -u -r "$SOURCE_DATE_EPOCH" "+%Y-%m-%d %H:%M:%S UTC")
+], [
+    FSUAE_BUILD_DATE=$(date -u "+%Y-%m-%d %H:%M:%S UTC")
+])
+AC_SUBST([FSUAE_BUILD_DATE])
+
+# The other programs
 
 AC_PROG_CC
 AC_PROG_CXX
@@ -112,13 +221,37 @@ DIS_FEATURE([STATIC_BUILD], [static], [static], [static build (works on Windows)
 
 AS_IF([test "x$enable_static" = xyes], [PKG_CONFIG="$PKG_CONFIG --static"])
 
-# Portable mode
+# The dist layout: FS-UAE finds its Python code, Python standard library, resources and plugins in
+# folders relative to its executable, as a dist has them (od-fs/fsuae/fsuae-path.cpp).
+# od-fs/configure (every development build) and the dist build (od-fs/build/dist/build.sh) turn it
+# on. Off by default, so that a plain "./configure && make install" (Linux distributions, make
+# distcheck) gets the system install layout: <bindir>/../share/<share dir name>, where
+# install-data-local (Makefile.am) puts the files. Portable mode (Portable.ini, the data and cache
+# directories) is decided at run time and has nothing to do with it.
 
-DIS_FEATURE([PORTABLE_MODE], [portable_mode], [portable-mode], [self-contained/portable mode])
+DIS_FEATURE([DIST_LAYOUT], [dist_layout], [dist-layout],
+    [find the Python code and resources relative to the executable, as in a dist])
 
-# Host triplet (e.g. x86_64-w64-mingw32), used to find the per-platform Python home
+# Host triplet in the form the dists use for Libs/<triplet> and their archive names (the same names
+# as od-fs/build/triplet.sh gives): config.sub's canonical $host has a vendor part on Linux
+# (x86_64-pc-linux-gnu), turns arm64 into aarch64 and adds a version to darwin. FS-UAE uses it to
+# find its Python home in the dist layout (Libs/<triplet>, fsuae-path.cpp), and the dist scripts
+# read it from the configured build (HOST_TRIPLET in the Makefile). Other hosts keep $host.
+# REVIEW: The arm-linux-gnueabihf and darwin mappings are untested (no 32-bit ARM build yet, not
+# run on a Mac; native configures on a Mac add a Darwin version, e.g. aarch64-apple-darwin23.1.0).
 
-AC_DEFINE_UNQUOTED([HOST_TRIPLET], ["$host"], [Host triplet])
+AC_MSG_CHECKING([the triplet for the dist and the Python home])
+AS_CASE([$host_cpu-$host_os],
+[x86_64-linux-gnu], [fsuae_host_triplet=x86_64-linux-gnu],
+[aarch64-linux-gnu], [fsuae_host_triplet=aarch64-linux-gnu],
+[arm*-linux-gnueabihf], [fsuae_host_triplet=arm-linux-gnueabihf],
+[x86_64-darwin*], [fsuae_host_triplet=x86_64-apple-darwin],
+[aarch64-darwin* | arm64-darwin*], [fsuae_host_triplet=arm64-apple-darwin],
+[x86_64-mingw32*], [fsuae_host_triplet=x86_64-w64-mingw32],
+[fsuae_host_triplet=$host])
+AC_MSG_RESULT([$fsuae_host_triplet])
+AC_DEFINE_UNQUOTED([HOST_TRIPLET], ["$fsuae_host_triplet"], [Host triplet, as the dists name it])
+AC_SUBST([HOST_TRIPLET], [$fsuae_host_triplet])
 
 # Share directory name
 
@@ -243,18 +376,6 @@ AC_SUBST([FREETYPE_LIBS])
 AC_DEFINE([USE_GLIB], [1], [Define to 1 to use GLib])
 PKG_CHECK_MODULES([GLIB], [glib-2.0 >= 2.32 gthread-2.0])
 
-AC_ARG_WITH(glad, AS_HELP_STRING([--without-glad], [use GLAD OpenGL loader]))
-AS_IF([test "x$with_glad" != xno], [
-    AC_DEFINE([WITH_GLAD], [1], [Define to 1 to use GLAD])
-])
-AM_CONDITIONAL([WITH_GLAD], [test x$with_glad != xno])
-
-AC_ARG_WITH(glew, AS_HELP_STRING([--with-glew], [use GLEW library]))
-AS_IF([test "x$with_glew" = xyes], [
-    PKG_CHECK_MODULES([GLEW], [glew])
-    AC_DEFINE([WITH_GLEW], [1], [Define to 1 to use GLEW])
-])
-
 AC_ARG_WITH(libmpeg2, AS_HELP_STRING([--without-libmpeg2], [Disable libmpeg2 usage]))
 AS_IF([test "x$with_libmpeg2" != xno], [
     PKG_CHECK_MODULES([LIBMPEG2], [libmpeg2 libmpeg2convert])
@@ -321,7 +442,7 @@ AC_DEFINE([USE_SDL_INPUT], [1], [Define to 1 to use SDL for input])
 PKG_CHECK_MODULES([FLAC], [flac])
 PKG_CHECK_MODULES([MPG123], [libmpg123])
 PKG_CHECK_MODULES([PNG], [libpng])
-PKG_CHECK_MODULES([PYTHON3], [python3-embed])
+PKG_CHECK_MODULES([PYTHON3], [python3-embed >= 3.12])
 PKG_CHECK_MODULES([SDL3_IMAGE], [sdl3-image])
 PKG_CHECK_MODULES([SDL3_TTF], [sdl3-ttf])
 PKG_CHECK_MODULES([SDL3], [sdl3])
@@ -788,7 +909,6 @@ DIS_FEATURE([AHI], [ahi], [ahi], [builtin AHI device (unsupported)])
 OPT_FEATURE([ARCADIA], [arcadia], [arcadia], [Arcadia arcade system])
 REQ_FEATURE([AUTOCONFIG], [autoconfig], [autoconfig], [autoconfig support])
 OPT_FEATURE([BSDSOCKET], [bsdsocket], [bsdsocket], [built-in bsdsocket.library])
-OPT_FEATURE([WITH_BUILTIN_SLIRP], [builtin_slirp], [builtin-slirp], [built-in SLIRP])
 OPT_FEATURE([CAPS], [caps], [caps], [IPF support via libcapsimage])
 OPT_FEATURE([CD32], [cd32], [cd32], [CD32 emulation])
 OPT_FEATURE([CDTV], [cdtv], [cdtv], [CDTV emulation])
@@ -827,8 +947,8 @@ AC_ARG_ENABLE([jit], [AS_HELP_STRING([--disable-jit], [JIT compiler])])
 AS_IF([test "x$enable_jit" != xno], [
     AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
     ]], [[
-        #if !defined(__i386__) && !defined(__x86_64__)
-        #error JIT is only supported on x86/x86-64
+        #if !defined(__i386__) && !defined(__x86_64__) && !defined(__aarch64__)
+        #error JIT is only supported on x86/x86-64 and ARM64
         #endif
         #if defined(__OpenBSD__) || defined(__FreeBSD__)
         #error no JIT on OpenBSD/FreeBSD right now
@@ -846,6 +966,10 @@ AS_IF([test "x$enable_jit" != xno], [
 ])
 AM_CONDITIONAL([JIT],
 [test x$enable_jit != xno])
+
+host_aarch64=no
+AS_CASE([$host_cpu], [aarch64|arm64], [host_aarch64=yes])
+AM_CONDITIONAL([HOST_AARCH64], [test x$host_aarch64 = xyes])
 
 # JIT compilation of FPU instructions requires the JIT
 AS_IF([test "x$enable_jit" = xno], [enable_jit_fpu=no])
@@ -871,6 +995,29 @@ OPT_FEATURE([SANA2], [uaenet], [uaenet], [uaenet.device])
 OPT_FEATURE([SCSIEMU], [uaescsi], [uaescsi], [uaescsi.device])
 OPT_FEATURE([UAESERIAL], [uaeserial], [uaeserial], [uaeserial.device])
 OPT_FEATURE([WITH_VPAR], [vpar], [vpar], [vpar virtual parallel port])
+
+# libslirp (for WITH_SLIRP): the builtin copy in od-fs/3rdparty/libslirp, which is the default so
+# that official builds are reproducible, or the system library (for distribution packages).
+
+AC_ARG_WITH([libslirp],
+    [AS_HELP_STRING([--with-libslirp=builtin|system],
+        [use the builtin libslirp (default) or the system library])],
+    [], [with_libslirp=builtin])
+AS_CASE([$with_libslirp],
+    [builtin|system], [],
+    [AC_MSG_ERROR([--with-libslirp must be builtin or system (use --disable-slirp to build without slirp)])])
+AS_IF([test "x$enable_slirp" != xno], [
+    AS_IF([test "x$with_libslirp" = xsystem], [
+        PKG_CHECK_MODULES([LIBSLIRP], [slirp >= 4.6.1])
+    ], [
+        LIBSLIRP_CFLAGS='-I$(top_srcdir)/od-fs/3rdparty/libslirp/include'
+        LIBSLIRP_LIBS=''
+    ])
+])
+AC_SUBST([LIBSLIRP_CFLAGS])
+AC_SUBST([LIBSLIRP_LIBS])
+AM_CONDITIONAL([WITH_BUILTIN_LIBSLIRP],
+    [test "x$enable_slirp" != xno && test "x$with_libslirp" = xbuiltin])
 
 AC_ARG_ENABLE([x86], [AS_HELP_STRING([--disable-x86], [x86 bridgeboard support])])
 AS_IF([test "x$enable_x86" != xno], [
@@ -915,7 +1062,8 @@ AC_DEFINE([FPU_UAE], [1], [Define to 1])
 
 AC_CONFIG_FILES([
     Makefile
-    od-fs/macos/Info.plist
+    od-fs/fsuae-build.h
+    od-fs/build/macos/Info.plist
     od-fs/windows/fs-uae.rc
 ])
 AC_OUTPUT
@@ -925,7 +1073,10 @@ AC_OUTPUT
 echo ""
 echo "Configuration summary for FS-UAE:"
 echo ""
-echo "  Version:           $PACKAGE_VERSION"
+echo "  Version:           $FSUAE_VERSION"
+echo "  Origin:            $FSUAE_BUILD_ORIGIN"
+echo "  Commit:            $FSUAE_BUILD_COMMIT"
+echo "  Build environment: $FSUAE_BUILD_ENVIRONMENT"
 echo "  Building for OS:   $host_os (\"$OS_NAME\")"
 echo "  Building for CPU:  $host_cpu"
 echo "  Module extension:  $LOADABLE_MODULE_EXT"

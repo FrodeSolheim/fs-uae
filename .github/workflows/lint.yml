@@ -1,0 +1,32 @@
+# Checks the Python code with od-fs/build/lint: ruff check, ruff format --check and mypy, with the
+# versions pinned in pyproject.toml and uv.lock and the configuration in pyproject.toml.
+#
+# Also runs locally with act (https://github.com/nektos/act), for example:
+#
+#   act push -W .github/workflows/lint.yml -P ubuntu-24.04=catthehacker/ubuntu:act-24.04
+
+name: Lint
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+
+      # uv installs ruff and mypy from uv.lock (uv run --locked), so uv's own version does not
+      # matter for what is checked. setup-uv has no major version tags since v8, so this is the
+      # full version.
+      - uses: astral-sh/setup-uv@v10.3.3
+
+      - name: Check the Python code
+        run: od-fs/build/lint

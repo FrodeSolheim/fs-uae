@@ -7,7 +7,9 @@
 #include "fsemu-audiobuffer.h"
 
 static int g_frequency = 44100;
-static int g_clk = 0;
+// The audio rate adjustment (fsemu_audio_get_rate_adjustment), applied to Paula's sample clock by
+// update_sound in sound.cpp.
+static double g_audio_rate_adjustment = 0.0;
 
 static int (*g_audio_callback)(int type, int16_t *buffer, int size) = NULL;
 static int g_audio_buffer_size = 512 * 2 * 2;
@@ -20,15 +22,21 @@ void amiga_flush_audio(void)
         return;
     }
     finish_sound_buffer();
-    fsemu_audiobuffer_frame_done();
     // printf("%d\n", g_frequency);
 }
 
-void amiga_set_audio_frequency_adjust(double adjust)
+void amiga_set_audio_rate_adjustment(double adjustment)
 {
-    // sdp->obtainedfreq = g_frequency / adjust;
-    sdp->obtainedfreq = g_frequency + adjust * g_frequency;
-    update_sound(g_clk);
+    if (adjustment == g_audio_rate_adjustment) {
+        return;
+    }
+    g_audio_rate_adjustment = adjustment;
+    update_sound_rate_adjustment();
+}
+
+int amiga_get_pending_audio_bytes(void)
+{
+    return (int)((uae_u8 *)paula_sndbufpt - (uae_u8 *)paula_sndbuffer);
 }
 
 int amiga_set_audio_callback(audio_callback func)

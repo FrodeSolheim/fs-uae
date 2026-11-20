@@ -47,7 +47,7 @@ static int uae_slirp_log_level = UAE_LOG_INFO;
 
 #include "uae/time.h"
 
-#include "od-fs/3rdparty/libslirp/src/libslirp.h"
+#include <libslirp.h>
 
 void uae_slirp_output(const uint8_t *pkt, int pkt_len);
 
@@ -85,8 +85,7 @@ static void uae_slirp_guest_error(const char *msg, void *opaque)
 
 static int64_t uae_slirp_clock_get_ns(void *opaque)
 {
-	// Don't think we need nanosecond precision here.
-	return uae_time_us() * 1000;
+	return uae_time_ns();
 }
 
 static void *uae_slirp_timer_new(SlirpTimerCb cb,

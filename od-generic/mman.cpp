@@ -222,22 +222,14 @@ bool preinit_shm (void)
 #endif
 	if (!natmem_reserved) {
 		for (;;) {
-#ifdef FSUAE
-			natmem_reserved = (uae_u8*)uae_vm_reserve (natmem_size, vm_flags);
-#else
 			natmem_reserved = (uae_u8*)uae_vm_reserve (natmem_size, UAE_VM_WRITE_WATCH);
-#endif
 			if (natmem_reserved)
 				break;
 			natmem_size -= 64 * 1024 * 1024;
 			if (!natmem_size) {
 				write_log (_T("MMAN: Can't allocate 257M of virtual address space!?\n"));
 				natmem_size = 17 * 1024 * 1024;
-#ifdef FSUAE
-				natmem_reserved = (uae_u8*)uae_vm_reserve (natmem_size, vm_flags);
-#else
 				natmem_reserved = (uae_u8*)uae_vm_reserve (natmem_size, UAE_VM_WRITE_WATCH);
-#endif
 				if (!natmem_reserved) {
 					write_log (_T("MMAN: Can't allocate 17M of virtual address space!? Something is seriously wrong\n"));
 					notify_user(NUMSG_NOMEMORY);

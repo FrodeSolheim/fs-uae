@@ -233,24 +233,23 @@ void gui_gameport_button_change(int port, int button, int onoff)
 #include <windows.h>
 #endif
 
-/**
- * Called from:
- * - inputdevice_read
- *   - maybe_read_input
- * - inputdevice_hsync (vpos = 0)
- */
+// Takes in the host's pending input (the event callback), at most once per scanline. Called from:
+// - inputdevice_read (maybe_read_input: inputdevice_hsync at every line, and while recording at
+//   line 0 only)
+// - inputdevice_read_msg (the vsync line)
+// - inputdevice_hsync (line 0, while playing back a recording)
 int handle_msgpump(bool vblank)
 {
-    // FIXME: call g_libamiga_callbacks.event from hsync handler instead?
-    static int last_vpos;
-    if (vpos == last_vpos) {
-        uae_log("Ignoring call to handle_msgpump\n");
-    } else {
+    // A second call on the same line (the vsync line's, after that line's read) is skipped
+    // quietly: it happens every frame. The line count tells the same line of two frames apart.
+    static int last_vpos = -1;
+    static uae_u32 last_hsync_counter;
+    if (vpos != last_vpos || hsync_counter != last_hsync_counter) {
         if (g_libamiga_callbacks.event) {
-            // g_libamiga_callbacks.event(hsync_counter);
             g_libamiga_callbacks.event(vpos);
         }
         last_vpos = vpos;
+        last_hsync_counter = hsync_counter;
     }
 #ifdef WINDOWS
     // this message queue is used to dispatch messages for bsdsocket emulation

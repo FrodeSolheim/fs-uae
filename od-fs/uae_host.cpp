@@ -43,8 +43,8 @@ char *uae_expand_path(const char *path) {
     free(lower);
     if (replace) {
         const gchar *src = path + replace;
-        printf("... %s\n", g_build_filename(g_get_home_dir(), src, NULL));
-        return g_build_filename(g_get_home_dir(), src, NULL);
+        printf("... %s\n", g_build_filename(g_get_home_dir(), src, (char *)NULL));
+        return g_build_filename(g_get_home_dir(), src, (char *)NULL);
     }
     else {
         return g_strdup(path);

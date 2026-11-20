@@ -2548,6 +2548,13 @@ void drawing_init(void)
 
 int isvsync_chipset(void)
 {
+#ifdef FSUAE
+	// fsemu paces the emulation and does vsync itself (the scanline pacer, linesync_fsuae in
+	// custom.cpp), so none of WinUAE's vsync code may run, whatever gfx_vsync says: FS-UAE turns it
+	// off in graphics_init, but changed_prefs can still have it on (fsemu.set) and be copied into
+	// currprefs (a reset).
+	return 0;
+#else
 	struct amigadisplay *ad = &adisplays[0];
 	if (ad->picasso_on || currprefs.gfx_apmode[0].gfx_vsync <= 0)
 		return 0;
@@ -2556,10 +2563,15 @@ int isvsync_chipset(void)
 	if (currprefs.m68k_speed >= 0)
 		return -1;
 	return currprefs.cachesize ? -3 : -2;
+#endif
 }
 
 int isvsync_rtg(void)
 {
+#ifdef FSUAE
+	// As isvsync_chipset.
+	return 0;
+#else
 	struct amigadisplay *ad = &adisplays[0];
 	if (!ad->picasso_on || currprefs.gfx_apmode[1].gfx_vsync <= 0)
 		return 0;
@@ -2568,6 +2580,7 @@ int isvsync_rtg(void)
 	if (currprefs.m68k_speed >= 0)
 		return -1;
 	return currprefs.cachesize ? -3 : -2;
+#endif
 }
 
 int isvsync(void)
@@ -8349,3 +8362,16 @@ void draw_denise_line_queue_flush(void)
 
 	}
 }
+
+#ifdef FSUAE
+int draw_denise_flush_rows_drawn(void)
+{
+	struct vidbuf_description *vidinfo = &adisplays[0].gfxvidinfo;
+	draw_denise_line_queue_flush();
+	if (vidinfo->inbuffer != &vidinfo->drawbuffer) {
+		return -1;
+	}
+	// denise_y_end is written by the Denise thread, which has drawn all queued lines.
+	return denise_y_end > 0 ? denise_y_end : 0;
+}
+#endif

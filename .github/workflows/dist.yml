@@ -1,0 +1,594 @@
+# The dists for Linux x86_64 and aarch64, Windows x86_64 and macOS arm64 and x86_64, made with the
+# same scripts as locally:
+# the dist entry script (od-fs/build/dist/dist) configures, builds, assembles and archives each dist
+# and runs the dist check on the archive, and the Linux x86_64 and the macOS dists are smoke-tested
+# (od-fs/build/dist/smoke.py). The archives are kept as artifacts, named for the dist version
+# (FS-UAE-<version>-dev.<date>T<time>+g<hash>-<triplet>, or FS-UAE-<version>-<triplet> for a
+# v<version> tag; see od-fs/build/dist/version.py). For v* tags, the release job then makes a draft
+# GitHub Release with the archives, the source tarball (source.yml) and SHA256SUMS. For pushes to
+# main of FrodeSolheim/fs-uae, the dev-release job replaces the files of the rolling "dev"
+# pre-release with the archives.
+#
+# The Linux dists are made directly on ubuntu-24.04 (x86_64) and ubuntu-24.04-arm (aarch64)
+# runners, without Docker, with the packages of the Linux dist image (od-fs/build/linux), and the
+# Windows dist with the cross-build on ubuntu-24.04 with the packages of its image
+# (od-fs/build/windows/crossbuild). The macOS dists are made on macOS runners with the env system,
+# as on a Mac (make -C od-fs dist-macos): signed and notarized for v* tags, and pushes to main and
+# manual runs on main, with the secrets described in od-fs/Docs/Development/Releasing.md, and
+# unsigned for pull requests (see the macos job). What takes longest to set up is cached: the env
+# prefixes (SDL3 and Python for the Linux dists, every library for macOS) and quasi-msys2 (the MSYS2
+# packages for Windows), keyed on the files they are made from, so they are only rebuilt when those
+# change.
+#
+# Also runs locally with act (https://github.com/nektos/act), except the ubuntu-24.04-arm job, for
+# example:
+#
+#   act push -W .github/workflows/dist.yml -P ubuntu-24.04=catthehacker/ubuntu:act-24.04
+#
+# act skips the macOS jobs there (they need a Mac); on a Mac, act runs them on the Mac itself with
+# -P macos-15=-self-hosted -P macos-15-intel=-self-hosted.
+
+name: Dist
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  # Who made the dists, as FS-UAE shows it in the build header of its log file and in its About
+  # window (FSUAE_DIST_ORIGIN, see od-fs/build/dist/common.sh): an official build only for the
+  # FrodeSolheim/fs-uae's own runs (pushes, tags and manual runs), not for pull requests, whose code
+  # is not the maintainer's until it is merged, and not in forks or other repositories. The run
+  # ID finds the run (https://github.com/<repository>/actions/runs/<run ID>). The origin is
+  # self-declared, not proof: the macOS signature and a release's SHA256SUMS are.
+  FSUAE_DIST_ORIGIN: >-
+    ${{ format('{0} ({1}, GitHub Actions run {2}{3})',
+      github.repository == 'FrodeSolheim/fs-uae' && github.event_name != 'pull_request'
+        && 'Official build' || 'Unofficial build',
+      github.repository, github.run_id,
+      github.event_name == 'pull_request'
+        && format(', pull request {0}', github.event.pull_request.number) || '') }}
+
+jobs:
+  linux:
+    name: Linux ${{ matrix.triplet }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - triplet: x86_64-linux-gnu
+            runner: ubuntu-24.04
+          - triplet: aarch64-linux-gnu
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
+    env:
+      TRIPLET: ${{ matrix.triplet }}
+      # The base directory of the dist scripts' output (build/<triplet>, dist/<triplet> and
+      # release/<version>) and of the env prefixes (<triplet>). The prefixes have absolute paths in
+      # them, so they are cached and restored at the same path.
+      FSUAE_DIST_BUILD: ${{ github.workspace }}/.build
+      FSUAE_ENV_DIR: ${{ github.workspace }}/.build/env
+    steps:
+      # Only the commit (actions/checkout's default): version.py makes the version from the commit
+      # alone. The checkout of a tag has the tag (it is fetched by name), but that of a branch has
+      # no tags, so a push to main of a commit that is also tagged makes development builds (the
+      # tag's own run makes the release). A pull request build is made from the pull request's own
+      # commit (not GitHub's merge commit with main), so that the dist is named after it and its
+      # build header names it. (Two steps, so that the step for other events has no ref: act only
+      # replaces a checkout without one, or with the run's ref, with the local repository.)
+      - uses: actions/checkout@v7
+        if: github.event_name != 'pull_request'
+      - uses: actions/checkout@v7
+        if: github.event_name == 'pull_request'
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      # The packages of the Linux dist image (od-fs/build/linux/Dockerfile) for the runner's own
+      # architecture: the build tools, and the development packages with the architecture added.
+      - name: Install the packages
+        run: |
+          tools="$(od-fs/build/linux/apt-packages tools)"
+          libraries="$(od-fs/build/linux/apt-packages libraries |
+              sed "s/\$/:$(dpkg --print-architecture)/")"
+          sudo apt-get update
+          # shellcheck disable=SC2086
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+              $tools $libraries
+
+      # The env prefix (SDL3, SDL3_image, SDL3_ttf and Python, built by the env system for the
+      # dist), rebuilt only when the env system, its recipes or the packages it builds against
+      # change. Saved right after it is set up, so that a failing build does not throw it away.
+      - name: Restore the env prefix
+        id: env-prefix
+        uses: actions/cache/restore@v6
+        with:
+          path: ${{ env.FSUAE_ENV_DIR }}/${{ matrix.triplet }}
+          key: >-
+            env-${{ matrix.triplet }}-ubuntu-24.04-${{ hashFiles(
+              'od-fs/build/triplet.sh',
+              'od-fs/build/env/setup',
+              'od-fs/build/env/linux.txt',
+              'od-fs/build/env/scripts/**',
+              'od-fs/build/env/packages/**',
+              'od-fs/build/linux/apt-packages.txt'
+            ) }}
+
+      # What the dist entry script does first; it then finds everything installed.
+      - name: Set up the env prefix
+        run: |
+          MAKEFLAGS="-j$(nproc)" CMAKE_BUILD_PARALLEL_LEVEL="$(nproc)" \
+              od-fs/build/env/setup --host "$TRIPLET"
+
+      - name: Save the env prefix
+        if: steps.env-prefix.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6
+        with:
+          path: ${{ env.FSUAE_ENV_DIR }}/${{ matrix.triplet }}
+          key: ${{ steps.env-prefix.outputs.cache-primary-key }}
+
+      - name: Make the dist
+        run: od-fs/build/dist/dist "$TRIPLET"
+
+      - name: Find the archive
+        id: archive
+        run: |
+          archive="$(cat "$FSUAE_DIST_BUILD/build/$TRIPLET/dist-archive.txt")"
+          echo "path=$archive" >> "$GITHUB_OUTPUT"
+          echo "name=$(basename "$archive")" >> "$GITHUB_OUTPUT"
+
+      # v5: the newest major version act's artifact server (act 0.2.97) can take uploads from; v6
+      # and v7 use a newer protocol. On GitHub, any version works.
+      - name: Keep the archive
+        uses: actions/upload-artifact@v5
+        with:
+          name: ${{ steps.archive.outputs.name }}
+          path: ${{ steps.archive.outputs.path }}
+          if-no-files-found: error
+          compression-level: 0
+
+      # Starts the dist headless with the built-in AROS ROM, with the libraries it needs from the
+      # system (as smoke.py's docstring lists them). Its output goes in the runner's temporary
+      # directory.
+      - name: Smoke test
+        id: smoke
+        if: matrix.triplet == 'x86_64-linux-gnu'
+        env:
+          ARCHIVE: ${{ steps.archive.outputs.path }}
+        run: |
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+              libgl1 libegl1 libasound2t64
+          python3 od-fs/build/dist/smoke.py --out "$RUNNER_TEMP/smoke" --timeout 300 \
+              --origin "$FSUAE_DIST_ORIGIN" "$ARCHIVE" "$TRIPLET"
+
+      - name: Keep the smoke test output
+        if: failure() && steps.smoke.outcome == 'failure'
+        uses: actions/upload-artifact@v5
+        with:
+          name: smoke-test-${{ matrix.triplet }}
+          path: ${{ runner.temp }}/smoke
+
+  windows:
+    name: Windows x86_64-w64-mingw32
+    runs-on: ubuntu-24.04
+    env:
+      TRIPLET: x86_64-w64-mingw32
+      # See the Linux job. quasi-msys2 has absolute paths in it too.
+      FSUAE_DIST_BUILD: ${{ github.workspace }}/.build
+      QUASI_MSYS2_DIR: ${{ github.workspace }}/.build/quasi-msys2
+      # Makes quasi-msys2 use clang-20 and the other tools of that version; the version of the
+      # clang-<version> package in apt-packages.txt (see "Directly on the host" in
+      # od-fs/build/windows/crossbuild/README.md).
+      WIN_NATIVE_CLANG_VER: "20"
+    steps:
+      # See the Linux job.
+      - uses: actions/checkout@v7
+        if: github.event_name != 'pull_request'
+      - uses: actions/checkout@v7
+        if: github.event_name == 'pull_request'
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      # The packages of the cross-build image (od-fs/build/windows/crossbuild/Dockerfile).
+      - name: Install the packages
+        run: |
+          packages="$(sed 's/#.*//' od-fs/build/windows/crossbuild/apt-packages.txt)"
+          sudo apt-get update
+          # shellcheck disable=SC2086
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+              $packages
+
+      # quasi-msys2 with the MSYS2 packages of the snapshot, libmpeg2 and PortMidi (cross-compiled
+      # with the Clang above) and the build Python (made by crossbuild/dist), rebuilt only when what
+      # they are made from changes. The downloaded package files (cache) are left out: they are only needed to install
+      # the packages again. Saved right after it is set up, as in the Linux job.
+      - name: Restore quasi-msys2
+        id: quasi-msys2
+        uses: actions/cache/restore@v6
+        with:
+          path: |
+            ${{ env.QUASI_MSYS2_DIR }}
+            !${{ env.QUASI_MSYS2_DIR }}/cache
+          key: >-
+            quasi-msys2-ubuntu-24.04-${{ hashFiles(
+              'od-fs/build/windows/msys2/**',
+              'od-fs/build/windows/quasi-msys2/**',
+              'od-fs/build/windows/extra-libs.sh',
+              'od-fs/build/windows/crossbuild/common.sh',
+              'od-fs/build/windows/crossbuild/dist',
+              'od-fs/build/windows/crossbuild/quasi-msys2.sh',
+              'od-fs/build/windows/crossbuild/apt-packages.txt'
+            ) }}
+
+      - name: Set up the cross-build
+        run: od-fs/build/windows/crossbuild/dist --setup-only
+
+      - name: Save quasi-msys2
+        if: steps.quasi-msys2.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6
+        with:
+          path: |
+            ${{ env.QUASI_MSYS2_DIR }}
+            !${{ env.QUASI_MSYS2_DIR }}/cache
+          key: ${{ steps.quasi-msys2.outputs.cache-primary-key }}
+
+      - name: Make the dist
+        run: od-fs/build/windows/crossbuild/dist
+
+      - name: Find the archive
+        id: archive
+        run: |
+          archive="$(cat "$FSUAE_DIST_BUILD/build/$TRIPLET/dist-archive.txt")"
+          echo "path=$archive" >> "$GITHUB_OUTPUT"
+          echo "name=$(basename "$archive")" >> "$GITHUB_OUTPUT"
+
+      # See the Linux job.
+      - name: Keep the archive
+        uses: actions/upload-artifact@v5
+        with:
+          name: ${{ steps.archive.outputs.name }}
+          path: ${{ steps.archive.outputs.path }}
+          if-no-files-found: error
+          compression-level: 0
+
+  macos:
+    name: macOS ${{ matrix.triplet }} on ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        # The macOS 15 images, with Xcode 16, whose SDK supports the minimum macOS version of the
+        # dists (10.13 for x86_64, 11.0 for arm64), not macos-latest, which moves to newer Xcode
+        # versions that may not. macos-15-intel is the x86_64 runner; GitHub ends x86_64 macOS
+        # runners when the macOS 15 image is retired (announced for fall 2027).
+        include:
+          - triplet: arm64-apple-darwin
+            arch: arm64
+            runner: macos-15
+          # x86_64 is made on both an Intel runner and an arm64 runner (with the env prefix built
+          # under Rosetta and FS-UAE cross-compiled, as with make dist-macos-x86_64 on an arm64
+          # Mac) until they have been timed with a cold and a warm env cache; then the slower one
+          # goes. Their caches are separate (the key has the runner). The arm64 runner's archive is
+          # kept with "rosetta-" in front of its name.
+          - triplet: x86_64-apple-darwin
+            arch: x86_64
+            runner: macos-15-intel
+          - triplet: x86_64-apple-darwin
+            arch: x86_64
+            runner: macos-15
+            artifact-prefix: rosetta-
+    runs-on: ${{ matrix.runner }}
+    env:
+      TRIPLET: ${{ matrix.triplet }}
+      ARCH: ${{ matrix.arch }}
+      # See the Linux job. The variable FSUAE_MACOS_ENV_DIR (not set on GitHub) is for running the
+      # job with act on a Mac, where the workspace is a new directory on every run: the prefixes
+      # then go in a directory that stays, so that a cached one is restored where it was made.
+      FSUAE_DIST_BUILD: ${{ github.workspace }}/.build
+      FSUAE_ENV_DIR: ${{ vars.FSUAE_MACOS_ENV_DIR || format('{0}/.build/env', github.workspace) }}
+      # Signed and notarized for v* tags (a release), and for pushes to main and manual runs
+      # (workflow_dispatch) on main of FrodeSolheim/fs-uae (a push's dists go into the dev
+      # pre-release, see the dev-release job; a manual run's do not), which fail without the
+      # signing secrets rather than make an unsigned .dmg. Pushes to main and manual runs on main
+      # elsewhere (such as in a fork) are signed when the secrets are there, and
+      # otherwise made unsigned with a warning, also shown as an annotation on the run. Never for
+      # pull requests (also from forks, which get no secrets anyway) or other runs (such as manual
+      # runs on other branches), which do not get the secrets at all. See
+      # od-fs/build/dist/common.sh and macos/signing-keychain.
+      FSUAE_MACOS_SIGNING: >-
+        ${{ startsWith(github.ref, 'refs/tags/v') && 'required'
+          || (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+            && github.ref == 'refs/heads/main' && github.repository == 'FrodeSolheim/fs-uae'
+            && 'required'
+          || (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+            && github.ref == 'refs/heads/main' && 'auto'
+          || 'off' }}
+      HOMEBREW_NO_AUTO_UPDATE: "1"
+      HOMEBREW_NO_INSTALL_CLEANUP: "1"
+    steps:
+      # See the Linux job.
+      - uses: actions/checkout@v7
+        if: github.event_name != 'pull_request'
+      - uses: actions/checkout@v7
+        if: github.event_name == 'pull_request'
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      # The build tools, which on a Mac come from Homebrew (installed only when missing, so that a
+      # Mac running this with act keeps its own): autoconf and automake for od-fs/bootstrap,
+      # pkg-config, CMake, Meson and Ninja for the env recipes, unix2dos for the dist's README.
+      # Everything the dist links is built by the env system. dmgbuild (with
+      # pyobjc-framework-Quartz for the volume's badge icon, see od-fs/build/dist/macos/settings.py)
+      # in a virtual environment, linked from a directory of its own so that python3 stays the
+      # system's. Rosetta for the x86_64 dist on an arm64 runner, if the image does not have it.
+      - name: Install the tools
+        id: tools
+        run: |
+          # The SDK the env prefix is built with (for its cache key).
+          echo "Xcode: $(xcode-select -p), macOS SDK $(xcrun --show-sdk-version)"
+          echo "sdk=$(xcrun --show-sdk-version)" >> "$GITHUB_OUTPUT"
+          for tool in autoconf automake pkg-config:pkgconf cmake meson ninja unix2dos:dos2unix; do
+              command -v "${tool%%:*}" > /dev/null || brew install "${tool#*:}"
+          done
+          python3 -m venv "$RUNNER_TEMP/dmgbuild"
+          "$RUNNER_TEMP/dmgbuild/bin/pip" install --quiet "dmgbuild[badge-icons]==1.6.7"
+          mkdir -p "$RUNNER_TEMP/bin"
+          ln -sf "$RUNNER_TEMP/dmgbuild/bin/dmgbuild" "$RUNNER_TEMP/bin/dmgbuild"
+          echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
+          if [ "$ARCH" = x86_64 ] && [ "$(uname -m)" = arm64 ] &&
+              ! arch -x86_64 /usr/bin/true 2> /dev/null; then
+              sudo softwareupdate --install-rosetta --agree-to-license
+          fi
+
+      # The env prefix with every library the dist bundles, and Python. See the Linux job; rebuilt
+      # when the env system, the macOS package file or the recipes change, and when the runner
+      # image's default Xcode has another macOS SDK.
+      # REVIEW: Homebrew on the runners has many more packages than a maintainer's Mac, which the
+      # recipes' configure scripts may find. On the Intel runner, /usr/local (Homebrew's prefix
+      # there) is in the compiler's and linker's default paths. The dist check fails a dist that
+      # links anything from Homebrew; compare the bundled libraries (Contents/Frameworks) with a
+      # dist made on a Mac.
+      - name: Restore the env prefix
+        id: env-prefix
+        uses: actions/cache/restore@v6
+        with:
+          path: ${{ env.FSUAE_ENV_DIR }}/${{ matrix.triplet }}
+          key: >-
+            env-${{ matrix.triplet }}-${{ matrix.runner }}-sdk${{ steps.tools.outputs.sdk }}-${{
+              hashFiles(
+                'od-fs/build/triplet.sh',
+                'od-fs/build/env/setup',
+                'od-fs/build/env/macos.txt',
+                'od-fs/build/env/scripts/**',
+                'od-fs/build/env/packages/**'
+              ) }}
+
+      # As the dist entry script does it: for the dist's architecture (arch, Rosetta for x86_64 on
+      # arm64), into the same prefix.
+      - name: Set up the env prefix
+        run: |
+          jobs="$(sysctl -n hw.ncpu)"
+          arch -"$ARCH" env -u CC -u CXX BUILD_ENV_PREFIX="$FSUAE_ENV_DIR/$TRIPLET" \
+              MAKEFLAGS="-j$jobs" CMAKE_BUILD_PARALLEL_LEVEL="$jobs" od-fs/build/env/setup
+
+      - name: Save the env prefix
+        if: steps.env-prefix.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6
+        with:
+          path: ${{ env.FSUAE_ENV_DIR }}/${{ matrix.triplet }}
+          key: ${{ steps.env-prefix.outputs.cache-primary-key }}
+
+      # Only when signing (tags, and pushes to main and manual runs on main): the Developer ID
+      # certificate in a temporary keychain, deleted at the end. A missing secret fails a tag
+      # build, or a push to main or manual run on main of FrodeSolheim/fs-uae, at once; for main
+      # elsewhere, it is a warning (and an annotation), no keychain is made and the dist is
+      # unsigned.
+      - name: Set up the signing keychain
+        if: env.FSUAE_MACOS_SIGNING != 'off'
+        env:
+          MACOS_CERTIFICATE_P12: ${{ secrets.MACOS_CERTIFICATE_P12 }}
+          MACOS_CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+          NOTARYTOOL_APPLE_ID: ${{ secrets.NOTARYTOOL_APPLE_ID }}
+          NOTARYTOOL_PASSWORD: ${{ secrets.NOTARYTOOL_PASSWORD }}
+          NOTARYTOOL_TEAM_ID: ${{ secrets.NOTARYTOOL_TEAM_ID }}
+        run: od-fs/build/dist/macos/signing-keychain create
+
+      # Unsigned (the app signed ad hoc), or signed with the keychain's identity and notarized with
+      # the NOTARYTOOL_* credentials, which only builds that sign get.
+      - name: Make the dist
+        env:
+          NOTARYTOOL_APPLE_ID: >-
+            ${{ env.FSUAE_MACOS_SIGNING != 'off' && secrets.NOTARYTOOL_APPLE_ID || '' }}
+          NOTARYTOOL_PASSWORD: >-
+            ${{ env.FSUAE_MACOS_SIGNING != 'off' && secrets.NOTARYTOOL_PASSWORD || '' }}
+          NOTARYTOOL_TEAM_ID: >-
+            ${{ env.FSUAE_MACOS_SIGNING != 'off' && secrets.NOTARYTOOL_TEAM_ID || '' }}
+        run: od-fs/build/dist/dist "$TRIPLET"
+
+      - name: Delete the signing keychain
+        if: always() && env.FSUAE_MACOS_SIGNING != 'off'
+        run: od-fs/build/dist/macos/signing-keychain delete
+
+      # What Apple's notary service found, when notarization (or anything after the keychain) fails.
+      - name: Keep the notarization log
+        if: failure() && env.FSUAE_MACOS_SIGNING != 'off'
+        uses: actions/upload-artifact@v5
+        with:
+          name: notarization-log-${{ matrix.triplet }}-${{ matrix.runner }}
+          path: ${{ env.FSUAE_DIST_BUILD }}/dist/${{ matrix.triplet }}/notarization-log.json
+          if-no-files-found: ignore
+
+      - name: Find the archive
+        id: archive
+        run: |
+          archive="$(cat "$FSUAE_DIST_BUILD/build/$TRIPLET/dist-archive.txt")"
+          echo "path=$archive" >> "$GITHUB_OUTPUT"
+          echo "name=$(basename "$archive")" >> "$GITHUB_OUTPUT"
+
+      # See the Linux job.
+      - name: Keep the archive
+        uses: actions/upload-artifact@v5
+        with:
+          name: ${{ matrix.artifact-prefix }}${{ steps.archive.outputs.name }}
+          path: ${{ steps.archive.outputs.path }}
+          if-no-files-found: error
+          compression-level: 0
+
+      # Copies the app off the .dmg and starts it with the built-in AROS ROM, as the Linux job's
+      # smoke test does, but with macOS's own video driver (SDL's offscreen driver has no OpenGL
+      # on macOS; the runners have a desktop session); the x86_64 dist made on the arm64 runner
+      # runs under Rosetta. With the env prefix's Python, since smoke.py needs Python 3.12 or
+      # newer. Its output goes outside the project, as in the Linux job.
+      # REVIEW: Not run on a GitHub macOS runner yet: check that the window opens and the GL
+      # grabs show AROS (they are in the artifact when it fails), and how long it takes.
+      - name: Smoke test
+        id: smoke
+        env:
+          ARCHIVE: ${{ steps.archive.outputs.path }}
+        run: |
+          "$FSUAE_ENV_DIR/$TRIPLET/bin/python3" od-fs/build/dist/smoke.py \
+              --out "$RUNNER_TEMP/smoke" --timeout 300 --origin "$FSUAE_DIST_ORIGIN" \
+              "$ARCHIVE" "$TRIPLET"
+
+      - name: Keep the smoke test output
+        if: failure() && steps.smoke.outcome == 'failure'
+        uses: actions/upload-artifact@v5
+        with:
+          name: smoke-test-${{ matrix.triplet }}-${{ matrix.runner }}
+          path: ${{ runner.temp }}/smoke
+
+  # The source tarball, for releases: source.yml (make distcheck) as a reusable workflow, so that
+  # its artifact (named source) is in this run. Pull requests and pushes to main run source.yml on
+  # its own.
+  source:
+    name: Source
+    if: startsWith(github.ref, 'refs/tags/v')
+    uses: ./.github/workflows/source.yml
+
+  # Tag builds (v*) make the same dists, named for the tag's version (the dist entry script fails a
+  # tag that does not match the version in configure.ac, before building, so the release job does
+  # not run), and keep them as artifacts like other builds. When every dist and the source tarball
+  # are made, this job puts them in a draft GitHub Release, with SHA256SUMS, for the maintainer to
+  # check, edit and publish by hand; it never publishes anything. Running the workflow again for the
+  # tag replaces the files of the draft (see od-fs/build/dist/draft-release).
+  release:
+    name: Draft release
+    if: startsWith(github.ref, 'refs/tags/v')
+    # REVIEW: macos includes the x86_64 dist made under Rosetta, which is left out of the release:
+    # while both x86_64 variants are built, a failure of that one alone also stops the release.
+    needs: [linux, windows, macos, source]
+    runs-on: ubuntu-24.04
+    # Only this job and the dev-release job can write to the repository (its releases).
+    permissions:
+      contents: write
+    # Two runs for the same tag (the workflow run again before the first has finished) would
+    # otherwise both find no release and make one each.
+    concurrency:
+      group: release-${{ github.ref }}
+    steps:
+      # See the Linux job (the tag is fetched with the commit).
+      - uses: actions/checkout@v7
+
+      # The dist version, as the dist jobs got it (the tag's version).
+      - name: Find the version
+        id: version
+        run: echo "version=$(python3 od-fs/build/dist/version.py)" >> "$GITHUB_OUTPUT"
+
+      # Every artifact of the run, each in a directory named for it. v5 for act, as with
+      # upload-artifact.
+      - name: Get the artifacts
+        uses: actions/download-artifact@v5
+        with:
+          path: ${{ runner.temp }}/artifacts
+
+      # The archive of each platform and the source tarball, with SHA256SUMS. The x86_64 .dmg made
+      # under Rosetta (the artifact named rosetta-FS-UAE-...) is left out.
+      - name: Gather the release files
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          python3 od-fs/build/dist/release_files.py --version "$VERSION" \
+              "$RUNNER_TEMP/artifacts" "$RUNNER_TEMP/release"
+
+      - name: Make the draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: od-fs/build/dist/draft-release "$GITHUB_REF_NAME" "$RUNNER_TEMP/release"
+
+  # Pushes to main of FrodeSolheim/fs-uae (not forks or other repositories): when every dist
+  # archive is made, this job replaces the files of the rolling "dev" pre-release with them, so that
+  # the latest development build can be downloaded without a GitHub account, from links that stay
+  # the same
+  # (https://github.com/<owner>/<repo>/releases/download/dev/<name>). The archives have the names
+  # FS-UAE-dev-<triplet>.<extension>, with SHA256SUMS, whose first line names the version, as do the
+  # title and notes; the source tarball is left out (source.yml runs on its own for pushes to main;
+  # GitHub's "Source code" archives of the pre-release are of the commit). The pre-release is never
+  # marked as the latest release. A run whose dists fail leaves the previous build there. See
+  # od-fs/build/dist/dev_release.py for how the files are replaced.
+  dev-release:
+    name: Dev pre-release
+    if: >-
+      github.event_name == 'push' && github.ref == 'refs/heads/main'
+      && github.repository == 'FrodeSolheim/fs-uae'
+    # REVIEW: as for the release job, a failure of the x86_64 dist made under Rosetta, which is left
+    # out, also stops this job while both x86_64 variants are built.
+    needs: [linux, windows, macos]
+    runs-on: ubuntu-24.04
+    # Only this job and the release job can write to the repository (its releases and tags).
+    permissions:
+      contents: write
+    # One run at a time. A later push's job waits rather than cancel this one, which could leave the
+    # pre-release with some files of each build (GitHub keeps one waiting job per group: a newer
+    # one replaces it). An earlier push whose dists finish later does not replace a newer build
+    # (dev_release.py checks).
+    concurrency:
+      group: dev-release
+      cancel-in-progress: false
+    steps:
+      # Only the commit, as in the dist jobs (see the Linux job), so that version.py gives the
+      # version they got: a checkout with the whole history would have the tags too, and with them
+      # the release version for a commit that is also tagged.
+      - uses: actions/checkout@v7
+
+      # The dist version, as the dist jobs got it.
+      - name: Find the version
+        id: version
+        run: echo "version=$(python3 od-fs/build/dist/version.py)" >> "$GITHUB_OUTPUT"
+
+      # The history, without tags, which tells dev_release.py which commits are older. (Under act,
+      # the checkout is the local repository, which has it.)
+      - name: Fetch the history
+        run: |
+          if [ "$(git rev-parse --is-shallow-repository)" = true ]; then
+              git fetch --quiet --unshallow --no-tags origin
+          fi
+
+      # See the release job.
+      - name: Get the artifacts
+        uses: actions/download-artifact@v5
+        with:
+          path: ${{ runner.temp }}/artifacts
+
+      # The archive of each platform (not the x86_64 .dmg made under Rosetta) under its name in the
+      # pre-release, with SHA256SUMS.
+      - name: Gather the files
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          python3 od-fs/build/dist/release_files.py --dev --version "$VERSION" \
+              "$RUNNER_TEMP/artifacts" "$RUNNER_TEMP/dev-release"
+
+      - name: Replace the files of the dev pre-release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          python3 od-fs/build/dist/dev_release.py --commit "$GITHUB_SHA" --version "$VERSION" \
+              "$RUNNER_TEMP/dev-release"

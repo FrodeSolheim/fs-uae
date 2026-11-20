@@ -16,7 +16,15 @@
 #define GFXFILTER
 
 #define UAE_FILESYS_THREADS
+/* As in od-win32/sysconfig.h. The JIT runs its own interpreter tables
+ * (uaegetjitcputbl) for instructions it cannot compile when their flags are
+ * not needed. The ARM64 JIT does not build without it. */
+// #define NOFLAGS_SUPPORT_GENCPU
+#define NOFLAGS_SUPPORT_GENCOMP
 #define NATMEM_OFFSET natmem_offset
+/* JIT direct memory access is enabled. Define NATMEM_NO_JIT_DIRECT to make
+ * the JIT use indirect access only. */
+// #define NATMEM_NO_JIT_DIRECT 1
 
 #define ENFORCER /* UAE Enforcer */
 #define ECS_DENISE /* ECS DENISE new features */

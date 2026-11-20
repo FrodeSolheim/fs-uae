@@ -197,6 +197,20 @@ int setup_sound (void)
 float sound_sync_multiplier = 1.0;
 float scaled_sample_evtime_orig;
 extern float sampler_evtime;
+#ifdef FSUAE
+
+// Applies the audio rate adjustment kept by the glue (g_audio_rate_adjustment in sound_fs.cpp) to
+// Paula's sample clock: the scaled sample interval is the nominal one divided by (1 + adjustment),
+// and the obtained frequency stays nominal. Ignored until the nominal interval is set, so that the
+// interval can never become 0.
+static void update_sound_rate_adjustment (void)
+{
+	double factor = 1.0 + g_audio_rate_adjustment;
+	if (scaled_sample_evtime_orig > 0 && factor > 0) {
+		scaled_sample_evtime = (float)(scaled_sample_evtime_orig / factor);
+	}
+}
+#endif
 
 void update_sound (float clk)
 {
@@ -206,8 +220,8 @@ void update_sound (float clk)
 	scaled_sample_evtime = scaled_sample_evtime_orig;
 	sampler_evtime = clk * CYCLE_UNIT * sound_sync_multiplier;
 #ifdef FSUAE
-	// so we can call update_sound from amiga_set_audio_frequency_adjust
-	g_clk = clk;
+	// Here, so that the core's own recalculation of Paula's clock keeps the adjustment.
+	update_sound_rate_adjustment ();
 #endif
 }
 
@@ -2098,6 +2112,9 @@ static int open_sound (void)
 
 #ifdef FSUAE
 	// clearbuffer();
+	// Paula produces at the audio device's own rate (as the device branch below does for WinUAE),
+	// whatever the configuration's sound_frequency says.
+	currprefs.sound_freq = changed_prefs.sound_freq = g_frequency;
 #else
 	sdp->softvolume = -1;
 	num = enumerate_sound_devices();
@@ -2261,7 +2278,7 @@ static void restart_sound_buffer2 (struct sound_data *sd)
 void pause_sound_buffer (void)
 {
 #ifdef FSUAE
-	fsemu_audio_pause();
+	fsemu_audio_on_emulator_sound_stopped();
 #else
 	sdp->deactive = true;
 	reset_sound ();
@@ -2271,7 +2288,7 @@ void pause_sound_buffer (void)
 void restart_sound_buffer (void)
 {
 #ifdef FSUAE
-	fsemu_audio_resume();
+	fsemu_audio_on_emulator_sound_started();
 #else
 	sdp->deactive = false;
 	restart_sound_buffer2 (sdp);

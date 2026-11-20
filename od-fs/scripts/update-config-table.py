@@ -6,10 +6,12 @@ import os
 
 def main() -> None:
     configurations_path = "od-fs/Python/uae/configurations"
-    csv_file = "Work/Options.csv"
+    csv_file = "docs/Options.csv"
 
     lines: list[str] = []
-    for item in os.listdir(configurations_path):
+    for item in sorted(os.listdir(configurations_path)):
+        if not item.endswith(".py"):
+            continue
         path = os.path.join(configurations_path, item)
         with open(path, "r") as f:
             lines.extend(f.readlines())
@@ -50,7 +52,7 @@ def main() -> None:
 
     # Force unix-style line endings for git and libreoffice compat
     with open(csv_file, "w", newline="\n") as f:
-        writer = csv.writer(f)
+        writer = csv.writer(f, lineterminator="\n")
         for row in rows:
             writer.writerow(row)
 

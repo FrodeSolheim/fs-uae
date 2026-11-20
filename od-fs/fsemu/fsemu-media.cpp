@@ -1,7 +1,6 @@
 #define FSEMU_INTERNAL
 #include "fsemu-media.h"
 
-#include "fsapp-mutex.h"
 #include "fsapp-util.h"
 #include "fsemu-glib.h"
 
@@ -29,7 +28,6 @@ static struct {
     bool initialized;
     GHashTable *label_cache;
     GRegex *label_regex;
-    fsapp_mutex_t *mutex;
     int type_count[FSEMU_MEDIA_TYPE_COUNT];
 } module;
 
@@ -176,14 +174,10 @@ void fsemu_media_drive_assign_file(fsemu_media_drive_t *drive, char *file)
     SDL_assert(SDL_IsMainThread());
     fsapp_assert(drive != NULL);
 
-    // fsapp_mutex_lock(module.mutex);
-
     if (drive->file) {
         free(drive->file);
     }
     drive->file = file;
-
-    // fsapp_mutex_unlock(module.mutex);
 }
 
 #if 0

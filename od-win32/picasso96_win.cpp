@@ -838,7 +838,7 @@ static void do_fillrect_frame_buffer(struct RenderInfo *ri, int X, int Y, int Wi
 static void setupcursor(void)
 {
 #ifdef FSUAE
-	UAE_LOG_STUB("");
+	UAE_LOG_STUB_MAX(1, "");
 #else
 	uae_u8 *dptr;
 	int bpp = 4;
@@ -1903,7 +1903,7 @@ extern uae_u32 sprite_0_colors[4];
 static int createwindowscursor(int monid, int set, int chipset)
 {
 #ifdef FSUAE
-	UAE_LOG_STUB("");
+	UAE_LOG_STUB_MAX(1, "");
 	return 0;
 #else
 	HBITMAP andBM, xorBM;

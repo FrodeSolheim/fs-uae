@@ -1,0 +1,32 @@
+# Style for the C and C++ code in od-fs, close to WinUAE's: 4 spaces instead of tabs, 100 columns,
+# braces on their own line for functions, braces around every control-flow body and Type *name
+# for pointers. See Docs/Development/Coding style.md. 3rdparty is never formatted (see
+# .clang-format-ignore).
+#
+# Many existing files are not in this style (UAE code that still uses tabs). They are listed in
+# .clang-format-ignore, which clang-format (18 or newer) skips; editors that format through clangd
+# may not, so don't format them from an editor either. New files are formatted with this style.
+
+BasedOnStyle: LLVM
+
+# Braces on their own line for functions (and classes/namespaces), attached for control
+# statements and else.
+BreakBeforeBraces: Linux
+
+# Control-flow bodies always have braces, also a single statement.
+InsertBraces: true
+
+AllowShortFunctionsOnASingleLine: None
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+AllowShortBlocksOnASingleLine: Never
+ColumnLimit: 100
+DerivePointerAlignment: false
+IndentWidth: 4
+InsertNewlineAtEOF: true
+PointerAlignment: Right
+UseTab: Never
+
+# UAE code must include sysconfig.h and sysdeps.h first.
+SortIncludes: Never
+IncludeBlocks: Preserve

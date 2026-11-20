@@ -1325,6 +1325,16 @@ static int real_main2 (int argc, TCHAR **argv)
 
 void real_main (int argc, TCHAR **argv)
 {
+#ifdef FSUAE
+	// FS-UAE can call uae_restart with a config file before the emulation has started (from the
+	// early messages, see fsuae_messages_process_early), for example when FS-UAE is started with a
+	// WHDLoad archive. Keep that restart (restart_program, restart_config and default_config as set
+	// by uae_restart) instead of loading the default options file, so the emulation starts
+	// directly with the given config, without booting the default machine first.
+	if (!started && restart_program && restart_config[0]) {
+		write_log(_T("Starting with early restart config '%s'\n"), restart_config);
+	} else {
+#endif
 	restart_program = 1;
 #ifdef FSUAE_XXX
 	// This will overwrite restart_config with something else
@@ -1336,6 +1346,9 @@ void real_main (int argc, TCHAR **argv)
 	_tcscat (restart_config, OPTIONSFILENAME);
 #endif
 	default_config = 1;
+#ifdef FSUAE
+	}
+#endif
 
 	while (restart_program) {
 		int ret;

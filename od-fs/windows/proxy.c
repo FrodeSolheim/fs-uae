@@ -14,7 +14,8 @@
 #define PATH _T("Libs\\x86_64-w64-mingw32\\FS-UAE.exe")
 #define PATH_A "Libs\\x86_64-w64-mingw32\\FS-UAE.exe"
 
-static void error(const char* message_a, const TCHAR* message) {
+static void error(const char *message_a, const TCHAR *message)
+{
     // Write to stderr when there is one (terminal, redirect, Wine), and also show a message box,
     // which is the only way to see the error when started from Explorer.
     HANDLE err = GetStdHandle(STD_ERROR_HANDLE);
@@ -28,7 +29,8 @@ static void error(const char* message_a, const TCHAR* message) {
 }
 
 // Returns the handle if it is valid and could be made inheritable, otherwise NULL.
-static HANDLE inheritable_std_handle(DWORD which) {
+static HANDLE inheritable_std_handle(DWORD which)
+{
     HANDLE handle = GetStdHandle(which);
     if (handle == NULL || handle == INVALID_HANDLE_VALUE) {
         return NULL;
@@ -39,7 +41,8 @@ static HANDLE inheritable_std_handle(DWORD which) {
     return handle;
 }
 
-int APIENTRY WinMain(HINSTANCE hInst, HINSTANCE hInstPrev, PSTR cmdline, int cmdshow) {
+int APIENTRY WinMain(HINSTANCE hInst, HINSTANCE hInstPrev, PSTR cmdline, int cmdshow)
+{
     OutputDebugString(_T("FS-UAE proxy executable"));
 
     TCHAR szPath[MAX_PATH];
@@ -65,8 +68,7 @@ int APIENTRY WinMain(HINSTANCE hInst, HINSTANCE hInstPrev, PSTR cmdline, int cmd
         ZeroMemory(&info, sizeof(info));
         info.BasicLimitInformation.LimitFlags =
             JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE | JOB_OBJECT_LIMIT_SILENT_BREAKAWAY_OK;
-        if (!SetInformationJobObject(job, JobObjectExtendedLimitInformation, &info,
-                                     sizeof(info))) {
+        if (!SetInformationJobObject(job, JobObjectExtendedLimitInformation, &info, sizeof(info))) {
             CloseHandle(job);
             job = NULL;
         }
@@ -90,18 +92,17 @@ int APIENTRY WinMain(HINSTANCE hInst, HINSTANCE hInstPrev, PSTR cmdline, int cmd
     PROCESS_INFORMATION pi;
     ZeroMemory(&pi, sizeof(pi));
 
-    BOOL ok = CreateProcess(
-        szPath,            // lpApplicationName
-        GetCommandLine(),  // lpCommandLine
-        NULL,              // lpProcessAttributes
-        NULL,              // lpThreadAttributes
-        TRUE,              // bInheritHandles (only the standard handles are inheritable)
-        // Suspended until it has been put in the job, so that processes it starts right away
-        // are not missed.
-        CREATE_SUSPENDED,  // dwCreationFlags
-        NULL,              // lpEnvironment (the proxy's environment)
-        NULL,              // lpCurrentDirectory (the proxy's current directory)
-        &si, &pi);
+    BOOL ok = CreateProcess(szPath,           // lpApplicationName
+                            GetCommandLine(), // lpCommandLine
+                            NULL,             // lpProcessAttributes
+                            NULL,             // lpThreadAttributes
+                            TRUE, // bInheritHandles (only the standard handles are inheritable)
+                            // Suspended until it has been put in the job, so that processes it
+                            // starts right away are not missed.
+                            CREATE_SUSPENDED, // dwCreationFlags
+                            NULL,             // lpEnvironment (the proxy's environment)
+                            NULL,             // lpCurrentDirectory (the proxy's current directory)
+                            &si, &pi);
 
     if (!ok) {
         error("Error starting " PATH_A, _T("Error starting ") PATH);

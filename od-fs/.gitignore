@@ -4,13 +4,6 @@
 /*.cue
 /*.uae
 
-# Temporary files
-
-.~*
-*.DS_Store
-*.swp
-*~
-
 # Files created by bootstrap
 
 config.h.in
@@ -18,7 +11,8 @@ config.h.in
 # Files created by configure script
 
 /config.h
-macos/Info.plist
+/fsuae-build.h
+build/macos/Info.plist
 stamp-h1
 windows/fs-uae.rc
 
@@ -31,12 +25,9 @@ windows/fs-uae.rc
 /FS-UAE
 /FS-UAE.exe
 /FS-UAE.app/
-/plugins/
-/winuae
 
 # Files created by running FS-UAE
 
-__pycache__
 /Cache
 /Data
 
@@ -50,9 +41,6 @@ __pycache__
 #.flatpak-builder/
 #repo/
 
-# Files created by running WinUAE
+# Debugging-related files
 
-configuration.backup
-configuration.cache
-winuaebootlog.txt
-winuaelog.txt
+trace.json

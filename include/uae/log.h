@@ -94,7 +94,6 @@ extern uae_log_function uae_log;
 #define UAE_STUB(format, ...) \
 	{ \
 		UAE_LOG_STUB(format, ##__VA_ARGS__) \
-		printf(" -- stub -- %s " format "\n", __func__, ##__VA_ARGS__); \
 	}
 
 /* Deprecated defines */

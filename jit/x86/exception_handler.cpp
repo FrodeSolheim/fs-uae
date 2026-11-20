@@ -583,6 +583,11 @@ static LONG CALLBACK JITVectoredHandler(PEXCEPTION_POINTERS info)
 
 #elif defined(HAVE_CONTEXT_T)
 
+#ifdef FSUAE
+static struct sigaction old_sigsegv_action;
+static struct sigaction old_sigbus_action;
+#endif
+
 static void sigsegv_handler(int signum, siginfo_t *info, void *context)
 {
 	uae_u8 *i = (uae_u8 *) CONTEXT_PC(context);
@@ -596,8 +601,24 @@ static void sigsegv_handler(int signum, siginfo_t *info, void *context)
 		write_log ("Caught illegal access to %08lx at eip=%p\n", address, i);
 	}
 
+#ifdef FSUAE
+	// REVIEW: Could be offered upstream: it lets a crash handler installed
+	// before the JIT's (FS-UAE's log writes its last lines in one) see the
+	// faults that are not the JIT's.
+	/* Not a JIT direct access: pass it on to the handler that was there
+	 * before (as the ARM64 JIT does), or crash with the default action. */
+	struct sigaction *old = signum == SIGBUS ? &old_sigbus_action : &old_sigsegv_action;
+	if ((old->sa_flags & SA_SIGINFO) && old->sa_sigaction) {
+		old->sa_sigaction(signum, info, context);
+	} else if (old->sa_handler != SIG_DFL && old->sa_handler != SIG_IGN) {
+		old->sa_handler(signum);
+	} else {
+		signal (signum, SIG_DFL);
+	}
+#else
 	/* Not a JIT direct access: crash with the default action. */
 	signal (signum, SIG_DFL);
+#endif // FSUAE
 }
 
 #endif
@@ -613,6 +634,15 @@ static void install_exception_handler(void)
 #ifdef TEST_EXCEPTION_HANDLER
 	test_exception_handler();
 #endif
+
+	/* build_comp() runs every time the CPU tables are rebuilt (resets and
+	 * config changes). Install the handler only once: on Windows each
+	 * AddVectoredExceptionHandler() call adds another handler. */
+	static bool installed;
+	if (installed) {
+		return;
+	}
+	installed = true;
 
 #ifdef JIT_EXCEPTION_HANDLER
 	if (veccode == NULL) {
@@ -636,10 +666,17 @@ static void install_exception_handler(void)
 	act.sa_sigaction = (void (*)(int, siginfo_t*, void*)) sigsegv_handler;
 	sigemptyset (&act.sa_mask);
 	act.sa_flags = SA_SIGINFO;
+#ifdef FSUAE
+	sigaction(SIGSEGV, &act, &old_sigsegv_action);
+#ifdef MACOSX
+	sigaction(SIGBUS, &act, &old_sigbus_action);
+#endif
+#else
 	sigaction(SIGSEGV, &act, NULL);
 #ifdef MACOSX
 	sigaction(SIGBUS, &act, NULL);
 #endif
+#endif // FSUAE
 #else
 	write_log (_T("JIT: No segfault handler installed\n"));
 #endif

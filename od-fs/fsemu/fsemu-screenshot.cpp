@@ -5,7 +5,6 @@
 
 #include "fsapp-bitmap.h"
 #include "fs/log.h"
-#include "fsapp-mutex.h"
 #include "fs/path.h"
 #include "fsapp-util.h"
 #include "fsemu-application.h"
@@ -24,18 +23,18 @@ static struct {
     char *screenshots_dir;
     char *time_str;
     int last_counter;
-    fsapp_mutex_t *mutex;
+    SDL_Mutex *mutex;
 } fsemu_screenshot;
 
 static void fsemu_screenshot_lock(void)
 {
     fsapp_assert(fsemu_screenshot.initialized);
-    fsapp_mutex_lock(fsemu_screenshot.mutex);
+    SDL_LockMutex(fsemu_screenshot.mutex);
 }
 
 static void fsemu_screenshot_unlock(void)
 {
-    fsapp_mutex_unlock(fsemu_screenshot.mutex);
+    SDL_UnlockMutex(fsemu_screenshot.mutex);
 }
 
 void fsemu_screenshot_capture(void)
@@ -269,7 +268,7 @@ void fsemu_screenshot_init(void)
     }
     fsemu_application_init();
 
-    fsemu_screenshot.mutex = fsapp_mutex_create();
+    fsemu_screenshot.mutex = SDL_CreateMutex();
 
     const char *prefix = fsemu_option_const_string(FSEMU_OPTION_SCREENSHOTS_OUTPUT_PREFIX);
     if (prefix) {

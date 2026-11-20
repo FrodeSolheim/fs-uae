@@ -1,282 +1,197 @@
-// From amiberry
+/*
+ * MP3 decoder for CD audio tracks (cue sheets with MP3 files), using libmpg123. This is the FS-UAE
+ * counterpart of od-win32/mp3decoder.cpp, which uses the Windows ACM codec. The class is declared
+ * in od-win32/mp3decoder.h.
+ *
+ * libmpg123 does all the work: it reads the file through a zfile, finds the exact length
+ * (mpg123_scan, with encoder delay and padding removed when the file has a LAME/Info tag), and
+ * decodes to the CD audio format, converting mono and other sample rates as needed.
+ *
+ * Copyright (c) 2026 Frode Solheim
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ */
 
-#include <cstring>
-#include <cstdlib>
-
+#include "sysconfig.h"
 #include "sysdeps.h"
 
 #include "zfile.h"
 #include "mp3decoder.h"
+
 #include <mpg123.h>
 
-#define MP3_BLOCK_SIZE 522
-#define RAW_BLOCK_SIZE 32768
+#include <climits>
+#include <mutex>
 
-static int mp3_bitrates[] = {
-	0, 32, 64, 96, 128, 160, 192, 224, 256, 288, 320, 352, 384, 416, 448, -1,
-	0, 32, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320, 384, -1,
-	0, 32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320, -1,
-	0, 32, 48, 56, 64, 80, 96, 112, 128, 144, 160, 176, 192, 224, 256, -1,
-	0, 8, 16, 24, 32, 40, 48, 56, 64, 80, 96, 112, 128, 144, 160, -1
-};
-static int mp3_frequencies[] = {
-	44100, 48000, 32000, 0,
-	22050, 24000, 16000, 0,
-	11025, 12000, 8000, 0
-};
-static int mp3_samplesperframe[] = {
-	384, 384, 384,
-	1152, 1152, 1152,
-	1152, 576, 576
-};
+// CD audio: 44.1 kHz, stereo, 16-bit signed samples in native byte order (the same as the FLAC
+// decoder in blkdev_cdimage.cpp).
+#define MP3_RATE 44100
+#define MP3_BYTES_PER_SAMPLE 4
 
-mp3decoder::~mp3decoder()
-= default;
+// The 64-bit reader API (mpg123_reader64, mpg123_length64) is available since API version 48
+// (mpg123 1.32), mpg123_open_handle64 since 49 (mpg123 1.33). Older versions (e.g. 1.31 in
+// Debian 12) only have the off_t API.
+#if MPG123_API_VERSION >= 48
+#define MP3_READER64 1
+#endif
 
-mp3decoder::mp3decoder()
-= default;
-
-uae_u8* mp3decoder::get(struct zfile* zf, uae_u8* outbuf, int maxsize)
+static bool mp3_init()
 {
-	int outoffset = 0;
-	unsigned char mp3buf[MP3_BLOCK_SIZE];
-	unsigned char rawbuf[RAW_BLOCK_SIZE];
-
-	write_log(_T("MP3: decoding '%s'..\n"), zfile_getname(zf));
-
-	if (mpg123_init() != MPG123_OK)
-	{
-		write_log("MP3: failed to init mpeg123\n");
-		return nullptr;
-	}
-
-	const char** decoders = mpg123_decoders();
-	if (decoders == nullptr || decoders[0] == nullptr)
-	{
-		write_log("MP3: no mp3 decoder available\n");
-		mpg123_exit();
-		return nullptr;
-	}
-
-	mpg123_handle* mh = mpg123_new(nullptr, nullptr); // Open default decoder
-	if (mh == nullptr)
-	{
-		write_log("MP3: failed to init default decoder\n");
-		mpg123_exit();
-		return nullptr;
-	}
-
-	if (mpg123_open_feed(mh) == MPG123_OK)
-	{
-		zfile_fseek(zf, 0, SEEK_SET);
-		while (outoffset < maxsize)
-		{
-			size_t count = zfile_fread(mp3buf, 1, MP3_BLOCK_SIZE, zf);
-			if (count != MP3_BLOCK_SIZE)
-				break;
-
-			size_t decoded = 0;
-			int ret = mpg123_decode(mh, mp3buf, MP3_BLOCK_SIZE, rawbuf, RAW_BLOCK_SIZE, &decoded);
-
-			if (ret != MPG123_ERR && decoded != 0)
-			{
-				if (outoffset + decoded > maxsize)
-					decoded = maxsize - outoffset;
-				memcpy(outbuf + outoffset, rawbuf, decoded);
-				outoffset += decoded;
-			}
-
-			while (ret != MPG123_ERR && ret != MPG123_NEED_MORE && outoffset < maxsize)
-			{
-				ret = mpg123_decode(mh, nullptr, 0, rawbuf, RAW_BLOCK_SIZE, &decoded);
-				if (ret != MPG123_ERR && decoded != 0)
-				{
-					if (outoffset + decoded > maxsize)
-						decoded = maxsize - outoffset;
-					memcpy(outbuf + outoffset, rawbuf, decoded);
-					outoffset += decoded;
-				}
-			}
-
-			if (ret == MPG123_ERR)
-			{
-				write_log("MP3: error while decoding\n");
-				outbuf = nullptr;
-				break;
-			}
-		}
-
-		mpg123_close(mh);
-	}
-
-	mpg123_delete(mh);
-	mpg123_exit();
-
-	return outbuf;
+    static std::once_flag once;
+    static bool ok;
+    // Does nothing since mpg123 1.27, but older versions need it once, and it is not thread-safe
+    // there.
+    std::call_once(once, [] { ok = mpg123_init() == MPG123_OK; });
+    return ok;
 }
 
-uae_u32 mp3decoder::getsize(struct zfile* zf)
+static int64_t mp3_seek(struct zfile *zf, int64_t offset, int whence)
 {
-	uae_u32 size;
-	int frames, sameframes;
-	int firstframe;
-	int oldbitrate;
-	int timelen = -1;
+    if (zfile_fseek(zf, offset, whence) < 0) {
+        return -1;
+    }
+    return zfile_ftell(zf);
+}
 
-	firstframe = -1;
-	oldbitrate = -1;
-	sameframes = -1;
-	frames = 0;
-	size = 0;
-	uae_u8 id3[10];
+#ifdef MP3_READER64
 
-	if (zfile_fread(id3, sizeof id3, 1, zf) != 1)
-		return 0;
-	if (id3[0] == 'I' && id3[1] == 'D' && id3[2] == '3' && id3[3] == 3 && id3[4] != 0xff && id3[6] < 0x80 && id3[7] <
-		0x80 && id3[8] < 0x80 && id3[9] < 0x80)
-	{
-		int unsync = id3[5] & 0x80;
-		int exthead = id3[5] & 0x40;
-		int len = (id3[9] << 0) | (id3[8] << 7) | (id3[7] << 14) | (id3[6] << 21);
-		len &= 0x0fffffff;
-		uae_u8* tag = xmalloc(uae_u8, len + 1);
-		if (zfile_fread(tag, len, 1, zf) != 1)
-		{
-			xfree(tag);
-			return 0;
-		}
-		uae_u8* p = tag;
-		if (exthead)
-		{
-			int size = (p[4] << 21) | (p[5] << 14) | (p[6] << 7);
-			size &= 0x0fffffff;
-			p += size;
-			len -= size;
-		}
-		while (len > 0)
-		{
-			int size = unsync
-				           ? (p[4] << 21) | (p[5] << 14) | (p[6] << 7) | (p[7] << 0)
-				           : (p[4] << 24) | (p[5] << 16) | (p[6] << 8) | (p[7] << 0);
-			size &= 0x0fffffff;
-			if (size > len)
-				break;
-			int compr = p[9] & 0x80;
-			int enc = p[9] & 0x40;
-			if (compr == 0 && enc == 0)
-			{
-				if (!memcmp(p, "TLEN", 4))
-				{
-					uae_u8* data = p + 10;
-					data[size] = 0;
-					if (data[0] == 0)
-						timelen = atol(reinterpret_cast<char*>(data + 1));
-					else
-						timelen = _tstol(reinterpret_cast<char*>(data + 1));
-				}
-			}
-			size += 10;
-			p += size;
-			len -= size;
-		}
-		xfree(tag);
-	}
-	else
-	{
-		zfile_fseek(zf, -static_cast<int>(sizeof id3), SEEK_CUR);
-	}
+static int mp3_read_cb(void *handle, void *buf, size_t count, size_t *done)
+{
+    *done = zfile_fread(buf, 1, count, static_cast<struct zfile *>(handle));
+    return 0;
+}
 
+static int64_t mp3_seek_cb(void *handle, int64_t offset, int whence)
+{
+    return mp3_seek(static_cast<struct zfile *>(handle), offset, whence);
+}
 
-	for (;;)
-	{
-		int ver, layer, bitrate, freq, padding, bitindex, iscrc;
-		int samplerate, framelen, bitrateidx, channelmode;
-		int isstereo;
-		uae_u8 header[4];
+#else
 
-		if (zfile_fread(header, sizeof header, 1, zf) != 1)
-			return size;
-		if (header[0] != 0xff || ((header[1] & (0x80 | 0x40 | 0x20)) != (0x80 | 0x40 | 0x20)))
-		{
-			zfile_fseek(zf, -3, SEEK_CUR);
-			continue;
-		}
-		if (firstframe < 0)
-			firstframe = zfile_ftell32(zf);
+static ssize_t mp3_read_cb(void *handle, void *buf, size_t count)
+{
+    return zfile_fread(buf, 1, count, static_cast<struct zfile *>(handle));
+}
 
-		ver = (header[1] >> 3) & 3;
-		if (ver == 1)
-		{
-			write_log(_T("MP3: ver==1?!\n"));
-			return 0;
-		}
-		if (ver == 0)
-			ver = 2;
-		else if (ver == 2)
-			ver = 1;
-		else if (ver == 3)
-			ver = 0;
-		layer = 4 - ((header[1] >> 1) & 3);
-		if (layer == 4)
-		{
-			write_log(_T("MP3: layer==4?!\n"));
-			return 0;
-		}
-		iscrc = ((header[1] >> 0) & 1) ? 0 : 2;
-		bitrateidx = (header[2] >> 4) & 15;
-		freq = mp3_frequencies[(header[2] >> 2) & 3];
-		if (!freq)
-		{
-			write_log(_T("MP3: reserved frequency?!\n"));
-			return 0;
-		}
-		channelmode = (header[3] >> 6) & 3;
-		isstereo = channelmode != 3;
-		if (ver == 0)
-		{
-			bitindex = layer - 1;
-		}
-		else
-		{
-			if (layer == 1)
-				bitindex = 3;
-			else
-				bitindex = 4;
-		}
-		bitrate = mp3_bitrates[bitindex * 16 + bitrateidx] * 1000;
-		if (bitrate <= 0)
-		{
-			write_log(_T("MP3: reserved bitrate?!\n"));
-			return 0;
-		}
-		padding = (header[2] >> 1) & 1;
-		samplerate = mp3_samplesperframe[(layer - 1) * 3 + ver];
-		framelen = ((samplerate / 8 * bitrate) / freq) + padding;
-		if (framelen <= 4)
-		{
-			write_log(_T("MP3: too small frame size?!\n"));
-			return 0;
-		}
-		zfile_fseek(zf, framelen - 4, SEEK_CUR);
-		frames++;
-		if (timelen > 0)
-		{
-			size = (static_cast<uae_u64>(timelen) * freq * 2 * (isstereo ? 2 : 1)) / 1000;
-			break;
-		}
-		size += samplerate * 2 * (isstereo ? 2 : 1);
-		if (bitrate != oldbitrate)
-		{
-			oldbitrate = bitrate;
-			sameframes++;
-		}
-		if (sameframes == 0 && frames > 100)
-		{
-			// assume this is CBR MP3
-			size = samplerate * 2 * (isstereo ? 2 : 1) * ((zfile_size32(zf) - firstframe) / ((samplerate / 8 * bitrate) /
-				freq));
-			break;
-		}
-	}
-	return size;
+static off_t mp3_seek_cb(void *handle, off_t offset, int whence)
+{
+    return mp3_seek(static_cast<struct zfile *>(handle), offset, whence);
+}
+
+#endif
+
+static void mp3_close(mpg123_handle *mh)
+{
+    mpg123_close(mh);
+    mpg123_delete(mh);
+}
+
+// Opens the zfile for decoding from the start, with output fixed to the CD audio format. Returns
+// nullptr (after logging why) on failure.
+static mpg123_handle *mp3_open(struct zfile *zf)
+{
+    if (!mp3_init()) {
+        write_log(_T("MP3: failed to initialize libmpg123\n"));
+        return nullptr;
+    }
+    int err = MPG123_OK;
+    mpg123_handle *mh = mpg123_new(nullptr, &err);
+    if (mh == nullptr) {
+        write_log(_T("MP3: mpg123_new failed: %s\n"), mpg123_plain_strerror(err));
+        return nullptr;
+    }
+    // Don't let libmpg123 print to stderr; errors are logged below.
+    mpg123_param(mh, MPG123_ADD_FLAGS, MPG123_QUIET, 0);
+
+    err = mpg123_format_none(mh);
+    if (err == MPG123_OK) {
+        err = mpg123_format(mh, MP3_RATE, MPG123_STEREO, MPG123_ENC_SIGNED_16);
+    }
+    if (err == MPG123_OK) {
+#ifdef MP3_READER64
+        err = mpg123_reader64(mh, mp3_read_cb, mp3_seek_cb, nullptr);
+#else
+        err = mpg123_replace_reader_handle(mh, mp3_read_cb, mp3_seek_cb, nullptr);
+#endif
+    }
+    if (err == MPG123_OK) {
+        zfile_fseek(zf, 0, SEEK_SET);
+#if MPG123_API_VERSION >= 49
+        err = mpg123_open_handle64(mh, zf);
+#else
+        err = mpg123_open_handle(mh, zf);
+#endif
+    }
+    if (err != MPG123_OK) {
+        write_log(_T("MP3: could not open '%s': %s\n"), zfile_getname(zf), mpg123_strerror(mh));
+        mpg123_delete(mh);
+        return nullptr;
+    }
+    return mh;
+}
+
+mp3decoder::mp3decoder() : g_mp3stream(nullptr)
+{
+}
+
+mp3decoder::~mp3decoder()
+{
+}
+
+uae_u8 *mp3decoder::get(struct zfile *zf, uae_u8 *outbuf, int maxsize)
+{
+    write_log(_T("MP3: decoding '%s'..\n"), zfile_getname(zf));
+    mpg123_handle *mh = mp3_open(zf);
+    if (mh == nullptr) {
+        // The caller has allocated (and cleared) outbuf. Returning it, as silence, rather than
+        // nullptr, avoids leaking it and retrying.
+        return outbuf;
+    }
+    size_t size = maxsize > 0 ? maxsize : 0;
+    size_t offset = 0;
+    int ret = MPG123_OK;
+    while (offset < size) {
+        size_t done = 0;
+        ret = mpg123_read(mh, outbuf + offset, size - offset, &done);
+        offset += done;
+        // MPG123_NEW_FORMAT comes once, before the first samples.
+        if (ret != MPG123_OK && ret != MPG123_NEW_FORMAT) {
+            break;
+        }
+    }
+    if (ret != MPG123_OK && ret != MPG123_NEW_FORMAT && ret != MPG123_DONE) {
+        write_log(_T("MP3: decoding error: %s\n"), mpg123_strerror(mh));
+    }
+    write_log(_T("MP3: unpacked size %zu bytes\n"), offset);
+    mp3_close(mh);
+    return outbuf;
+}
+
+uae_u32 mp3decoder::getsize(struct zfile *zf)
+{
+    mpg123_handle *mh = mp3_open(zf);
+    if (mh == nullptr) {
+        return 0;
+    }
+    int64_t samples = -1;
+    if (mpg123_scan(mh) == MPG123_OK) {
+#ifdef MP3_READER64
+        samples = mpg123_length64(mh);
+#else
+        samples = mpg123_length(mh);
+#endif
+    }
+    if (samples < 0) {
+        write_log(_T("MP3: could not get length of '%s': %s\n"), zfile_getname(zf),
+                  mpg123_strerror(mh));
+    }
+    mp3_close(mh);
+    if (samples <= 0) {
+        return 0;
+    }
+    // The caller allocates size + 2352 bytes and passes size on as an int.
+    const int64_t max_samples = (INT_MAX - 2352) / MP3_BYTES_PER_SAMPLE;
+    if (samples > max_samples) {
+        samples = max_samples;
+    }
+    return static_cast<uae_u32>(samples * MP3_BYTES_PER_SAMPLE);
 }

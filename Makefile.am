@@ -8,6 +8,29 @@
 
 SUBDIRS =
 
+# make distcheck configures the unpacked tarball with the PKG_CONFIG_PATH this build was configured
+# with (as od-fs/configure passes it for the SDL3 overlay), which configure would otherwise not see
+# there unless it is in the environment.
+AM_DISTCHECK_CONFIGURE_FLAGS = PKG_CONFIG_PATH='$(PKG_CONFIG_PATH)'
+
+# make dist names the tarball (and the directory in it) for the version FS-UAE shows (FSUAE_VERSION
+# in configure.ac): fs-uae-<version>.tar.gz for a release, or for example
+# fs-uae-5.0.8-dev.<date>T<time>+g<hash>.tar.gz from another commit. The tarball has the version in
+# .tarball-version, which configure reads, so that builds from it show the same version. A version
+# from git must still be the checkout's (configure is not run again by a commit).
+distdir = $(PACKAGE)-$(FSUAE_VERSION)
+
+dist-hook:
+	@if test "$(FSUAE_VERSION_FROM_GIT)" = yes; then \
+	  version=`$(PYTHON) "$(srcdir)/od-fs/build/dist/version.py" "$(srcdir)"` || exit 1; \
+	  if test "$$version" != "$(FSUAE_VERSION)"; then \
+	    echo "Error: configured for the version $(FSUAE_VERSION), but the checkout's is" \
+	      "$$version: run configure again" >&2; \
+	    exit 1; \
+	  fi; \
+	fi
+	echo '$(FSUAE_VERSION)' > $(distdir)/.tarball-version
+
 WARNINGS =
 
 CM_CFLAGS = -Werror=return-type
@@ -23,7 +46,6 @@ AM_LDFLAGS =
 CM_CFLAGS += @ALSA_CFLAGS@
 CM_CFLAGS += @FLAC_CFLAGS@
 CM_CFLAGS += @FREETYPE_CFLAGS@
-CM_CFLAGS += @GLEW_CFLAGS@
 CM_CFLAGS += @GLIB_CFLAGS@
 CM_CFLAGS += @MIR_CFLAGS@
 CM_CFLAGS += @MPG123_CFLAGS@
@@ -68,6 +90,12 @@ AM_CPPFLAGS += -DPTR64
 endif
 
 if JIT
+# The x86-64 JIT works in a PIE build on Linux; other hosts
+# still build without PIE until they have been tested. The ARM64 JIT uses
+# 64-bit addresses and does not need it (and macOS arm64 executables are
+# always PIE).
+if !LINUX
+if !HOST_AARCH64
 if FNO_PIE
 AM_CPPFLAGS += -fno-pie
 else
@@ -77,6 +105,8 @@ endif
 endif
 if NO_PIE
 AM_LDFLAGS += -no-pie
+endif
+endif
 endif
 # if WL_TDATA
 # AM_LDFLAGS += -Wl,-Tdata=0x10000000
@@ -162,62 +192,93 @@ BUILT_SOURCES =
 nodist_fs_uae_SOURCES =
 
 AM_CPPFLAGS += -I$(srcdir)/od-fs/fsapp
-AM_CPPFLAGS += -I$(srcdir)/od-fs/fsgui
-AM_CPPFLAGS += -I$(srcdir)/od-fs/fslib
 AM_CPPFLAGS += -I$(srcdir)/od-fs/fsuae
 
 EXTRA_DIST =
 
 fs_uae_SOURCES = \
-	od-fs/FS/FS.c \
-	od-fs/FS/FS.h \
+	od-fs/fs/log.cpp \
+	od-fs/fs/log.h \
+	od-fs/fs/path.cpp \
+	od-fs/fs/path.h \
+	od-fs/fs/thread.cpp \
+	od-fs/fs/thread.h \
+	od-fs/fs/trace.cpp \
+	od-fs/fs/trace.h \
+	od-fs/fsapp/fsapp-adornment.cpp \
+	od-fs/fsapp/fsapp-adornment.h \
+	od-fs/fsapp/fsapp-bitmap.cpp \
+	od-fs/fsapp/fsapp-bitmap.h \
 	od-fs/fsapp/fsapp-channel.cpp \
 	od-fs/fsapp/fsapp-channel.h \
-	od-fs/fsapp/fsapp-channel.h \
+	od-fs/fsapp/fsapp-color.h \
+	od-fs/fsapp/fsapp-compositor.cpp \
+	od-fs/fsapp/fsapp-compositor.h \
 	od-fs/fsapp/fsapp-config.h \
+	od-fs/fsapp/fsapp-data.cpp \
+	od-fs/fsapp/fsapp-data.h \
 	od-fs/fsapp/fsapp-events.cpp \
 	od-fs/fsapp/fsapp-events.h \
+	od-fs/fsapp/fsapp-file.cpp \
+	od-fs/fsapp/fsapp-file.h \
+	od-fs/fsapp/fsapp-font.cpp \
+	od-fs/fsapp/fsapp-font.h \
+	od-fs/fsapp/fsapp-frame-plan.cpp \
+	od-fs/fsapp/fsapp-frame-plan.h \
+	od-fs/fsapp/fsapp-frame.h \
+	od-fs/fsapp/fsapp-gl.cpp \
+	od-fs/fsapp/fsapp-gl.h \
+	od-fs/fsapp/fsapp-gldraw.cpp \
+	od-fs/fsapp/fsapp-gldraw.h \
+	od-fs/fsapp/fsapp-image.cpp \
+	od-fs/fsapp/fsapp-image.h \
 	od-fs/fsapp/fsapp-instance.cpp \
 	od-fs/fsapp/fsapp-instance.h \
 	od-fs/fsapp/fsapp-main.cpp \
 	od-fs/fsapp/fsapp-main.h \
-	od-fs/fsapp/fsapp-mainloop.cpp \
-	od-fs/fsapp/fsapp-mainloop.h \
+	od-fs/fsapp/fsapp-mainthread.cpp \
+	od-fs/fsapp/fsapp-mainthread.h \
+	od-fs/fsapp/fsapp-os.h \
+	od-fs/fsapp/fsapp-pacer.h \
+	od-fs/fsapp/fsapp-presentation-backend.h \
+	od-fs/fsapp/fsapp-presentation-macos.cpp \
+	od-fs/fsapp/fsapp-presentation-wayland.cpp \
+	od-fs/fsapp/fsapp-presentation-x11.cpp \
+	od-fs/fsapp/fsapp-presentation.cpp \
+	od-fs/fsapp/fsapp-presentation.h \
 	od-fs/fsapp/fsapp-pythonthread.cpp \
 	od-fs/fsapp/fsapp-pythonthread.h \
+	od-fs/fsapp/fsapp-refable.cpp \
+	od-fs/fsapp/fsapp-refable.h \
+	od-fs/fsapp/fsapp-semaphore.cpp \
+	od-fs/fsapp/fsapp-semaphore.h \
+	od-fs/fsapp/fsapp-snapshot.h \
+	od-fs/fsapp/fsapp-stream.cpp \
+	od-fs/fsapp/fsapp-stream.h \
+	od-fs/fsapp/fsapp-streamed.cpp \
+	od-fs/fsapp/fsapp-streamed.h \
 	od-fs/fsapp/fsapp-surface.cpp \
 	od-fs/fsapp/fsapp-surface.h \
+	od-fs/fsapp/fsapp-testaids.cpp \
+	od-fs/fsapp/fsapp-testaids.h \
+	od-fs/fsapp/fsapp-testscene.cpp \
+	od-fs/fsapp/fsapp-testscene.h \
+	od-fs/fsapp/fsapp-time.cpp \
+	od-fs/fsapp/fsapp-time.h \
+	od-fs/fsapp/fsapp-tsan.h \
+	od-fs/fsapp/fsapp-util.cpp \
+	od-fs/fsapp/fsapp-util.h \
+	od-fs/fsapp/fsapp-window.cpp \
+	od-fs/fsapp/fsapp-window.h \
 	od-fs/fsapp/fsapp.h \
-	od-fs/fsgui/fsgui-config.h \
-	od-fs/fsgui/fsgui-font.cpp \
-	od-fs/fsgui/fsgui-font.h \
-	od-fs/fsgui/fsgui-image.cpp \
-	od-fs/fsgui/fsgui-image.h \
-	od-fs/fsgui/fsgui-window.cpp \
-	od-fs/fsgui/fsgui-window.h \
-	od-fs/fsgui/fsgui-windows.cpp \
-	od-fs/fsgui/fsgui-windows.h \
-	od-fs/fslib/fslib-config.h \
-	od-fs/fslib/fslib-log.cpp \
-	od-fs/fslib/fslib-log.h \
-	od-fs/fslib/fslib-os.cpp \
-	od-fs/fslib/fslib-os.h \
-	od-fs/fslib/fslib-path.cpp \
-	od-fs/fslib/fslib-path.h \
-	od-fs/fslib/fslib-refable.cpp \
-	od-fs/fslib/fslib-refable.h \
-	od-fs/fslib/fslib-stream.cpp \
-	od-fs/fslib/fslib-stream.h \
 	od-fs/fsuae/fsuae-bridge.cpp \
 	od-fs/fsuae/fsuae-bridge.h \
-	od-fs/fsuae/fsuae-config.h \
-	od-fs/fsuae/fsuae-constants.h \
+	od-fs/fsuae/fsuae-buildinfo.cpp \
+	od-fs/fsuae/fsuae-buildinfo.h \
 	od-fs/fsuae/fsuae-events.cpp \
 	od-fs/fsuae/fsuae-events.h \
 	od-fs/fsuae/fsuae-extras.cpp \
 	od-fs/fsuae/fsuae-extras.h \
-	od-fs/fsuae/fsuae-hack.cpp \
-	od-fs/fsuae/fsuae-hack.h \
 	od-fs/fsuae/fsuae-init.cpp \
 	od-fs/fsuae/fsuae-init.h \
 	od-fs/fsuae/fsuae-main.cpp \
@@ -230,9 +291,6 @@ fs_uae_SOURCES = \
 	od-fs/fsuae/fsuae-path.h \
 	od-fs/fsuae/fsuae-plugins.cpp \
 	od-fs/fsuae/fsuae-plugins.h \
-	od-fs/fsuae/fsuae-renderer.cpp \
-	od-fs/fsuae/fsuae-renderer.h \
-	od-fs/fsuae/fsuae.h \
 	od-fs/libuae/libuae-config.h \
 	od-fs/libuae/libuae-main.cpp \
 	od-fs/libuae/libuae-main.h \
@@ -245,7 +303,7 @@ nodist_fs_uae_SOURCES += od-fs/windows/fs-uae.rc
 	cp $(srcdir)/od-fs/windows/fs-uae.ico $(builddir)/od-fs/windows/fs-uae.ico
 	$(WINDRES) $< -o $@ -I$(srcdir)/od-fs/include
 else
-AM_CPPFLAGS += -I$(srcdir)/od-fs/non-windows
+AM_CPPFLAGS += -I$(srcdir)/od-fs/unix
 endif
 
 # -----------------------------------------------------------------------------
@@ -254,7 +312,6 @@ noinst_LIBRARIES += libuae.a
 AM_CPPFLAGS += -I$(srcdir)/include
 AM_CPPFLAGS += -I$(srcdir)/jit
 AM_CPPFLAGS += -I$(srcdir)/od-fs
-AM_CPPFLAGS += -I$(srcdir)/od-fs/archivers
 AM_CPPFLAGS += -I$(srcdir)/od-fs/include
 # For includes such as "7z/LzmaDec.h" (od-fs/3rdparty/lzma-sdk/7z)
 AM_CPPFLAGS += -I$(srcdir)/od-fs/3rdparty/lzma-sdk
@@ -555,11 +612,7 @@ libuae_a_SOURCES = \
 	od-fs/fsdb_host.h \
 	od-fs/gui.cpp \
 	od-fs/hardfile_host.cpp \
-	od-fs/include/resource.h \
-	od-fs/include/uae/uae_inputevents_def.h \
-	od-fs/include/uae/uae.h \
 	od-fs/input_fs.cpp \
-	od-fs/inputrecord.cpp \
 	od-fs/ioport.cpp \
 	od-fs/ioport.h \
 	od-fs/joystick_fs.cpp \
@@ -567,23 +620,18 @@ libuae_a_SOURCES = \
 	od-fs/libamiga.cpp \
 	od-fs/libuae.cpp \
 	od-fs/libuae.h \
-	od-fs/machdep/arm/maccess.h \
-	od-fs/machdep/generic/maccess.h \
 	od-fs/machdep/m68k.h \
 	od-fs/machdep/maccess.h \
-	od-fs/machdep/machdep.h \
-	od-fs/machdep/ppc/maccess.h \
-	od-fs/machdep/rpt.h \
-	od-fs/machdep/x86/maccess.h \
 	od-fs/midi.cpp \
 	od-fs/midi.h \
 	od-fs/mouse_fs.cpp \
 	od-fs/mp3decoder_fs.cpp \
-	od-fs/non-windows/tchar.h \
+	od-fs/unix/tchar.h \
 	od-fs/options_fs.cpp \
 	od-fs/parser_fs.cpp \
 	od-fs/paths.cpp \
 	od-fs/random.cpp \
+	od-fs/include/resource.h \
 	od-fs/roms.cpp \
 	od-fs/sleep.h \
 	od-fs/sound_fs.cpp \
@@ -595,8 +643,11 @@ libuae_a_SOURCES = \
 	od-fs/target.h \
 	od-fs/threaddep/thread.h \
 	od-fs/threading_fs.cpp \
+	od-fs/time_fs.cpp \
 	od-fs/uae_host.cpp \
 	od-fs/uae-fs.h \
+	od-fs/include/uae/uae_inputevents_def.h \
+	od-fs/include/uae/uae.h \
 	od-fs/uaemisc.cpp \
 	od-fs/video_fs.cpp \
 	od-fs/videograb_fs.cpp \
@@ -616,6 +667,7 @@ libuae_a_SOURCES = \
 	od-win32/debug_win32.h \
 	od-win32/direct3d.h \
 	od-win32/lcd.h \
+	od-win32/machdep/rpt.h \
 	od-win32/midi.h \
 	od-win32/mp3decoder.h \
 	od-win32/parser.h \
@@ -675,7 +727,6 @@ libuae_a_SOURCES = \
 	specialmonitors.cpp \
 	statusline.cpp \
 	support/socket.cpp \
-	support/time.cpp \
 	test_card.cpp \
 	tinyxml2.cpp \
 	traps.cpp \
@@ -714,6 +765,7 @@ EXTRA_DIST += \
 	mame/tm34010/34010ops.c \
 	mame/tm34010/34010ops.h \
 	mame/tm34010/34010tbl.c \
+	od-fs/fsuae-build.h.in \
 	od-fs/windows/fs-uae.rc.in \
 	od-win32/sounddep/sound.cpp \
 	od-win32/win32gfx.cpp \
@@ -969,76 +1021,10 @@ libarchivers_a_SOURCES += \
 #	mame/3rdparty/lzma/C/XzEnc.c \
 #	mame/3rdparty/lzma/C/XzIn.c \
 #
-#	od-fs/archivers/7z/7zAlloc.c \
-#	od-fs/archivers/7z/7zArcIn.c \
-#	od-fs/archivers/7z/7zBuf.c \
-#	od-fs/archivers/7z/7zBuf2.c \
-#	od-fs/archivers/7z/7zCrc.c \
-#	od-fs/archivers/7z/7zCrcOpt.c \
-#	od-fs/archivers/7z/7zDec.c \
-#	od-fs/archivers/7z/7zFile.c \
-#	od-fs/archivers/7z/7zStream.c \
-#	od-fs/archivers/7z/Aes.c \
-#	od-fs/archivers/7z/AesOpt.c \
-#	od-fs/archivers/7z/Alloc.c \
-#	od-fs/archivers/7z/Bcj2.c \
-#	od-fs/archivers/7z/Bra.c \
-#	od-fs/archivers/7z/Bra86.c \
-#	od-fs/archivers/7z/BraIA64.c \
-#	od-fs/archivers/7z/CpuArch.c \
-#	od-fs/archivers/7z/Delta.c \
-#	od-fs/archivers/7z/LzFind.c \
-#	od-fs/archivers/7z/Lzma2Dec.c \
-#	od-fs/archivers/7z/Lzma2Enc.c \
-#	od-fs/archivers/7z/Lzma86Dec.c \
-#	od-fs/archivers/7z/Lzma86Enc.c \
-#	od-fs/archivers/7z/LzmaDec.c \
-#	od-fs/archivers/7z/LzmaEnc.c \
-#	od-fs/archivers/7z/LzmaLib.c \
-#	od-fs/archivers/7z/Ppmd7.c \
-#	od-fs/archivers/7z/Ppmd7Dec.c \
-#	od-fs/archivers/7z/Ppmd7Enc.c \
-#	od-fs/archivers/7z/Sha256.c \
-#	od-fs/archivers/7z/Sort.c \
-#	od-fs/archivers/7z/Xz.c \
-#	od-fs/archivers/7z/XzCrc64.c \
-#	od-fs/archivers/7z/XzCrc64Opt.c \
-#	od-fs/archivers/7z/XzDec.c \
-#	od-fs/archivers/7z/XzEnc.c \
-#	od-fs/archivers/7z/XzIn.c \
-# 
 #	mame/src/osd/modules/file/posixptty.cpp \
 #	mame/src/osd/modules/file/posixsocket.cpp \
 #	mame/src/lib/util/osdcore.cpp \
 #
-
-#	od-fs/archivers/chd/avhuff.cpp \
-#	od-fs/archivers/chd/bitmap.cpp \
-#	od-fs/archivers/chd/cdrom.cpp \
-#	od-fs/archivers/chd/chd.cpp \
-#	od-fs/archivers/chd/chdcd.cpp \
-#	od-fs/archivers/chd/chdcodec.cpp \
-#	od-fs/archivers/chd/corealloc.cpp \
-#	od-fs/archivers/chd/corefile.cpp \
-#	od-fs/archivers/chd/corestr.cpp \
-#	od-fs/archivers/chd/flac.cpp \
-#	od-fs/archivers/chd/harddisk.cpp \
-#	od-fs/archivers/chd/hashing.cpp \
-#	od-fs/archivers/chd/huffman.cpp \
-#	od-fs/archivers/chd/md5.cpp \
-#	od-fs/archivers/chd/osdcore.cpp \
-#	od-fs/archivers/chd/osdlib_unix.cpp \
-#	od-fs/archivers/chd/osdsync.cpp \
-#	od-fs/archivers/chd/palette.cpp \
-#	od-fs/archivers/chd/posixdir.cpp \
-#	od-fs/archivers/chd/posixfile.cpp \
-#	od-fs/archivers/chd/posixptty.cpp \
-#	od-fs/archivers/chd/posixsocket.cpp \
-#	od-fs/archivers/chd/strconv.cpp \
-#	od-fs/archivers/chd/strformat.cpp \
-#	od-fs/archivers/chd/unicode.cpp \
-#	od-fs/archivers/chd/vecstream.cpp \
-#	od-fs/archivers/chd/utf8proc.c
 
 #	archivers/chd/astring.cpp \
 #	archivers/chd/astring.h \
@@ -1173,31 +1159,6 @@ EXTRA_DIST += \
 	jit/compemu_midfunc_arm2.h \
 	jit/flags_arm.h
 
-# fsemu0 ----------------------------------------------------------------------
-
-noinst_LIBRARIES += libfsemu0.a
-AM_CPPFLAGS += -I$(srcdir)/od-fs/libfsemu/include
-fs_uae_LDADD += libfsemu0.a
-libfsemu0_a_SOURCES = \
-	od-fs/libfsemu/include/fs/base.h \
-	od-fs/libfsemu/include/fs/data.h \
-	od-fs/libfsemu/include/fs/defines.h \
-	od-fs/libfsemu/include/fs/endian.h \
-	od-fs/libfsemu/include/fs/filesys.h \
-	od-fs/libfsemu/include/fs/fs.h \
-	od-fs/libfsemu/include/fs/glib.h \
-	od-fs/libfsemu/include/fs/i18n.h \
-	od-fs/libfsemu/include/fs/init.h \
-	od-fs/libfsemu/include/fs/lazyness.h \
-	od-fs/libfsemu/include/fs/main.h \
-	od-fs/libfsemu/include/fs/thread.h \
-	od-fs/libfsemu/include/fs/time.h \
-	od-fs/libfsemu/include/fs/util.h \
-	od-fs/libfsemu/src/filesys.c \
-	od-fs/libfsemu/src/init.c \
-	od-fs/libfsemu/src/thread.c \
-	od-fs/libfsemu/src/time.c
-
 # fsemu -----------------------------------------------------------------------
 
 if FSEMU
@@ -1218,14 +1179,15 @@ libfsemu_a_SOURCES = \
 	od-fs/fsemu/fsemu-audio.h \
 	od-fs/fsemu/fsemu-audiobuffer.cpp \
 	od-fs/fsemu/fsemu-audiobuffer.h \
+	od-fs/fsemu/fsemu-audioring.cpp \
+	od-fs/fsemu/fsemu-audioring.h \
+	od-fs/fsemu/fsemu-audiorate.cpp \
+	od-fs/fsemu/fsemu-audiorate.h \
+	od-fs/fsemu/fsemu-audiostrip.cpp \
+	od-fs/fsemu/fsemu-audiostrip.h \
 	od-fs/fsemu/fsemu-axis.h \
-	od-fs/fsemu/fsemu-background.cpp \
-	od-fs/fsemu/fsemu-background.h \
 	od-fs/fsemu/fsemu-button.h \
-	od-fs/fsemu/fsemu-color.h \
-	od-fs/fsemu/fsemu-common.cpp \
 	od-fs/fsemu/fsemu-common.h \
-	od-fs/fsemu/fsemu-compat.h \
 	od-fs/fsemu/fsemu-config.cpp \
 	od-fs/fsemu/fsemu-config.h \
 	od-fs/fsemu/fsemu-constants.h \
@@ -1233,37 +1195,21 @@ libfsemu_a_SOURCES = \
 	od-fs/fsemu/fsemu-control.h \
 	od-fs/fsemu/fsemu-controller.cpp \
 	od-fs/fsemu/fsemu-controller.h \
-	od-fs/fsemu/fsemu-data.cpp \
-	od-fs/fsemu/fsemu-data.h \
 	od-fs/fsemu/fsemu-emuthread.cpp \
 	od-fs/fsemu/fsemu-emuthread.h \
 	od-fs/fsemu/fsemu-events.cpp \
 	od-fs/fsemu/fsemu-events.h \
-	od-fs/fsemu/fsemu-fade.cpp \
-	od-fs/fsemu/fsemu-fade.h \
-	od-fs/fsemu/fsemu-font.cpp \
-	od-fs/fsemu/fsemu-font.h \
-	od-fs/fsemu/fsemu-fontcache.cpp \
-	od-fs/fsemu/fsemu-fontcache.h \
+	od-fs/fsemu/fsemu-follow.cpp \
+	od-fs/fsemu/fsemu-follow.h \
 	od-fs/fsemu/fsemu-frame.cpp \
 	od-fs/fsemu/fsemu-frame.h \
 	od-fs/fsemu/fsemu-frameinfo.cpp \
 	od-fs/fsemu/fsemu-frameinfo.h \
+	od-fs/fsemu/fsemu-graphrows.cpp \
+	od-fs/fsemu/fsemu-graphrows.h \
 	od-fs/fsemu/fsemu-gamemode.cpp \
 	od-fs/fsemu/fsemu-gamemode.h \
 	od-fs/fsemu/fsemu-glib.h \
-	od-fs/fsemu/fsemu-glvideo.cpp \
-	od-fs/fsemu/fsemu-glvideo.h \
-	od-fs/fsemu/fsemu-gui.cpp \
-	od-fs/fsemu/fsemu-gui.h \
-	od-fs/fsemu/fsemu-helpbar.cpp \
-	od-fs/fsemu/fsemu-helpbar.h \
-	od-fs/fsemu/fsemu-helper.cpp \
-	od-fs/fsemu/fsemu-helper.h \
-	od-fs/fsemu/fsemu-hud.cpp \
-	od-fs/fsemu/fsemu-hud.h \
-	od-fs/fsemu/fsemu-image.cpp \
-	od-fs/fsemu/fsemu-image.h \
 	od-fs/fsemu/fsemu-inifile.cpp \
 	od-fs/fsemu/fsemu-inifile.h \
 	od-fs/fsemu/fsemu-input.cpp \
@@ -1278,49 +1224,23 @@ libfsemu_a_SOURCES = \
 	od-fs/fsemu/fsemu-key.h \
 	od-fs/fsemu/fsemu-keyboard.cpp \
 	od-fs/fsemu/fsemu-keyboard.h \
-	od-fs/fsemu/fsemu-layer.h \
 	od-fs/fsemu/fsemu-layout.cpp \
 	od-fs/fsemu/fsemu-layout.h \
-	od-fs/fsemu/fsemu-led.cpp \
-	od-fs/fsemu/fsemu-led.h \
-	od-fs/fsemu/fsemu-leds.cpp \
-	od-fs/fsemu/fsemu-leds.h \
-	od-fs/fsemu/fsemu-log.cpp \
-	od-fs/fsemu/fsemu-log.h \
-	od-fs/fsemu/fsemu-main.cpp \
-	od-fs/fsemu/fsemu-main.h \
 	od-fs/fsemu/fsemu-mainloop.cpp \
 	od-fs/fsemu/fsemu-mainloop.h \
-	od-fs/fsemu/fsemu-mainmenu.cpp \
-	od-fs/fsemu/fsemu-mainmenu.h \
 	od-fs/fsemu/fsemu-manymouse.cpp \
 	od-fs/fsemu/fsemu-manymouse.h \
 	od-fs/fsemu/fsemu-media.cpp \
 	od-fs/fsemu/fsemu-media.h \
-	od-fs/fsemu/fsemu-menu.cpp \
-	od-fs/fsemu/fsemu-menu.h \
 	od-fs/fsemu/fsemu-module.cpp \
 	od-fs/fsemu/fsemu-module.h \
 	od-fs/fsemu/fsemu-monitor.cpp \
 	od-fs/fsemu/fsemu-monitor.h \
 	od-fs/fsemu/fsemu-mouse.cpp \
 	od-fs/fsemu/fsemu-mouse.h \
-	od-fs/fsemu/fsemu-mutex.cpp \
-	od-fs/fsemu/fsemu-mutex.h \
-	od-fs/fsemu/fsemu-opengl.cpp \
-	od-fs/fsemu/fsemu-opengl.h \
-	od-fs/fsemu/fsemu-opengl.h \
 	od-fs/fsemu/fsemu-option.cpp \
 	od-fs/fsemu/fsemu-option.h \
 	od-fs/fsemu/fsemu-options.h \
-	od-fs/fsemu/fsemu-oskeyboard.cpp \
-	od-fs/fsemu/fsemu-oskeyboard.cpp \
-	od-fs/fsemu/fsemu-oskeyboard.h \
-	od-fs/fsemu/fsemu-oskeyboard.h \
-	od-fs/fsemu/fsemu-osmenu.cpp \
-	od-fs/fsemu/fsemu-osmenu.h \
-	od-fs/fsemu/fsemu-path.cpp \
-	od-fs/fsemu/fsemu-path.h \
 	od-fs/fsemu/fsemu-perfgui.cpp \
 	od-fs/fsemu/fsemu-perfgui.h \
 	od-fs/fsemu/fsemu-python.cpp \
@@ -1342,39 +1262,17 @@ libfsemu_a_SOURCES = \
 	od-fs/fsemu/fsemu-sdlgamecontrollerdb.h \
 	od-fs/fsemu/fsemu-sdlinput.cpp \
 	od-fs/fsemu/fsemu-sdlinput.h \
-	od-fs/fsemu/fsemu-sdlvideo.cpp \
-	od-fs/fsemu/fsemu-sdlvideo.h \
-	od-fs/fsemu/fsemu-sdlwindow.cpp \
-	od-fs/fsemu/fsemu-sdlwindow.h \
-	od-fs/fsemu/fsemu-semaphore.cpp \
-	od-fs/fsemu/fsemu-semaphore.h \
-	od-fs/fsemu/fsemu-shader.cpp \
-	od-fs/fsemu/fsemu-shader.h \
-	od-fs/fsemu/fsemu-startupinfo.cpp \
-	od-fs/fsemu/fsemu-startupinfo.h \
-	od-fs/fsemu/fsemu-stream.cpp \
-	od-fs/fsemu/fsemu-stream.h \
-	od-fs/fsemu/fsemu-theme.cpp \
-	od-fs/fsemu/fsemu-theme.h \
-	od-fs/fsemu/fsemu-thread.cpp \
-	od-fs/fsemu/fsemu-thread.h \
-	od-fs/fsemu/fsemu-time.cpp \
-	od-fs/fsemu/fsemu-time.h \
-	od-fs/fsemu/fsemu-titlebar.cpp \
-	od-fs/fsemu/fsemu-titlebar.h \
+	od-fs/fsemu/fsemu-slotplanner.cpp \
+	od-fs/fsemu/fsemu-slotplanner.h \
+	od-fs/fsemu/fsemu-stripe.cpp \
+	od-fs/fsemu/fsemu-stripe.h \
+	od-fs/fsemu/fsemu-testactions.cpp \
+	od-fs/fsemu/fsemu-testactions.h \
 	od-fs/fsemu/fsemu-types.h \
-	od-fs/fsemu/fsemu-util.cpp \
-	od-fs/fsemu/fsemu-util.h \
+	od-fs/fsemu/fsemu-verticalblank.cpp \
+	od-fs/fsemu/fsemu-verticalblank.h \
 	od-fs/fsemu/fsemu-video.cpp \
 	od-fs/fsemu/fsemu-video.h \
-	od-fs/fsemu/fsemu-videothread.cpp \
-	od-fs/fsemu/fsemu-videothread.h \
-	od-fs/fsemu/fsemu-widget.cpp \
-	od-fs/fsemu/fsemu-widget.h \
-	od-fs/fsemu/fsemu-window.cpp \
-	od-fs/fsemu/fsemu-window.h \
-	od-fs/fsemu/fsemu-xmlshader.cpp \
-	od-fs/fsemu/fsemu-xmlshader.h \
 	od-fs/fsemu/fsemu.cpp \
 	od-fs/fsemu/fsemu.h \
 	od-fs/3rdparty/gamemode/lib/gamemode_client.h
@@ -1394,14 +1292,6 @@ fsuae_data_files =
 # FIXME: EXTRA_DIST ?
 libfsemu_a_SOURCES += $(fsemu_data_files)
 
-#data/.fsemu: $(fsemu_data_files) ${fsuae_data_files}
-#	mkdir -p $(builddir)/data/
-#	cp $(srcdir)/fsemu/fonts/saira/* $(builddir)/data/
-#	cp $(srcdir)/fsemu/icons/fontawesome/* $(builddir)/data/
-#	cp $(srcdir)/fsemu/images/* $(builddir)/data/
-#	cp $(srcdir)/src/fsuae/images/* $(builddir)/data/
-#	touch data/.fsemu
-
 fsemu-data: 
 # data/.fsemu
 
@@ -1409,18 +1299,6 @@ else
 
 fsemu-data:
 
-endif
-
-# glad ------------------------------------------------------------------------
-
-if WITH_GLAD
-noinst_LIBRARIES += libglad.a
-AM_CPPFLAGS += -I$(srcdir)/od-fs/glad/include
-fs_uae_LDADD += libglad.a
-libglad_a_SOURCES = \
-	od-fs/glad/include/glad/glad.h \
-	od-fs/glad/include/KHR/khrplatform.h \
-	od-fs/glad/src/glad.c
 endif
 
 # manymouse -------------------------------------------------------------------
@@ -2002,8 +1880,11 @@ endif
 
 # slirp -----------------------------------------------------------------------
 
+# libslirp: builtin (od-fs/3rdparty/libslirp) or system, see --with-libslirp in configure.ac.
 if WITH_SLIRP
-if WITH_BUILTIN_SLIRP
+AM_CPPFLAGS += @LIBSLIRP_CFLAGS@
+fs_uae_LDADD += @LIBSLIRP_LIBS@
+if WITH_BUILTIN_LIBSLIRP
 noinst_LIBRARIES += libslirp.a
 fs_uae_LDADD += libslirp.a
 fs_uae_LDADD += @SLIRP_LIBS@
@@ -2070,6 +1951,7 @@ endif
 EXTRA_DIST += \
 	od-fs/3rdparty/libslirp/CHANGELOG.md \
 	od-fs/3rdparty/libslirp/COPYRIGHT \
+	od-fs/3rdparty/libslirp/include/libslirp.h \
 	od-fs/3rdparty/libslirp/README.md
 
 # -----------------------------------------------------------------------------
@@ -2100,8 +1982,8 @@ endif
 # -----------------------------------------------------------------------------
 
 noinst_LIBRARIES += libmt32emu.a
-AM_CPPFLAGS += -I$(srcdir)/od-fs/3rdparty/mt32emu/src
-# libmt32emu_a_CXXFLAGS = -I$(srcdir)/od-fs/3rdparty/mt32emu/include/mt32emu
+# For <mt32emu.h> (od-fs/3rdparty/mt32emu/include/mt32emu.h)
+AM_CPPFLAGS += -I$(srcdir)/od-fs/3rdparty/mt32emu/include
 libmt32emu_a_CXXFLAGS = -DMT32EMU_WITH_INTERNAL_RESAMPLER
 fs_uae_LDADD += libmt32emu.a
 libmt32emu_a_SOURCES = \
@@ -2155,7 +2037,6 @@ fs_uae_LDADD += @ALSA_LIBS@
 fs_uae_LDADD += @CARBON_LIBS@
 fs_uae_LDADD += @FLAC_LIBS@
 fs_uae_LDADD += @FREETYPE_LIBS@
-fs_uae_LDADD += @GLEW_LIBS@
 fs_uae_LDADD += @GLIB_LIBS@
 fs_uae_LDADD += @IOKIT_LIBS@
 fs_uae_LDADD += @MIDI_LIBS@
@@ -2258,44 +2139,15 @@ endif
 
 EXTRA_DIST += $(TESTS) $(EXTRA_TESTS) \
 	$(fsuae_data_files) \
-	docs/action-replay.md \
-	docs/amiga-forever.md \
-	docs/amigaos-4-1.md \
-	docs/amikit.md \
-	docs/bridgeboard.md \
-	docs/compiling.md \
-	docs/cyberstorm-ppc.md \
-	docs/examples \
-	docs/examples/Default.fs-uae \
-	docs/examples/Keyboard.ini \
-	docs/faq.md \
-	docs/g-sync.md \
-	docs/getting-started.md \
-	docs/issues.md \
-	docs/jit-compiler.md \
-	docs/joysticks.md \
-	docs/keyboard.md \
-	docs/kickstarts.md \
-	docs/linux.md \
-	docs/macos.md \
-	docs/mouse.md \
-	docs/old-files.md \
-	docs/portable.md \
-	docs/serial-port.md \
-	docs/todo.md \
-	docs/variable-refresh-rate.md \
-	docs/vpar.md \
-	docs/vsync.md \
-	docs/windows.md \
-	docs/x-arcade.md \
 	od-fs/ChangeLog \
+	od-fs/3rdparty/README.md \
 	od-fs/3rdparty/gamemode/LICENSE.txt \
-	od-fs/3rdparty/gamemode/README.md \
-	od-fs/glad/LICENSE \
 	od-fs/3rdparty/inih/ini.c \
 	od-fs/3rdparty/inih/ini.h \
 	od-fs/3rdparty/inih/LICENSE.txt \
 	od-fs/README.md \
+	od-fs/build/macos/fs-uae.icns \
+	od-fs/mingw-cross-include \
 	od-fs/windows/fs-uae.ico
 
 #	share/applications \
@@ -2502,15 +2354,19 @@ EXTRA_DIST += \
 	od-fs/Python/app/testwindow.py \
 	od-fs/Python/fsapp/__init__.py \
 	od-fs/Python/fsapp/_frame.py \
+	od-fs/Python/fsapp/connectable.py \
 	od-fs/Python/fsapp/constants.py \
 	od-fs/Python/fsapp/event.py \
 	od-fs/Python/fsapp/eventhandler.py \
 	od-fs/Python/fsapp/eventname.py \
 	od-fs/Python/fsapp/eventservice.py \
+	od-fs/Python/fsapp/frameservice.py \
 	od-fs/Python/fsapp/main.py \
+	od-fs/Python/fsapp/reactive.py \
 	od-fs/Python/fsapp/signal.py \
 	od-fs/Python/fsapp/surface.py \
 	od-fs/Python/fsapp/tickservice.py \
+	od-fs/Python/fsapp/var.py \
 	od-fs/Python/fsemu/__init__.py \
 	od-fs/Python/fsemu/actions.py \
 	od-fs/Python/fsemu/constants.py \
@@ -2578,6 +2434,7 @@ EXTRA_DIST += \
 	od-fs/Python/fsuae/f12window.py \
 	od-fs/Python/fsuae/floppycontrolwindow.py \
 	od-fs/Python/fsuae/fsuaemainwindow.py \
+	od-fs/Python/fsuae/gui/inputgrabnotification.py \
 	od-fs/Python/fsuae/gui/notificationservice.py \
 	od-fs/Python/fsuae/gui/notificationtype.py \
 	od-fs/Python/fsuae/init.py \
@@ -2588,18 +2445,17 @@ EXTRA_DIST += \
 	od-fs/Python/fsuae/input/inputdevicewindow.py \
 	od-fs/Python/fsuae/input/inputmodeselector.py \
 	od-fs/Python/fsuae/message.py \
-	od-fs/Python/fsuae/message2.py \
 	od-fs/Python/fsuae/messages.py \
 	od-fs/Python/fsuae/misc/__init__.py \
 	od-fs/Python/fsuae/misc/clockapp.py \
 	od-fs/Python/fsuae/quickstartwindow.py \
-	od-fs/Python/fsuae/reactive.py \
 	od-fs/Python/fsuae/reactive2.py \
 	od-fs/Python/fsuae/roms/__init__.py \
 	od-fs/Python/fsuae/roms/rom.py \
 	od-fs/Python/fsuae/roms/rommanagerwindow.py \
 	od-fs/Python/fsuae/roms/romscanner.py \
 	od-fs/Python/fsuae/roms/romservice.py \
+	od-fs/Python/fsuae/rundirectory.py \
 	od-fs/Python/fsuae/servicecontainer.py \
 	od-fs/Python/fsuae/services/__init__.py \
 	od-fs/Python/fsuae/services/amigaforeverservice.py \
@@ -2611,10 +2467,12 @@ EXTRA_DIST += \
 	od-fs/Python/fsuae/uaeconfig2.py \
 	od-fs/Python/fsuae/uaeconfigservice.py \
 	od-fs/Python/fsuae/uaeconfigwidgets.py \
-	od-fs/Python/fsuae/var.py \
 	od-fs/Python/fsuae/vfs/__init__.py \
 	od-fs/Python/fsuae/vfs/vfsicon.py \
 	od-fs/Python/fsuae/vfs/vfsservice.py \
+	od-fs/Python/fsuae/whdload/__init__.py \
+	od-fs/Python/fsuae/whdload/amigaicon.py \
+	od-fs/Python/fsuae/whdload/runpreparation.py \
 	od-fs/Python/fsuae/workspace/__init__.py \
 	od-fs/Python/fsuae/workspace/fsuaedirectorywindow.py \
 	od-fs/Python/fsuae/workspace/shellwindow.py \
@@ -2712,6 +2570,21 @@ EXTRA_DIST += \
 
 # --------------------------------------------------------------------------------------------------
 
+# The directories in od-fs/Resources that FS-UAE uses at run time, the same as in the dists
+# (RESOURCE_DIRS in od-fs/build/dist/check.py, checked by od-fs/tests/build/test_install.py).
+# install-data-local installs them in <datadir>/<share dir name>/resources, where an installed
+# FS-UAE (the system install layout, without --enable-dist-layout) looks for them
+# (od-fs/fsuae/fsuae-path.cpp). The fonts and images are listed file by file below, the others
+# as directories.
+FSUAE_RESOURCE_DIRS = Fonts Images WHDLoad UAE SKick src/svg svg-custom
+
+EXTRA_DIST += \
+	od-fs/Resources/SKick \
+	od-fs/Resources/UAE \
+	od-fs/Resources/WHDLoad \
+	od-fs/Resources/src/svg \
+	od-fs/Resources/svg-custom
+
 EXTRA_DIST += \
 	od-fs/Resources/Fonts/other/AdwaitaSans-Regular.ttf \
 	od-fs/Resources/Fonts/other/Roboto-Medium.ttf \
@@ -2722,6 +2595,7 @@ EXTRA_DIST += \
 	od-fs/Resources/Fonts/Roboto-Bold.ttf \
 	od-fs/Resources/Fonts/Roboto-Regular.ttf \
 	od-fs/Resources/Fonts/Roboto-SemiBold.ttf \
+	od-fs/Resources/Images/Icons/FS-UAE/64.png \
 	od-fs/Resources/Images/widgets/button_disabled.9p.png \
 	od-fs/Resources/Images/widgets/button-pressed.9p.png \
 	od-fs/Resources/Images/widgets/button.9p.png \
@@ -2752,17 +2626,31 @@ install-data-local:
 
 	mkdir -p $(DESTDIR)$(datadir)/@SHARE_DIR_NAME@/python
 	cp -r $(srcdir)/od-fs/Python/* $(DESTDIR)$(datadir)/@SHARE_DIR_NAME@/python
+#	The copies get the modes of the source files, which are read-only in a read-only source
+#	directory (as in make distcheck); give them the usual modes for installed data (as with
+#	$(INSTALL_DATA)), so that compileall can write __pycache__ and uninstall can remove them.
+	chmod -R u=rwX,go=rX $(DESTDIR)$(datadir)/@SHARE_DIR_NAME@/python
 #	python3 -m compileall $(DESTDIR)$(datadir)/@SHARE_DIR_NAME@/python
 	$(PYTHON) -m compileall $(DESTDIR)$(datadir)/@SHARE_DIR_NAME@/python
 #	FIXME: compileall
 
-	mkdir -p $(DESTDIR)$(datadir)/@SHARE_DIR_NAME@/resources
+	for dir in $(FSUAE_RESOURCE_DIRS); do \
+	  $(MKDIR_P) "$(DESTDIR)$(datadir)/@SHARE_DIR_NAME@/resources/$$dir" && \
+	  cp -R "$(srcdir)/od-fs/Resources/$$dir/." \
+	    "$(DESTDIR)$(datadir)/@SHARE_DIR_NAME@/resources/$$dir" || exit 1; \
+	done
+	chmod -R u=rwX,go=rX $(DESTDIR)$(datadir)/@SHARE_DIR_NAME@/resources
 
-	mkdir -p $(DESTDIR)$(datadir)/@SHARE_DIR_NAME@/resources/Fonts
-	cp -r $(srcdir)/od-fs/Resources/Fonts/* $(DESTDIR)$(datadir)/@SHARE_DIR_NAME@/resources/Fonts
-
-	mkdir -p $(DESTDIR)$(datadir)/@SHARE_DIR_NAME@/resources/Images
-	cp -r $(srcdir)/od-fs/Resources/Images/* $(DESTDIR)$(datadir)/@SHARE_DIR_NAME@/resources/Images
+# Removes what install-data-local installed. The default share directory (share/fs-uae) is also
+# where FS-UAE 3 is installed, so other files there are left alone.
+uninstall-local:
+	rm -rf "$(DESTDIR)$(datadir)/@SHARE_DIR_NAME@/python"
+	for dir in $(FSUAE_RESOURCE_DIRS); do \
+	  rm -rf "$(DESTDIR)$(datadir)/@SHARE_DIR_NAME@/resources/$$dir" || exit 1; \
+	done
+	rmdir "$(DESTDIR)$(datadir)/@SHARE_DIR_NAME@/resources/src" \
+	  "$(DESTDIR)$(datadir)/@SHARE_DIR_NAME@/resources" \
+	  "$(DESTDIR)$(datadir)/@SHARE_DIR_NAME@" 2>/dev/null || :
 
 # --------------------------------------------------------------------------------------------------
 

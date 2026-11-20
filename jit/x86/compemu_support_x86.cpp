@@ -695,13 +695,6 @@ static int __cdecl untranslated_compfn(const void *e1, const void *e2)
 }
 #endif
 
-#ifdef FSUAE
-// FIXME: MOVE THIS
-#ifndef NOFLAGS_SUPPORT_GENCOMP
-#define NOFLAGS_SUPPORT_GENCOMP
-#endif
-#endif
-
 static compop_func *compfunctbl[65536];
 static compop_func *nfcompfunctbl[65536];
 #ifdef NOFLAGS_SUPPORT_GENCOMP

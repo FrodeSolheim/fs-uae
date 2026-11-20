@@ -3710,9 +3710,18 @@ static void inputdevice_read(void)
 
 static void maybe_read_input(void)
 {
+#ifdef FSUAE
+	// At most once per scanline, as FS-UAE 4 did: inputdevice_hsync calls this at the start of
+	// every line (after the scanline pacer's wait), so input is taken in at each line, and the
+	// Amiga's reads of its input registers on that line merge into that read.
+	if (inputread >= 0 && vpos == inputread) {
+		return;
+	}
+#else
 	if (inputread >= 0 && (vpos - inputread) <= maxvpos_display / 3) {
 		return;
 	}
+#endif
 	if (input_record || savestate_state == STATE_DOSAVE) {
 		return;
 	}
@@ -10805,7 +10814,7 @@ void uae_mousehack_helper(int x, int y)
 	mousehack_helper(0xffffffff);
 }
 
-#include <fs/i18n.h>
+#include <glib/gi18n.h>
 
 static bool g_amiga_allow_auto_mouse_mode = false;
 static int g_requested_port_modes[4];

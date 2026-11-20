@@ -3,7 +3,12 @@
 
 #include "uae.h"
 #include "gui.h"
+#ifdef JIT
+// For jit_abort. Only with the JIT: the 32-bit ARM JIT header does not build without ARMV6T2.
+// newcpu.h before compemu.h: on ARM64, newcpu.h includes compemu.h itself and needs it first.
+#include "newcpu.h"
 #include "compemu.h"
+#endif
 #include "uae/fs.h"
 #include "uae/glib.h"
 #include "custom.h"
@@ -12,7 +17,6 @@
 #include <sys/timeb.h>
 #include <stdio.h>
 
-#include "fsemu-mutex.h"
 #include "libuae.h"
 
 #include "uae/compat/windows.h"
@@ -664,12 +668,9 @@ void write_log (const TCHAR *format, ...)
 	// a mutex to make this function somewhat thread-safe, but line buffering
 	// can still get mixed content from different threads. Should ideally
 	// use thread-local storage for line buffer.
-	static fsemu_mutex *mutex;
-	if (mutex == NULL) {
-		mutex = fsemu_mutex_create();
-	}
+	static SDL_Mutex *mutex = SDL_CreateMutex();
 
-	fsemu_mutex_lock(mutex);
+	SDL_LockMutex(mutex);
 
 	va_list args;
 	va_start(args, format);
@@ -700,7 +701,7 @@ void write_log (const TCHAR *format, ...)
 			buffer[MAX_LINE - 2] = '\n';
 		} else {
 			partial += len;
-			fsemu_mutex_unlock(mutex);
+			SDL_UnlockMutex(mutex);
 			return;
 		}
 	}
@@ -738,7 +739,7 @@ void write_log (const TCHAR *format, ...)
 #endif
 
 	partial = 0;
-	fsemu_mutex_unlock(mutex);
+	SDL_UnlockMutex(mutex);
 }
 
 void jit_abort (const TCHAR *format,...)

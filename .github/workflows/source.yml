@@ -1,110 +1,86 @@
+# The source tarball (make dist), which the OBS packages are built from: bootstrap, configure and
+# make distcheck on Ubuntu 24.04, as a developer there builds (od-fs/build/prepare, with SDL3 from
+# the SDL3 overlay, since Ubuntu 24.04 has no SDL3 packages). The tarball is kept as an artifact.
+# For v* tags, the dist workflow (dist.yml) runs this workflow as a job of its own and puts the
+# tarball in the draft release.
+#
+# Also runs locally with act (https://github.com/nektos/act), for example:
+#
+#   act push -W .github/workflows/source.yml -P ubuntu-24.04=catthehacker/ubuntu:act-24.04
+
 name: Source
 
 on:
   push:
-    branches:
-      - master
-      - dev
-      - stable
+    branches: [main]
   pull_request:
-    branches:
-      - master
-      - dev
-      - stable
+    branches: [main]
+  workflow_dispatch:
+  # For v* tags, the dist workflow (dist.yml) runs this one, and releases the tarball.
+  workflow_call:
+
+permissions:
+  contents: read
 
 jobs:
-  Source:
-    runs-on: ubuntu-18.04
-
+  source:
+    runs-on: ubuntu-24.04
+    env:
+      # The env prefix the SDL3 overlay is built in (x86_64, as the runner is).
+      SDL3_OVERLAY_PREFIX: .build/env/x86_64-linux-gnu
     steps:
-    - name: Update package repositories
-      run: >-
-        sudo apt update
+      # Only the commit: configure takes the version from git (od-fs/build/dist/version.py), which
+      # makes it from the commit alone (and the tag, for a tag build: the checkout of a tag has it),
+      # and make dist names the tarball for it (fs-uae-<version>.tar.gz).
+      - uses: actions/checkout@v7
 
-    - name: Install deb packages
-      run: >-
-        sudo apt install
-        dos2unix
-        gettext
-        intltool
-        libao-dev
-        libasound2-dev
-        libevdev-dev
-        libgbm-dev
-        libgl-dev
-        libglu-dev
-        libopenal-dev
-        libpulse-dev
-        libudev-dev
-        libusb-1.0-0-dev
-        libx11-dev
-        libx11-xcb-dev
-        libxcb1-dev
-        libxcb-glx0-dev
-        libxcb-icccm4-dev
-        libxcb-image0-dev
-        libxcb-keysyms1-dev
-        libxcb-randr0-dev
-        libxcb-render-util0-dev
-        libxcb-shape0-dev
-        libxcb-shm0-dev
-        libxcb-sync0-dev
-        libxcb-xfixes0-dev
-        libxcb-xinerama0-dev
-        libxcursor-dev
-        libxext-dev
-        libxfixes-dev
-        libxi-dev
-        libxinerama-dev
-        libxrandr-dev
-        libxrender-dev
-        x11proto-dev
+      # The SDL3 overlay (SDL3, SDL3_image and SDL3_ttf built by the env system into the env prefix,
+      # .build/env/<triplet>), rebuilt only when the env system, the SDL3 recipes or the packages
+      # prepare installs change. Saved right after it is built, so that a failing distcheck does
+      # not throw it away.
+      - name: Restore the SDL3 overlay
+        id: sdl3-overlay
+        uses: actions/cache/restore@v6
+        with:
+          path: ${{ env.SDL3_OVERLAY_PREFIX }}
+          key: >-
+            sdl3-overlay-ubuntu-24.04-x86_64-${{ hashFiles(
+              'od-fs/build/prepare',
+              'od-fs/build/triplet.sh',
+              'od-fs/build/env/setup',
+              'od-fs/build/env/linux.txt',
+              'od-fs/build/env/scripts/**',
+              'od-fs/build/env/packages/sdl3',
+              'od-fs/build/env/packages/sdl3_image',
+              'od-fs/build/env/packages/sdl3_ttf'
+            ) }}
 
-    - name: Install pip packages
-      run: |
-        sudo python3 -m pip install -U pip setuptools
-        sudo python3 -m pip install -U meson ninja
+      # Installs the build dependencies, and builds the SDL3 overlay unless it was restored.
+      - name: Install the build dependencies
+        run: od-fs/build/prepare -y
 
-    - uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
+      - name: Save the SDL3 overlay
+        if: steps.sdl3-overlay.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6
+        with:
+          path: ${{ env.SDL3_OVERLAY_PREFIX }}
+          key: ${{ steps.sdl3-overlay.outputs.cache-primary-key }}
 
-    - name: Cache dependencies
-      uses: actions/cache@v2
-      id: fsdeps_cache
-      with:
-        path: fsdeps/_prefix
-        key: fsdeps_${{ hashFiles('fsdeps/**/*') }}_${{ runner.os }}
+      - name: Bootstrap
+        run: od-fs/bootstrap
 
-    - name: Build dependencies
-      if: steps.fsdeps_cache.outputs.cache-hit != 'true'
-      run: fsdeps/make
+      # Configures .build/dev with the SDL3 overlay (od-fs/configure says so).
+      - name: Configure
+        run: od-fs/configure
 
-    - name: Update version
-      run: fsbuild/version --update --auto
+      - name: Make distcheck
+        run: make -C od-fs -j"$(nproc)" distcheck
 
-    - name: Bootstrap
-      run: fsdeps/use fsbuild/bootstrap
-
-    - name: Configure
-      run: fsdeps/use fsbuild/configure
-
-    - name: Source
-      run: fsdeps/use fsbuild/source
-
-    - uses: actions/upload-artifact@v2
-      with:
-        name: Source
-        path: fsbuild/_dist/*
-
-    - name: Upload build to Dropbox folder
-      if: >-
-        github.ref == 'refs/heads/master' ||
-        github.ref == 'refs/heads/dev' ||
-        github.ref == 'refs/heads/stable'
-      run: |
-        python3 -m pip install dropbox
-        fsbuild/upload
-      env:
-        DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
-        DROPBOX_ACCESS_TOKEN: ${{ secrets.DROPBOX_ACCESS_TOKEN }}
+      # v5: the newest major version act's artifact server (act 0.2.97) can take uploads from; v6
+      # and v7 use a newer protocol. On GitHub, any version works.
+      - name: Keep the source tarball
+        uses: actions/upload-artifact@v5
+        with:
+          name: source
+          path: .build/dev/fs-uae-*.tar.gz
+          if-no-files-found: error

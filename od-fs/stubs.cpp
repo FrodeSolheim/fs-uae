@@ -133,6 +133,10 @@ void target_restart (void) {
 
 void target_quit (void)
 {
+	// Called from uae_quit. The application does not quit from here, because uae_quit is also
+	// called by uae_restart when restarting with a new config. Instead, the emulation thread ends
+	// the application when amiga_main returns, which only happens on a real quit (see
+	// emulation_thread_function in fsuae/fsuae-main.c).
 	uae_log("target_quit\n");
 #if 0
 	shellexecute (currprefs.win32_commandpathend);

@@ -10,12 +10,12 @@ BEGIN
     BEGIN
       VALUE "CompanyName", "Frode Solheim"
       VALUE "FileDescription", "FS-UAE"
-      VALUE "FileVersion", "@PACKAGE_VERSION@"
+      VALUE "FileVersion", "@FSUAE_VERSION@"
       VALUE "InternalName", "fs-uae"
       VALUE "LegalCopyright", "Copyright 2011-2015 Frode Solheim and others"
       VALUE "OriginalFilename", "FS-UAE.exe"
       VALUE "ProductName", "FS-UAE"
-      VALUE "ProductVersion", "@PACKAGE_VERSION@"
+      VALUE "ProductVersion", "@FSUAE_VERSION@"
     END
   END
   BLOCK "VarFileInfo"

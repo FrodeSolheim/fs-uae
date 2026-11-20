@@ -96,7 +96,6 @@ typedef unsigned short USHORT;
 #undef ENUMNAME
 #undef ENUMDECL
 
-#include "machdep/machdep.h"
 #include "uae/enum.h"
 
 // some code needs uae_sem_t but does not include thread.h properly

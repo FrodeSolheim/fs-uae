@@ -1,20 +1,34 @@
 # FS-UAE
 
 .~*
+__pycache__/
 .build/
 .deps/
 .dirstamp
 *.a
 *.DS_Store
+*.so
+*.swp
 *.xz
 *~
 /aclocal.m4
 /autom4te.cache/
 /config.status
 /configure
+# Written into source tarballs by make dist (see Makefile.am); configure prefers it to git.
+/.tarball-version
 /fs-uae
 /Makefile
 /Makefile.in
+/od-unix/Data
+/od-unix/plugins
+/od-unix/winuae
+/od-win32/Data
+/od-win32/winuae
+configuration.backup
+configuration.cache
+winuaebootlog.txt
+winuaelog.txt
 
 # WinUAE
 

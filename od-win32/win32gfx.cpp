@@ -1038,6 +1038,18 @@ static bool enumeratedisplays2 (bool selectall)
 	md->monitorid = my_strdup("monitor-0");
 	md->primary = true;
 
+	// Fixed list of modes for RTG (picasso96_win.cpp needs DisplayModes)
+	static const int modes[][2] = { { 640, 480 }, { 800, 600 }, { 1024, 768 } };
+	md->DisplayModes = xcalloc(struct PicassoResolution, MAX_PICASSO_MODES);
+	for (int i = 0; i < sizeof modes / sizeof modes[0]; i++) {
+		struct PicassoResolution *pr = &md->DisplayModes[i];
+		pr->inuse = true;
+		pr->res.width = modes[i][0];
+		pr->res.height = modes[i][1];
+		_stprintf(pr->name, _T("%dx%d"), pr->res.width, pr->res.height);
+	}
+	sortmodes(md);
+
 	// md->AdapterLuid = OpenAdapterData.AdapterLuid;
 	// md->VidPnSourceId = OpenAdapterData.VidPnSourceId;
 	// md->AdapterHandle = OpenAdapterData.hAdapter;

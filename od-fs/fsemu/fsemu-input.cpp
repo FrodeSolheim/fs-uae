@@ -6,7 +6,6 @@
 #include <atomic>
 
 #include "fsapp-events.h"
-#include "fsapp-mutex.h"
 #include "fsemu-action.h"
 #include "fsemu-control.h"
 #include "fsemu-controller.h"
@@ -52,7 +51,7 @@ static struct {
     fsemu_inputdevice_t *devices[FSEMU_INPUT_MAX_DEVICES];
 
     // Emulation thread synchronization for fetching actions
-    fsapp_mutex_t *mutex;
+    SDL_Mutex *mutex;
 } fsemu_input;
 
 bool fsemu_input_reconfigure_needed = false;
@@ -421,9 +420,9 @@ void fsemu_input_process_action(uint16_t action, int16_t state)
     if (action & FSEMU_ACTION_COMMAND_FLAG) {
         fsemu_action_process_command_in_main(action, state);
 
-        fsapp_mutex_lock(fsemu_input.mutex);
+        SDL_LockMutex(fsemu_input.mutex);
         g_queue_push_tail(fsemu_input.command_queue, GUINT_TO_POINTER(action_state));
-        fsapp_mutex_unlock(fsemu_input.mutex);
+        SDL_UnlockMutex(fsemu_input.mutex);
         // A paused emulation thread sleeps until a command comes (the one that resumes it).
         fsemu_frame_wake_paused();
         // fsemu_input_log_debug("(command) pushed %04x %04x\n", action,
@@ -431,9 +430,9 @@ void fsemu_input_process_action(uint16_t action, int16_t state)
     } else if (action & FSEMU_ACTION_NONEMU_FLAG) {
         fsemu_action_process_non_emu(action, state);
     } else {
-        fsapp_mutex_lock(fsemu_input.mutex);
+        SDL_LockMutex(fsemu_input.mutex);
         g_queue_push_tail(fsemu_input.action_queue, GUINT_TO_POINTER(action_state));
-        fsapp_mutex_unlock(fsemu_input.mutex);
+        SDL_UnlockMutex(fsemu_input.mutex);
         fsemu_input.queued_actions.fetch_add(1, std::memory_order_release);
         // fsemu_input_log_debug("(input) pushed %04x %04x\n", action, state);
     }
@@ -447,9 +446,9 @@ static bool fsemu_input_next_from_queue(GQueue *queue, uint16_t *action, int16_t
     fsapp_assert(fsemu_input.initialized);
 
     // FIXME: Double-locking?
-    fsapp_mutex_lock(fsemu_input.mutex);
+    SDL_LockMutex(fsemu_input.mutex);
     gpointer action_state_p = g_queue_pop_head(queue);
-    fsapp_mutex_unlock(fsemu_input.mutex);
+    SDL_UnlockMutex(fsemu_input.mutex);
     if (action_state_p == NULL) {
         *action = 0;
         *state = 0;
@@ -811,7 +810,7 @@ void fsemu_input_init_module(void)
 
     fsemu_input_log("Initializing input module\n");
 
-    fsemu_input.mutex = fsapp_mutex_create();
+    fsemu_input.mutex = SDL_CreateMutex();
     // fsemu_option_read_int(FSEMU_OPTION_LOG_INPUT, &fsemu_input_log_level);
     fsemu_input.action_queue = g_queue_new();
     fsemu_input.command_queue = g_queue_new();

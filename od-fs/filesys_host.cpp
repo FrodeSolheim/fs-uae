@@ -5,20 +5,18 @@
 #include "sysconfig.h"
 #include "sysdeps.h"
 
-#include "libfsemu/include/fs/fs.h"
-
 #include "fsdb.h"
 #include "uae/fs.h"
 #include "uae/glib.h"
 #include "options.h"
 #include "filesys.h"
 #include "zfile.h"
-#include <fs/util.h>
 #include <unistd.h>
 #ifdef _WIN32
 #include <winsock2.h>
 #include <windows.h>
 #endif
+#include "fsapp-file.h"
 #include "fsdb_host.h"
 #include "uae.h"
 
@@ -46,8 +44,8 @@ bool my_chmod (const TCHAR *name, uae_u32 mode) {
 }
 
 bool my_stat (const TCHAR *name, struct mystat *ms) {
-    struct fs_stat sonuc;
-    if (fs_stat(name, &sonuc) == -1) {
+    fsapp_file_stat_t sonuc;
+    if (fsapp_file_stat(name, &sonuc) == -1) {
         write_log("my_stat: stat on file %s failed\n", name);
         return false;
     }
@@ -58,7 +56,7 @@ bool my_stat (const TCHAR *name, struct mystat *ms) {
         ms->size = 0;
     } else {
         if (g_fsdb_debug) {
-            write_log("fs_stat returned size %jd\n", sonuc.size);
+            write_log("fsapp_file_stat returned size %jd\n", sonuc.size);
         }
         ms->size = sonuc.size;
     }
@@ -126,7 +124,7 @@ struct my_opendir_s *my_opendir(const TCHAR *name, const TCHAR *mask) {
             continue;
         }
 
-        char *cresult = fs_utf8_to_latin1(result, -1);
+        char *cresult = fsdb_utf8_to_latin1(result, -1);
         if (cresult == NULL) {
             // file name could not be represented as ISO-8859-1, so it
             // will be ignored
@@ -182,26 +180,26 @@ int my_existsfile(const char *name) {
     if (g_fsdb_debug) {
         write_log("my_existsfile %s\n", name);
     }
-    return fs_path_is_file(name);
+    return g_file_test(name, G_FILE_TEST_IS_REGULAR);
 }
 
 int my_existsdir(const char *name) {
     if (g_fsdb_debug) {
         write_log("my_existsdir %s\n", name);
     }
-    return fs_path_is_dir(name);
+    return g_file_test(name, G_FILE_TEST_IS_DIR);
 }
 
 bool my_existsfiledir(const char *name) {
     if (g_fsdb_debug) {
         write_log("my_existsfiledir %s\n", name);
     }
-    return fs_path_is_file(name) || fs_path_is_dir(name);
+    return g_file_test(name, G_FILE_TEST_IS_REGULAR) || g_file_test(name, G_FILE_TEST_IS_DIR);
 }
 
 uae_s64 my_fsize(struct my_openfile_s* mos) {
-    struct fs_stat sonuc;
-    if (fs_fstat(mos->fd, &sonuc) == -1) {
+    fsapp_file_stat_t sonuc;
+    if (fsapp_file_fstat(mos->fd, &sonuc) == -1) {
         write_log("my_fsize: fstat on file %s failed\n", mos->path);
         return -1;
     }
@@ -214,11 +212,11 @@ int my_getvolumeinfo(const char *root) {
     }
     // FIXME: check what this is supposed to do
     write_log("my_getvolumeinfo %s\n", root);
-    struct fs_stat sonuc;
+    fsapp_file_stat_t sonuc;
     int ret = 0;
 
 
-    if (fs_stat(root, &sonuc) == -1) {
+    if (fsapp_file_stat(root, &sonuc) == -1) {
         return -1;
     }
     if (!S_ISDIR(sonuc.mode)) {
@@ -253,7 +251,7 @@ struct my_openfile_s *my_open(const TCHAR *name, int flags) {
     }
     char *path = uae_expand_path(name);
 
-    int file_existed = fs_path_exists(path);
+    int file_existed = g_file_test(path, G_FILE_TEST_EXISTS);
     int file = g_open(path, open_flags, 0644);
     if (file == -1) {
         my_errno = errno;
@@ -401,7 +399,7 @@ int my_truncate(const TCHAR *name, uae_u64 len) {
 }
 
 static void remove_extra_file(const char *path, const char *name) {
-    char *p = g_build_filename(path, name, NULL);
+    char *p = g_build_filename(path, name, (char *)NULL);
     g_unlink(p);
     g_free(p);
 }
@@ -417,7 +415,7 @@ int my_rmdir(const TCHAR *path) {
     int result = g_rmdir(path);
     my_errno = errno;
 
-    char *meta_name = g_strconcat(path, ".uaem", NULL);
+    char *meta_name = g_strconcat(path, ".uaem", (char *)NULL);
     g_unlink(meta_name);
     g_free(meta_name);
 
@@ -433,7 +431,7 @@ int my_unlink (const TCHAR *path, bool dontrecycle)
     int result = g_unlink(path);
     my_errno = errno;
 
-    char *meta_name = g_strconcat(path, ".uaem", NULL);
+    char *meta_name = g_strconcat(path, ".uaem", (char *)NULL);
     g_unlink(meta_name);
     g_free(meta_name);
 
@@ -468,9 +466,9 @@ int my_rename(const TCHAR *oldname, const TCHAR *newname) {
         return result;
     }
 
-    char *oldname2 = g_strconcat(oldname, ".uaem", NULL);
-    if (fs_path_exists(oldname2)) {
-        char *newname2 = g_strconcat(newname, ".uaem", NULL);
+    char *oldname2 = g_strconcat(oldname, ".uaem", (char *)NULL);
+    if (g_file_test(oldname2, G_FILE_TEST_EXISTS)) {
+        char *newname2 = g_strconcat(newname, ".uaem", (char *)NULL);
         if (rename_file(oldname2, newname2) != 0) {
             // could not rename meta file, revert changes
             int saved_errno = my_errno;

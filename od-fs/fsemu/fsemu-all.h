@@ -36,7 +36,6 @@
 #include "fsemu-module.h"
 #include "fsemu-monitor.h"
 #include "fsemu-mouse.h"
-#include "fsapp-mutex.h"
 #include "fsemu-option.h"
 #include "fsemu-options.h"
 #include "fsapp-file.h"

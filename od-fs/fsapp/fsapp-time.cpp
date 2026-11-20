@@ -8,7 +8,6 @@
 
 #include <string>
 
-#include "fsapp-mutex.h"
 #include "fsapp-os.h"
 #include "fsapp-util.h"
 
@@ -16,7 +15,7 @@ int fsapp_time_log_level = SDL_LOG_PRIORITY_INFO;
 
 static struct {
     bool initialized;
-    fsapp_mutex_t *mutex;
+    SDL_Mutex *mutex;
 } fsapp_time;
 
 int64_t fsapp_time_sleep_until_ns(int64_t until_ns)
@@ -97,18 +96,14 @@ struct tm *fsapp_time_localtime_r(const time_t *timep, struct tm *result)
     // On Windows, localtime is thread-safe due to using thread-local
     // storage, using mutexes for other platforms (and hopefully no-one
     // else calls localtime simultaneously...).
-    if (fsapp_time.mutex) {
-        fsapp_mutex_lock(fsapp_time.mutex);
-    }
+    SDL_LockMutex(fsapp_time.mutex);
     struct tm *tm = localtime(timep);
     if (tm == NULL) {
         fsapp_time_log_warning("localtime - invalid time_t (%ld)\n", (long)*timep);
     } else {
         *result = *tm;
     }
-    if (fsapp_time.mutex) {
-        fsapp_mutex_unlock(fsapp_time.mutex);
-    }
+    SDL_UnlockMutex(fsapp_time.mutex);
     if (tm == NULL) {
         return NULL;
     }
@@ -124,18 +119,14 @@ struct tm *fsapp_time_gmtime_r(const time_t *timep, struct tm *result)
     /* on Windows, gmtime is thread-safe due to using thread-local
      * storage, using mutexes for other platforms (and hopefully no-one
      * else calls gmtime simultaneously...) */
-    if (fsapp_time.mutex) {
-        fsapp_mutex_lock(fsapp_time.mutex);
-    }
+    SDL_LockMutex(fsapp_time.mutex);
     struct tm *tm = gmtime(timep);
     if (tm == NULL) {
         fsapp_time_log_warning("gmtime - invalid time_t (%ld)\n", (long)*timep);
     } else {
         *result = *tm;
     }
-    if (fsapp_time.mutex) {
-        fsapp_mutex_unlock(fsapp_time.mutex);
-    }
+    SDL_UnlockMutex(fsapp_time.mutex);
     if (tm == NULL) {
         return NULL;
     }
@@ -145,9 +136,7 @@ struct tm *fsapp_time_gmtime_r(const time_t *timep, struct tm *result)
 
 time_t fsapp_time_timegm(struct tm *tm)
 {
-    if (fsapp_time.mutex) {
-        fsapp_mutex_lock(fsapp_time.mutex);
-    }
+    SDL_LockMutex(fsapp_time.mutex);
     time_t ret;
     // Code adapted from the man page of timegm.
     char *tz;
@@ -173,9 +162,7 @@ time_t fsapp_time_timegm(struct tm *tm)
     }
     tzset();
 #endif
-    if (fsapp_time.mutex) {
-        fsapp_mutex_unlock(fsapp_time.mutex);
-    }
+    SDL_UnlockMutex(fsapp_time.mutex);
     return ret;
 }
 
@@ -216,7 +203,7 @@ void fsapp_time_init(void)
     }
     fsapp_time.initialized = true;
 
-    fsapp_time.mutex = fsapp_mutex_create();
+    fsapp_time.mutex = SDL_CreateMutex();
 #ifdef WINDOWS
     _tzset();
 #else

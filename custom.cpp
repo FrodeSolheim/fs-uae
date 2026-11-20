@@ -4610,12 +4610,18 @@ static void maybe_process_pull_audio(void)
 
 static bool crender_screen(int monid, int mode, bool immediate)
 {
+#ifdef FSUAE
+	// FS-UAE posts every field, also in non-field interlace mode: fsemu's timeline takes a picture
+	// for every emulated frame (with vsync on, the start gate of frame N waits for picture N - 2),
+	// and the short field's picture has the rows of both fields, as the long field's has.
+#else
 	if (currprefs.gfx_vresolution && interlace_seen > 0 && currprefs.gfx_iscanlines == 0) {
 		// if non-fields interlace mode: render only complete frames
 		if (!lof_display) {
 			return true;
 		}
 	}
+#endif
 	bool v = render_screen(monid, mode, immediate);
 	if (display_reset > 0) {
 		display_reset--;
@@ -4674,6 +4680,18 @@ static bool framewait(void)
 
 	frameskiptime = 0;
 
+#ifdef FSUAE
+	// fsemu paces the emulation alone, scanline by scanline (linesync_fsuae): post the previous
+	// frame's picture as the "real" speed branch below does, but do not wait.
+	if (!frame_rendered && !ad->picasso_on) {
+		frame_rendered = crender_screen(0, 1, false);
+	}
+	if (frame_rendered && !frame_shown) {
+		show_screen(0, 0);
+	}
+	frame_shown = true;
+	return true;
+#else
 	if (vs > 0) {
 
 		static struct mavg_data ma_legacy;
@@ -4862,6 +4880,7 @@ static bool framewait(void)
 
 	}
 	return status != 0;
+#endif // FSUAE
 }
 
 static void reset_cpu_idle(void)
@@ -4992,7 +5011,13 @@ static void vsync_handler_render(void)
 		frameskiptime += end - start;
 	}
 
+#ifdef FSUAE
+	uae_fs_begin_framewait();
+#endif
 	bool frameok = framewait();
+#ifdef FSUAE
+	uae_fs_end_framewait();
+#endif
 	
 	if (!ad->picasso_on) {
 		if (!frame_rendered && vblank_hz_state) {
@@ -6381,6 +6406,100 @@ static void cia_hsync_do(void)
 	}
 }
 
+#ifdef FSUAE
+// FS-UAE's slices, as in FS-UAE 4: the picture of the frame being emulated is posted in slices as
+// its lines are drawn, so that the main thread uploads most of it while the frame is still being
+// emulated: one at each quarter of the frame's lines from the first visible line (minfirstline) to
+// its end, and the last (the whole picture) at the end of the frame's lines, before fsemu's end
+// wait (vsync_do). WinUAE's framewait, at the display's vertical sync a few lines into the next
+// frame, then does not post the picture again; it still posts it whole when no last slice was
+// (drawn into the temporary buffer, RTG, a frame without its end, vsync_do(false), or a picture
+// with rows drawn after the frame's last line). The glue tags a slice with the frame being
+// emulated, and a whole picture from framewait with the frame before (uae_fs_slice).
+#define FSUAE_SLICES 4
+
+static bool render_slice_fsuae(bool last)
+{
+	if (adisplays[0].picasso_on) {
+		return false;
+	}
+	uae_fs_begin_slice();
+	int rows = draw_denise_flush_rows_drawn();
+	if (rows < 0) {
+		// Drawn into the temporary buffer, which is copied to the draw buffer only at the display's
+		// vertical sync: WinUAE's framewait posts it whole.
+		uae_fs_end_slice();
+		return false;
+	}
+	uae_fs_slice.posting = true;
+	uae_fs_slice.rows = rows;
+	uae_fs_slice.last = last;
+	// crender_screen counts down display_reset once per frame: at the last slice, or in framewait
+	// when the last slice did not post the whole picture.
+	int reset = display_reset;
+	bool rendered = crender_screen(0, last ? 1 : 2, true);
+	if (!last || !rendered) {
+		display_reset = reset;
+	}
+	uae_fs_slice.posting = false;
+	uae_fs_end_slice();
+	return rendered;
+}
+
+// At the start of each line (linesync_fsuae): the slices before the last.
+static void render_slices_fsuae(void)
+{
+	if (currprefs.turbo_emulation) {
+		// While warping, only the last slice.
+		return;
+	}
+	int first = minfirstline;
+	int step = (maxvpos + lof_store - first) / FSUAE_SLICES;
+	int line = vpos - first;
+	if (step > 0 && line > 0 && line % step == 0 && line / step < FSUAE_SLICES) {
+		render_slice_fsuae(false);
+	}
+}
+
+// At the end of the frame's lines (vsync_do), before fsemu's end wait: the last slice.
+static void render_last_slice_fsuae(void)
+{
+	if (!frame_rendered) {
+		frame_rendered = render_slice_fsuae(true);
+	}
+}
+
+// The scanline pacer (one pacer): fsemu paces the emulation alone, line by line, instead of
+// WinUAE's line sync (the branches of hsync_handler_post below) and framewait (bypassed). Called at
+// the start of each line, when the lines before it are done: waits until fsemu's timeline reaches
+// the line, or with "fastest possible" CPU speed gives the CPU the time until then. With the
+// threaded CPU (cpu_thread), the CPU runs on a thread of its own, unpaced as in WinUAE, and the
+// chipset (this thread) waits. A CPU that is stopped (STOP) gets no extra time: with the chipset
+// stopped, no interrupt can wake it, so the line waits instead (and events.cpp ends a block of
+// extra time when the CPU stops in it). Nor does it in WinUAE's CPU sleep mode (cpu_sleepmode, a CPU
+// that has been idle for a while with cpu_idle), where WinUAE's own branch for it is not taken
+// either.
+static void linesync_fsuae(void)
+{
+	events_reset_syncline();
+	render_slices_fsuae();
+	if (vpos == 0 || currprefs.turbo_emulation) {
+		// Line 0 starts after the frame's end (and its end wait), before the next frame starts.
+		return;
+	}
+	int lines = maxvpos + lof_store;
+	bool fastest = currprefs.m68k_speed < 0 && !currprefs.cpu_memory_cycle_exact && !currprefs.cpu_thread && event_wait;
+	uae_fs_on_line_start(regs.stopped != 0, fastest);
+	if (fastest && !regs.stopped && !cpu_sleepmode) {
+		if (uae_fs_begin_line_extra_cpu(vpos, lines)) {
+			is_syncline = UAE_FS_SYNCLINE_EXTRA_CPU;
+		}
+	} else {
+		uae_fs_wait_for_line(vpos, lines);
+	}
+}
+#endif
+
 // this prepares for new line
 static void hsync_handler_post(bool onvsync)
 {
@@ -6415,7 +6534,15 @@ static void hsync_handler_post(bool onvsync)
 	if (currprefs.cpu_thread) {
 
 		maybe_process_pull_audio();
+#ifdef FSUAE
+		// The threaded CPU runs on a thread of its own: the chipset is paced here as without it.
+		linesync_fsuae();
+#endif
 
+#ifdef FSUAE
+	} else if (!currprefs.cpu_thread) {
+		linesync_fsuae();
+#endif
 	} else if (isvsync_chipset() < 0) {
 #ifdef WITH_BEAMRACER
 		if (currprefs.gfx_display_sections <= 1) {
@@ -6607,6 +6734,10 @@ static bool uae_quit_check(void)
 static bool vsync_do(bool normal)
 {
 #ifdef FSUAE
+	if (normal) {
+		uae_fs_on_frame_lines_done();
+		render_last_slice_fsuae();
+	}
 	// amiga_flush_audio();
 	uae_fs_end_frame();
 

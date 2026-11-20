@@ -9,9 +9,7 @@
 #include "custom.h"
 #include "disk.h"
 #include "events.h"
-#include "fs/filesys.h"
 #include "fsemu-glib.h"
-// #include "fsemu-mutex.h"
 #include "gui.h"
 #include "inputdevice.h"
 #include "keyboard.h"
@@ -136,7 +134,7 @@ void amiga_set_floppy_sounds_dir(const char *path)
         g_floppy_sounds_dir = g_strdup(path);
     } else {
         // must have directory separator at the end
-        g_floppy_sounds_dir = g_strconcat(path, "/", NULL);
+        g_floppy_sounds_dir = g_strconcat(path, "/", (char *)NULL);
     }
 }
 
@@ -150,7 +148,7 @@ void amiga_floppy_set_writable_images(int writable)
     g_fs_uae_writable_disk_images = writable;
 }
 
-#include "fsemu-time.h"
+#include "fsapp-time.h"
 #include "fsemu-types.h"
 
 int amiga_init(void)
@@ -158,16 +156,18 @@ int amiga_init(void)
     uae_log("Initializing core derived from %s\n", UAE_BASE_VERSION);
 
 #if 0
-    int64_t now_us = fsemu_time_us();
+    int64_t began_ns = (int64_t)SDL_GetTicksNS();
 	for (int i = 0; i < 1000000; i++) {
 		uaerand();
 	}
-    printf("RNG benchmark: %lld\n", fsemu_lld(fsemu_time_us() - now_us));
+    printf("RNG benchmark: %lld us\n",
+           fsemu_lld((int64_t)SDL_NS_TO_US((int64_t)SDL_GetTicksNS() - began_ns)));
 #endif
 
     module.main_queue = g_async_queue_new();
 
     uae_register_main_thread();
+    // Also sets syncbase, the clock's ticks per second.
     uae_time_init();
 
     /*
@@ -175,12 +175,6 @@ int amiga_init(void)
     g_sync_debug_file = fopen("sync.log", "wb");
 #endif
     */
-
-    // clock sync base is 1000000 (microseconds)
-    syncbase = 1000000;
-
-    // clock sync base is 10000 (tenths of milliseconds)
-    // syncbase = 10000;
 
     filesys_host_init();
 

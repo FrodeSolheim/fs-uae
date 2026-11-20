@@ -42,8 +42,8 @@ def update_debian_changelog(path: str, version: str) -> None:
 def main() -> None:
     version = sys.argv[1]
     update_configure_ac("configure.ac", version)
-    update_debian_changelog("od-fs/dist/debian/changelog", version)
-    update_rpm_spec("od-fs/dist/fs-uae.spec", version)
+    update_debian_changelog("od-fs/build/dist/obs/debian/changelog", version)
+    update_rpm_spec("od-fs/build/dist/obs/fs-uae.spec", version)
 
 
 if __name__ == "__main__":

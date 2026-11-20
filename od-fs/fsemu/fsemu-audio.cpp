@@ -5,7 +5,6 @@
 #include "fsemu-alsaaudio.h"
 #endif
 #include "fs/log.h"
-#include "fsapp-mutex.h"
 #include "fsemu-audiobuffer.h"
 #include "fsemu-audiorate.h"
 #include "fsemu-frame.h"
@@ -29,7 +28,7 @@
 static struct {
     int driver;
     int frequency;
-    fsapp_mutex_t *mutex;
+    SDL_Mutex *mutex;
     // From the audio callback: what it handed over last, when (0 before the first callback), and
     // the audio ring buffer's read position after it and the write position it saw.
     int sent_size;
@@ -74,16 +73,12 @@ int fsemu_audio_log_level = SDL_LOG_PRIORITY_INFO;
 
 static void fsemu_audio_lock(void)
 {
-    if (fsemu_audio.mutex) {
-        fsapp_mutex_lock(fsemu_audio.mutex);
-    }
+    SDL_LockMutex(fsemu_audio.mutex);
 }
 
 static void fsemu_audio_unlock(void)
 {
-    if (fsemu_audio.mutex) {
-        fsapp_mutex_unlock(fsemu_audio.mutex);
-    }
+    SDL_UnlockMutex(fsemu_audio.mutex);
 }
 
 int fsemu_audio_driver(void)
@@ -588,7 +583,7 @@ void fsemu_audio_init(void)
     fsemu_audio_log_info("Init\n");
     fsemu_audio_log_level = fsemu_option_int_default(FSEMU_OPTION_LOG_AUDIO, SDL_LOG_PRIORITY_INFO);
 
-    fsemu_audio.mutex = fsapp_mutex_create();
+    fsemu_audio.mutex = SDL_CreateMutex();
     fsemu_audiorate_init(&fsemu_audio.controller);
     fsemu_audiorate_init_excess_rule(&fsemu_audio.excess_rule);
     fsemu_audiobuffer_init();

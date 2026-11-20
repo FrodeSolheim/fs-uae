@@ -870,7 +870,6 @@ OPT_FEATURE([WITH_UAENATIVE], [uaenative], [uaenative], [uaenative.library])
 OPT_FEATURE([SANA2], [uaenet], [uaenet], [uaenet.device])
 OPT_FEATURE([SCSIEMU], [uaescsi], [uaescsi], [uaescsi.device])
 OPT_FEATURE([UAESERIAL], [uaeserial], [uaeserial], [uaeserial.device])
-OPT_FEATURE([WITH_UDIS86], [udis86], [udis86], [UDIS86 x86/x86-64 disassembler])
 OPT_FEATURE([WITH_VPAR], [vpar], [vpar], [vpar virtual parallel port])
 
 AC_ARG_ENABLE([x86], [AS_HELP_STRING([--disable-x86], [x86 bridgeboard support])])

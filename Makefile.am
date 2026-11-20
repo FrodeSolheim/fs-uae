@@ -258,7 +258,6 @@ AM_CPPFLAGS += -I$(srcdir)/od-fs/archivers
 AM_CPPFLAGS += -I$(srcdir)/od-fs/include
 # For includes such as "7z/LzmaDec.h" (od-fs/3rdparty/lzma-sdk/7z)
 AM_CPPFLAGS += -I$(srcdir)/od-fs/3rdparty/lzma-sdk
-# AM_CPPFLAGS += -I$(srcdir)/od-fs/flac/include
 AM_CPPFLAGS += -I$(srcdir)/od-win32
 
 if WITH_CHD
@@ -552,15 +551,6 @@ libuae_a_SOURCES = \
 	od-fs/defines.h \
 	od-fs/driveclick_fs.cpp \
 	od-fs/filesys_host.cpp \
-	od-fs/flac/include/FLAC/all.h \
-	od-fs/flac/include/FLAC/assert.h \
-	od-fs/flac/include/FLAC/callback.h \
-	od-fs/flac/include/FLAC/export.h \
-	od-fs/flac/include/FLAC/format.h \
-	od-fs/flac/include/FLAC/metadata.h \
-	od-fs/flac/include/FLAC/ordinals.h \
-	od-fs/flac/include/FLAC/stream_decoder.h \
-	od-fs/flac/include/FLAC/stream_encoder.h \
 	od-fs/fsdb_host.cpp \
 	od-fs/fsdb_host.h \
 	od-fs/gui.cpp \
@@ -2109,28 +2099,6 @@ endif
 
 # -----------------------------------------------------------------------------
 
-if WITH_UDIS86
-noinst_LIBRARIES += libudis86.a
-AM_CPPFLAGS += -I$(srcdir)/od-fs/libudis86/include
-fs_uae_LDADD += libudis86.a
-libudis86_a_SOURCES = \
-	od-fs/libudis86/include/udis86.h \
-	od-fs/libudis86/src/decode.c \
-	od-fs/libudis86/src/decode.h \
-	od-fs/libudis86/src/extern.h \
-	od-fs/libudis86/src/itab.c \
-	od-fs/libudis86/src/itab.h \
-	od-fs/libudis86/src/syn-att.c \
-	od-fs/libudis86/src/syn-intel.c \
-	od-fs/libudis86/src/syn.c \
-	od-fs/libudis86/src/syn.h \
-	od-fs/libudis86/src/types.h \
-	od-fs/libudis86/src/udint.h \
-	od-fs/libudis86/src/udis86.c
-endif
-
-# -----------------------------------------------------------------------------
-
 noinst_LIBRARIES += libmt32emu.a
 AM_CPPFLAGS += -I$(srcdir)/od-fs/3rdparty/mt32emu/src
 # libmt32emu_a_CXXFLAGS = -I$(srcdir)/od-fs/3rdparty/mt32emu/include/mt32emu
@@ -2327,7 +2295,6 @@ EXTRA_DIST += $(TESTS) $(EXTRA_TESTS) \
 	od-fs/3rdparty/inih/ini.c \
 	od-fs/3rdparty/inih/ini.h \
 	od-fs/3rdparty/inih/LICENSE.txt \
-	od-fs/libudis86/README \
 	od-fs/README.md \
 	od-fs/windows/fs-uae.ico
 

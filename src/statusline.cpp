@@ -44,7 +44,7 @@ void statusline_getpos (int *x, int *y, int width, int height)
 	}
 }
 
-static const char *numbers = { /* ugly  0123456789CHD%+-P */
+static const char *statusline_numbers = { /* ugly  0123456789CHD%+-P */
 	"+++++++--++++-+++++++++++++++++-++++++++++++++++++++++++++++++++++++++++++++-++++++-++++----++---+--------------+++++++"
 	"+xxxxx+--+xx+-+xxxxx++xxxxx++x+-+x++xxxxx++xxxxx++xxxxx++xxxxx++xxxxx++xxxx+-+x++x+-+xxx++-+xx+-+x---+----------+xxxxx+"
 	"+x+++x+--++x+-+++++x++++++x++x+++x++x++++++x++++++++++x++x+++x++x+++x++x++++-+x++x+-+x++x+--+x++x+--+x+----+++--+x---x+"
@@ -67,7 +67,7 @@ static void write_tdnumber (uae_u8 *buf, int bpp, int x, int y, int num, uae_u32
 	int j;
 	const char *numptr;
 
-	numptr = numbers + num * TD_NUM_WIDTH + NUMBERS_NUM * TD_NUM_WIDTH * y;
+	numptr = statusline_numbers + num * TD_NUM_WIDTH + NUMBERS_NUM * TD_NUM_WIDTH * y;
 	for (j = 0; j < TD_NUM_WIDTH; j++) {
 		if (*numptr == 'x')
 			putpixel (buf, bpp, x + j, c1, 1);

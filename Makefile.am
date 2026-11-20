@@ -256,6 +256,8 @@ AM_CPPFLAGS += -I$(srcdir)/jit
 AM_CPPFLAGS += -I$(srcdir)/od-fs
 AM_CPPFLAGS += -I$(srcdir)/od-fs/archivers
 AM_CPPFLAGS += -I$(srcdir)/od-fs/include
+# For includes such as "7z/LzmaDec.h" (od-fs/3rdparty/lzma-sdk/7z)
+AM_CPPFLAGS += -I$(srcdir)/od-fs/3rdparty/lzma-sdk
 # AM_CPPFLAGS += -I$(srcdir)/od-fs/flac/include
 AM_CPPFLAGS += -I$(srcdir)/od-win32
 
@@ -810,74 +812,74 @@ libarchivers_a_SOURCES = \
 if WITH_CHD
 # libarchivers_a_CXXFLAGS = 
 libarchivers_a_SOURCES += \
-	od-fs/7z/7zAlloc.c \
-	od-fs/7z/7zAlloc.h \
-	od-fs/7z/7zArcIn.c \
-	od-fs/7z/7zBuf2.c \
-	od-fs/7z/7zBuf.c \
-	od-fs/7z/7zBuf.h \
-	od-fs/7z/7zCrc.c \
-	od-fs/7z/7zCrc.h \
-	od-fs/7z/7zCrcOpt.c \
-	od-fs/7z/7zDec.c \
-	od-fs/7z/7zFile.c \
-	od-fs/7z/7zFile.h \
-	od-fs/7z/7z.h \
-	od-fs/7z/7zStream.c \
-	od-fs/7z/7zTypes.h \
-	od-fs/7z/7zVersion.h \
-	od-fs/7z/Aes.c \
-	od-fs/7z/Aes.h \
-	od-fs/7z/AesOpt.c \
-	od-fs/7z/Alloc.c \
-	od-fs/7z/Alloc.h \
-	od-fs/7z/Bcj2.c \
-	od-fs/7z/Bcj2.h \
-	od-fs/7z/Bra86.c \
-	od-fs/7z/Bra.c \
-	od-fs/7z/Bra.h \
-	od-fs/7z/BraIA64.c \
-	od-fs/7z/Compiler.h \
-	od-fs/7z/CpuArch.c \
-	od-fs/7z/CpuArch.h \
-	od-fs/7z/Delta.c \
-	od-fs/7z/Delta.h \
-	od-fs/7z/LzFind.c \
-	od-fs/7z/LzFind.h \
-	od-fs/7z/LzHash.h \
-	od-fs/7z/Lzma2Dec.c \
-	od-fs/7z/Lzma2Dec.h \
-	od-fs/7z/Lzma2Enc.c \
-	od-fs/7z/Lzma2Enc.h \
-	od-fs/7z/Lzma86Dec.c \
-	od-fs/7z/Lzma86Enc.c \
-	od-fs/7z/Lzma86.h \
-	od-fs/7z/LzmaDec.c \
-	od-fs/7z/LzmaDec.h \
-	od-fs/7z/LzmaEnc.c \
-	od-fs/7z/LzmaEnc.h \
-	od-fs/7z/LzmaLib.c \
-	od-fs/7z/LzmaLib.h \
-	od-fs/7z/Ppmd7.c \
-	od-fs/7z/Ppmd7Dec.c \
-	od-fs/7z/Ppmd7Enc.c \
-	od-fs/7z/Ppmd7.h \
-	od-fs/7z/Ppmd.h \
-	od-fs/7z/Precomp.h \
-	od-fs/7z/RotateDefs.h \
-	od-fs/7z/Sha256.c \
-	od-fs/7z/Sha256.h \
-	od-fs/7z/Sort.c \
-	od-fs/7z/Sort.h \
-	od-fs/7z/Xz.c \
-	od-fs/7z/XzCrc64.c \
-	od-fs/7z/XzCrc64.h \
-	od-fs/7z/XzCrc64Opt.c \
-	od-fs/7z/XzDec.c \
-	od-fs/7z/XzEnc.c \
-	od-fs/7z/XzEnc.h \
-	od-fs/7z/Xz.h \
-	od-fs/7z/XzIn.c \
+	od-fs/3rdparty/lzma-sdk/7z/7zAlloc.c \
+	od-fs/3rdparty/lzma-sdk/7z/7zAlloc.h \
+	od-fs/3rdparty/lzma-sdk/7z/7zArcIn.c \
+	od-fs/3rdparty/lzma-sdk/7z/7zBuf2.c \
+	od-fs/3rdparty/lzma-sdk/7z/7zBuf.c \
+	od-fs/3rdparty/lzma-sdk/7z/7zBuf.h \
+	od-fs/3rdparty/lzma-sdk/7z/7zCrc.c \
+	od-fs/3rdparty/lzma-sdk/7z/7zCrc.h \
+	od-fs/3rdparty/lzma-sdk/7z/7zCrcOpt.c \
+	od-fs/3rdparty/lzma-sdk/7z/7zDec.c \
+	od-fs/3rdparty/lzma-sdk/7z/7zFile.c \
+	od-fs/3rdparty/lzma-sdk/7z/7zFile.h \
+	od-fs/3rdparty/lzma-sdk/7z/7z.h \
+	od-fs/3rdparty/lzma-sdk/7z/7zStream.c \
+	od-fs/3rdparty/lzma-sdk/7z/7zTypes.h \
+	od-fs/3rdparty/lzma-sdk/7z/7zVersion.h \
+	od-fs/3rdparty/lzma-sdk/7z/Aes.c \
+	od-fs/3rdparty/lzma-sdk/7z/Aes.h \
+	od-fs/3rdparty/lzma-sdk/7z/AesOpt.c \
+	od-fs/3rdparty/lzma-sdk/7z/Alloc.c \
+	od-fs/3rdparty/lzma-sdk/7z/Alloc.h \
+	od-fs/3rdparty/lzma-sdk/7z/Bcj2.c \
+	od-fs/3rdparty/lzma-sdk/7z/Bcj2.h \
+	od-fs/3rdparty/lzma-sdk/7z/Bra86.c \
+	od-fs/3rdparty/lzma-sdk/7z/Bra.c \
+	od-fs/3rdparty/lzma-sdk/7z/Bra.h \
+	od-fs/3rdparty/lzma-sdk/7z/BraIA64.c \
+	od-fs/3rdparty/lzma-sdk/7z/Compiler.h \
+	od-fs/3rdparty/lzma-sdk/7z/CpuArch.c \
+	od-fs/3rdparty/lzma-sdk/7z/CpuArch.h \
+	od-fs/3rdparty/lzma-sdk/7z/Delta.c \
+	od-fs/3rdparty/lzma-sdk/7z/Delta.h \
+	od-fs/3rdparty/lzma-sdk/7z/LzFind.c \
+	od-fs/3rdparty/lzma-sdk/7z/LzFind.h \
+	od-fs/3rdparty/lzma-sdk/7z/LzHash.h \
+	od-fs/3rdparty/lzma-sdk/7z/Lzma2Dec.c \
+	od-fs/3rdparty/lzma-sdk/7z/Lzma2Dec.h \
+	od-fs/3rdparty/lzma-sdk/7z/Lzma2Enc.c \
+	od-fs/3rdparty/lzma-sdk/7z/Lzma2Enc.h \
+	od-fs/3rdparty/lzma-sdk/7z/Lzma86Dec.c \
+	od-fs/3rdparty/lzma-sdk/7z/Lzma86Enc.c \
+	od-fs/3rdparty/lzma-sdk/7z/Lzma86.h \
+	od-fs/3rdparty/lzma-sdk/7z/LzmaDec.c \
+	od-fs/3rdparty/lzma-sdk/7z/LzmaDec.h \
+	od-fs/3rdparty/lzma-sdk/7z/LzmaEnc.c \
+	od-fs/3rdparty/lzma-sdk/7z/LzmaEnc.h \
+	od-fs/3rdparty/lzma-sdk/7z/LzmaLib.c \
+	od-fs/3rdparty/lzma-sdk/7z/LzmaLib.h \
+	od-fs/3rdparty/lzma-sdk/7z/Ppmd7.c \
+	od-fs/3rdparty/lzma-sdk/7z/Ppmd7Dec.c \
+	od-fs/3rdparty/lzma-sdk/7z/Ppmd7Enc.c \
+	od-fs/3rdparty/lzma-sdk/7z/Ppmd7.h \
+	od-fs/3rdparty/lzma-sdk/7z/Ppmd.h \
+	od-fs/3rdparty/lzma-sdk/7z/Precomp.h \
+	od-fs/3rdparty/lzma-sdk/7z/RotateDefs.h \
+	od-fs/3rdparty/lzma-sdk/7z/Sha256.c \
+	od-fs/3rdparty/lzma-sdk/7z/Sha256.h \
+	od-fs/3rdparty/lzma-sdk/7z/Sort.c \
+	od-fs/3rdparty/lzma-sdk/7z/Sort.h \
+	od-fs/3rdparty/lzma-sdk/7z/Xz.c \
+	od-fs/3rdparty/lzma-sdk/7z/XzCrc64.c \
+	od-fs/3rdparty/lzma-sdk/7z/XzCrc64.h \
+	od-fs/3rdparty/lzma-sdk/7z/XzCrc64Opt.c \
+	od-fs/3rdparty/lzma-sdk/7z/XzDec.c \
+	od-fs/3rdparty/lzma-sdk/7z/XzEnc.c \
+	od-fs/3rdparty/lzma-sdk/7z/XzEnc.h \
+	od-fs/3rdparty/lzma-sdk/7z/Xz.h \
+	od-fs/3rdparty/lzma-sdk/7z/XzIn.c \
 	mame/3rdparty/utf8proc/utf8proc.c \
 	mame/3rdparty/utf8proc/utf8proc.h \
 	mame/src/lib/util/avhuff.cpp \
@@ -1385,7 +1387,7 @@ libfsemu_a_SOURCES = \
 	od-fs/fsemu/fsemu-xmlshader.h \
 	od-fs/fsemu/fsemu.c \
 	od-fs/fsemu/fsemu.h \
-	od-fs/gamemode/lib/gamemode_client.h
+	od-fs/3rdparty/gamemode/lib/gamemode_client.h
 
 #	od-fs/manymouse/linux_evdev.c \
 #	od-fs/manymouse/macosx_hidmanager.c \
@@ -2016,69 +2018,69 @@ noinst_LIBRARIES += libslirp.a
 fs_uae_LDADD += libslirp.a
 fs_uae_LDADD += @SLIRP_LIBS@
 libslirp_a_SOURCES = \
-	od-fs/slirp/src/arp_table.c \
-	od-fs/slirp/src/bootp.c \
-	od-fs/slirp/src/bootp.h \
-	od-fs/slirp/src/cksum.c \
-	od-fs/slirp/src/debug.h \
-	od-fs/slirp/src/dhcpv6.c \
-	od-fs/slirp/src/dhcpv6.h \
-	od-fs/slirp/src/dnssearch.c \
-	od-fs/slirp/src/if.c \
-	od-fs/slirp/src/if.h \
-	od-fs/slirp/src/ip_icmp.c \
-	od-fs/slirp/src/ip_icmp.h \
-	od-fs/slirp/src/ip_input.c \
-	od-fs/slirp/src/ip_output.c \
-	od-fs/slirp/src/ip.h \
-	od-fs/slirp/src/ip6_icmp.c \
-	od-fs/slirp/src/ip6_icmp.h \
-	od-fs/slirp/src/ip6_input.c \
-	od-fs/slirp/src/ip6_output.c \
-	od-fs/slirp/src/ip6.h \
-	od-fs/slirp/src/libslirp-version.h \
-	od-fs/slirp/src/libslirp.h \
-	od-fs/slirp/src/main.h \
-	od-fs/slirp/src/mbuf.c \
-	od-fs/slirp/src/mbuf.h \
-	od-fs/slirp/src/misc.c \
-	od-fs/slirp/src/misc.h \
-	od-fs/slirp/src/ncsi-pkt.h \
-	od-fs/slirp/src/ncsi.c \
-	od-fs/slirp/src/ndp_table.c \
-	od-fs/slirp/src/sbuf.c \
-	od-fs/slirp/src/sbuf.h \
-	od-fs/slirp/src/slirp.c \
-	od-fs/slirp/src/slirp.h \
-	od-fs/slirp/src/socket.c \
-	od-fs/slirp/src/socket.h \
-	od-fs/slirp/src/state.c \
-	od-fs/slirp/src/stream.c \
-	od-fs/slirp/src/stream.h \
-	od-fs/slirp/src/tcp_input.c \
-	od-fs/slirp/src/tcp_output.c \
-	od-fs/slirp/src/tcp_subr.c \
-	od-fs/slirp/src/tcp_timer.c \
-	od-fs/slirp/src/tcp_timer.h \
-	od-fs/slirp/src/tcp_var.h \
-	od-fs/slirp/src/tcp.h \
-	od-fs/slirp/src/tcpip.h \
-	od-fs/slirp/src/tftp.c \
-	od-fs/slirp/src/tftp.h \
-	od-fs/slirp/src/udp.c \
-	od-fs/slirp/src/udp.h \
-	od-fs/slirp/src/udp6.c \
-	od-fs/slirp/src/util.c \
-	od-fs/slirp/src/util.h \
-	od-fs/slirp/src/version.c \
-	od-fs/slirp/src/vmstate.c \
-	od-fs/slirp/src/vmstate.h
+	od-fs/3rdparty/libslirp/src/arp_table.c \
+	od-fs/3rdparty/libslirp/src/bootp.c \
+	od-fs/3rdparty/libslirp/src/bootp.h \
+	od-fs/3rdparty/libslirp/src/cksum.c \
+	od-fs/3rdparty/libslirp/src/debug.h \
+	od-fs/3rdparty/libslirp/src/dhcpv6.c \
+	od-fs/3rdparty/libslirp/src/dhcpv6.h \
+	od-fs/3rdparty/libslirp/src/dnssearch.c \
+	od-fs/3rdparty/libslirp/src/if.c \
+	od-fs/3rdparty/libslirp/src/if.h \
+	od-fs/3rdparty/libslirp/src/ip_icmp.c \
+	od-fs/3rdparty/libslirp/src/ip_icmp.h \
+	od-fs/3rdparty/libslirp/src/ip_input.c \
+	od-fs/3rdparty/libslirp/src/ip_output.c \
+	od-fs/3rdparty/libslirp/src/ip.h \
+	od-fs/3rdparty/libslirp/src/ip6_icmp.c \
+	od-fs/3rdparty/libslirp/src/ip6_icmp.h \
+	od-fs/3rdparty/libslirp/src/ip6_input.c \
+	od-fs/3rdparty/libslirp/src/ip6_output.c \
+	od-fs/3rdparty/libslirp/src/ip6.h \
+	od-fs/3rdparty/libslirp/src/libslirp-version.h \
+	od-fs/3rdparty/libslirp/src/libslirp.h \
+	od-fs/3rdparty/libslirp/src/main.h \
+	od-fs/3rdparty/libslirp/src/mbuf.c \
+	od-fs/3rdparty/libslirp/src/mbuf.h \
+	od-fs/3rdparty/libslirp/src/misc.c \
+	od-fs/3rdparty/libslirp/src/misc.h \
+	od-fs/3rdparty/libslirp/src/ncsi-pkt.h \
+	od-fs/3rdparty/libslirp/src/ncsi.c \
+	od-fs/3rdparty/libslirp/src/ndp_table.c \
+	od-fs/3rdparty/libslirp/src/sbuf.c \
+	od-fs/3rdparty/libslirp/src/sbuf.h \
+	od-fs/3rdparty/libslirp/src/slirp.c \
+	od-fs/3rdparty/libslirp/src/slirp.h \
+	od-fs/3rdparty/libslirp/src/socket.c \
+	od-fs/3rdparty/libslirp/src/socket.h \
+	od-fs/3rdparty/libslirp/src/state.c \
+	od-fs/3rdparty/libslirp/src/stream.c \
+	od-fs/3rdparty/libslirp/src/stream.h \
+	od-fs/3rdparty/libslirp/src/tcp_input.c \
+	od-fs/3rdparty/libslirp/src/tcp_output.c \
+	od-fs/3rdparty/libslirp/src/tcp_subr.c \
+	od-fs/3rdparty/libslirp/src/tcp_timer.c \
+	od-fs/3rdparty/libslirp/src/tcp_timer.h \
+	od-fs/3rdparty/libslirp/src/tcp_var.h \
+	od-fs/3rdparty/libslirp/src/tcp.h \
+	od-fs/3rdparty/libslirp/src/tcpip.h \
+	od-fs/3rdparty/libslirp/src/tftp.c \
+	od-fs/3rdparty/libslirp/src/tftp.h \
+	od-fs/3rdparty/libslirp/src/udp.c \
+	od-fs/3rdparty/libslirp/src/udp.h \
+	od-fs/3rdparty/libslirp/src/udp6.c \
+	od-fs/3rdparty/libslirp/src/util.c \
+	od-fs/3rdparty/libslirp/src/util.h \
+	od-fs/3rdparty/libslirp/src/version.c \
+	od-fs/3rdparty/libslirp/src/vmstate.c \
+	od-fs/3rdparty/libslirp/src/vmstate.h
 endif
 endif
 EXTRA_DIST += \
-	od-fs/slirp/CHANGELOG.md \
-	od-fs/slirp/COPYRIGHT \
-	od-fs/slirp/README.md
+	od-fs/3rdparty/libslirp/CHANGELOG.md \
+	od-fs/3rdparty/libslirp/COPYRIGHT \
+	od-fs/3rdparty/libslirp/README.md
 
 # -----------------------------------------------------------------------------
 
@@ -2130,54 +2132,54 @@ endif
 # -----------------------------------------------------------------------------
 
 noinst_LIBRARIES += libmt32emu.a
-AM_CPPFLAGS += -I$(srcdir)/od-fs/mt32emu/src
-# libmt32emu_a_CXXFLAGS = -I$(srcdir)/od-fs/mt32emu/include/mt32emu
+AM_CPPFLAGS += -I$(srcdir)/od-fs/3rdparty/mt32emu/src
+# libmt32emu_a_CXXFLAGS = -I$(srcdir)/od-fs/3rdparty/mt32emu/include/mt32emu
 libmt32emu_a_CXXFLAGS = -DMT32EMU_WITH_INTERNAL_RESAMPLER
 fs_uae_LDADD += libmt32emu.a
 libmt32emu_a_SOURCES = \
-	od-fs/mt32emu/src/Analog.cpp \
-	od-fs/mt32emu/src/BReverbModel.cpp \
-	od-fs/mt32emu/src/c_interface/c_interface.cpp \
-	od-fs/mt32emu/src/Display.cpp \
-	od-fs/mt32emu/src/File.cpp \
-	od-fs/mt32emu/src/FileStream.cpp \
-	od-fs/mt32emu/src/LA32FloatWaveGenerator.cpp \
-	od-fs/mt32emu/src/LA32Ramp.cpp \
-	od-fs/mt32emu/src/LA32WaveGenerator.cpp \
-	od-fs/mt32emu/src/MidiStreamParser.cpp \
-	od-fs/mt32emu/src/Part.cpp \
-	od-fs/mt32emu/src/Partial.cpp \
-	od-fs/mt32emu/src/PartialManager.cpp \
-	od-fs/mt32emu/src/Poly.cpp \
-	od-fs/mt32emu/src/ROMInfo.cpp \
-	od-fs/mt32emu/src/SampleRateConverter.cpp \
-	od-fs/mt32emu/src/sha1/sha1.cpp \
-	od-fs/mt32emu/src/srchelper/InternalResampler.cpp \
-	od-fs/mt32emu/src/srchelper/srctools/src/FIRResampler.cpp \
-	od-fs/mt32emu/src/srchelper/srctools/src/IIR2xResampler.cpp \
-	od-fs/mt32emu/src/srchelper/srctools/src/LinearResampler.cpp \
-	od-fs/mt32emu/src/srchelper/srctools/src/ResamplerModel.cpp \
-	od-fs/mt32emu/src/srchelper/srctools/src/SincResampler.cpp \
-	od-fs/mt32emu/src/Synth.cpp \
-	od-fs/mt32emu/src/Tables.cpp \
-	od-fs/mt32emu/src/TVA.cpp \
-	od-fs/mt32emu/src/TVF.cpp \
-	od-fs/mt32emu/src/TVP.cpp \
-	od-fs/mt32emu/src/VersionTagging.cpp
+	od-fs/3rdparty/mt32emu/src/Analog.cpp \
+	od-fs/3rdparty/mt32emu/src/BReverbModel.cpp \
+	od-fs/3rdparty/mt32emu/src/c_interface/c_interface.cpp \
+	od-fs/3rdparty/mt32emu/src/Display.cpp \
+	od-fs/3rdparty/mt32emu/src/File.cpp \
+	od-fs/3rdparty/mt32emu/src/FileStream.cpp \
+	od-fs/3rdparty/mt32emu/src/LA32FloatWaveGenerator.cpp \
+	od-fs/3rdparty/mt32emu/src/LA32Ramp.cpp \
+	od-fs/3rdparty/mt32emu/src/LA32WaveGenerator.cpp \
+	od-fs/3rdparty/mt32emu/src/MidiStreamParser.cpp \
+	od-fs/3rdparty/mt32emu/src/Part.cpp \
+	od-fs/3rdparty/mt32emu/src/Partial.cpp \
+	od-fs/3rdparty/mt32emu/src/PartialManager.cpp \
+	od-fs/3rdparty/mt32emu/src/Poly.cpp \
+	od-fs/3rdparty/mt32emu/src/ROMInfo.cpp \
+	od-fs/3rdparty/mt32emu/src/SampleRateConverter.cpp \
+	od-fs/3rdparty/mt32emu/src/sha1/sha1.cpp \
+	od-fs/3rdparty/mt32emu/src/srchelper/InternalResampler.cpp \
+	od-fs/3rdparty/mt32emu/src/srchelper/srctools/src/FIRResampler.cpp \
+	od-fs/3rdparty/mt32emu/src/srchelper/srctools/src/IIR2xResampler.cpp \
+	od-fs/3rdparty/mt32emu/src/srchelper/srctools/src/LinearResampler.cpp \
+	od-fs/3rdparty/mt32emu/src/srchelper/srctools/src/ResamplerModel.cpp \
+	od-fs/3rdparty/mt32emu/src/srchelper/srctools/src/SincResampler.cpp \
+	od-fs/3rdparty/mt32emu/src/Synth.cpp \
+	od-fs/3rdparty/mt32emu/src/Tables.cpp \
+	od-fs/3rdparty/mt32emu/src/TVA.cpp \
+	od-fs/3rdparty/mt32emu/src/TVF.cpp \
+	od-fs/3rdparty/mt32emu/src/TVP.cpp \
+	od-fs/3rdparty/mt32emu/src/VersionTagging.cpp
 # Headers are not listed individually above
-EXTRA_DIST += od-fs/mt32emu
+EXTRA_DIST += od-fs/3rdparty/mt32emu
 
-#	od-fs/mt32emu/src/srchelper/SamplerateAdapter.cpp
-#	od-fs/mt32emu/src/srchelper/SoxrAdapter.cpp
+#	od-fs/3rdparty/mt32emu/src/srchelper/SamplerateAdapter.cpp
+#	od-fs/3rdparty/mt32emu/src/srchelper/SoxrAdapter.cpp
 
 # --------------------------------------------------------------------------------------------------
 
 # LHA decompression used by the lhafile Python package (od-fs/Python/lhafile), compiled into the
 # executable and registered as the embedded Python module lzhlib
 fs_uae_SOURCES += \
-	od-fs/lhafile/lzhlib.c
+	od-fs/3rdparty/lhafile/lzhlib.c
 # License, readme and tests
-EXTRA_DIST += od-fs/lhafile
+EXTRA_DIST += od-fs/3rdparty/lhafile
 
 # --------------------------------------------------------------------------------------------------
 
@@ -2319,12 +2321,12 @@ EXTRA_DIST += $(TESTS) $(EXTRA_TESTS) \
 	docs/windows.md \
 	docs/x-arcade.md \
 	od-fs/ChangeLog \
-	od-fs/gamemode/LICENSE.txt \
-	od-fs/gamemode/README.md \
+	od-fs/3rdparty/gamemode/LICENSE.txt \
+	od-fs/3rdparty/gamemode/README.md \
 	od-fs/glad/LICENSE \
-	od-fs/libinih/ini.c \
-	od-fs/libinih/ini.h \
-	od-fs/libinih/LICENSE.txt \
+	od-fs/3rdparty/inih/ini.c \
+	od-fs/3rdparty/inih/ini.h \
+	od-fs/3rdparty/inih/LICENSE.txt \
 	od-fs/libudis86/README \
 	od-fs/README.md \
 	od-fs/windows/fs-uae.ico

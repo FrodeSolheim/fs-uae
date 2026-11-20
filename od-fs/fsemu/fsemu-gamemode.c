@@ -13,7 +13,7 @@ int fsemu_gamemode_log_level = FSEMU_LOG_LEVEL_INFO;
 
 #ifdef FSEMU_OS_LINUX
 
-#include "../gamemode/lib/gamemode_client.h"
+#include "../3rdparty/gamemode/lib/gamemode_client.h"
 
 static bool gamemode_enabled;
 static bool gamemode_suspended;

@@ -9,7 +9,7 @@ struct fsemu_inifile {
 };
 
 #define INI_MAX_LINE 1024
-#include "../libinih/ini.c"
+#include "../3rdparty/inih/ini.c"
 
 static void free_group(void* data) {
     g_hash_table_destroy((GHashTable*)data);

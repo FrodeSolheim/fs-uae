@@ -513,7 +513,6 @@ libuae_a_SOURCES = \
 	include/uae.h \
 	include/uae/ahi.h \
 	include/uae/api.h \
-	include/uae/asm.h \
 	include/uae/assert.h \
 	include/uae/atomic.h \
 	include/uae/attributes.h \
@@ -527,7 +526,6 @@ libuae_a_SOURCES = \
 	include/uae/endian.h \
 	include/uae/enum.h \
 	include/uae/fs.h \
-	include/uae/funcattr.h \
 	include/uae/glib.h \
 	include/uae/inline.h \
 	include/uae/io.h \
@@ -538,7 +536,6 @@ libuae_a_SOURCES = \
 	include/uae/maccess.h \
 	include/uae/memory.h \
 	include/uae/mman.h \
-	include/uae/parser.h \
 	include/uae/patch.h \
 	include/uae/ppc.h \
 	include/uae/qemu.h \

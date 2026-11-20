@@ -29,10 +29,12 @@ exclude = [
     # Scripts that had type errors when lint.yml started checking the whole tree (ticket 17), by
     # path, since their module names (settings, standalone, update) say nothing; see the
     # ignore_errors list below for modules. od-fs/build/dist/macos/settings.py is a dmgbuild
-    # settings file, run with "defines" given.
+    # settings file, run with "defines" given. docs/scripts/update.py is the public repository's
+    # copy of od-fs/Docs/old/scripts/update.py.
     "^od-fs/build/dist/macos/settings\\.py$",
     "^od-fs/build/scripts/standalone\\.py$",
     "^od-fs/Docs/old/scripts/update\\.py$",
+    "^docs/scripts/update\\.py$",
 ]
 #exclude = "(.*/)?od-fs/Python/sdl3(/|$)"
 

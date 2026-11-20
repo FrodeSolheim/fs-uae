@@ -532,7 +532,7 @@ TF = AbstractExpandFunctions
         for option in sorted(codes.keys()):
             code = codes[option]
             f.write(
-                "\n# noinspection PyUnusedLocal," "SpellCheckingInspection,PyUnresolvedReferences\n"
+                "\n# noinspection PyUnusedLocal,SpellCheckingInspection,PyUnresolvedReferences\n"
             )
             f.write("def _{0}(c: TC, f: TF) -> None:\n".format(option))
             # f.write("    value: str\n")

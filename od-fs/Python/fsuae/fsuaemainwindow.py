@@ -1,11 +1,31 @@
+import os
 import sys
 
-from fsapp.tickservice import TickService
 from fsgui.mainwindow import MainWindow
+from fsgui.types import Position
 from fsgui.windowmanager import WindowManager
 
 from fsuae import version
 from fsuae.emulatorwindow import EmulatorWindow
+from fsuae.f12window import F12Window
+
+
+def window_size_from_environment(width: int, height: int) -> tuple[int, int]:
+    """The client size from FSUAE_WINDOW_SIZE (<width>x<height>), or width and height when it is
+    not set or not a size."""
+    value = os.environ.get("FSUAE_WINDOW_SIZE", "")
+    if not value:
+        return width, height
+    try:
+        w, h = (int(part) for part in value.lower().split("x"))
+    except ValueError:
+        print(f"FSUAE_WINDOW_SIZE={value} is not a size (<width>x<height>), ignored")
+        return width, height
+    if w < 1 or h < 1:
+        print(f"FSUAE_WINDOW_SIZE={value} is not a size (<width>x<height>), ignored")
+        return width, height
+    print(f"FS-UAE window client size {w}x{h} (FSUAE_WINDOW_SIZE)")
+    return w, h
 
 
 class FSUAEMainWindow(MainWindow):
@@ -23,6 +43,10 @@ class FSUAEMainWindow(MainWindow):
         height = int(540 * 1.5)
         # width = int(height * (4 / 3))
         width = int(692 * 1.5)
+        # A test aid for headless runs: FSUAE_WINDOW_SIZE=<width>x<height> sets the client size
+        # (inside the border and the title bar), such as 1920x1080 for the performance graph's
+        # sidebars beside a 4:3 picture.
+        width, height = window_size_from_environment(width, height)
 
         # UAE_RECT FULL
         # width, height = 756, 576
@@ -63,12 +87,18 @@ class FSUAEMainWindow(MainWindow):
         # before being shown for the first time? If so, we can remove this...
         self.on_resize()
 
-        TickService().get().register(self.__on_tick)
+        # The fullscreen title bar is checked when the mouse moves, when the F12 window opens or
+        # closes, and on entering and leaving fullscreen (on_fullscreen).
+        WindowManager.get().mouse_moved.connect(self.__on_mouse_moved)
+        F12Window.open_changed.connect(self.__update_fullscreen_title_bar)
+        self.__update_fullscreen_title_bar()
 
-    def __on_tick(self) -> None:
-        # Circular import; not very great design
-        from fsuae.f12window import F12Window
+    def __on_mouse_moved(self, mouse_pos: Position) -> None:
+        self.__update_fullscreen_title_bar()
 
+    def __update_fullscreen_title_bar(self) -> None:
+        """In fullscreen, shows the title bar while the mouse is at the top edge (or over the
+        title bar) or the F12 window is open, and hides it otherwise."""
         if self.fullscreen:
             mouse_pos = WindowManager.get().get_mouse_position()
             # print(mouse_pos)
@@ -88,11 +118,12 @@ class FSUAEMainWindow(MainWindow):
 
     # MainWindow does not get destroyed as such, currently...
     # def on_destroy(self) -> None:
-    #     TickService().get().unregister(self.__on_tick)
+    #     WindowManager.get().mouse_moved.disconnect(self.__on_mouse_moved)
     #     super().on_destroy()
 
     def on_fullscreen(self) -> None:
         super().on_fullscreen()
+        self.__update_fullscreen_title_bar()
 
     def on_resize(self) -> None:
         # ww, wh = self.size

@@ -1,7 +1,7 @@
 import logging
 import os
 import sys
-from typing import Literal, Self
+from typing import Self
 
 from fsuae.services.amigaforeverservice import AmigaForeverService
 
@@ -48,12 +48,9 @@ class PathService:
         self._rom_dirs = self._find_dirs([self._data_dir], ["ROM", "ROMs"])
         logger.info("ROM: %r", self._rom_dirs)
 
-        # Kickstart / kickstart / Kickstarts / kickstarts
-
-        # The combination of different ROM dirs and Kickstart dirs may be a bit much, especially
-        # when lowercase variants are included. Maybe drop the flexibility?
-
-        self._kickstart_dirs = self._find_dirs(self._rom_dirs, ["Kickstart", "Kickstarts"])
+        # Kickstart ROMs go directly in the ROM directory (the scan includes subdirectories), not in
+        # a Kickstart subdirectory.
+        self._kickstart_dirs = list(self._rom_dirs)
         self._kickstart_dirs.append(self.amiga_forever_service.get_shared_rom_dir())
         logger.info("Kickstart: %r", self._kickstart_dirs)
 
@@ -102,6 +99,16 @@ class PathService:
         return self._data_dir
 
     @property
+    def cache_dir(self) -> str:
+        """The cache directory: files FS-UAE can delete and recreate without loss of data."""
+        return self._cache_dir
+
+    @property
+    def resources_dir(self) -> str:
+        """The resources directory: data files bundled with FS-UAE."""
+        return os.environ["FSAPP_RESOURCES_DIR"]
+
+    @property
     def rom_dir(self) -> str:
         return self._roms
 
@@ -113,19 +120,8 @@ class PathService:
 
     @property
     def kickstart_dir(self) -> str:
-        return os.path.join(self._roms, "Kickstart")
-
-
-# def get_runtime_mode() -> Literal["development", "portable_system"]:
-#     if os.getenv("FSAPP_DEVELOPMENT_DIR"):
-#         return "development"
-
-#     # FIXME: Check FSAPP_DEV
-#     print("RUNTIME ----------------------------------")
-#     print(sys.executable)
-#     executable_dir = os.path.dirname(sys.executable)
-#     print(executable_dir)
-#     return "portable_system"
+        """The directory users are told to put Kickstart ROMs in."""
+        return self._rom
 
 
 def is_case_sensitive() -> bool:

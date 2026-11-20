@@ -1,6 +1,11 @@
 # New stable API for low-level GUI?
 
+from typing import NewType
+
 import _fsapp_surface
+
+# A surface as the C side hands it to Python: an _fsapp_surface capsule (fsapp_surface_t).
+SurfaceCapsule = NewType("SurfaceCapsule", object)
 
 # Maybe app surfaces get mouse events / key events (etc)
 

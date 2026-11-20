@@ -1,7 +1,6 @@
 import logging
 
-from fsuae.reactive import MappedVar, State, Var
-from fsuae.var import StrVar
+from fsapp.reactive import Var
 
 logger = logging.getLogger(__name__)
 
@@ -84,7 +83,7 @@ class UAEConfig2:
         self.floppy2wp = UaeString(self, "floppy2wp")
         self.floppy3 = UaeString(self, "floppy3")
         self.floppy3type = UaeString(self, "floppy3type")
-        self.floppy3wp = UaeString(self, "floppy2wp")
+        self.floppy3wp = UaeString(self, "floppy3wp")
         self.gfx_center_horizontal = UaeString(self, "gfx_center_horizontal")
         self.gfx_center_vertical = UaeString(self, "gfx_center_vertical")
         self.mmu_model = UaeString(self, "mmu_model")

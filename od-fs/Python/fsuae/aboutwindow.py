@@ -57,6 +57,7 @@ class AboutWindow(Window):
             ImageLabel(Image.from_resource("Icons/FS-UAE/64.png"))
             with VerticalLayout(gap=2).fill(False):
                 Label(f"FS-UAE {fsuae.version}", font=Font("UI", 20, Font.BOLD))
+                Label(fsuae.origin)
                 Label("Copyright \u00a9 2011-2025 Frode Solheim and contributors.")
 
         Label(fsuae.about_full, wrap=True)

@@ -2,7 +2,6 @@ import logging
 import os
 
 from fsgui.borderlesswindow import BorderlessWindow
-from fsgui.drawingcontext import DrawingContext
 from fsgui.types import Size
 from fsgui.window import Window
 

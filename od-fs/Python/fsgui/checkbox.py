@@ -1,11 +1,10 @@
 from typing import Self, TypeVar
 
-from fsuae.reactive import Emitter, Property, State
+from fsapp.reactive import Emitter, Property, State
 
 from fsgui.drawingcontext import Colour
 from fsgui.font import Font
 from fsgui.types import Size
-from fsgui.valuewidget import ValueWidget
 from fsgui.widget import Widget
 from fsgui.widgetpainter import WidgetPainter
 
@@ -120,6 +119,8 @@ class CheckBox(Widget):
         # self._checked = ...
         self.checked_state = Property[bool](False)
         self.checked_change = Emitter[bool]()
+        # Set or bound, the checked state is drawn.
+        self.on(self.checked_state, self._refresh_on_change)
 
         # FIXME: self bind
         # self.checked.change.connect(self.on_change)

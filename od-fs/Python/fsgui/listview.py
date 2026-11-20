@@ -42,6 +42,7 @@ class ListView(Widget):
         for i, item in enumerate(self.items):
             if item.data == data:
                 del self.items[i]
+                self.refresh()
                 break
         else:
             logger.warning("remove_item_by_data - item not found")

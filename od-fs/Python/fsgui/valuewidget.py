@@ -1,6 +1,6 @@
 from typing import Generic, Self, TypeVar
 
-from fsuae.reactive import Property, State
+from fsapp.reactive import Property, State
 
 from fsgui.font import Font
 from fsgui.types import Size

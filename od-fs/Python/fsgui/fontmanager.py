@@ -1,7 +1,7 @@
 import os
 from typing import Optional
 
-import fsgui_font  # type: ignore
+import _fsapp_font  # type: ignore
 from fsapp import fsapp
 
 from fsgui.font import Font, FontWeight
@@ -24,16 +24,16 @@ class FontManager:
 
         # FIXME: Path/directory lookup!
         # self.regular_font_14 = Font(
-        #     fsgui_font.load("data/Fonts/Roboto-Regular.ttf", 14)
+        #     _fsapp_font.load("data/Fonts/Roboto-Regular.ttf", 14)
         # )
         # self.medium_font_14 = Font(
-        #     fsgui_font.load("data/Fonts/Roboto-Medium.ttf", 14)
+        #     _fsapp_font.load("data/Fonts/Roboto-Medium.ttf", 14)
         # )
         # self.semi_bold_font_14 = Font(
-        #     fsgui_font.load("data/Fonts/Roboto-SemiBold.ttf", 14)
+        #     _fsapp_font.load("data/Fonts/Roboto-SemiBold.ttf", 14)
         # )
         # self.bold_font_14 = Font(
-        #     fsgui_font.load("data/Fonts/Roboto-Bold.ttf", 14)
+        #     _fsapp_font.load("data/Fonts/Roboto-Bold.ttf", 14)
         # )
 
         # self.regular_font_14 =
@@ -88,7 +88,7 @@ class FontManager:
         else:
             raise FileNotFoundError(font_file_name)
 
-        font = fsgui_font.load(font_path, size)  # type: ignore
+        font = _fsapp_font.load(font_path, size)  # type: ignore
         self._font_cache[cache_key] = font
         return self._font_cache[cache_key]
 
@@ -113,5 +113,5 @@ class FontManager:
     #     try:
     #         return self._font_cache[cache_key]
     #     except KeyError:
-    #         # fsgui_font.load(name, size)
+    #         # _fsapp_font.load(name, size)
     #         pass

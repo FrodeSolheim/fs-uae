@@ -1,6 +1,6 @@
 from enum import Enum
 
-import fsgui_font  # type: ignore
+import _fsapp_font  # type: ignore
 
 # import fsapp_font
 
@@ -38,4 +38,4 @@ class Font:
         self._font = self.font
 
     def measure_text(self, text: str) -> tuple[int, int]:
-        return fsgui_font.measure_text(self.font, text)
+        return _fsapp_font.measure_text(self.font, text)

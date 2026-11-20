@@ -1,7 +1,7 @@
 import logging
-import time
 from typing import Self
 
+from fsapp.timerservice import Timer, TimerService
 from fsgui.borderlesswindow import BorderlessWindow
 from fsgui.imagelabel import ImageLabel
 from fsgui.label import Label
@@ -41,9 +41,21 @@ class NotificationService:
         self._active_windows: dict[str, NotificationWindow] = {}
 
     def create_notification(
-        self, id: str, text: str, description: str, icon: SvgIcon, *, duration: int = 5
+        self,
+        id: str,
+        text: str,
+        description: str,
+        icon: SvgIcon,
+        *,
+        duration: int = 5,
+        width: int | None = None,
     ) -> "Notification":
-        notification = Notification(id, text, description, icon, duration=duration)
+        """Create a notification (shown with `show_notification`).
+
+        A `duration` of 0 means the notification stays until it is hidden. With `width`, the
+        notification has that width and the description is wrapped to fit.
+        """
+        notification = Notification(id, text, description, icon, duration=duration, width=width)
         self._notifications.append(notification)
         return notification
 
@@ -61,7 +73,7 @@ class NotificationService:
             self._active_windows[id] = window
             window.show()
         # else:
-        #     window._hide_time = time.time() + notification.duration
+        #     window.schedule_auto_hide(notification.duration)
 
         # Create and show notification window
 
@@ -87,9 +99,16 @@ class NotificationService:
 
 class Notification:
     def __init__(
-        self, id: str, text: str, description: str, icon: SvgIcon, duration: int = 5
+        self,
+        id: str,
+        text: str,
+        description: str,
+        icon: SvgIcon,
+        duration: int = 5,
+        width: int | None = None,
     ) -> None:
         self.id = id
+        self.width = width
 
         self.default_text = text
         self.default_description = description
@@ -107,7 +126,8 @@ class NotificationWindow(BorderlessWindow):
         super().__init__(size=(320, 80))
 
         self.notification = notification
-        self._hide_time = None
+        # Hides the notification when it is due (schedule_auto_hide).
+        self._hide_timer: Timer | None = None
 
         # Style the window
         # self.style.background_color = (0x20, 0x20, 0x20, 0xE0)  # Semi-transparent dark
@@ -151,13 +171,23 @@ class NotificationWindow(BorderlessWindow):
                     text_color=(0xFF, 0xFF, 0xFF, 0xFF),
                 )
                 if notification.description:
-                    Label(
-                        notification.description,
-                        font=self._get_description_font(),
-                        text_color=(0xCC, 0xCC, 0xCC, 0xFF),
-                    )
+                    description_font = self._get_description_font()
+                    if notification.width is None:
+                        lines = [notification.description]
+                    else:
+                        text_width = (
+                            notification.width - self.padding[1] - self.padding[3] - 40 - 12
+                        )
+                        lines = wrap_text(notification.description, description_font, text_width)
+                    # One label per line (wrapped labels do not work in horizontal layouts yet).
+                    for line in lines:
+                        Label(
+                            line,
+                            font=description_font,
+                            text_color=(0xCC, 0xCC, 0xCC, 0xFF),
+                        )
 
-        self.resize_to_fit_content(320)
+        self.resize_to_fit_content(notification.width or 320)
 
         # Set window layer to be on top
         self.set_layer(Window.LAYER_HIGHEST)
@@ -169,8 +199,6 @@ class NotificationWindow(BorderlessWindow):
 
             main_window = MainWindow.get()
             if main_window:
-                main_size = main_window.get_window_size()
-
                 # Position 24px from left edge and top (upper left corner)
                 x = 24
                 y = 24
@@ -196,23 +224,20 @@ class NotificationWindow(BorderlessWindow):
         return Font("UI", 14)
 
     def schedule_auto_hide(self, duration: int) -> None:
-        """Schedule the notification to auto-hide after duration seconds."""
-        current_time = time.time()
-        self._hide_time = current_time + duration
-        print("hide time:", self._hide_time)
+        """Schedule the notification to auto-hide after duration seconds (a timer, which wakes the
+        UI thread then, also when nothing else happens). Replaces an earlier schedule."""
+        self._cancel_auto_hide()
+        self._hide_timer = TimerService.get().call_after(duration, self._auto_hide)
 
-    def update(self) -> None:
-        """Update window and check for auto-hide."""
-        super().update()
-
-        # Check if we should auto-hide (only once)
-        if self._hide_time and time.time() >= self._hide_time:
-            print(f"[DEBUG] Auto-hiding notification at time={time.time():.2f}")
-            self._auto_hide()
-            self._hide_time = None  # Prevent repeated calls
+    def _cancel_auto_hide(self) -> None:
+        if self._hide_timer is not None:
+            self._hide_timer.cancel()
+            self._hide_timer = None
 
     def _auto_hide(self) -> None:
         """Auto-hide this notification."""
+        self._hide_timer = None
+        logger.debug("Auto-hiding notification %s", self.notification.id)
         service = NotificationService.instance()
         service.hide_notification(self.notification.id)
 
@@ -222,9 +247,46 @@ class NotificationWindow(BorderlessWindow):
 
     def destroy(self) -> None:
         """Destroy the notification window."""
+        self._cancel_auto_hide()
         # Clean up any resources if needed
         super().destroy()
         pass
+
+
+def wrap_text(text: str, font, width: int) -> list[str]:
+    """Split text into lines no wider than width (in pixels) when drawn with font.
+
+    Breaks at spaces; a word that is too wide on its own (such as a long path) is broken after
+    a "/" or "\\" if possible, otherwise anywhere.
+    """
+    import _fsapp_font  # type: ignore
+
+    def fits(s: str) -> bool:
+        return _fsapp_font.measure_text(font.font, s)[0] <= width
+
+    lines: list[str] = []
+    line = ""
+    for word in text.split():
+        candidate = f"{line} {word}" if line else word
+        if fits(candidate):
+            line = candidate
+            continue
+        if line:
+            lines.append(line)
+        line = word
+        while not fits(line):
+            # Break the word at the last fitting separator, or else at the last fitting character.
+            end = len(line) - 1
+            while end > 1 and not fits(line[:end]):
+                end -= 1
+            separator = max(line.rfind("/", 0, end), line.rfind("\\", 0, end))
+            if separator > 0:
+                end = separator + 1
+            lines.append(line[:end])
+            line = line[end:]
+    if line:
+        lines.append(line)
+    return lines
 
 
 class PlaceholderIcon(Widget):

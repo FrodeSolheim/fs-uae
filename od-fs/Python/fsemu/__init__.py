@@ -1,6 +1,7 @@
 import logging
 
 import fsemu_c  # type: ignore
+from fsapp.surface import SurfaceCapsule
 
 logger = logging.getLogger(__name__)
 
@@ -13,6 +14,19 @@ def post(action: int) -> None:
 def set(name: str, value: str) -> None:
     logger.debug("fsemu.set %s %s", name, value)
     fsemu_c.set_option(name, value)
+
+
+def set_performance_gui(value: str) -> bool:
+    """Turns the performance graph off or on from a performance_gui value: off, sidebars or detailed
+    (or the old values 1 and 2). Returns False (and logs it) for another value."""
+    return bool(fsemu_c.set_performance_gui(value))
+
+
+def emulation_surface() -> SurfaceCapsule:
+    """The emulation surface: one for the whole process, created by fsemu, with its content drawn
+    by fsemu. Hands it over to the program's emulator window, which places it like any surface (an
+    _fsapp_surface capsule, for fsgui's Window). Unstable: for the program, not for plugins."""
+    return SurfaceCapsule(fsemu_c.emulation_surface())
 
 
 # --------

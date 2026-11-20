@@ -159,12 +159,15 @@ class InputDeviceSelector(Choice):
         # # port.set_device_by_index(index)
         # device: InputDevice = self.items[self.index].data
 
-        # from fsapp.constants import FSEMU_MESSAGE_SET_PORT_DEVICE
+        # from fsemu.constants import FSEMU_MESSAGE_SET_PORT_DEVICE
         # from fsapp.main import post_to_fsapp_main
 
-        # # post_to_fsapp_main(FSEMU_MESSAGE_SET_PORT_DEVICE, f"{port.instance_id}:{device.instance_id}")
-        # # FIXME: Maybe have an fsemu instance id which is separate from SDL ??? For now, we send
-        # # device type and (sdl) instance id
+        # # post_to_fsapp_main(
+        # #     FSEMU_MESSAGE_SET_PORT_DEVICE, f"{port.instance_id}:{device.instance_id}"
+        # # )
+        # # FIXME: Maybe have an fsemu instance id which is separate from SDL ??? For now, we
+        # # send device type and (sdl) instance id
         # post_to_fsapp_main(
-        #     FSEMU_MESSAGE_SET_PORT_DEVICE, f"{port.instance_id}:{device.type}:{device.instance_id}"
+        #     FSEMU_MESSAGE_SET_PORT_DEVICE,
+        #     f"{port.instance_id}:{device.type}:{device.instance_id}",
         # )

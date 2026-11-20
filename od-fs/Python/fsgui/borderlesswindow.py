@@ -1,3 +1,5 @@
+from fsapp.surface import SurfaceCapsule
+
 from fsgui.types import Borders, PaddingParam, SizeParam
 from fsgui.window import Window
 
@@ -9,6 +11,7 @@ class BorderlessWindow(Window):
         padding: PaddingParam = None,
         size: SizeParam = None,
         special: int = 0,
+        surface: SurfaceCapsule | None = None,
     ) -> None:
         super().__init__(
             title,
@@ -16,6 +19,7 @@ class BorderlessWindow(Window):
             padding=padding,
             size=size,
             special=special,
+            surface=surface,
         )
 
     def paint_border(self) -> None:

@@ -1,5 +1,8 @@
 import os
-from typing import Optional
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from fsgui.image import Image
 
 
 class SvgIcon:
@@ -7,13 +10,14 @@ class SvgIcon:
         self.name = name
 
     def get_image(
-        self, size: int, tint_color: tuple[int, int, int, int] = None
-    ) -> Optional["Image"]:
-        """Load the SVG as an Image at the specified size, optionally tinted with the given RGBA color."""
+        self, size: int, tint_color: tuple[int, int, int, int] | None = None
+    ) -> "Image | None":
+        """Load the SVG as an Image at the specified size, optionally tinted with the given RGBA
+        color."""
         try:
-            from fsgui.image import Image
+            import _fsapp_image  # type: ignore
             from fsapp import fsapp
-            import fsgui_image  # type: ignore
+            from fsgui.image import Image
 
             # Find the SVG file in the resources directory
             image_path = os.path.join(fsapp.resources_dir, self.name)
@@ -24,22 +28,22 @@ class SvgIcon:
                 # Use sized SVG loader if available, otherwise fall back to regular loader
                 if image_path.lower().endswith(".svg"):
                     try:
-                        if hasattr(fsgui_image, "load_sized_svg"):
+                        if hasattr(_fsapp_image, "load_sized_svg"):
                             print(f"Using sized SVG loader: {size}x{size}")
-                            image_handle = fsgui_image.load_sized_svg(image_path, size, size)
-                            print(f"Sized SVG loader succeeded")
+                            image_handle = _fsapp_image.load_sized_svg(image_path, size, size)
+                            print("Sized SVG loader succeeded")
                         else:
                             print("Sized SVG loader not available, using regular loader")
-                            image_handle = fsgui_image.load(image_path)
-                            print(f"Regular loader succeeded")
+                            image_handle = _fsapp_image.load(image_path)
+                            print("Regular loader succeeded")
                     except Exception as e:
                         print(f"SVG loading failed: {e}, trying regular loader")
-                        image_handle = fsgui_image.load(image_path)
-                        print(f"Fallback regular loader succeeded")
+                        image_handle = _fsapp_image.load(image_path)
+                        print("Fallback regular loader succeeded")
                 else:
                     print(f"Not an SVG, using regular loader: {image_path}")
-                    image_handle = fsgui_image.load(image_path)
-                    print(f"Regular loader succeeded")
+                    image_handle = _fsapp_image.load(image_path)
+                    print("Regular loader succeeded")
 
                 print(f"Image handle created: {image_handle}")
                 image = Image(image_handle)

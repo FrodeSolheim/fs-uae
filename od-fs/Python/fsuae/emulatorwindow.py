@@ -1,3 +1,4 @@
+import fsemu
 from fsgui.specialwindow import SpecialWindow
 from fsgui.window import Window
 from fsgui.windowmanager import WindowManager
@@ -15,8 +16,8 @@ class EmulatorWindow(Window):
 
         super().__init__("Amiga display", size=size)
 
-        special = 0x554145  # "UAE"
-        self.special_window = SpecialWindow(size=size, special=special)
+        # The emulation surface, created by fsemu, which also draws its content.
+        self.special_window = SpecialWindow(size=size, surface=fsemu.emulation_surface())
         self.special_window.show()
         # self.set_position(position)
 

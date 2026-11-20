@@ -1,8 +1,9 @@
 import logging
 from typing import Self
 
-# from typing import TYPE_CHECKING
+from fsapp.signal import Signal
 
+# from typing import TYPE_CHECKING
 # if TYPE_CHECKING:
 from fsgui.types import Position
 from fsgui.widget import Widget
@@ -28,6 +29,8 @@ class WindowManager:
         self._left_pressed_widget: Widget | None = None
         self.mouse_pos = (-1, -1)
         self.focused_window: Window | None = None
+        # Emitted with the new mouse position (as get_mouse_position) when the mouse has moved.
+        self.mouse_moved = Signal[[Position]]()
 
     def add_window(self, window: Window) -> None:
         self._windows_by_layer.setdefault(window.layer, []).append(window)
@@ -79,13 +82,16 @@ class WindowManager:
         return None
 
     def focus_window(self, window: Window) -> None:
+        # The focus changes how a window draws its border and title bar.
         if self.focused_window:
             self.focused_window.focused = False
             self.focused_window.on_blur()
+            self.focused_window.refresh()
 
         self.focused_window = window
         self.focused_window.focused = True
         self.focused_window.on_focus()
+        self.focused_window.refresh()
 
         # Focusing a window implies bringing it to front?
         # self.bring_window_to_front(window)
@@ -148,6 +154,7 @@ class WindowManager:
         if self._left_pressed_widget:
             self._left_pressed_widget.on_mouse_motion()
         self.handle_mouse_moved_2(mouse_pos)
+        self.mouse_moved.emit(mouse_pos)
 
     def handle_mouse_moved_2(self, mouse_pos: Position) -> None:
         self.mouse_pos = mouse_pos

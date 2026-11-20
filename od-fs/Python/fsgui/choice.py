@@ -1,12 +1,11 @@
 import logging
 from typing import Any, Sequence, Union
 
-from fsuae.fsuaemainwindow import MainWindow
-
 from fsgui.borderlesswindow import BorderlessWindow
 from fsgui.drawingcontext import Colour, DrawingContext
 from fsgui.font import Font
 from fsgui.item import Item
+from fsgui.mainwindow import MainWindow
 from fsgui.transparentwindow import TransparentWindow
 from fsgui.types import Position, Size
 from fsgui.widget import Widget
@@ -75,6 +74,7 @@ class Choice(Widget):
 
     def remove_item_by_index(self, index: int) -> None:
         del self.items[index]
+        self.refresh()
         if self.index < index:
             # No need to do anything
             pass

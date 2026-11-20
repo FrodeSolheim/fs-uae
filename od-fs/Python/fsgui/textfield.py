@@ -43,4 +43,6 @@ class TextField(Widget):
         dc.draw_text(self._text, (6, (self.height - th) // 2))
 
     def set_text(self, text: str):
-        self._text = text
+        if text != self._text:
+            self._text = text
+            self.refresh()

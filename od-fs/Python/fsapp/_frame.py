@@ -2,12 +2,13 @@ import ctypes
 import logging
 
 import _fsapp
-import fsgui._frame
 import sdl3
 
 from fsapp.event import FSAppEvent
 from fsapp.eventname import EventName
 from fsapp.eventservice import EventService
+from fsapp.frameservice import FrameService
+from fsapp.timerservice import TimerService
 
 logger = logging.getLogger(__name__)
 
@@ -92,10 +93,8 @@ def frame2():
 
         events.append(event)
 
-    # FIXME: In an ideal abstract world, fsgui would register with fsapp from frame callbacks.
-    # But with only "one client", we call fsui directly -for now.
-
-    fsgui._frame.frame(events)
+    # The UI toolkit (fsgui) registers with the frame service.
+    FrameService.get().frame(events)
 
     event_service = EventService.instance()
     for event in events:
@@ -109,10 +108,22 @@ def frame2():
         time.sleep(0.02)
 
 
-def frame():
+def frame() -> int | None:
+    """The UI frame's work, which the UI thread runs in each UI frame (fsapp-pythonthread.h).
+
+    Runs the due timers, then the app events, the copied SDL events and the frame service's
+    handlers (fsgui's frame), and then the timers that have become due meanwhile (such as one due
+    at once, set by an event handler), so that they run in the UI frame of what set them, before
+    fsapp ends the UI frame and collects its record. Returns the next timer's time on the clock
+    (SDL's, in microseconds), or None, so that the UI thread's sleep ends then.
+    """
+    timer_service = TimerService.get()
     try:
+        timer_service.run_due()
         frame2()
+        timer_service.run_due()
     except Exception:
         logger.exception("Exception handled during frame processing")
         # import traceback
         # traceback.print_exc()
+    return timer_service.get_next_time_us()

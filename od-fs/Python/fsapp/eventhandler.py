@@ -1,9 +1,8 @@
 import logging
 from typing import Any, Callable, Self, TypeVar, overload
 
-from fsgui.widget import Observable0, State
-from fsuae.reactive import Observable1
-from fsuae.var import Var
+from fsapp.reactive import Observable0, Observable1, State
+from fsapp.var import Var
 
 logger = logging.getLogger(__name__)
 

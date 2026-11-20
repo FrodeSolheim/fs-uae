@@ -1,6 +1,8 @@
 import os
 
 version = os.environ.get("FSAPP_PACKAGE_VERSION", "0.0.0")
+# Who made the build (FSUAE_BUILD_ORIGIN in configure.ac, set by main in fsuae-main.cpp).
+origin = os.environ.get("FSAPP_PACKAGE_ORIGIN", "Unofficial build")
 
 copyright = """\
 Copyright 2011-2025 Frode Solheim and others. Licensed under GPLv2."""

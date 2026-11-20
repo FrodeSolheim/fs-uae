@@ -1,30 +1,21 @@
 import logging
-from typing import Callable
+from typing import Any, Callable
 
 logger = logging.getLogger(__name__)
 
 
-class Connectable:
-    def __init__(self) -> None:
-        self.listeners: list[Callable[[], None]] = []
+class StateVar:
+    """A value that listeners can connect to (an fsapp.connectable.Connectable)."""
 
-    def connect(self, listener: Callable[[], None]) -> None:
+    def __init__(self) -> None:
+        self.listeners: list[Callable[[Any], None]] = []
+
+    # FIXME: add filter to connect/listener
+    def connect(self, listener: Callable[[Any], None]) -> None:
         self.listeners.append(listener)
 
-    def disconnect(self, listener: Callable[[], None]) -> None:
+    def disconnect(self, listener: Callable[[Any], None]) -> None:
         self.listeners.remove(listener)
-
-
-class StateVar(Connectable):
-    def __init__(self) -> None:
-        super().__init__()
-
-    # # FIXME: add filter to connect/listener
-    # def connect(self, listener: Callable) -> None:
-    #     self.listeners.append(listener)
-
-    # def disconnect(self, listener: Callable) -> None:
-    #     self.listeners.remove(listener)
 
     def get(self):
         return self.value
@@ -131,7 +122,7 @@ class UAEConfig:
 
         self.cpu_model = UaeInt(self, "cpu_model", 0)
         # cpu_type is legacy option that we're going to ignore (?)
-        self.fpu_model = UaeInt(self, "cpu_model", 0)
+        self.fpu_model = UaeInt(self, "fpu_model", 0)
         self.mmu_model = UaeString(self, "mmu_model", "")
         self.mmu_ec = UaeBool(self, "mmu_ec", 0)
 
@@ -153,9 +144,9 @@ class UAEConfig:
         ]
 
         self.floppy0wp = UaeBool(self, "floppy0wp", False)
-        self.floppy1wp = UaeBool(self, "floppy0wp", False)
-        self.floppy2wp = UaeBool(self, "floppy0wp", False)
-        self.floppy3wp = UaeBool(self, "floppy0wp", False)
+        self.floppy1wp = UaeBool(self, "floppy1wp", False)
+        self.floppy2wp = UaeBool(self, "floppy2wp", False)
+        self.floppy3wp = UaeBool(self, "floppy3wp", False)
         self.floppy_wp = [
             self.floppy0wp,
             self.floppy1wp,

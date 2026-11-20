@@ -1,9 +1,13 @@
 # _fsuae_main.pyi
 """Typing stubs for the `_fsuae_main` C extension."""
 
+from collections.abc import Callable
+
 # from typing import Final
 
 def init(channel: object) -> None: ...
 def start() -> None: ...
+def run_without_emulation() -> None: ...
+def set_exit_handler(handler: Callable[[], object] | None) -> None: ...
 
 # __all__: Final = ["start"]

@@ -1,6 +1,6 @@
 import os
 
-import fsgui_image  # type: ignore
+import _fsapp_image  # type: ignore
 from fsapp import fsapp
 
 
@@ -15,7 +15,7 @@ class Image:
         else:
             raise FileNotFoundError(name)
 
-        _image = fsgui_image.load(image_path)  # type: ignore
+        _image = _fsapp_image.load(image_path)  # type: ignore
         image = Image(_image)  # type: ignore
         return image
 
@@ -23,11 +23,11 @@ class Image:
         self._image = _image
         self.width: int
         self.height: int
-        self.width, self.height = fsgui_image.get_size(self._image)  # type: ignore
+        self.width, self.height = _fsapp_image.get_size(self._image)  # type: ignore
 
     def tint(self, r: int, g: int, b: int, a: int = 255) -> None:
         """Tint this image with the specified RGBA color."""
-        fsgui_image.tint(self._image, r, g, b, a)  # type: ignore
+        _fsapp_image.tint(self._image, r, g, b, a)  # type: ignore
 
     # def get_size(self) -> tuple[int, int]:
     #     raise NotImplementedError()

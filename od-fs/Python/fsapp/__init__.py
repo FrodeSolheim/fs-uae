@@ -1,7 +1,7 @@
 import logging
 import os
-import sys
 
+from fsapp.log import print_test_traceback_maybe
 from fsapp.main import init_fsapp_main
 
 logger = logging.getLogger(__name__)
@@ -9,6 +9,7 @@ logger = logging.getLogger(__name__)
 
 def fsapp_init():
     print("fsapp.fsapp_init")
+    print_test_traceback_maybe()
 
     init_fsapp_main()
 
@@ -16,15 +17,10 @@ def fsapp_init():
 class FSApp:
     def __init__(self) -> None:
         self._data_dir = os.environ["FSAPP_DATA_DIR"]
-        # FIXME..., not refer to FSUAE here?
-        # Maybe FSAPP_FONTS_DIR instead?
-        # self._system_dir = os.environ["FSUAE_SYSTEM_DIR"]
-
-        exe_dir = os.path.dirname(sys.executable)
-
         self._resources_dir = os.environ["FSAPP_RESOURCES_DIR"]
 
         # FIXME: Replace with PathsService
+        # For the paths commented out below: exe_dir = os.path.dirname(sys.executable)
 
         self.fonts_dirs = list(
             [os.path.join(self._resources_dir, "Fonts")]

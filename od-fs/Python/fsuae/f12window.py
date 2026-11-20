@@ -4,6 +4,7 @@ from typing import ClassVar, Self
 import _fsapp  # type: ignore
 import fsemu
 from fsapp.eventservice import Event
+from fsapp.signal import Signal
 from fsgui.button import Button
 from fsgui.heading import Heading
 from fsgui.layout import HorizontalLayout, VerticalLayout
@@ -21,6 +22,8 @@ logger = logging.getLogger(__name__)
 
 class F12Window(Window):
     _instance: ClassVar[Self]
+    # Emitted when the F12 window has opened (been created) or closed (has_instance tells which).
+    open_changed: ClassVar[Signal[[]]] = Signal()
 
     @classmethod
     def has_instance(cls) -> bool:
@@ -30,9 +33,11 @@ class F12Window(Window):
     def instance(cls) -> Self:
         def on_destroy():
             del cls._instance
+            cls.open_changed.emit()
 
         if not hasattr(cls, "_instance"):
             cls._instance = cls().on_destroy(on_destroy)
+            cls.open_changed.emit()
         return cls._instance
 
     @classmethod

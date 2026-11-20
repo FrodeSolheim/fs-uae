@@ -2,7 +2,7 @@ import logging
 from typing import Literal
 
 from fsapp.eventhandler import EventHandler
-from fsapp.tickservice import TickService
+from fsapp.timerservice import Timer, TimerService
 from fsemu.inputdevice import InputDevice
 from fsemu.inputdeviceservice import InputDeviceService
 from fsemu.inputport import InputPort
@@ -40,7 +40,7 @@ class DeviceRobotService(EventHandler):
         config2: UAEConfig2,
         input_port_service: InputPortService,
         input_device_service: InputDeviceService,
-        tick_service: TickService,
+        timer_service: TimerService,
     ) -> None:
         super().__init__()
 
@@ -54,7 +54,9 @@ class DeviceRobotService(EventHandler):
         self._input_port_service = input_port_service
         self._input_device_service = input_device_service
 
-        self._recalculate_needed = False
+        self._timer_service = timer_service
+        # The timer that recalculates the devices, while one is due (_recalculate_soon).
+        self._recalculate_timer: Timer | None = None
 
         # self._ports = [InputPort2(), InputPort2(), InputPort2(), InputPort2()]
 
@@ -69,17 +71,20 @@ class DeviceRobotService(EventHandler):
         self.on(self._input_device_service.device_added, self.__device_added)
         self.on(self._input_device_service.device_removed, self.__device_removed)
 
-        self.on(tick_service.tick, self.__tick)
-
         # self.auto_devices = [Var[InputDevice | None](None) for _port in self.ports]
 
-        # tick_service.register
+    def _recalculate_soon(self) -> None:
+        """Recalculates the devices in a timer due at once, so that the events of one UI frame
+        (the device events come after the ticks) recalculate once, at the end of that UI frame's
+        work (fsapp runs the timers due then)."""
+        if self._recalculate_timer is None:
+            self._recalculate_timer = self._timer_service.call_at(
+                self._timer_service.now_us(), self.__recalculate
+            )
 
-    def __tick(self) -> None:
-        # print("tick", self._recalculate_needed)
-        if self._recalculate_needed:
-            self.recalculate_devices()
-            self._recalculate_needed = False
+    def __recalculate(self) -> None:
+        self._recalculate_timer = None
+        self.recalculate_devices()
 
     # def _auto_fill(self, port_index: int, type: str) -> None:
     #     devices: list[InputDevice | None] = [None, None, None, None]
@@ -316,9 +321,12 @@ class DeviceRobotService(EventHandler):
     #         if port2.device != port2.configured_device:
     #             # FIXME: Insert!
 
-    #             #     # post_to_fsapp_main(FSEMU_MESSAGE_SET_PORT_DEVICE, f"{port.instance_id}:{device.instance_id}")
-    #             #     # FIXME: Maybe have an fsemu instance id which is separate from SDL ??? For now, we send
-    #             #     # device type and (sdl) instance id
+    #             #     # post_to_fsapp_main(
+    #             #     #     FSEMU_MESSAGE_SET_PORT_DEVICE,
+    #             #     #     f"{port.instance_id}:{device.instance_id}",
+    #             #     # )
+    #             #     # FIXME: Maybe have an fsemu instance id which is separate from SDL ???
+    #             #     # For now, we send device type and (sdl) instance id
     #             device = port2.device
     #             port = self._input_port_service.ports[i]
     #             # if device is not None:
@@ -335,7 +343,7 @@ class DeviceRobotService(EventHandler):
     def _update_port(self, index: int, value: str) -> None:
         # FIXME: Must remember to make sure devices has unique names (#2, #3, etc)
         # self._ports[index].device_name = value
-        self._recalculate_needed = True
+        self._recalculate_soon()
 
     def __joystick_port_0(self, value: str) -> None:
         print("DeviceRobotService.__joystick_port_0", value)
@@ -347,11 +355,11 @@ class DeviceRobotService(EventHandler):
 
     def __device_added(self, device: InputDevice) -> None:
         logger.debug("ADDED DEVICE %r", device.name)
-        self._recalculate_needed = True
+        self._recalculate_soon()
 
     def __device_removed(self, device: InputDevice) -> None:
         logger.debug("REMOVED DEVICE %r", device.name)
-        self._recalculate_needed = True
+        self._recalculate_soon()
 
         # FIXME: Remove device (if used) right away, or wait for recalculate and do it there?
 
@@ -373,12 +381,15 @@ class DeviceRobotService(EventHandler):
     #     # port.set_device_by_index(index)
     #     device: InputDevice = self.items[self.index].data
 
-    #     from fsapp.constants import FSEMU_MESSAGE_SET_PORT_DEVICE
+    #     from fsemu.constants import FSEMU_MESSAGE_SET_PORT_DEVICE
     #     from fsapp.main import post_to_fsapp_main
 
-    #     # post_to_fsapp_main(FSEMU_MESSAGE_SET_PORT_DEVICE, f"{port.instance_id}:{device.instance_id}")
-    #     # FIXME: Maybe have an fsemu instance id which is separate from SDL ??? For now, we send
-    #     # device type and (sdl) instance id
+    #     # post_to_fsapp_main(
+    #     #     FSEMU_MESSAGE_SET_PORT_DEVICE, f"{port.instance_id}:{device.instance_id}"
+    #     # )
+    #     # FIXME: Maybe have an fsemu instance id which is separate from SDL ??? For now, we
+    #     # send device type and (sdl) instance id
     #     post_to_fsapp_main(
-    #         FSEMU_MESSAGE_SET_PORT_DEVICE, f"{port.instance_id}:{device.type}:{device.instance_id}"
+    #         FSEMU_MESSAGE_SET_PORT_DEVICE,
+    #         f"{port.instance_id}:{device.type}:{device.instance_id}",
     #     )

@@ -1,5 +1,5 @@
 import logging
-import sys
+from collections import Counter
 from typing import Self
 
 from fsapp.eventservice import (
@@ -12,9 +12,6 @@ from fsuae.uaeconfig2 import UAEConfig2
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
-
-# FIXME: Not here
-logging.basicConfig(level=logging.INFO, stream=sys.stdout)
 
 
 class Config:
@@ -73,17 +70,28 @@ class UAEConfigService:
     def __uae_config(self, event: Event) -> None:
         changed_keys: set[str] = set()
         # removed_keys: set[str] = set(self.config.keys())
-        removed_keys: set[str] = set(self.config2._config.keys())
+        # Keys starting with x_ are derived by the UAEConfig2 hooks (such as x_mmu_type) and are
+        # never in the snapshot, so they must not be treated as removed.
+        removed_keys: set[str] = {k for k in self.config2._config if not k.startswith("x_")}
 
-        lines = event["strdata"].split("\n")
-        for line in lines:
+        items: list[tuple[str, str]] = []
+        for line in event["strdata"].split("\n"):
             if line == "" or line.startswith(";"):
                 continue
             try:
                 key, value = line.split("=", 1)
             except ValueError as e:
                 logger.warning("%s %r", line, e)
+                continue
+            items.append((key, value))
 
+        # Some keys (such as filesystem2) can occur more than once. They are stored as one key here,
+        # so each occurrence overwrites the previous one and is seen as a change on every snapshot.
+        # Don't log those, to avoid flooding the log.
+        key_counts = Counter(key for key, _ in items)
+
+        for key, value in items:
+            log_key = key_counts[key] == 1
             if self.config2._config.get(key) != value:
                 # if getattr(self.config, key, None) != value:
                 # self._config[key] = value
@@ -91,23 +99,21 @@ class UAEConfigService:
                 setattr(self.config, key, value)
                 self.config2._config[key] = value
 
-                logger.debug("-----> %r <- %r", key, value)
+                if log_key:
+                    logger.debug("-----> %r <- %r", key, value)
                 changed_keys.add(key)
             try:
                 removed_keys.remove(key)
             except KeyError:
-                logger.debug("  (key %r was not in config key set)", key)
+                if log_key:
+                    logger.debug("  (key %r was not in config key set)", key)
 
         # Also look at config keys that was NOT included?
 
         for key in removed_keys:
-            # if self._config[key] != "":
-            # if getattr(self.config, key, None) != value:
-            if self.config2._config.get(key) != value:
-                # self._config[key] = ""
-
-                setattr(self.config, key, value)
-                self.config2._config[key] = value
+            if self.config2._config.get(key) != "":
+                setattr(self.config, key, "")
+                self.config2._config[key] = ""
 
                 logger.debug('-rem-> %r <- ""', key)
                 changed_keys.add(key)

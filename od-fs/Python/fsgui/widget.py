@@ -2,9 +2,9 @@ import logging
 import traceback
 from typing import Any, Callable, Optional, Self, TypeVar, overload
 
-from fsuae.reactive import Observable0, Observable1, Property, State
-from fsuae.uaeconfig import Connectable
-from fsuae.var import Var
+from fsapp.connectable import Connectable
+from fsapp.reactive import Observable0, Observable1, Property, State
+from fsapp.var import Var
 
 from fsgui.drawingcontext import DrawingContext
 from fsgui.font import Font
@@ -25,6 +25,10 @@ T = TypeVar("T")
 
 
 class Widget(WidgetOrLayout):
+    # Whether moving the widget makes its window dirty. A window's own position is its surface's,
+    # which changes without a repaint.
+    _repaint_on_move = True
+
     def __init__(
         self,
         *,
@@ -141,6 +145,10 @@ class Widget(WidgetOrLayout):
             "on_destroy": [],
         }
 
+        # A widget added to a window, and its enabled state changing, change what the window draws.
+        self.refresh()
+        self.on(self.enabled_state, self._refresh_on_change)
+
     @property
     def enabled(self) -> bool:
         return self.enabled_state.value
@@ -191,7 +199,7 @@ class Widget(WidgetOrLayout):
         # # track and auto-disconnect here
         # return self
 
-    def connect(self, state: Connectable, listener: Callable[[], None]) -> Self:
+    def connect(self, state: Connectable[Any], listener: Callable[[], None]) -> Self:
         if isinstance(listener, str):
             listener = getattr(self, listener)
         self._listeners.append((state, listener))
@@ -265,6 +273,8 @@ class Widget(WidgetOrLayout):
         return dc
 
     def destroy(self):
+        # The window no longer draws this widget (nothing, if the window itself is destroyed).
+        self.refresh()
         self.enabled_state.destroy()
 
         from fsgui.windowmanager import WindowManager
@@ -515,8 +525,18 @@ class Widget(WidgetOrLayout):
         return False
 
     def refresh(self) -> None:
-        # No-op right now
-        pass
+        """Marks the widget's window dirty: call it when something the widget draws has changed.
+
+        A dirty window is painted and committed (whole) in the UI frame's window update, or, while
+        it is hidden, when it is shown again.
+        """
+        # Not set before the widget has a window, and cleared when it is destroyed.
+        window = getattr(self, "_window", None)
+        if window is not None:
+            window.mark_dirty()
+
+    def _refresh_on_change(self, _value: object) -> None:
+        self.refresh()
 
     def set_min_width(self, min_width: int | None) -> Self:
         self._min_width = min_width
@@ -527,6 +547,8 @@ class Widget(WidgetOrLayout):
         if position == self._position:
             return
         super()._set_position(position)
+        if self._repaint_on_move:
+            self.refresh()
         self.on_move()
 
     # def set_size(self, size: Size):
@@ -537,6 +559,7 @@ class Widget(WidgetOrLayout):
         if size == self.size:
             return
         super()._set_size(size)
+        self.refresh()
         # Do we want to call on_resize instantly, or queue up size changes
         # somehow and do a resize pass? Not sure... -but maybe.
         self.on_resize()

@@ -50,9 +50,11 @@ class MainWindowTitleBar(BorderlessWindow):
         dc.draw_text(self._title, (title_x, title_y))
 
         if self.extra_title:
+            # Right-aligned next to the window buttons, so it does not overlap long (dev build)
+            # version numbers in the left-aligned title.
             tw, th = dc.measure_text(self.extra_title)
-            title_x = (self.width - tw) // 2
-            dc.draw_text(self.extra_title, (title_x, title_y))
+            extra_title_x = self.minimize_button.get_position()[0] - 12 - tw
+            dc.draw_text(self.extra_title, (extra_title_x, title_y))
 
         # tx = tx + tw + 12
         # sub_title = "V5 PREVIEW"

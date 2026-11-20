@@ -1,39 +1,65 @@
 import atexit
+import logging
 import os
 import sys
 
 import _fsapp_channel  # type: ignore
 import _fsuae_main  # type: ignore
+import fsemu
 from fsapp.eventservice import EventService
 from fsapp.tickservice import TickService
+from fsapp.timerservice import TimerService
 from fsemu.inputdeviceservice import InputDeviceService
 from fsemu.inputportservice import InputPortService
 from fsgui.windowmanager import WindowManager
 from fsuae.amigacontext import AmigaContext
 from fsuae.f12window import F12Window
 from fsuae.fsuaemainwindow import FSUAEMainWindow
+from fsuae.gui.inputgrabnotification import InputGrabNotification
 from fsuae.gui.notificationservice import NotificationService
 from fsuae.gui.notificationtype import NotificationType
 from fsuae.input.devicerobotservice import DeviceRobotService
 
 # from fsuae.input.inputdevicewindow import InputDeviceWindow
 from fsuae.messages import (
-    FSUAE_MESSAGE_ADD_ROM,
-    FSUAE_MESSAGE_EARLY_STOP,
-    FSUAE_MESSAGE_RESTART_WITH_CONFIG,
+    FSUAE_MESSAGES_ADD_ROM,
+    FSUAE_MESSAGES_EARLY_STOP,
+    FSUAE_MESSAGES_RESTART_WITH_CONFIG,
     post_fsuae_message,
     set_fsuae_channel,
     # process_fsuae_messages,
 )
 from fsuae.roms.romservice import ROMService
+from fsuae.rundirectory import create_run_dir, delete_run_dir, remove_stale_run_dirs
 from fsuae.servicecontainer import ServiceContainer
 from fsuae.services.pathservice import PathService
 from fsuae.svgicon import SvgIcon
 from fsuae.uaeconfigservice import UAEConfigService
+from fsuae.whdload.runpreparation import (
+    DamagedArchiveError,
+    KickstartMissingError,
+    NotAWHDLoadArchiveError,
+    WHDLoadRunError,
+    prepare_whdload_run,
+)
 from fsuae.workspace import init_fsuae_workspace
 from uae.options.blacklisted import blacklisted_uae_options
 
 from app.map_ports import map_ports
+
+logger = logging.getLogger(__name__)
+
+# Width of error notifications (the description is wrapped to fit).
+ERROR_NOTIFICATION_WIDTH = 560
+
+
+class StartError(Exception):
+    """The file given on the command line cannot be started; shown as an error notification."""
+
+    def __init__(self, title: str, description: str) -> None:
+        super().__init__(f"{title}: {description}")
+        self.title = title
+        self.description = description
 
 
 def on_exit() -> None:
@@ -58,9 +84,6 @@ def app_init() -> None:
     # due to fsemu_video_init being called when we do this.
     _main_window = FSUAEMainWindow(fullscreen=fullscreen)
 
-    # FIXME: if app_init raises an exception, the entire app hangs
-    # Improve this a bit!
-
     channel = _fsapp_channel.create()
     set_fsuae_channel(channel)
     _fsuae_main.init(channel)
@@ -80,11 +103,35 @@ def app_init() -> None:
     services.rom = ROMService(services.path)
     services.tick = TickService().get()
 
+    # Remove run directories left behind by sessions that did not end cleanly (crashes). Only
+    # those whose owner process has ended are removed, so this is safe with other FS-UAE
+    # instances running. A failure here must not stop start-up.
+    try:
+        remove_stale_run_dirs(services.path.cache_dir)
+    except Exception:
+        logger.exception("Could not remove stale run directories")
+
     services.rom.scan_kickstart_dirs()
 
     for rom in services.rom.roms:
-        post_fsuae_message(FSUAE_MESSAGE_ADD_ROM, f"{rom.crc32},{rom.sha1},{rom.path}")
-    post_fsuae_message(FSUAE_MESSAGE_EARLY_STOP)
+        post_fsuae_message(FSUAE_MESSAGES_ADD_ROM, f"{rom.crc32},{rom.sha1},{rom.path}")
+
+    # A WHDLoad archive is prepared before emulation starts. Its config is handed over among the
+    # early messages, which the emulation thread processes before starting the emulation core, so
+    # the core starts directly with it (instead of booting the default machine and restarting).
+    # If it cannot be started, no emulation is started at all, and an error notification is shown
+    # instead (further down, once the notification service exists). The user closes FS-UAE.
+    start_error: StartError | None = None
+    last_arg = sys.argv[-1]
+    if last_arg.lower().endswith(".lha"):
+        try:
+            whdload_config = prepare_whdload_archive(last_arg, services)
+        except StartError as e:
+            start_error = e
+        else:
+            post_fsuae_message(FSUAE_MESSAGES_RESTART_WITH_CONFIG, whdload_config)
+
+    post_fsuae_message(FSUAE_MESSAGES_EARLY_STOP)
 
     # arc.services?
     # arc.config?
@@ -101,7 +148,11 @@ def app_init() -> None:
     # fsuae_roms.
 
     # FIXME: Maybe delay start even further?
-    _fsuae_main.start()
+    if start_error is None:
+        _fsuae_main.start()
+    else:
+        # The main loop must render the GUI without waiting for emulation video.
+        _fsuae_main.run_without_emulation()
 
     map_ports(services)
 
@@ -122,7 +173,7 @@ def app_init() -> None:
         services.uae_config.config2,
         services.input_ports,
         services.input_devices,
-        services.tick,
+        TimerService.get(),
     )
 
     init_fsuae_workspace()
@@ -134,7 +185,6 @@ def app_init() -> None:
     # InputDeviceService must have been created first
     # InputDeviceWindow.instance().show()
 
-    last_arg = sys.argv[-1]
     if last_arg.endswith(".uae"):
         if os.path.exists(last_arg):
             load_config(last_arg)
@@ -155,8 +205,80 @@ def app_init() -> None:
         SvgIcon("svg-custom/mouse-locked.svg"),
     )
 
+    InputGrabNotification(notification_service, services.event)
     # notification_service.show_notification(NotificationType.MOUSE_GRABBED)
     print("---------------------------------------------------------------------------------------")
+
+    if start_error is not None:
+        show_start_error(notification_service, start_error)
+
+
+def show_start_error(notification_service: NotificationService, error: StartError) -> None:
+    """Show an error notification that stays until FS-UAE is closed."""
+    try:
+        notification_service.create_notification(
+            NotificationType.START_ERROR,
+            error.title,
+            error.description,
+            SvgIcon("src/svg/alert.svg"),
+            duration=0,
+            width=ERROR_NOTIFICATION_WIDTH,
+        )
+        notification_service.show_notification(NotificationType.START_ERROR)
+    except Exception:
+        logger.exception("Could not show the error notification")
+
+
+def prepare_whdload_archive(path: str, services: ServiceContainer) -> str:
+    """Build a run directory for a WHDLoad archive and return the config to start it with.
+
+    Raises `StartError` (after logging why) if the archive cannot be started; the run directory
+    is removed again in that case. Otherwise, the run directory is deleted when FS-UAE exits,
+    after the emulation thread has stopped.
+    """
+    run_dir = None
+    try:
+        archive_name = os.path.splitext(os.path.basename(path))[0]
+        run_dir = create_run_dir(services.path.cache_dir, archive_name)
+        run = prepare_whdload_run(path, run_dir, services.rom.roms, services.path.resources_dir)
+    except Exception as e:
+        if isinstance(e, (WHDLoadRunError, OSError)):
+            logger.error("Cannot start %s: %s", path, e)
+        else:
+            logger.exception("Cannot start %s: unexpected error", path)
+        if run_dir is not None:
+            delete_run_dir(run_dir)
+        title, description = whdload_error_message(path, e, services.path.kickstart_dir)
+        raise StartError(title, description) from e
+    logger.info("WHDLoad run directory: %s", run_dir)
+    # Called on the main thread at exit, only once emulation has stopped and been joined (so the
+    # core has flushed and closed the hard drive), on every quit path.
+    _fsuae_main.set_exit_handler(lambda: delete_run_dir(run_dir))
+    return run.config
+
+
+def whdload_error_message(path: str, error: Exception, kickstart_dir: str) -> tuple[str, str]:
+    """The title and description of the error notification for a WHDLoad archive."""
+    name = os.path.basename(path)
+    if isinstance(error, NotAWHDLoadArchiveError):
+        return "Not a WHDLoad archive", f"{name} cannot be started because {error.reason}."
+    if isinstance(error, KickstartMissingError):
+        return (
+            "Kickstart ROM missing",
+            f"{name} needs {error.kickstart.name}. "
+            f"Add the ROM to {kickstart_dir} and start FS-UAE again.",
+        )
+    if isinstance(error, DamagedArchiveError):
+        return (
+            "Damaged WHDLoad archive",
+            f"{name} cannot be started because {error.member} cannot be read ({error.reason}).",
+        )
+    if isinstance(error, (WHDLoadRunError, OSError)):
+        return "Cannot start WHDLoad archive", f"{name}: {error}"
+    return (
+        "Cannot start WHDLoad archive",
+        f"{name}: unexpected error ({type(error).__name__}: {error}). See the log file.",
+    )
 
 
 def load_config(path: str) -> None:
@@ -175,8 +297,7 @@ def load_config(path: str) -> None:
 
     # FIXME: Temporary hack to make relative references from .uae work! (Needs to be done after
     # loading the .uae config, which might itself be given as a relative path).
-    os.chdir(os.path.dirname(path))
-
+    os.chdir(os.path.dirname(path) or ".")
 
     # for key, value in config:
     #     import fsemu
@@ -193,11 +314,15 @@ def load_config(path: str) -> None:
         #     continue
         if key in blacklisted_uae_options:
             continue
+        if key == "performance_gui":
+            # FS-UAE's own option, for fsemu's performance graph (not for the emulation core).
+            fsemu.set_performance_gui(value.strip())
+            continue
         new_config.append(f"{key}={value}\n")
 
     new_config_str = "".join(new_config)
 
     post_fsuae_message(
-        FSUAE_MESSAGE_RESTART_WITH_CONFIG,
+        FSUAE_MESSAGES_RESTART_WITH_CONFIG,
         "".join(new_config_str),
     )

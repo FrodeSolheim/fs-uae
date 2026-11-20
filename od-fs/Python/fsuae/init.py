@@ -4,13 +4,14 @@ logger = logging.getLogger(__name__)
 
 
 def init():
-    """This function is called from fsapp-pythonthread.cpp"""
+    """FS-UAE's Python start-up, run first on the UI thread.
+
+    fsuae-main.cpp gives this function to fsapp_pythonthread_start as the UI thread's entry point.
+    """
 
     logger.info("FS-UAE Init (Python)")
 
     # raise Exception("test")
-
-    # FIXME: Set up logging via _fsapp (-> SDL_Log)
 
     from fsapp import fsapp_init
 

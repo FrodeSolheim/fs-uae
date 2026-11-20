@@ -1,9 +1,8 @@
-import math
 from typing import Any
 
+import _fsapp_font  # type: ignore
+import _fsapp_image  # type: ignore
 import _fsapp_surface  # type: ignore
-import fsgui_font  # type: ignore
-import fsgui_image  # type: ignore
 
 from fsgui.font import Font
 from fsgui.fontmanager import FontManager
@@ -60,11 +59,11 @@ class DrawingContext:
 
     def draw_image(self, image: Image, position: Position) -> None:
         p = self.origin[0] + position[0], self.origin[1] + position[1]
-        fsgui_image.draw(image._image, self.surface, p)
+        _fsapp_image.draw(image._image, self.surface, p)
 
     def draw_image_stretched(self, image: Image, position: Position, size: Size) -> None:
         p = self.origin[0] + position[0], self.origin[1] + position[1]
-        fsgui_image.draw_stretched(image._image, self.surface, p, size)
+        _fsapp_image.draw_stretched(image._image, self.surface, p, size)
 
     def draw_line(
         self,
@@ -87,20 +86,20 @@ class DrawingContext:
 
     def draw_text(self, text: str, position: Position) -> None:
         # FIXME: Cache...
-        _, th = fsgui_font.measure_text(self._font.font, "Åg")
-        tw, th2 = fsgui_font.measure_text(self._font.font, text)
+        _, th = _fsapp_font.measure_text(self._font.font, "Åg")
+        tw, th2 = _fsapp_font.measure_text(self._font.font, text)
         # Offset the text to account for improper positioning
         dy = th - th2
 
         # FIXME: For later - we also need to send a bounding box... for clipping!
         p = self.origin[0] + position[0], self.origin[1] + position[1] + dy
 
-        fsgui_font.draw_text(self._font._font, self.surface, text, p, self.text_colour)
+        _fsapp_font.draw_text(self._font._font, self.surface, text, p, self.text_colour)
 
     def draw_text_wrapped(self, text, position: Position, wrap_width: int) -> None:
         # FIXME: For later - we also need to send a bounding box... for clipping!
         p = self.origin[0] + position[0], self.origin[1] + position[1]
-        fsgui_font.draw_text_wrapped(self._font.font, self.surface, text, p, wrap_width)
+        _fsapp_font.draw_text_wrapped(self._font.font, self.surface, text, p, wrap_width)
 
     def get_bold_ui_font(self) -> Font:
         return FontManager.get().get_bold_ui_font()
@@ -110,8 +109,8 @@ class DrawingContext:
 
     def measure_text(self, text: str) -> Size:
         # FIXME: Cache...
-        _, th = fsgui_font.measure_text(self._font.font, "Åg")
-        tw, th2 = fsgui_font.measure_text(self._font.font, text)
+        _, th = _fsapp_font.measure_text(self._font.font, "Åg")
+        tw, th2 = _fsapp_font.measure_text(self._font.font, text)
         return tw, th
 
     def set_pen_colour(self, pen_colour: TColour) -> None:

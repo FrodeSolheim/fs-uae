@@ -2,7 +2,6 @@ import logging
 
 import _fsapp
 
-from fsgui.internal.flags import Flags
 from fsgui.mainwindowborder import MainWindowBorder
 from fsgui.mainwindowtitlebar import MainWindowTitleBar
 from fsgui.types import Size, TColour

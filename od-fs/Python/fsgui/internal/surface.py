@@ -8,7 +8,9 @@ from fsgui.types import Size
 
 
 class Surface:
-    def __init__(self, size: Tuple[int, int], special=0):
+    def __init__(self, size: Tuple[int, int], special=0, surface=None):
+        """A new surface, or, with surface, one created elsewhere (an _fsapp_surface capsule, such
+        as the emulation surface), resized to size."""
         self._special = special
         # self._buffer = BytesIO()
         # self._buffer.write(b"\xff\xff\x00\xff" * size[0] * size[1])
@@ -16,7 +18,11 @@ class Surface:
         # self._image = Image.frombuffer("RGBA", (640, 480), self._buffer.getbuffer())
 
         self._position = 0, 0
-        self._surface = _fsapp_surface.create(size, special)
+        if surface is None:
+            self._surface = _fsapp_surface.create(size, special)
+        else:
+            self._surface = surface
+            _fsapp_surface.resize(self._surface, size)
         self._size = size
         self._z_index = 0
 
@@ -59,6 +65,10 @@ class Surface:
     def resize(self, size: Size):
         _fsapp_surface.resize(self._surface, size)
         self._size = size
+
+    def commit(self) -> None:
+        """Commits what was drawn in the surface (the whole surface): it shows with the UI frame."""
+        _fsapp_surface.commit(self._surface)
 
     def set_position(self, position: Tuple[int, int]):
         self._position = position

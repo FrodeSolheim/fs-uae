@@ -100,7 +100,7 @@ class ShortcutsWindow(Window):
 
     def reset(self) -> None:
         # fsemu.post(uae.INPUTEVENT_SPC_HARDRESET)
-        fsuae.messages.post_fsuae_message(fsuae.messages.FSUAE_MESSAGE_RESET)
+        fsuae.messages.post_fsuae_message(fsuae.messages.FSUAE_MESSAGES_RESET)
 
     def run_uae(self):
         last_arg = sys.argv[-1]
@@ -130,7 +130,7 @@ class ShortcutsWindow(Window):
         logger.debug(new_config_str)
 
         fsuae.messages.post_fsuae_message(
-            fsuae.messages.FSUAE_MESSAGE_RESTART_WITH_CONFIG,
+            fsuae.messages.FSUAE_MESSAGES_RESTART_WITH_CONFIG,
             "".join(new_config_str),
         )
 
@@ -162,7 +162,7 @@ class ShortcutsWindow(Window):
         # fsemu.post(uae.INPUTEVENT_SPC_HARDRESET)
 
         fsuae.messages.post_fsuae_message(
-            fsuae.messages.FSUAE_MESSAGE_RESTART_WITH_CONFIG,
+            fsuae.messages.FSUAE_MESSAGES_RESTART_WITH_CONFIG,
             """
             kickstart_rom_file=./Data/ROM/AmigaForever/amiga-os-130.rom
             kickstart_rom_file_id=C4F0F55F,KS ROM v1.3 (A500,A1000,A2000)

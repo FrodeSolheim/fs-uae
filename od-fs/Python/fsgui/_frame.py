@@ -1,11 +1,8 @@
-import ctypes
 import logging
-from typing import cast
 
-import _fsapp
 import sdl3
-from fsapp.tickservice import TickService
 from fsapp.eventservice import EventService
+from fsapp.tickservice import TickService
 
 from fsgui.mainwindow import MainWindow
 from fsgui.windowmanager import WindowManager
@@ -21,7 +18,6 @@ class State:
     # mouse_pos = (-1.0, -1.0)
     mouse_pos: tuple[int, int] = (-1, -1)
     last_mouse_pos = (-1.0, -1.0)
-    previous_mouse_grab = False
 
 
 state = State()
@@ -118,24 +114,10 @@ def frame(events: list[sdl3.SDL_Event]) -> None:
         handle_event(event)
     maybe_move_mouse(window_manager)
 
-    # Check for mouse grab state change and show/hide notification accordingly
-    current_mouse_grab = _fsapp.get_mouse_grab()
-    if current_mouse_grab != state.previous_mouse_grab:
-        from fsuae.gui.notificationservice import NotificationService
-        from fsuae.gui.notificationtype import NotificationType
-
-        notification_service = NotificationService.instance()
-
-        if current_mouse_grab:
-            # Mouse was just grabbed - show notification
-            notification_service.show_notification(NotificationType.MOUSE_GRABBED)
-        else:
-            # Mouse was just ungrabbed - hide notification if it's showing
-            notification_service.hide_notification(NotificationType.MOUSE_GRABBED)
-
-    state.previous_mouse_grab = current_mouse_grab
-
     # FIXME: fsapp or fsgui responsibility?
+    # Ticks run in every UI frame, but never cause one: UI code that must run at a time or on an
+    # event uses timers (fsapp.timerservice) and events, and animation requests UI frames
+    # (FrameService.request_ui_frame).
     TickService.get().broadcast()
 
     # Could in theory update the surfaces first, and then continue running Python code without

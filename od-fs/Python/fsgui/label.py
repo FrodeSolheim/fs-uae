@@ -1,4 +1,4 @@
-import fsgui_font  # type: ignore
+import _fsapp_font  # type: ignore
 
 from fsgui.font import Font
 from fsgui.types import Size, TColour
@@ -40,20 +40,20 @@ class Label(Widget):
         font = self.font
 
         if self.wrap:
-            _, th = fsgui_font.measure_text_wrapped(
+            _, th = _fsapp_font.measure_text_wrapped(
                 font.font,
                 self._text,
                 width,
             )
         else:
-            _, th = fsgui_font.measure_text(font.font, "Åg")
+            _, th = _fsapp_font.measure_text(font.font, "Åg")
 
         # FIXME: Cache...
-        # _, th = fsgui_font.measure_text(font.font, "Åg")
-        # tw, th2 = fsgui_font.measure_text(self._font.font, self._text)
+        # _, th = _fsapp_font.measure_text(font.font, "Åg")
+        # tw, th2 = _fsapp_font.measure_text(self._font.font, self._text)
         # Offset the text to account for improper positioning
         # dy = th - th2
-        # tw, th = fsgui_font.measure_text(font.font, self._text)
+        # tw, th = _fsapp_font.measure_text(font.font, self._text)
 
         # if self.wrap:
         #     print("calculate_min_height", width, "=", th)
@@ -70,7 +70,7 @@ class Label(Widget):
 
         # font = FontManager.get().get_ui_font()
         font = self.font
-        tw, _ = fsgui_font.measure_text(font.font, self._text)
+        tw, _ = _fsapp_font.measure_text(font.font, self._text)
         # if self.wrap:
         #     print("calculate_min_width", "=", tw)
         return tw
@@ -94,11 +94,15 @@ class Label(Widget):
             dc.draw_text(self._text, (0, (self.height - th) // 2))
 
     def set_text(self, text: str):
-        self._text = text
+        if text != self._text:
+            self._text = text
+            self.refresh()
 
     def set_text_color(self, color: TColour | None):
         """Set the text color for this label."""
-        self._text_color = color
+        if color != self._text_color:
+            self._text_color = color
+            self.refresh()
 
     def set_size_internal(self, size):
         # if self.wrap:

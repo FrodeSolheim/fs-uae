@@ -8,12 +8,13 @@ import time
 from typing import ClassVar, Self
 
 from fsapp.eventservice import Event
+from fsapp.reactive import Var
+from fsapp.timerservice import Timer, TimerService
 from fsgui.drawingcontext import Colour
 from fsgui.layout import VerticalLayout
 from fsgui.widget import Widget
 from fsgui.window import Window
 
-from fsuae.reactive import Var
 from fsuae.servicecontainer import ServiceContainer
 
 logger = logging.getLogger(__name__)
@@ -169,34 +170,27 @@ class ClockWindow(Window):
         self.clock_widget = AnalogClockWidget()
         self.clock_widget.fill().expand()  # Make the widget fill and expand to use available space
 
-        # Connect to tick service for real-time updates
-        services = ServiceContainer().instance()
-        services.tick.tick.connect(self._on_tick)
+        # The timer that updates the time at the start of the next second.
+        self._timer: Timer | None = None
 
-        # Track last update time to avoid unnecessary updates
-        self._last_update_second = -1
-
-        # Initial update
+        # Initial update, which sets the timer
         self._update_time()
 
-    def _on_tick(self) -> None:
-        """Called on each frame tick - update time if needed"""
-        now = time.localtime()
-        # Only update if the second has changed to avoid unnecessary redraws
-        if now.tm_sec != self._last_update_second:
-            self._last_update_second = now.tm_sec
-            self._update_time()
-
     def _update_time(self) -> None:
-        """Update the current time"""
-        now = time.localtime()
-        self.clock_widget.set_time(now.tm_hour, now.tm_min, now.tm_sec)
+        """Update the current time, and set the timer for the start of the next second."""
+        now = time.time()
+        local = time.localtime(now)
+        self.clock_widget.set_time(local.tm_hour, local.tm_min, local.tm_sec)
+        # A little after the second starts, so that the wall clock has passed it when the timer
+        # runs (it runs on fsapp's monotonic clock).
+        delay = 1.0 - now % 1.0 + 0.002
+        self._timer = TimerService.get().call_after(delay, self._update_time)
 
     def close(self) -> None:
         """Close the clock window"""
-        # Disconnect from tick service
-        services = ServiceContainer().instance()
-        services.tick.tick.disconnect(self._on_tick)
+        if self._timer is not None:
+            self._timer.cancel()
+            self._timer = None
         super().close()
 
     def center_window(self) -> Self:

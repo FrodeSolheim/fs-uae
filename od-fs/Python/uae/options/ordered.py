@@ -406,7 +406,8 @@ ordered_uae_options = [
     # ----------------------------------------------------------------------------------------------
     # write_filesys_config - FIXME, can make hardfile2 / filesystem2 work
     "hardfile2",
-    "uaehf0" "filesystem2",
+    "uaehf0",
+    "filesystem2",
     "uaehf1",
     # ----------------------------------------------------------------------------------------------
     "filesys_no_fsdb",  # not always present

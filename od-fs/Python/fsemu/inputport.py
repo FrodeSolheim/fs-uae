@@ -1,10 +1,10 @@
 import _fsemu_input  # type: ignore
 import _fsemu_inputport  # type: ignore
-from fsapp.constants import FSEMU_MESSAGE_SET_PORT_DEVICE
 from fsapp.main import post_to_fsapp_main
 from fsapp.signal import Signal
-from fsuae.var import Var
+from fsapp.var import Var
 
+from fsemu.constants import FSEMU_MESSAGE_SET_PORT_DEVICE
 from fsemu.inputdeviceservice import InputDevice
 from fsemu.inputportmode import InputPortMode
 

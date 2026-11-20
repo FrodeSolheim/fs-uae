@@ -201,15 +201,18 @@ class WriteProtectCheckBox(CheckBox):
         self.on(self.checked_change, self.__on_change)
 
     def __on_change(self, value: bool):
-        from fsuae.message2 import Message2
-        from fsuae.messages import post_fsuae_message
+        from fsuae.messages import (
+            FSUAE_MESSAGES_REMOVE_WRITE_PROTECT_DRIVE_0,
+            FSUAE_MESSAGES_WRITE_PROTECT_DRIVE_0,
+            post_fsuae_message,
+        )
 
         # self.state.set("true" if value else "false")
 
         if value:
-            message = Message2.WRITE_PROTECT_DRIVE_0 + self.drive_index
+            message = FSUAE_MESSAGES_WRITE_PROTECT_DRIVE_0 + self.drive_index
         else:
-            message = Message2.UN_WRITE_PROTECT_DRIVE_0 + self.drive_index
+            message = FSUAE_MESSAGES_REMOVE_WRITE_PROTECT_DRIVE_0 + self.drive_index
         post_fsuae_message(message)
 
 

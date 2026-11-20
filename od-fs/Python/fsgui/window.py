@@ -1,6 +1,8 @@
 import logging
 from typing import Self
 
+from fsapp.frameservice import FrameService
+
 from fsgui.internal.surface import Surface
 from fsgui.types import Borders, PaddingParam, Position, Size, SizeParam
 from fsgui.widget import Widget
@@ -25,6 +27,9 @@ class Window(Widget):
 
     # LAYER_ON_TOP = 20
 
+    # The window's position is its surface's, set in the record without a repaint.
+    _repaint_on_move = False
+
     def __init__(
         self,
         title: str = "",
@@ -33,6 +38,7 @@ class Window(Widget):
         padding: PaddingParam = None,
         size: SizeParam = None,
         special=0,
+        surface=None,
     ):
         if size is None:
             size = (1, 1)
@@ -67,6 +73,10 @@ class Window(Widget):
             self._bottom_border = self.thickness + self.outline
             self._left_border = self.thickness + self.outline
 
+        # Dirty: something the window draws has changed since it last painted (Widget.refresh), so
+        # it must be painted and committed again. A window starts dirty.
+        self._dirty = True
+
         self._layer = 0
         self._visible = False
         self._title = title
@@ -91,7 +101,7 @@ class Window(Widget):
         # FIXME: Set in Widget
         # FIXME: Make sure to clear this reference on destroy...
         self._window = self
-        self._surface = Surface(self._window_size, special)
+        self._surface = Surface(self._window_size, special, surface)
 
         self.surface = self._surface
 
@@ -395,16 +405,29 @@ class Window(Widget):
         #     self.layout.width = self.get_width()
         #     self.layout.height = self.get_height()
         #     self.layout.layout_children()
+
+        # A widget that the layout moves or resizes makes the window dirty (Widget._set_position,
+        # Widget._set_size).
+        # REVIEW: The layout runs in every UI frame; it could run only when something asks for it
+        # (a widget added, removed or resized, its text or the window's size changed).
         self.layout_children()
 
         if self._surface.get_size() != self.get_window_size():
             logger.debug("Window has changed size, must update surface")
             # fsapp.resize_surface(self._surface)
             self._surface.resize(self.get_window_size())
+            # The resized surface's buffer has lost its content.
+            self._dirty = True
 
         # self.draw_background()
-        if self.visible and self.width > 0 and self.height > 0:
+        # A hidden window is not painted, and stays dirty until it is shown.
+        if self._dirty and self.visible and self.width > 0 and self.height > 0:
+            # Cleared before painting, so that a refresh while painting is not lost.
+            self._dirty = False
             self.draw()
+            # Nothing drawn shows before it is committed. A dirty window is painted and committed
+            # whole.
+            self._surface.commit()
 
         # im = self.surface._image
         # draw = ImageDraw.Draw(im)
@@ -475,9 +498,25 @@ class Window(Widget):
     def is_visible(self) -> bool:
         return self.visible
 
+    def mark_dirty(self) -> None:
+        """Marks the window dirty: something it draws has changed, so it is painted and committed
+        (whole) in the UI frame's window update, or, while it is hidden, when it is shown again.
+
+        Making a clean window dirty requests a UI frame: the UI thread sleeps between UI frames,
+        and a window made dirty after its update in this UI frame (by a later window's update, or
+        an event handler after fsgui's frame) is only painted in the next.
+        """
+        if self._dirty:
+            return
+        self._dirty = True
+        FrameService.request_ui_frame()
+
     def set_visible(self, visible: bool) -> None:
         self._visible = visible
         self._surface.set_visible(visible)
+        if visible and self._dirty:
+            # A window shown after its update in this UI frame is painted in the next.
+            FrameService.request_ui_frame()
 
 
 from fsgui.drawingcontext import DrawingContext  # noqa: E402

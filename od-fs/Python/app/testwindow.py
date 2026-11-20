@@ -1,9 +1,8 @@
 import os
 
+import fsemu
 import uae
 import uae.xconfig
-
-import fsemu
 from fsgui.button import Button
 from fsgui.decoratedwindow import DecoratedWindow
 from fsgui.label import Label

@@ -66,7 +66,8 @@ class TestSequenceFunctions(unittest.TestCase):
     
     def setUp(self):
         random.seed(32264)        
-        self.lzhnames = ['archive_lhaca.lzh', 'archive_lhaplus.lzh', 'archive_lhaunix_lh5.lzh', 'archive_lhaunix_lh6.lzh', 'archive_lhaunix_lh7.lzh']
+        self.lzhnames = ['archive_lhaca.lzh', 'archive_lhaplus.lzh', 'archive_lhaunix_lh5.lzh',
+                         'archive_lhaunix_lh6.lzh', 'archive_lhaunix_lh7.lzh']
         self.datasets = {
             'archive/01_simple/01_test.txt':"a",            
             'archive/01_simple/02_test.txt':"abcabcaabcdefg",

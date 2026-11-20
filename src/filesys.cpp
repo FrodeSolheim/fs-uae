@@ -6049,6 +6049,16 @@ static void
 	a2->vfso = a1->vfso;
 	move_exkeys (unit, a1, a2);
 	move_aino_children (unit, a1, a2);
+	/* Open file handles follow the renamed object: a1 is freed below, and
+	 * a Key still pointing at it is a use-after-free on the next
+	 * Read/Write/Seek/Close (ACTION_END calls notify_check on it). */
+	for (k1 = unit->keys; k1; k1 = knext) {
+		knext = k1->next;
+		if (k1->aino == a1) {
+			k1->aino = a2;
+			wehavekeys++;
+		}
+	}
 	delete_aino (unit, a1);
 	a2->dirty = 1;
 	if (a2->parent)

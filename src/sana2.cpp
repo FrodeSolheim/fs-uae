@@ -1425,9 +1425,6 @@ static uae_u32 REGPARAM2 uaenet_int_handler (TrapContext *ctx)
 		uaenet_int_late = 1;
 		return 0;
 	}
-	for (i = 0; i < MAX_OPEN_DEVICES; i++)
-		pdevst[i].tmp = 0;
-
 	for (i = 0; i < MAX_TOTAL_NET_DEVICES; i++) {
 		struct s2devstruct *dev = &devst[i];
 		struct s2packet *p;
@@ -1435,6 +1432,9 @@ static uae_u32 REGPARAM2 uaenet_int_handler (TrapContext *ctx)
 			while (dev->readqueue) {
 				uae_u16 type;
 				p = dev->readqueue;
+				/* reader state is per packet, not per interrupt */
+				for (j = 0; j < MAX_OPEN_DEVICES; j++)
+					pdevst[j].tmp = 0;
 				type = (p->data[2 * ADDR_SIZE] << 8) | p->data[2 * ADDR_SIZE + 1];
 				ar = dev->ar;
 				gotit = 0;

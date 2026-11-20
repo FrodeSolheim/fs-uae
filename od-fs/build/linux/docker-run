@@ -1,0 +1,87 @@
+#!/usr/bin/env bash
+#
+# Runs a command in a throwaway Docker container made from the Dockerfile in this directory (Ubuntu
+# 24.04 with the packages from apt-packages.txt), so the Linux dists are made in the same
+# environment whatever the host runs. "make -C od-fs dist-linux" uses it to run the dist entry
+# script.
+#
+# Usage: docker-run <command> [args...]   e.g. docker-run od-fs/build/dist/dist
+#                                               docker-run bash
+#
+# The image is built first (quick when cached). The container runs as your own user, with the
+# project directory mounted at the same path as on the host (the env prefix and the configured
+# build directories contain absolute paths), and FSUAE_DIST_BUILD and FSUAE_ENV_DIR (when set, and
+# outside the project) mounted too. The command runs in the current directory when it is in the
+# project, otherwise in the project directory. A TTY is only allocated when run from a terminal.
+#
+# Environment variables:
+#
+#   DOCKER                     Docker command (default: docker)
+#   FSUAE_LINUX_DOCKER_IMAGE   Image tag (default: fs-uae-linux-build)
+#   FSUAE_LINUX_DOCKER_ARGS    Extra arguments for "docker run"
+#   FSUAE_DIST_BUILD           Passed on (see od-fs/build/dist/common.sh)
+#   FSUAE_ENV_DIR              Passed on (see od-fs/build/env/scripts/paths.sh)
+#   FSUAE_DIST_ORIGIN, FSUAE_DIST_ENVIRONMENT  Passed on (see od-fs/build/dist/common.sh)
+
+set -e
+
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_DIR="$(cd "$HERE/../../.." && pwd)"
+
+if [ $# -eq 0 ]; then
+    sed -n '3,10p' "$0" | sed 's/^# \{0,1\}//' >&2
+    exit 2
+fi
+
+docker="${DOCKER:-docker}"
+image="${FSUAE_LINUX_DOCKER_IMAGE:-fs-uae-linux-build}"
+
+echo "Building Docker image $image..."
+"$docker" build -q -t "$image" "$HERE" > /dev/null
+
+# Prints a directory from an environment variable as an absolute path without "..", relative to
+# the project directory when relative, and creates it (otherwise Docker creates it owned by root).
+absolute_dir() {
+    local dir="$1"
+    case "$dir" in
+        /*) ;;
+        *) dir="$PROJECT_DIR/$dir" ;;
+    esac
+    mkdir -p "$dir"
+    (cd "$dir" && pwd)
+}
+
+mounts=(-v "$PROJECT_DIR:$PROJECT_DIR")
+run_args=(--rm --init --user "$(id -u):$(id -g)")
+for name in FSUAE_DIST_BUILD FSUAE_ENV_DIR; do
+    if [ -n "${!name:-}" ]; then
+        dir="$(absolute_dir "${!name}")"
+        run_args+=(-e "$name=$dir")
+        case "$dir/" in
+            "$PROJECT_DIR"/*) ;;
+            *) mounts+=(-v "$dir:$dir") ;;
+        esac
+    fi
+done
+
+workdir="$(pwd)"
+case "$workdir/" in
+    "$PROJECT_DIR"/*) ;;
+    *) workdir="$PROJECT_DIR" ;;
+esac
+run_args+=(-w "$workdir")
+
+if [ -t 0 ] && [ -t 1 ]; then
+    run_args+=(-it -e TERM)
+fi
+# Nothing needs to persist in HOME. The image name is for the build header (build_environment in
+# od-fs/build/dist/common.sh).
+run_args+=(-e HOME=/tmp -e "FSUAE_DOCKER_IMAGE=$image")
+for name in CMAKE_BUILD_PARALLEL_LEVEL FSUAE_DIST_ORIGIN FSUAE_DIST_ENVIRONMENT; do
+    if [ -n "${!name:-}" ]; then
+        run_args+=(-e "$name")
+    fi
+done
+
+# shellcheck disable=SC2086
+exec "$docker" run "${run_args[@]}" "${mounts[@]}" ${FSUAE_LINUX_DOCKER_ARGS:-} "$image" "$@"

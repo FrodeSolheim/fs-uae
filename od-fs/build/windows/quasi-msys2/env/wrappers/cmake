@@ -1,0 +1,10 @@
+#!/bin/sh
+
+# Ignore our custom flags if certain flags are specified.
+# At least `--build` is known to break because of the custom flags.
+# For the `x` prefix on strings, see https://unix.stackexchange.com/questions/490393/whats-the-purpose-of-adding-a-prefix-on-both-sides-of-a-shell-variable-comparis
+if [ "x$1" = "x--build" -o "x$1" = "x--install" -o "x$1" = "x--open" -o "x$1" = "x-E" ]; then
+"$WIN_NATIVE_CMAKE" "$@"
+else
+"$WIN_NATIVE_CMAKE" $WIN_CMAKE_FLAGS "$@"
+fi

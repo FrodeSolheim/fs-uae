@@ -1,0 +1,48 @@
+#!/bin/sh
+#
+# Checks the Python code: ruff check, ruff format --check and mypy, with the versions pinned in
+# pyproject.toml and uv.lock (installed by uv into the project's virtual environment, .venv or
+# $UV_PROJECT_ENVIRONMENT) and the configuration in pyproject.toml. Every check runs, also after
+# one has failed, and the script fails if any of them did. The lint workflow
+# (.github/workflows/lint.yml) runs this script.
+#
+# Usage: od-fs/build/lint
+
+PROJECT_DIR="$(cd "$(dirname "$0")/../.." && pwd)"
+cd "$PROJECT_DIR" || exit 1
+
+failed=""
+
+# Runs a check ($1 is its name, the rest the command), and remembers it if it fails.
+check() {
+    name="$1"
+    shift
+    echo "==> $name"
+    if ! "$@"; then
+        failed="${failed:+$failed, }$name"
+    fi
+    echo
+}
+
+# mypy over the tree, then the WHDLoad smoke test script, which pyproject.toml excludes: it is a
+# second top-level module named smoke (with od-fs/build/dist/smoke.py), and mypy cannot check two
+# modules with the same name in one run. A file given by name is checked although it is excluded.
+WHDLOAD_SMOKE=od-fs/tests/whdload-smoke/smoke.py
+mypy_checks() {
+    status=0
+    uv run --locked mypy . || status=1
+    if [ -f "$WHDLOAD_SMOKE" ]; then
+        uv run --locked mypy "$WHDLOAD_SMOKE" || status=1
+    fi
+    return $status
+}
+
+check "ruff check" uv run --locked ruff check
+check "ruff format" uv run --locked ruff format --check
+check "mypy" mypy_checks
+
+if [ -n "$failed" ]; then
+    echo "Failed: $failed" >&2
+    exit 1
+fi
+echo "All checks passed"

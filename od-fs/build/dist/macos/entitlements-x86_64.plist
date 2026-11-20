@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- Entitlements for the x86-64 (Intel) macOS dist; arm64 uses entitlements.plist. -->
+	<!-- The 86Box x86 dynarec allocates its code with MAP_JIT. -->
+	<key>com.apple.security.cs.allow-jit</key>
+	<true/>
+	<!-- The x86 68k JIT does not use MAP_JIT; it makes its code cache executable with
+	     mprotect (see alloc_cache() in jit/x86/compemu_support_x86.cpp). -->
+	<key>com.apple.security.cs.allow-unsigned-executable-memory</key>
+	<true/>
+</dict>
+</plist>

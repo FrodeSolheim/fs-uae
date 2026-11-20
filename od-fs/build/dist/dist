@@ -1,0 +1,209 @@
+#!/bin/sh
+#
+# Makes a complete dist for a triplet (default: the host's) in the current environment: configures
+# FS-UAE for the dist layout and builds it (build.sh), assembles the dist and writes its archive
+# (assemble.sh), and runs the dist check (check.py) on the archive. A failed check removes the
+# archive and fails the dist; the dist directory is kept for inspection. The dist's version comes
+# from configure.ac and git (version.py): a tag build (a commit tagged v<version>) is named
+# FS-UAE-<version>-<triplet>, other builds FS-UAE-<version>-dev.<date>T<time>+g<hash>-<triplet>.
+#
+# Usage: dist [<triplet> [<make argument>...]]
+#
+# The make arguments are passed to the build (default: -j<number of CPUs>). The output goes under
+# $FSUAE_DIST_BUILD (default: .build, see common.sh): the build directory in build/<triplet>, the
+# dist in dist/<triplet> and the archive in release/<version>.
+#
+# The script runs in the environment it is given; wrappers set one up and run it:
+# od-fs/build/linux/docker-run (Linux, in Docker) and od-fs/build/windows/crossbuild/dist (Windows,
+# cross-compiled). In an MSYS2 MINGW64 shell, it runs directly (a native Windows dist; see below),
+# and on a Mac too (arm64-apple-darwin or x86_64-apple-darwin, the latter also on an arm64 Mac; see
+# below; signed and notarized when the credentials are there).
+# Another triplet than the host's needs a cross compiler: $CC, or <triplet>-gcc in PATH. For Linux,
+# it sets up the env prefix with the SDL3 libraries and Python first (see below), in the env
+# system's cross mode for another triplet than the host's.
+
+set -e
+
+PROJECT_DIR="$(cd "$(dirname "$0")/../../.." && pwd)"
+. "$PROJECT_DIR/od-fs/build/dist/common.sh"
+cd "$PROJECT_DIR"
+
+. "$PROJECT_DIR/od-fs/build/triplet.sh"
+
+if [ $# -gt 0 ]; then
+    HOST_TRIPLET="$1"
+    shift
+else
+    HOST_TRIPLET="$(host_triplet)"
+fi
+export HOST_TRIPLET
+
+case "$HOST_TRIPLET" in
+    *-linux-* | *-w64-mingw32 | *-apple-darwin) ;;
+    *)
+        echo "Error: no dist for triplet $HOST_TRIPLET" >&2
+        exit 2
+        ;;
+esac
+
+# The version the dist is made for (see version.py), here, so that a tag that does not match fails
+# before anything is built. build.sh passes it to configure (FSUAE_VERSION), so that the program
+# shows it, assemble.sh names the archive for it, and the dist check checks both. (version.py runs
+# with Python 3.9 or newer, before the env prefix is set up.)
+FSUAE_DIST_VERSION="$(python3 "$PROJECT_DIR/od-fs/build/dist/version.py" "$PROJECT_DIR")"
+export FSUAE_DIST_VERSION
+echo "Making the dist for FS-UAE $FSUAE_DIST_VERSION"
+
+# The rest of the build's identity, which the program logs in its build header (see configure.ac),
+# passed to configure by build.sh like the version and checked by the dist check: who makes the dist
+# (FSUAE_DIST_ORIGIN unless set, as by the dist workflow in FrodeSolheim/fs-uae: "Unofficial
+# build", as configure's default), the commit, and the environment (FSUAE_DIST_ENVIRONMENT, see
+# build_environment in common.sh, unless set).
+FSUAE_DIST_ORIGIN="${FSUAE_DIST_ORIGIN:-Unofficial build}"
+FSUAE_DIST_COMMIT="$(python3 "$PROJECT_DIR/od-fs/build/dist/version.py" --commit "$PROJECT_DIR")"
+FSUAE_DIST_ENVIRONMENT="${FSUAE_DIST_ENVIRONMENT:-$(build_environment)}"
+export FSUAE_DIST_ORIGIN FSUAE_DIST_COMMIT FSUAE_DIST_ENVIRONMENT
+echo "Origin: $FSUAE_DIST_ORIGIN"
+echo "Commit: $FSUAE_DIST_COMMIT"
+echo "Build environment: $FSUAE_DIST_ENVIRONMENT"
+
+# macOS dists get all their libraries and Python from the env prefix (the [build] packages in
+# od-fs/build/env/macos.txt), which is set up (or reused) under "arch" for the dist's architecture:
+# on an arm64 Mac, the x86_64 prefix is built under Rosetta (arch -x86_64), which is easier than
+# cross-compiling every package, while FS-UAE itself is cross-compiled with -arch x86_64, which is
+# many times faster than building it under Rosetta. There is no <triplet>-strip, so strip is used.
+# The dist is signed and notarized when the credentials are there; otherwise it is made unsigned,
+# with a warning (see macos_signing_check in common.sh), here before the long build and again
+# after it.
+# REVIEW: Not run on a Mac yet.
+case "$HOST_TRIPLET" in
+    arm64-apple-darwin) MACOS_ARCH=arm64 ;;
+    x86_64-apple-darwin) MACOS_ARCH=x86_64 ;;
+    *-apple-darwin)
+        echo "Error: no macOS dist for triplet $HOST_TRIPLET" >&2
+        exit 2
+        ;;
+    *) MACOS_ARCH="" ;;
+esac
+if [ -n "$MACOS_ARCH" ]; then
+    if [ "$(uname -s)" != Darwin ]; then
+        echo "Error: macOS dists can only be made on a Mac" >&2
+        exit 1
+    fi
+    macos_signing_check
+    CC="gcc -arch $MACOS_ARCH"
+    CXX="g++ -arch $MACOS_ARCH"
+    STRIP="${STRIP:-strip}"
+    export CC CXX STRIP
+fi
+
+if [ "$HOST_TRIPLET" != "$(host_triplet)" ] && [ -z "$CC" ] &&
+    ! command -v "$HOST_TRIPLET-gcc" > /dev/null; then
+    echo "Error: cannot build for $HOST_TRIPLET in this environment (no \$CC or" \
+        "$HOST_TRIPLET-gcc)" >&2
+    exit 1
+fi
+
+# Linux dists get SDL3, SDL3_image, SDL3_ttf and Python from the env prefix (the [build] packages in
+# od-fs/build/env/linux.txt), and everything else from the system. Set up the prefix for the triplet
+# (.build/env/<triplet>, see od-fs/build/env/scripts/paths.sh); packages already there are reused.
+# For another triplet than the host's, setup --host builds them with the cross compiler, and with
+# the host's own prefix's Python as the build Python (see od-fs/build/env/setup).
+# The build runs with the prefix (its "run" script), and assemble.sh bundles from it
+# (BUILD_ENV_PREFIX). In cross mode, python3 in the run script is the build Python, which
+# byte-compiles the dist's Python code and runs the dist check.
+BUILD_RUN=""
+case "$HOST_TRIPLET" in
+    *-linux-* | *-apple-darwin)
+        # The prefix for this triplet, not one inherited from a "run" shell for another prefix.
+        unset BUILD_ENV_PREFIX
+        BUILD_ENV_DIR="$PROJECT_DIR/od-fs/build/env"
+        # shellcheck disable=SC2034 # Read by paths.sh.
+        BUILD_ENV_TRIPLET="$HOST_TRIPLET"
+        . "$BUILD_ENV_DIR/scripts/paths.sh"
+        echo "Setting up the env prefix $BUILD_ENV_PREFIX"
+        if [ -n "$MACOS_ARCH" ]; then
+            # (CC and CXX are for FS-UAE; the packages are built natively for the arch.)
+            arch -"$MACOS_ARCH" env -u CC -u CXX BUILD_ENV_PREFIX="$BUILD_ENV_PREFIX" \
+                "$BUILD_ENV_DIR/setup"
+        else
+            CMAKE_BUILD_PARALLEL_LEVEL="${CMAKE_BUILD_PARALLEL_LEVEL:-$(nproc)}" \
+                "$BUILD_ENV_DIR/setup" --host "$HOST_TRIPLET"
+        fi
+        BUILD_RUN="$BUILD_ENV_PREFIX/run"
+        ;;
+esac
+
+# Native MSYS2 (a MINGW64 shell, set up with od-fs/build/prepare): the MinGW packages must be the
+# pinned ones (as in the cross-build), Clang and LLD as in development builds (see
+# od-fs/build/windows/msys2-native.sh), and binutils' strip, which has no <triplet>- prefix there.
+# assemble.sh takes the DLLs and the Python standard library from MINGW_PREFIX (/mingw64, set by the
+# shell) and byte-compiles with the MSYS2 Python (python3), the same version.
+# REVIEW: Not run in MSYS2 yet: check that the dist is made and passes the dist check, and that it
+# has the same files as the cross-built dist.
+case "$(uname -s)" in
+    MINGW*)
+        . "$PROJECT_DIR/od-fs/build/windows/msys2-native.sh"
+        UNPINNED="$(msys2_unpinned_package_urls "$PROJECT_DIR/od-fs")"
+        if [ -n "$UNPINNED" ]; then
+            echo "Error: these MinGW packages are not installed in their pinned versions" \
+                "(run od-fs/build/prepare):" >&2
+            echo "$UNPINNED" | sed 's,.*/,    ,; s,-any\.pkg\.tar\.zst$,,' >&2
+            exit 1
+        fi
+        msys2_use_default_compiler
+        STRIP="${STRIP:-strip}"
+        export STRIP
+        ;;
+esac
+
+# Runs the dist check with any Python 3.12+ (the env prefix's when there is one: in cross mode, its
+# run script runs the build Python).
+dist_check() {
+    if [ -n "$BUILD_ENV_PREFIX" ]; then
+        "$BUILD_ENV_PREFIX/run" python3 "$PROJECT_DIR/od-fs/build/dist/check.py" "$@"
+    else
+        python3 "$PROJECT_DIR/od-fs/build/dist/check.py" "$@"
+    fi
+}
+
+echo "Making the dist for $HOST_TRIPLET in $DIST_BUILD_DIR"
+
+if [ ! -f "$PROJECT_DIR/configure" ]; then
+    "$PROJECT_DIR/od-fs/bootstrap"
+fi
+
+if [ -n "$BUILD_RUN" ]; then
+    "$BUILD_RUN" sh "$PROJECT_DIR/od-fs/build/dist/build.sh" "$@"
+else
+    sh "$PROJECT_DIR/od-fs/build/dist/build.sh" "$@"
+fi
+sh "$PROJECT_DIR/od-fs/build/dist/assemble.sh"
+
+# The archive assemble.sh wrote. The dist check checks that its name and the program have the
+# version computed above.
+BUILD_DIR="$DIST_BUILD_DIR/build/$HOST_TRIPLET"
+ARCHIVE="$(cat "$BUILD_DIR/dist-archive.txt")"
+
+# On macOS, the check mounts the .dmg (read-only, with hdiutil) and checks what is on it. A signed
+# dist must be signed everywhere with the Developer ID certificate (--signed); otherwise ad hoc.
+set --
+SIGNING="$(cat "$BUILD_DIR/dist-signing.txt")"
+if [ "$SIGNING" = signed ]; then
+    set -- --signed
+fi
+
+echo
+echo "Checking $ARCHIVE..."
+if ! dist_check --version "$FSUAE_DIST_VERSION" --origin "$FSUAE_DIST_ORIGIN" \
+    --commit "$FSUAE_DIST_COMMIT" "$@" "$ARCHIVE" "$HOST_TRIPLET"; then
+    rm -f "$ARCHIVE"
+    echo "Error: the dist check failed; removed $ARCHIVE" >&2
+    echo "The dist directory is $DIST_BUILD_DIR/dist/$HOST_TRIPLET" >&2
+    exit 1
+fi
+
+if [ -n "$MACOS_ARCH" ] && [ "$SIGNING" != signed ]; then
+    echo
+    echo "Warning: $ARCHIVE is not signed or notarized (see the warnings above)" >&2
+fi

@@ -3,9 +3,10 @@ Upstream-Name: FS-UAE
 Upstream-Contact: Frode Solheim <frode@fs-uae.net>
 Source: https://fs-uae.net/download
 
-# FIXME: Add more specific copyright / license information to subpackages
-# such as glad, and add copyright holder information to the main files
-# section
+# FIXME: Add more specific copyright / license information to subpackages,
+# and add copyright holder information to the main files section
+
+# FIXME: This information is outdated
 
 Files: *
 License: GPL-2
@@ -18,31 +19,14 @@ Files: fsemu/*
 Copyright: 2011-2020 Frode Solheim
 License: GPL-2+
 
-Files: fsemu/fonts/saira/*
-License: FIXME
-
 Files: fsemu/gamemode/*
 Copyright: 2005-2012 2017-2020 Feral Interactive
 License: BSD-3-Clause
-
-Files: fsemu/icons/fontawesome/*
-License: FIXME
-
-Files: fsemu/manymouse/*
-Copyright: 2005-2012 Ryan C. Gordon and others
-License: manymouse-license
-
-Files: glad/*
-Copyright: 2013 David Herberth
-License: MIT
 
 Files: libmpeg2/*
 License: FIXME
 
 Files: libnfd/*
-License: FIXME
-
-Files: libudis86/*
 License: FIXME
 
 Files: prowizard/*
@@ -60,9 +44,6 @@ License: GPL-2+
 Files: src/mame/tm34010/*
 License: BSD-3-Clause
 
-Files: src/pcem/*
-License: GPL-2
-
 Files: src/qemuvga/*
 License: GPL2 and LGPL
 
@@ -72,29 +53,6 @@ License: slirp-license
 
 Files: src/softfloat/*
 License: softfloat-2a-license and BSD and GPL-2+
-
-License: manymouse-license
- Copyright (c) 2005-2012 Ryan C. Gordon and others.
-
- This software is provided 'as-is', without any express or implied warranty.
- In no event will the authors be held liable for any damages arising from
- the use of this software.
-
- Permission is granted to anyone to use this software for any purpose,
- including commercial applications, and to alter it and redistribute it
- freely, subject to the following restrictions:
-
- 1. The origin of this software must not be misrepresented; you must not
- claim that you wrote the original software. If you use this software in a
- product, an acknowledgment in the product documentation would be
- appreciated but is not required.
-
- 2. Altered source versions must be plainly marked as such, and must not be
- misrepresented as being the original software.
-
- 3. This notice may not be removed or altered from any source distribution.
-
-     Ryan C. Gordon <icculus@icculus.org>
 
 License: slirp-license
  Slirp was written by Danny Gasparovski.

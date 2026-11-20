@@ -1,0 +1,62 @@
+id: net.fs_uae.FS-UAE
+branch: beta
+runtime: org.freedesktop.Platform
+runtime-version: "24.08"
+sdk: org.freedesktop.Sdk
+command: fs-uae
+finish-args:
+  # X11 + XShm access
+  - --share=ipc
+  - --socket=fallback-x11
+  # Wayland access
+  - --socket=wayland
+  # GPU acceleration if needed
+  - --device=dri
+  # Needs to talk to the network (eventually)
+  - --share=network
+  # Audio access
+  - --socket=pulseaudio
+  # Audio access for pipewire (unfortunately very broad access)
+  - --filesystem=xdg-run/pipewire-0
+  # Joystick/gamepad access (unfortunately very broad access)
+  - --device=all
+modules:
+  - name: libmpeg2
+    buildsystem: autotools
+    sources:
+      - type: archive
+        url: http://fs-uae.net/files/libmpeg2-0.5.1.tar.gz
+        sha256: dee22e893cb5fc2b2b6ebd60b88478ab8556cb3b93f9a0d7ce8f3b61851871d4
+
+  - name: SDL3
+    buildsystem: cmake
+    config-opts:
+      - -DCMAKE_BUILD_TYPE=Release
+    sources:
+      - type: archive
+        url: https://github.com/libsdl-org/SDL/releases/download/release-3.2.20/SDL3-3.2.20.tar.gz
+        sha256: 467600ae090dd28616fa37369faf4e3143198ff1da37729b552137e47f751a67
+
+  - name: SDL3_image
+    buildsystem: cmake
+    config-opts:
+      - -DCMAKE_BUILD_TYPE=Release
+    sources:
+      - type: archive
+        url: https://github.com/libsdl-org/SDL_image/releases/download/release-3.2.4/SDL3_image-3.2.4.tar.gz
+        sha256: a725bd6d04261fdda0dd8d950659e1dc15a8065d025275ef460d32ae7dcfc182
+
+  - name: SDL3_ttf
+    buildsystem: cmake
+    config-opts:
+      - -DCMAKE_BUILD_TYPE=Release
+    sources:
+      - type: archive
+        url: https://github.com/libsdl-org/SDL_ttf/releases/download/release-3.2.2/SDL3_ttf-3.2.2.tar.gz
+        sha256: 63547d58d0185c833213885b635a2c0548201cc8f301e6587c0be1a67e1e045d
+
+  - name: fs-uae
+    buildsystem: autotools
+    sources:
+      - type: archive
+        path: ../../_build/fs-uae-5.0.3.tar.gz

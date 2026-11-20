@@ -3,29 +3,45 @@
 set -e
 # --------------------------------------------------------------------------------------------------
 
-"$PACKAGE_DEPENDENCY/libffi"
-"$PACKAGE_DEPENDENCY/libuuid"
-"$PACKAGE_DEPENDENCY/openssl"
-"$PACKAGE_DEPENDENCY/sqlite"
-"$PACKAGE_DEPENDENCY/zlib"
+"$PACKAGE_DEPENDENCY" libffi
+"$PACKAGE_DEPENDENCY" libuuid
+"$PACKAGE_DEPENDENCY" openssl
+"$PACKAGE_DEPENDENCY" sqlite
+"$PACKAGE_DEPENDENCY" xz
+"$PACKAGE_DEPENDENCY" zlib
+"$PACKAGE_DEPENDENCY" zstd
 
 PACKAGE_NAME=python
-PACKAGE_VERSION=3.13.6
-PACKAGE_REVISION=0
+PACKAGE_VERSION=3.14.10
+PACKAGE_REVISION=1
 PACKAGE_URL=https://www.python.org/ftp/python/$PACKAGE_VERSION/Python-$PACKAGE_VERSION.tar.xz
-PACKAGE_CHECKSUM=17ba5508819d8736a14fbfc47d36e184946a877851b2e9c4b6c43acb44a3b104
+PACKAGE_CHECKSUM=de414a57119abef52784d8993e341d53aed635fc2b05c2607d9f98a2c5b72032
 
 # --------------------------------------------------------------------------------------------------
 . "$PACKAGE_PRE"
 # --------------------------------------------------------------------------------------------------
 
+# In cross mode (setup --host), configure for the triplet, with the build machine's prefix's Python
+# (the same version, which setup has made sure of) as the build Python: it runs the build's Python
+# scripts and byte-compiles the standard library.
+set --
+if [ -n "$BUILD_ENV_HOST" ]; then
+    set -- --build="$(gcc -dumpmachine)" --host="$BUILD_ENV_HOST" \
+        --with-build-python="$BUILD_ENV_BUILD_PREFIX/bin/python${PACKAGE_VERSION%.*}"
+fi
+
 tar xf "$PACKAGE_SOURCES/Python-$PACKAGE_VERSION.tar.xz"
 cd Python-$PACKAGE_VERSION
+# The bundled libmpdec for _decimal, as on Linux (no mpdecimal recipe): without this, configure
+# links the first libmpdec it finds, such as Homebrew's (in /usr/local on an Intel Mac, which the
+# compiler searches by default).
 ./configure \
     --prefix="$PACKAGE_PREFIX" \
     --enable-shared \
     --without-static-libpython \
-    --disable-test-modules
+    --disable-test-modules \
+    --without-system-libmpdec \
+    "$@"
 make
 make install
 

@@ -1,0 +1,9 @@
+#!/bin/bash
+
+# For the `x` prefix on strings, see https://unix.stackexchange.com/questions/490393/whats-the-purpose-of-adding-a-prefix-on-both-sides-of-a-shell-variable-comparis
+if [ "x$1" = "xsetup" ]; then
+shift
+"$WIN_NATIVE_MESON" setup $WIN_MESON_FLAGS "$@"
+else
+"$WIN_NATIVE_MESON" "$@"
+fi

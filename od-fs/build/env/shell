@@ -1,14 +1,16 @@
 #!/bin/sh
+#
+# Runs a command (or, without arguments, a bash shell) with the host's env prefix
+# (.build/env/<triplet>, see scripts/paths.sh) in the paths. The same as <prefix>/run, which setup
+# writes, but also before the prefix has been set up.
+#
+# Usage: shell [<command> [<argument>...]]
 
 set -e
 
-export BUILD_ENV_DIR="$(cd "$(dirname "$0")" && pwd)"
-echo "BUILD_ENV_DIR=$BUILD_ENV_DIR"
-if [ "$BUILD_ENV_PREFIX" != "" ]; then
-echo "Existing BUILD_ENV_PREFIX found in environment"
-else
-export BUILD_ENV_PREFIX="$BUILD_ENV_DIR/_prefix"
-fi
+BUILD_ENV_DIR="$(cd "$(dirname "$0")" && pwd)"
+export BUILD_ENV_DIR
+. "$BUILD_ENV_DIR/scripts/paths.sh"
 echo "BUILD_ENV_PREFIX=$BUILD_ENV_PREFIX"
 
 . "$BUILD_ENV_DIR/scripts/env.sh"

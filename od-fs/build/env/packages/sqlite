@@ -3,7 +3,7 @@
 set -e
 # --------------------------------------------------------------------------------------------------
 
-"$BUILD_ENV_DIR/packages/zlib"
+"$PACKAGE_DEPENDENCY" zlib
 
 PACKAGE=sqlite-3.50.4
 PACKAGE_REVISION=0
@@ -17,7 +17,7 @@ CHECKSUM=a3db587a1b92ee5ddac2f66b3edb41b26f9c867275782d46c3a088977d6a5b18
 https://www.sqlite.org/2025/sqlite-autoconf-3500400.tar.gz \
 sha256:$CHECKSUM
 
-tar xf "$BUILD_ENV_DIR/_sources/sqlite-autoconf-3500400.tar.gz"
+tar xf "$PACKAGE_SOURCES/sqlite-autoconf-3500400.tar.gz"
 cd sqlite-autoconf-3500400
 
 ./configure --prefix=$PREFIX

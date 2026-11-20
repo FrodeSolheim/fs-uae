@@ -7,9 +7,13 @@ Dependencies are found recursively with objdump. DLLs found in <mingw prefix>/bi
 (when missing or changed); all others are assumed to be Windows system DLLs. Python extension
 modules (lib/python3.*/lib-dynload/*.pyd) are always scanned as well, since fs-uae.exe loads them
 at runtime, so their dependencies (libffi, OpenSSL, ...) are copied too. The exceptions are the
-modules in IGNORED_PYTHON_MODULES, which FS-UAE does not use (and would pull in Tcl/Tk and ncurses).
+modules in IGNORED_PYTHON_MODULES and those with a name prefix in IGNORED_PYTHON_MODULE_PREFIXES,
+which FS-UAE does not use (and some would pull in Tcl/Tk and ncurses): the extension modules on the
+dist purge list (od-fs/build/dist/assemble.sh), which dists leave out, including CPython's test and
+example extension modules.
 
-Used by od-fs/build/windows/crossbuild/build when cross-compiling on Linux.
+Used by the Windows dist (od-fs/build/dist/assemble.sh) and the development build layout
+(od-fs/build/windows/dev_layout.py, which imports it).
 """
 
 import glob
@@ -18,7 +22,16 @@ import shutil
 import subprocess
 import sys
 
-IGNORED_PYTHON_MODULES = ["_tkinter", "_curses", "_curses_panel"]
+IGNORED_PYTHON_MODULES = [
+    "_tkinter",
+    "_curses",
+    "_curses_panel",
+    "readline",
+    "_dbm",
+    "_gdbm",
+    "_ctypes_test",
+]
+IGNORED_PYTHON_MODULE_PREFIXES = ("_test", "xx", "_xx")
 
 
 def find_objdump() -> str:
@@ -41,10 +54,8 @@ def dependencies(objdump: str, path: str) -> list[str]:
     return result
 
 
-def main() -> None:
-    if len(sys.argv) < 4:
-        raise SystemExit(__doc__)
-    prefix, dest_dir, binaries = sys.argv[1], sys.argv[2], sys.argv[3:]
+def copy_dlls(prefix: str, dest_dir: str, binaries: list[str]) -> None:
+    """Copy the DLLs from <prefix>/bin that the binaries and Python's extension modules need."""
     bin_dir = os.path.join(prefix, "bin")
     # Windows file names are case-insensitive
     available = {name.lower(): name for name in os.listdir(bin_dir)}
@@ -52,8 +63,10 @@ def main() -> None:
 
     queue = list(binaries)
     for pyd in sorted(glob.glob(os.path.join(prefix, "lib", "python3.*", "lib-dynload", "*.pyd"))):
-        if os.path.basename(pyd).split(".")[0] not in IGNORED_PYTHON_MODULES:
-            queue.append(pyd)
+        module = os.path.basename(pyd).split(".")[0]
+        if module in IGNORED_PYTHON_MODULES or module.startswith(IGNORED_PYTHON_MODULE_PREFIXES):
+            continue
+        queue.append(pyd)
     seen: set[str] = set()
     needed: set[str] = set()
     while queue:
@@ -78,6 +91,12 @@ def main() -> None:
         shutil.copy2(src, dst)
         copied += 1
     print(f"Windows DLLs: {len(needed)} needed, {copied} copied to {dest_dir}")
+
+
+def main() -> None:
+    if len(sys.argv) < 4:
+        raise SystemExit(__doc__)
+    copy_dlls(sys.argv[1], sys.argv[2], sys.argv[3:])
 
 
 if __name__ == "__main__":

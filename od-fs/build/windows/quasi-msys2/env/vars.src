@@ -1,0 +1,618 @@
+#!/bin/false
+# The above line stops anyone from running this script normally, but allows `source`ing it.
+
+# This script configures environment variables for Quasi-MSYS2. Run it with `source` from Bash.
+
+# Make a dummy function to be able to have local variables.
+__dummy_func() {
+    # Stop this script from running more than once.
+    if test "$QUASI_MSYS2_ROOT"; then
+        echo -e "The environment variables are already set.\nRestart the shell and re-run this script to update them."
+        return
+    fi
+
+    # Local variable that stores a fancy warning prefix.
+    # We use `tput` instead of hardcoding the codes because it's supposedly more portable.
+    local warn="$(tput bold)$(tput setaf 5)[$(tput setaf 1)WARNING$(tput setaf 5)]$(tput sgr0) "
+
+    # Load all variables starting with `MSYSTEM` from the primary makefile.
+    export -- $(make -C "$(dirname "$BASH_SOURCE")"/.. -pq | grep '^MSYSTEM' | sed 's/\s*:=\s*/=/g')
+    if test -z "$MSYSTEM" -o -z "$MSYSTEM_CARCH" -o -z "$MSYSTEM_CHOST" -o -z "$MSYSTEM_PREFIX"; then
+        echo "$warn"'Failed to load the config variables from the primary makefile.'
+        false
+    fi
+    # Also load the `MINGW_PACKAGE_PREFIX`. We don't need it for anything, since the makefile tracks the prefix independently,
+    # but it's nice to have MSYS2 parity.
+    export MINGW_PACKAGE_PREFIX="$(make -C "$(dirname "$BASH_SOURCE")"/.. -pq | grep -Po '(?<=REPO_PACKAGE_COMMON_PREFIX := ).*(?=-)')"
+
+    # Helper variable pointing to our installation directory.
+    export QUASI_MSYS2_ROOT="$(realpath "$(dirname "$BASH_SOURCE")"/..)"
+    # Make sure the resulting variable is not empty due to some error. If it is, abort.
+    test -z "$QUASI_MSYS2_ROOT" && return
+    [[ $QUASI_MSYS2_QUIET ]] || echo "Installation directory:"
+    [[ $QUASI_MSYS2_QUIET ]] || echo "QUASI_MSYS2_ROOT = $QUASI_MSYS2_ROOT"
+    [[ $QUASI_MSYS2_QUIET ]] || echo ''
+
+    # `MSYSTEM_PREFIX` is an MSYS2-style variable points to the MinGW installation path, i.e. `root/ucrt64`.
+    # We load its default value from the primary makefile, but we optionally prefix it with the proper absolute path, unless it already exists as a symlink.
+    if [[ "$(readlink -m $MSYSTEM_PREFIX)" == "$QUASI_MSYS2_ROOT/root$MSYSTEM_PREFIX" ]]; then
+        echo 'Found symlink `'"$MSYSTEM_PREFIX"'` -> `'"$QUASI_MSYS2_ROOT/root$MSYSTEM_PREFIX"'`, will use it.'
+    else
+        echo "$warn"'Didn'"'"'t find symlink `'"$MSYSTEM_PREFIX"'` -> `'"$QUASI_MSYS2_ROOT/root$MSYSTEM_PREFIX"'`.'
+        echo 'It can improve compatibility in some cases. Consider creating it using following command:'
+        echo '    sudo ln -nfs "'"$QUASI_MSYS2_ROOT/root$MSYSTEM_PREFIX"'" '"$MSYSTEM_PREFIX"
+        echo ''
+        export "MSYSTEM_PREFIX=$QUASI_MSYS2_ROOT/root$MSYSTEM_PREFIX"
+    fi
+    echo "MSYSTEM_PREFIX = $MSYSTEM_PREFIX"
+    echo ''
+
+    # Test different C/C++ compilers.
+    echo 'Testing compilers:'
+    # -------- Testing native Clang
+    echo '* Native Clang'
+    # First guess the version suffix, if the custom binaries weren't specified.
+    local clang_ver_suffix=
+    local clang_is_broken=
+    if [[ -v WIN_NATIVE_CLANG_CC ]]; then
+        echo "    Custom binaries were specified."
+    else
+        if [[ -v WIN_NATIVE_CLANG_VER ]]; then
+            echo "    Using user-provided version suffix: WIN_NATIVE_CLANG_VER = $WIN_NATIVE_CLANG_VER"
+        else
+            if [[ $MSYSTEM == CLANG* ]]; then
+                # In CLANG64 environment, since the native clang version must match the msys2 one exactly,
+                # try to guess the native version number from the msys2 version
+                export WIN_NATIVE_CLANG_VER="$(basename "$(find "$MSYSTEM_PREFIX/lib/clang" -maxdepth 1 -mindepth 1 -print -quit 2>/dev/null)" | sed 's/\..*//')"
+            fi
+            # Otherwise use the biggest number we see.
+            [[ $WIN_NATIVE_CLANG_VER ]] || export "WIN_NATIVE_CLANG_VER=$(compgen -c clang | grep -E '^clang-[0-9]+$' | sort | tail -1 | sed 's/clang-//')"
+            # If we found no suffix OR the executable doesn't exist for some reason, set the suffix to NONE.
+            ( test -z "$WIN_NATIVE_CLANG_VER" || ! which "clang-$WIN_NATIVE_CLANG_VER" "clang++-$WIN_NATIVE_CLANG_VER" "lld-$WIN_NATIVE_CLANG_VER" >/dev/null 2>/dev/null ) && export "WIN_NATIVE_CLANG_VER=NONE"
+            echo "    Guessed Clang version suffix: WIN_NATIVE_CLANG_VER = $WIN_NATIVE_CLANG_VER"
+            echo "    You can override it by setting it to a number or to \`NONE\` for no suffix."
+        fi
+
+        if test "$WIN_NATIVE_CLANG_VER" = "NONE"; then
+            local clang_ver_suffix=""
+        else
+            local clang_ver_suffix="-$WIN_NATIVE_CLANG_VER"
+        fi
+        # Those variables are used by our Clang wrapper in `env/wrappers`.
+        export "WIN_NATIVE_CLANG_CC=clang$clang_ver_suffix"
+        export "WIN_NATIVE_CLANG_CXX=clang++$clang_ver_suffix"
+        export "WIN_NATIVE_CLANG_LD=ld.lld$clang_ver_suffix"
+        export "WIN_NATIVE_CLANG_USE_LD=lld$clang_ver_suffix"
+        export "WIN_NATIVE_CLANG_WINDRES=llvm-windres$clang_ver_suffix"
+    fi
+    if which "$WIN_NATIVE_CLANG_CC" >/dev/null 2>/dev/null; then # Only checking the C compiler. C++ support is optional.
+        if ! which "$WIN_NATIVE_CLANG_CXX" >/dev/null 2>/dev/null; then
+            echo "    $warn""The C++ compiler executable \`$WIN_NATIVE_CLANG_CXX\` doesn't exist, enabling only the C support."
+            unset WIN_NATIVE_CLANG_CXX
+        fi
+        if ! which "$WIN_NATIVE_CLANG_WINDRES" >/dev/null 2>/dev/null; then
+            echo "    $warn""The Windres executable \`$WIN_NATIVE_CLANG_WINDRES\` is missing."
+            unset WIN_NATIVE_CLANG_WINDRES
+        fi
+
+        # If MSYS2 Clang is installed, switch to absolute paths.
+        [[ -f "$MSYSTEM_PREFIX/bin/clang.exe" ]] && export "WIN_NATIVE_CLANG_CC=$(which $WIN_NATIVE_CLANG_CC)"
+        [[ -f "$MSYSTEM_PREFIX/bin/clang++.exe" ]] && export "WIN_NATIVE_CLANG_CXX=$(which $WIN_NATIVE_CLANG_CXX)"
+        [[ -f "$MSYSTEM_PREFIX/bin/ld.lld.exe" ]] && export "WIN_NATIVE_CLANG_LD=$(which $WIN_NATIVE_CLANG_LD)"
+        # Don't touch `WIN_NATIVE_CLANG_USE_LD` here, it can't be an absolute path!
+        [[ -f "$MSYSTEM_PREFIX/bin/windres.exe" ]] && export "WIN_NATIVE_CLANG_WINDRES=$(which $WIN_NATIVE_CLANG_WINDRES)"
+
+        echo "    WIN_NATIVE_CLANG_CC  = $WIN_NATIVE_CLANG_CC"
+        echo "    WIN_NATIVE_CLANG_CXX = $WIN_NATIVE_CLANG_CXX"
+        echo "    WIN_NATIVE_CLANG_LD  = $WIN_NATIVE_CLANG_LD"
+        echo "    WIN_NATIVE_CLANG_USE_LD = $WIN_NATIVE_CLANG_USE_LD"
+        echo "    WIN_NATIVE_CLANG_WINDRES = $WIN_NATIVE_CLANG_WINDRES"
+
+        # Warn if MSYS2 GCC (or Clang, for CLANG* environments) is not installed.
+        if [[ $MSYSTEM != CLANG* ]]; then
+            if [[ ! -f "$MSYSTEM_PREFIX/bin/gcc.exe" || ( $WIN_NATIVE_CLANG_CXX && ! -f "$MSYSTEM_PREFIX/bin/g++.exe" ) ]]; then
+                echo "    $warn""Couldn't find the MSYS2 GCC. It has to be installed for the native Clang to be able to cross-compile."
+                clang_is_broken=1
+            fi
+        else
+            if [[ ! -f "$MSYSTEM_PREFIX/bin/clang.exe" || ( $WIN_NATIVE_CLANG_CXX && ! -f "$MSYSTEM_PREFIX/bin/clang++.exe" ) ]]; then
+                echo "    $warn""Couldn't find the MSYS2 Clang. It has to be installed for the native Clang to be able to cross-compile. Restart the shell after after installing it."
+                clang_is_broken=1
+            fi
+        fi
+
+        if [[ $clang_is_broken == "" ]]; then
+            # This custom variable specifies the flags for our Clang wrapper in `env/wrappers`.
+            # `--target` sets the target platform.
+            # Note that `clang --version` will report a slightly different target than what we set here. This is normal, and specifying that target directly would also work.
+            # `--sysroot` tells Clang where to look for a GCC/Clang installation.
+            # `-pthread` tells is to link winpthread, since it doesn't happen automatically and some CMake scripts expect it.
+            # `-fuse-ld=lld...` tells Clang to use the LLD linker.
+            # `-femulated-tls` is necessary when using libstdc++ atomics with Clang. Conversely, libc++ atomics need `-fno-emulated-tls`.
+            # `-rtlib`, `-unwindlib` - not sure about those, guessed experimentally to match what MSYS2 does.
+            # `-resource-dir` - not sure if only needed on CLANG{32,64} environments, probably yes.
+            if [[ ! -v WIN_NATIVE_CLANG_FLAGS ]]; then
+                export "WIN_NATIVE_CLANG_FLAGS=--target=$MSYSTEM_CHOST --sysroot=$MSYSTEM_PREFIX -pthread"
+                [[ $WIN_NATIVE_CLANG_USE_LD ]] && export "WIN_NATIVE_CLANG_FLAGS+= -fuse-ld=$WIN_NATIVE_CLANG_USE_LD"
+                if [[ $MSYSTEM != CLANG* ]]; then
+                    # `-stdlib=libstdc++ -rtlib=libgcc` are used by default on my Ubuntu Clang, adding them just in case.
+                    export "WIN_NATIVE_CLANG_FLAGS+= -stdlib=libstdc++ -femulated-tls -rtlib=libgcc -unwindlib=libgcc"
+                else
+                    # `-fno-emulated-tls` is used by default on my Ubuntu Clang, adding it just in case.
+                    export "WIN_NATIVE_CLANG_FLAGS+= -stdlib=libc++ -fno-emulated-tls -rtlib=compiler-rt -unwindlib=libunwind"
+                    # The `find` command is used to descend into the only subdirectory, named after the Clang version.
+                    # This is also arbitrarily limited to one file, whatever is found first.
+                    local msys2_clang_res_dir="$(find "$MSYSTEM_PREFIX/lib/clang" -maxdepth 1 -mindepth 1 -print -quit 2>/dev/null)"
+                    if [[ $msys2_clang_res_dir && $(basename "$msys2_clang_res_dir") == $(basename "$("$WIN_NATIVE_CLANG_CC" -print-resource-dir)") ]]; then
+                        export "WIN_NATIVE_CLANG_FLAGS+= -resource-dir=$msys2_clang_res_dir"
+                    else
+                        echo "    $warn""Couldn't find a suitable Clang resource directory in the MSYS2 installation. Either MSYS2 Clang is not installed or it has a different version compared to the native Clang. Must restart this shell after fixing this."
+                        clang_is_broken=1
+                    fi
+                fi
+            fi
+            echo "    WIN_NATIVE_CLANG_FLAGS = $WIN_NATIVE_CLANG_FLAGS"
+        fi
+
+        if [[ $clang_is_broken == "" ]]; then
+            # Successfully found a native Clang.
+            echo "    Found!"
+        else
+            echo "    Broken!"
+            unset WIN_NATIVE_CLANG_CC
+            unset WIN_NATIVE_CLANG_CXX
+            unset WIN_NATIVE_CLANG_LD
+            unset WIN_NATIVE_CLANG_USE_LD
+            unset WIN_NATIVE_CLANG_FLAGS
+            unset WIN_NATIVE_CLANG_WINDRES
+        fi
+    else
+        # Couldn't find a native Clang.
+        unset WIN_NATIVE_CLANG_CC
+        unset WIN_NATIVE_CLANG_CXX
+        unset WIN_NATIVE_CLANG_LD
+        unset WIN_NATIVE_CLANG_USE_LD
+        unset WIN_NATIVE_CLANG_FLAGS
+        unset WIN_NATIVE_CLANG_WINDRES
+        echo "    NOT found! No executable named \`$WIN_NATIVE_CLANG_CC\`."
+    fi
+    # -------- Testing native GCC
+    if [[ $MSYSTEM != CLANG* ]]; then
+        echo '* Native MinGW GCC'
+        if [[ -v WIN_NATIVE_GCC_CC ]]; then # Only checking the C compiler. C++ support is optional.
+            echo "    Custom binaries were specified."
+        else
+            unset WIN_NATIVE_GCC_CC
+            unset WIN_NATIVE_GCC_CXX
+            unset WIN_NATIVE_GCC_LD
+            unset WIN_NATIVE_GCC_WINDRES
+            # Absolute paths everywhere to not conflict with MSYS2 GCC.
+            if [[ $MSYSTEM == UCRT64 ]]; then
+                export WIN_NATIVE_GCC_CC=/usr/bin/x86_64-w64-mingw32ucrt-gcc
+                export WIN_NATIVE_GCC_CXX=/usr/bin/x86_64-w64-mingw32ucrt-g++
+                export WIN_NATIVE_GCC_LD=/usr/bin/x86_64-w64-mingw32ucrt-ld
+                export WIN_NATIVE_GCC_WINDRES=/usr/bin/x86_64-w64-mingw32ucrt-windres
+            elif [[ $MSYSTEM == MINGW64 ]]; then
+                export WIN_NATIVE_GCC_CC=/usr/bin/x86_64-w64-mingw32-gcc
+                export WIN_NATIVE_GCC_CXX=/usr/bin/x86_64-w64-mingw32-g++
+                export WIN_NATIVE_GCC_LD=/usr/bin/x86_64-w64-mingw32-ld
+                export WIN_NATIVE_GCC_WINDRES=/usr/bin/x86_64-w64-mingw32-windres
+            elif [[ $MSYSTEM == MINGW32 ]]; then
+                export WIN_NATIVE_GCC_CC=/usr/bin/i686-w64-mingw32-gcc
+                export WIN_NATIVE_GCC_CXX=/usr/bin/i686-w64-mingw32-g++
+                export WIN_NATIVE_GCC_LD=/usr/bin/i686-w64-mingw32-ld
+                export WIN_NATIVE_GCC_WINDRES=/usr/bin/i686-w64-mingw32-windres
+            else
+                echo "    $warn""Internal error: Unknown MSYSTEM."
+            fi
+
+            if [[ $WIN_NATIVE_GCC_CC ]]; then
+                # Not updating `windres` and `ld`` here! They don't seem to be suffixed with the thread model.
+                if [[ -f "$WIN_NATIVE_GCC_CC-posix" ]]; then
+                    # Add the `-posix` suffix if such binaries exist.
+                    export WIN_NATIVE_GCC_CC="$WIN_NATIVE_GCC_CC-posix"
+                    export WIN_NATIVE_GCC_CXX="$WIN_NATIVE_GCC_CXX-posix"
+                elif [[ -f "$WIN_NATIVE_GCC_CC-win32" ]]; then
+                    # Otherwise if only `-win32` binaries exist, it's a sign that we've got the wrong kind of mingw.
+                    echo "    $warn""The installed native MinGW GCC uses the wrong threading model. Found \`$WIN_NATIVE_GCC_CC-win32\` but didn't find \`$WIN_NATIVE_GCC_CC-posix\`."
+                    export WIN_NATIVE_GCC_CC=
+                    export WIN_NATIVE_GCC_CXX=
+                fi
+            fi
+        fi
+        if which "$WIN_NATIVE_GCC_CC" >/dev/null 2>/dev/null; then
+            if ! which "$WIN_NATIVE_GCC_CXX" >/dev/null 2>/dev/null; then
+                echo "    $warn""The C++ compiler executable \`$WIN_NATIVE_GCC_CXX\` doesn't exist, enabling only the C support."
+                unset WIN_NATIVE_GCC_CXX
+            fi
+            if ! which "$WIN_NATIVE_GCC_WINDRES" >/dev/null 2>/dev/null; then
+                echo "    $warn""The Windres executable \`$WIN_NATIVE_GCC_WINDRES\` is missing."
+                unset WIN_NATIVE_GCC_WINDRES
+            fi
+
+            echo "    WIN_NATIVE_GCC_CC  = $WIN_NATIVE_GCC_CC"
+            echo "    WIN_NATIVE_GCC_CXX = $WIN_NATIVE_GCC_CXX"
+            echo "    WIN_NATIVE_GCC_LD  = $WIN_NATIVE_GCC_LD"
+            echo "    WIN_NATIVE_GCC_WINDRES = $WIN_NATIVE_GCC_WINDRES"
+
+            if [[ ! -v WIN_NATIVE_GCC_FLAGS ]]; then
+                local msys2_gcc_res_dir="$(find "$MSYSTEM_PREFIX/include/c++" -maxdepth 1 -mindepth 1 -print -quit 2>/dev/null)"
+                if [[ $msys2_gcc_res_dir ]]; then
+                    # If GCC is installed in MSYS2, we MUST use the standard library from it, because it ends up in the include path anyway,
+                    #   and then blows up in your face due to conflicts with the system library, if you keep the system include paths too.
+                    # I tested that on a simple SDL2 hello world, it didn't compile for me otherwise.
+                    echo "    MSYS2 GCC is installed, will use the standard library from it. If you get any issues (specifically with native MinGW GCC, not Clang), uninstall MSYS2 GCC, then we will use the standard library that comes with the native MinGW GCC."
+
+                    local msys2_gcc_ver="$(basename "$msys2_gcc_res_dir")"
+                    if [[ ! -d /usr/lib/gcc/i686-w64-mingw32/$msys2_gcc_ver ]]; then
+                        # I'm not sure if this needs to be a hard error. I know the version mismatch is an issue for Clang, but what about GCC?
+                        # Not using the MSYS2 resource dir isn't an option if MSYS2 GCC is installed (see above), so whatever?
+                        echo "    $warn""Native MinGW GCC version doesn't match the version installed in MSYS2. This can cause issues. Consider uninstalling MSYS2 GCC completely."
+                    fi
+
+                    # For some reason `--sysroot` has some other meaning for GCC than for Clang. It doesn't affect the library and include paths.
+                    # So instead we remove the stock ones using `-nostdinc` and specify them manually.
+                    export WIN_NATIVE_GCC_FLAGS="-nostdinc"
+                    export WIN_NATIVE_GCC_FLAGS+=" -isystem$MSYSTEM_PREFIX/include/c++/$msys2_gcc_ver"
+                    export WIN_NATIVE_GCC_FLAGS+=" -isystem$MSYSTEM_PREFIX/include/c++/$msys2_gcc_ver/$MSYSTEM_CHOST"
+                    export WIN_NATIVE_GCC_FLAGS+=" -isystem$MSYSTEM_PREFIX/include/c++/$msys2_gcc_ver/backward"
+                    export WIN_NATIVE_GCC_FLAGS+=" -isystem$MSYSTEM_PREFIX/lib/gcc/$MSYSTEM_CHOST/$msys2_gcc_ver/include"
+                    export WIN_NATIVE_GCC_FLAGS+=" -isystem$MSYSTEM_PREFIX/lib/gcc/$MSYSTEM_CHOST/$msys2_gcc_ver/include-fixed"
+                    export WIN_NATIVE_GCC_FLAGS+=" -isystem$MSYSTEM_PREFIX/include"
+                else
+                    echo "    MSYS2 GCC is not installed. Will use the standard library from the system MinGW GCC. This is not an error, and is usually a good idea if you're planning to use the native MinGW GCC."
+                    export WIN_NATIVE_GCC_FLAGS="-isystem$MSYSTEM_PREFIX/include"
+                fi
+                export WIN_NATIVE_GCC_FLAGS+=" -L$MSYSTEM_PREFIX/lib"
+            fi
+            echo "    WIN_NATIVE_GCC_FLAGS = $WIN_NATIVE_GCC_FLAGS"
+
+            # Successfully found a native GCC.
+            echo "    Found!"
+        else
+            # Couldn't find a native GCC.
+            echo "    NOT found! No executable named \`$WIN_NATIVE_GCC_CC\`."
+            unset WIN_NATIVE_GCC_CC
+            unset WIN_NATIVE_GCC_CXX
+            unset WIN_NATIVE_GCC_LD
+            unset WIN_NATIVE_GCC_FLAGS
+            unset WIN_NATIVE_GCC_WINDRES
+        fi
+    fi
+    # -------- Testing native Clang
+    echo '* MSYS2 Clang'
+    local have_msys2_clang=
+    if [[ -f "$MSYSTEM_PREFIX/bin/clang.exe" ]]; then
+        echo "    Found!"
+        have_msys2_clang=1
+    else
+        echo "    NOT found!"
+    fi
+    # -------- Testing native GCC
+    local have_msys2_gcc=
+    if [[ $MSYSTEM != CLANG* ]]; then
+        echo '* MSYS2 GCC'
+        if [[ -f "$MSYSTEM_PREFIX/bin/gcc.exe" ]]; then
+            echo "    Found!"
+            have_msys2_gcc=1
+        else
+            echo "    NOT found!"
+        fi
+    fi
+    # Warn that we only tested Clang if in a Clang-based environment.
+    if [[ $MSYSTEM == CLANG* ]]; then
+        echo "(Not checking GCC in a Clang-only environment.)"
+    fi
+
+    echo ''
+
+
+    # Now select one of the installed compilers.
+    # Back up the existing ones.
+    local suggested_cc=/usr/bin/cc
+    local suggested_cxx=/usr/bin/c++
+    local suggested_ld=/usr/bin/ld
+    local suggested_cc_check="$suggested_cc"
+    local suggested_cxx_check="$suggested_cxx"
+    local suggested_ld_check="$suggested_ld"
+    local suggested_compiler_broken=
+    # TODO do we need to set LD too?
+    local suggested_host_cc="${CC-/usr/bin/cc}"
+    local suggested_host_cxx="${CXX-/usr/bin/c++}"
+    local suggested_host_ld="${LD-/usr/bin/ld}"
+
+    local want_native_windres=
+    local suggested_native_windres=
+
+    local selected_compiler=
+    if [[ -v WIN_DEFAULT_COMPILER ]]; then
+        local selected_compiler="$WIN_DEFAULT_COMPILER"
+    else
+        if [[ $WIN_NATIVE_CLANG_CC && $clang_is_broken == "" ]]; then
+            local selected_compiler=native_clang
+        elif [[ $WIN_NATIVE_GCC_CC ]]; then
+            local selected_compiler=native_gcc
+        elif [[ $have_msys2_clang ]]; then
+            local selected_compiler=msys2_clang
+        elif [[ $have_msys2_gcc ]]; then
+            local selected_compiler=msys2_gcc
+        else
+            local selected_compiler=none
+        fi
+    fi
+    echo -n 'Default compiler: '
+    local warn_msys2_compiler=
+    if [[ $selected_compiler == native_clang ]]; then
+        echo 'Native Clang'
+        local suggested_cc=win-clang
+        local suggested_cxx=win-clang++
+        local suggested_cc_check="$WIN_NATIVE_CLANG_CC"
+        local suggested_cxx_check="$WIN_NATIVE_CLANG_CXX"
+        local suggested_compiler_broken=$clang_is_broken
+        local suggested_host_cc="$WIN_NATIVE_CLANG_CC"
+        local suggested_host_cxx="$WIN_NATIVE_CLANG_CXX"
+        local suggested_host_ld="$WIN_NATIVE_CLANG_LD"
+        local want_native_windres=1
+        local suggested_native_windres="$WIN_NATIVE_CLANG_WINDRES"
+    elif [[ $selected_compiler == native_gcc && $MSYSTEM != CLANG* ]]; then
+        echo 'Native MinGW GCC'
+        local suggested_cc=win-gcc
+        local suggested_cxx=win-g++
+        local suggested_cc_check="$WIN_NATIVE_GCC_CC"
+        local suggested_cxx_check="$WIN_NATIVE_GCC_CXX"
+        local want_native_windres=1
+        local suggested_native_windres="$WIN_NATIVE_GCC_WINDRES"
+    elif [[ $selected_compiler == msys2_clang ]]; then
+        echo 'MSYS2 Clang'
+        local warn_msys2_compiler=1
+        local suggested_cc=clang
+        local suggested_cxx=clang++
+        [[ -f "$MSYSTEM_PREFIX/bin/clang.exe" ]] || local suggested_compiler_broken=1
+    elif [[ $selected_compiler == msys2_gcc && $MSYSTEM != CLANG* ]]; then
+        echo 'MSYS2 GCC'
+        local warn_msys2_compiler=1
+        local suggested_cc=gcc
+        local suggested_cxx=g++
+        [[ -f "$MSYSTEM_PREFIX/bin/gcc.exe" ]] || local suggested_compiler_broken=1
+    elif [[ $selected_compiler == none ]]; then
+        echo "$warn""No suitable compiler!"
+    else
+        echo "$warn""Invalid manually selected compiler: $selected_compiler"
+    fi
+    if [[ $warn_msys2_compiler == 1 && ! -v WIN_DEFAULT_COMPILER ]]; then
+        echo "$warn""Running MSYS2 compilers in Wine is slow and doesn't work well with build systems. If you're not doing this intentionally, make sure you followed the instructions in the README correctly."
+    fi
+
+    unset CC
+    if [[ -v WIN_CC ]]; then
+        export CC="$WIN_CC"
+    elif [[ $suggested_cc ]]; then
+        if [[ $suggested_compiler_broken ]]; then
+            local suggested_cc=
+        fi
+        if [[ $suggested_cc && $suggested_cc_check ]] && ! which "$suggested_cc_check" >/dev/null 2>/dev/null; then
+            local suggested_cc=
+        fi
+        if [[ $suggested_cc ]]; then
+            export CC="$suggested_cc"
+        else
+            echo "$warn""No C compiler!"
+        fi
+    fi
+    echo "CC  = $CC"
+
+    unset CXX
+    if [[ -v WIN_CXX ]]; then
+        export CXX="$WIN_CXX"
+    elif [[ $suggested_cxx ]]; then
+        if [[ $suggested_compiler_broken ]]; then
+            local suggested_cxx=
+        fi
+        if [[ $suggested_cxx && $suggested_cxx_check ]] && ! which "$suggested_cxx_check" >/dev/null 2>/dev/null; then
+            local suggested_cxx=
+        fi
+        if [[ $suggested_cxx ]]; then
+            export CXX="$suggested_cxx"
+        else
+            echo "$warn""No C++ compiler!"
+        fi
+    fi
+    echo "CXX = $CXX"
+
+    unset LD
+    # Not setting a custom LD right now. TODO do we need to?
+    # While we do determine `WIN_NATIVE_CLANG_LD`, what flags do we need to pass to it? Just `--target`?
+
+    # Select native Windres.
+    if [[ ! -v WIN_NATIVE_WINDRES && $want_native_windres == 1 ]]; then
+        if which "$suggested_native_windres" >/dev/null 2>/dev/null; then
+            export WIN_NATIVE_WINDRES="$suggested_native_windres"
+        elif [[ $suggested_native_windres ]]; then
+            echo "$warn""Native Windres is missing, the executable \`$suggested_native_windres\` doesn't exist."
+        else
+            echo "$warn""Native Windres is missing."
+        fi
+    fi
+    # Now select the final windres executable. The variable `RC` is sometimes used by CMake.
+    if [[ -v WIN_RC ]]; then
+        export RC="$WIN_RC"
+    else
+        if [[ $want_native_windres == 1 ]]; then
+            if [[ $WIN_NATIVE_WINDRES ]]; then
+                # Sic. Our wrapper script will call the native windres.
+                export RC=windres
+            fi
+        else
+            if [[ -f $MSYSTEM_PREFIX/bin/windres.exe ]]; then
+                # Sic. Our wrapper script will call `windres.exe`.
+                export RC=windres
+            else
+                echo "$warn""MSYS2 Windres is not installed."
+            fi
+        fi
+    fi
+    if [[ $WIN_NATIVE_WINDRES ]]; then
+        echo "RC  = $RC  (backend: WIN_NATIVE_WINDRES = $WIN_NATIVE_WINDRES)"
+    else
+        echo "RC  = $RC"
+    fi
+
+
+    # Select the host compiler.
+    if [[ ! -v WIN_HOST_CC ]] && which "$suggested_host_cc" >/dev/null 2>/dev/null; then
+        export WIN_HOST_CC="$suggested_host_cc"
+    fi
+    if [[ ! -v WIN_HOST_CXX ]] && which "$suggested_host_cxx" >/dev/null 2>/dev/null; then
+        export WIN_HOST_CXX="$suggested_host_cxx"
+    fi
+    if [[ ! -v WIN_HOST_LD ]] && which "$suggested_host_ld" >/dev/null 2>/dev/null; then
+        export WIN_HOST_LD="$suggested_host_ld"
+    fi
+    echo "WIN_HOST_CC  = $WIN_HOST_CC"
+    echo "WIN_HOST_CXX = $WIN_HOST_CXX"
+    echo "WIN_HOST_LD  = $WIN_HOST_LD"
+    echo ''
+
+
+
+    # Create a variable for `win-ldd`. Not sure if anyone uses this, it's mostly for my convenience.
+    if test "$WIN_LDD"; then
+        export "LDD=$WIN_LDD"
+    else
+        export "LDD=win-ldd"
+    fi
+
+
+    # A variable read by `Makefile` (the package manager), containing the hook that should be called after installing/uninstalling packages.
+    if test -z "$QUASI_MSYS2_PKG_HOOK"; then
+        if test -d "$QUASI_MSYS2_ROOT/env/fake_bin"; then
+            [[ $QUASI_MSYS2_QUIET ]] || echo '`fakebin.mk` is in use, installing a package manager hook for it:'
+            export "QUASI_MSYS2_PKG_HOOK=make -f '$QUASI_MSYS2_ROOT/env/fakebin.mk' QUIET=1"
+        else
+            [[ $QUASI_MSYS2_QUIET ]] || echo '`fakebin.mk` is not in use, it doesn'"'"'t need a package manager hook.'
+            [[ $QUASI_MSYS2_QUIET ]] || echo ''
+        fi
+    fi
+    if test "$QUASI_MSYS2_PKG_HOOK"; then
+        [[ $QUASI_MSYS2_QUIET ]] || echo "QUASI_MSYS2_PKG_HOOK = $QUASI_MSYS2_PKG_HOOK"
+        [[ $QUASI_MSYS2_QUIET ]] || echo ''
+    fi
+
+
+    # Wine will look for executables in this directory.
+    export "WINEPATH=$MSYSTEM_PREFIX/bin"
+    [[ $QUASI_MSYS2_QUIET ]] || echo "WINEPATH = $WINEPATH"
+    which wine >/dev/null 2>/dev/null || echo "$warn""Can't find Wine. If you want to run native executables, it has to be installed."
+
+    # Autotools will read config from that file.
+    export "CONFIG_SITE=$QUASI_MSYS2_ROOT/env/config/config.site"
+    [[ $QUASI_MSYS2_QUIET ]] || echo "CONFIG_SITE = $CONFIG_SITE"
+
+    # Pkg-config will look for packages in this directory.
+    # The value was taken from MSYS2, except `/ucrt64` was replaced with `$MSYSTEM_PREFIX`.
+    export "PKG_CONFIG_PATH=$MSYSTEM_PREFIX/lib/pkgconfig:$MSYSTEM_PREFIX/share/pkgconfig"
+    [[ $QUASI_MSYS2_QUIET ]] || echo "PKG_CONFIG_PATH = $PKG_CONFIG_PATH"
+
+    # Pkg-config will add this prefix to every path it outputs.
+    # This will be empty if and only if we have a symlink in `/` (see definition of `MSYSTEM_PREFIX`).
+    export "PKG_CONFIG_SYSROOT_DIR=$(dirname "$MSYSTEM_PREFIX")"
+    [[ $PKG_CONFIG_SYSROOT_DIR == "/" ]] && export PKG_CONFIG_SYSROOT_DIR=
+    [[ $QUASI_MSYS2_QUIET ]] || echo "PKG_CONFIG_SYSROOT_DIR = $PKG_CONFIG_SYSROOT_DIR"
+
+    # Disable default pkg-config search paths.
+    # Note setting it to a random character rather than an empty string. Empty string works on Ubuntu, but e.g. Fedora has a stupid
+    # script in place of `pkg-config` that assigns a default value to this variable if it's undefined OR EMPTY.
+    export "PKG_CONFIG_LIBDIR=-"
+    [[ $QUASI_MSYS2_QUIET ]] || echo "PKG_CONFIG_LIBDIR = $PKG_CONFIG_LIBDIR"
+
+    # Those are `pkgconf` extensions on top of `pkg-config`. Flags pointing to those dirs are stripped from the output.
+    export "PKG_CONFIG_SYSTEM_INCLUDE_PATH=$MSYSTEM_PREFIX/include"
+    export "PKG_CONFIG_SYSTEM_LIBRARY_PATH=$MSYSTEM_PREFIX/lib"
+    [[ $QUASI_MSYS2_QUIET ]] || echo "PKG_CONFIG_SYSTEM_INCLUDE_PATH = $PKG_CONFIG_SYSTEM_INCLUDE_PATH"
+    [[ $QUASI_MSYS2_QUIET ]] || echo "PKG_CONFIG_SYSTEM_LIBRARY_PATH = $PKG_CONFIG_SYSTEM_LIBRARY_PATH"
+
+    # Not sure what exactly `aclocal` is, but MSYS2 sets this variable, and so do we.
+    # MSYS2 also stores a second path in it, `/usr/share/aclocal` (separated by a `:`), but we probably shouldn't add it forcefully if it's not already there.
+    # Since one of the paths MSYS2 stores in it doesn't start with `/ucrt64`, it seemed logical to me to append to this variable rather than overwriting it.
+    local new_aclocal_path="$(make -f "$QUASI_MSYS2_ROOT/env/internal/AddToPath.mk" "var=ACLOCAL_PATH" "dirs=$MSYSTEM_PREFIX/share/aclocal")"
+    [[ "$new_aclocal_path" ]] || return
+    export "ACLOCAL_PATH=$new_aclocal_path"
+    [[ $QUASI_MSYS2_QUIET ]] || echo "ACLOCAL_PATH = $ACLOCAL_PATH"
+
+    # Check if MSYS2 CMake is installed. Warn if it is, because it doesn't work properly under Wine.
+    [[ -f "$MSYSTEM_PREFIX/bin/cmake.exe" ]] && echo -e "$warn""MSYS2 CMake is installed. It won't function properly,\nget rid of it and use the \`win-cmake\` wrapper that calls the native CMake."
+    # This variable is used by our wrapper in `env/wrappers`. We use an absolute path
+    # to avoid collisions with MSYS2 CMake if it's installed for some reason.
+    export "WIN_NATIVE_CMAKE=$(which cmake 2>/dev/null)"
+    [[ $QUASI_MSYS2_QUIET ]] || echo "WIN_NATIVE_CMAKE = $WIN_NATIVE_CMAKE"
+    # This variable is also used by our wrapper in `env/wrappers`, and contains the extra CMake flags.
+    export "WIN_CMAKE_FLAGS=-DCMAKE_TOOLCHAIN_FILE=$QUASI_MSYS2_ROOT/env/config/toolchain.cmake -DCMAKE_INSTALL_PREFIX=$MSYSTEM_PREFIX"
+    [[ $QUASI_MSYS2_QUIET ]] || echo "WIN_CMAKE_FLAGS = $WIN_CMAKE_FLAGS"
+
+    # And similarly for meson.
+    # Note the "native file". It's not usually needed, but sometimes can be needed. See the comments in `env/generate_meson_config.mk`.
+    export "WIN_NATIVE_MESON=$(which meson 2>/dev/null)"
+    [[ $QUASI_MSYS2_QUIET ]] || echo "WIN_NATIVE_MESON = $WIN_NATIVE_MESON"
+    export "WIN_MESON_FLAGS=--cross-file=$QUASI_MSYS2_ROOT/env/config/meson_cross_file.ini --native-file=$QUASI_MSYS2_ROOT/env/config/meson_native_file.ini"
+    [[ $QUASI_MSYS2_QUIET ]] || echo "WIN_MESON_FLAGS = $WIN_MESON_FLAGS"
+
+    [[ $QUASI_MSYS2_QUIET ]] || echo ''
+
+
+    # Rust variables:
+
+    # Convert the target name to what rustc understands. You can get the same conversion from `clang --target=... --version`.
+    if [[ ! -v WIN_NATIVE_RUSTC ]]; then
+        export WIN_NATIVE_RUSTC="$(which rustc 2>/dev/null)"
+        if [[ ! $WIN_NATIVE_RUSTC ]]; then
+            echo "Can't find \`rustc\`, disabling Rust support."
+        fi
+    fi
+
+    if [[ $WIN_NATIVE_RUSTC ]]; then
+        export CARGO_BUILD_TARGET="${MSYSTEM_CHOST/%w64-mingw32/pc-windows-gnu}"
+        local cargo_host_target="$(rustc -vV | grep -oP '(?<=host: ).*')"
+        local uppercase_build_target="${CARGO_BUILD_TARGET^^}"
+        local uppercase_host_target="${cargo_host_target^^}"
+        local rustc_build_linker_var="CARGO_TARGET_${uppercase_build_target//-/_}_LINKER"
+        local rustc_host_linker_var="CARGO_TARGET_${uppercase_host_target//-/_}_LINKER"
+        export "$rustc_build_linker_var"="$CC"
+        export "$rustc_host_linker_var"="$WIN_HOST_CC"
+
+        echo 'Rust:'
+        echo "    CARGO_BUILD_TARGET = $CARGO_BUILD_TARGET"
+        echo "    $rustc_build_linker_var = ${!rustc_build_linker_var}"
+        echo "    $rustc_host_linker_var = ${!rustc_host_linker_var}"
+        echo ''
+    fi
+
+
+
+    # Update the PATH.
+    export "WIN_ORIGINAL_PATH=$PATH"
+    local new_path="$(make -f "$QUASI_MSYS2_ROOT/env/internal/AddToPath.mk" "dirs=$QUASI_MSYS2_ROOT/env/wrappers:$QUASI_MSYS2_ROOT/env/fake_bin:$WINEPATH")"
+    test -z "$new_path" && return
+    export "PATH=$new_path"
+    [[ $QUASI_MSYS2_QUIET ]] || echo "PATH = $PATH"
+    [[ $QUASI_MSYS2_QUIET ]] || echo 'Backed up original path to `WIN_ORIGINAL_PATH`.'
+
+    # We don't use the following variables, but still define them for some extra compatibility with MSYS2.
+    # The list of variables was obtained by running `printenv` on MSYS2 and manually sorting through the list.
+    # Note that some useful MSYS2-style variables (that are actually useful) are defined above and not there.
+    # Note that some of the variables we print here were obtained from the config in the primary makefile, at the very beginning of this script.
+    [[ $QUASI_MSYS2_QUIET ]] || echo ''
+    [[ $QUASI_MSYS2_QUIET ]] || echo 'Extra MSYS2 mimicry:'
+    [[ $QUASI_MSYS2_QUIET ]] || echo -n "MSYSTEM=$MSYSTEM; "
+    export "OS=Windows_NT";
+    [[ $QUASI_MSYS2_QUIET ]] || echo -n "OS=$OS; "
+    [[ $QUASI_MSYS2_QUIET ]] || echo -n "MSYSTEM_CARCH=$MSYSTEM_CARCH; "
+    export "MINGW_CHOST=$MSYSTEM_CHOST";
+    [[ $QUASI_MSYS2_QUIET ]] || echo -n "MSYSTEM_CHOST=MINGW_CHOST=$MSYSTEM_CHOST; "
+    # Finally, copy the MSYS2 prompt.
+    export 'PS1=\[\e]0;\w\a\]\n\[\e[32m\]\u@\h \[\e[35m\]$MSYSTEM\[\e[0m\] \[\e[33m\]\w\[\e[0m\]\n\[\e[1m\]\$\[\e[0m\] ';
+    [[ $QUASI_MSYS2_QUIET ]] || echo "PS1 = ..."
+}
+# Call our dummy funcion.
+__dummy_func
+# Delete the function.
+unset -f __dummy_func

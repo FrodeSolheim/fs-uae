@@ -10,6 +10,30 @@ export PREFIX="$BUILD_ENV_PREFIX"
 
 export REINSTALL="$FSENV_REINSTALL"
 
+# Runs cmake to configure a package (arguments: cmake's). On Linux, with the prefix as the install
+# prefix, so that the installed .pc files (and the rpath in sdl3.pc) point to the env prefix and
+# builds find the packages with pkg-config alone (the SDL3 overlay for development builds, see
+# od-fs/configure). Without it, they say /usr/local. In cross mode (setup --host), also with the
+# CMake toolchain file for the triplet.
+# REVIEW: Not on macOS (not tested there; sdl3.pc would then add the prefix as an rpath).
+package_cmake_configure() {
+    if [ -n "$BUILD_ENV_HOST" ]; then
+        cmake -DCMAKE_TOOLCHAIN_FILE="$BUILD_ENV_CMAKE_TOOLCHAIN" \
+            -DCMAKE_INSTALL_PREFIX="$PACKAGE_PREFIX" "$@"
+    elif [ "$SYSTEM_OS" = "Linux" ]; then
+        cmake -DCMAKE_INSTALL_PREFIX="$PACKAGE_PREFIX" "$@"
+    else
+        cmake "$@"
+    fi
+}
+
+# The revision is part of the installed marker; without it, the marker ends in "-" and checks that
+# expect <name>-<version>-<revision> do not find the package.
+if [ -z "$PACKAGE_REVISION" ]; then
+    echo "Error: the recipe for ${PACKAGE_NAME:-$PACKAGE} does not set PACKAGE_REVISION" >&2
+    exit 1
+fi
+
 if [ "$PACKAGE_NAME" != "" ]; then
 export INSTALLED="$PREFIX/installed/$PACKAGE_NAME-$PACKAGE_VERSION-$PACKAGE_REVISION"
 else

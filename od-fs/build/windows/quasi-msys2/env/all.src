@@ -1,0 +1,33 @@
+#!/bin/false
+# The above line stops anyone from running this script normally, but allows `source`ing it.
+
+# This script configures the Quasi-MSYS2 environment. Run it with `source` from Bash.
+# If you don't need the whole thing, you can run the individual scripts one by one.
+
+# Make a dummy function to be able to have local variables.
+__dummy_func() {
+    # Helper variable pointing to the env scripts directory.
+    local env_path="$(realpath "$(dirname "$BASH_SOURCE")")"
+    # Make sure the resulting variable is not empty due to some error. If it is, abort.
+    test -z "$env_path" && return 1
+
+    echo -e '\n--- binfmt.mk'
+    # The `(...)` and `trap exit 2` sorcery is to handle Ctrl+C correctly. Not sure why it doesn't work otherwise.
+    (cd "$env_path" && bash -c "trap exit 2 && make -f binfmt.mk QUIET=1")
+
+    echo -e '\n--- fakebin.mk'
+    make -f "$env_path/fakebin.mk" QUIET=1 || return 1
+
+    # This should probably go after `fakebin.mk`, because whether or not we install
+    # package manager hooks (that call `fakebin.mk`) depends on whether we have the `fake_bin` directory.
+    local QUASI_MSYS2_QUIET=1
+    echo -e '\n--- vars.src'
+    source "$env_path/vars.src" || return 1
+
+    # Update the cross-file for Meson.
+    make -f "$env_path/generate_meson_config.mk" >/dev/null
+}
+# Call our dummy funcion.
+__dummy_func
+# Delete the function.
+unset -f __dummy_func

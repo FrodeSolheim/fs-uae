@@ -4,7 +4,7 @@ set -e
 # --------------------------------------------------------------------------------------------------
 
 # FIXME: libiconv (except on macOS) ?? Done
-"$PACKAGE_DEPENDENCY/libiconv"
+"$PACKAGE_DEPENDENCY" libiconv
 
 PACKAGE=gettext-1.0
 PACKAGE_REVISION=0

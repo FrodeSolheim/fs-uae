@@ -1,0 +1,36 @@
+# Env packages on Linux (read by setup). The dists and the SDL3 overlay for development builds get
+# SDL3, SDL3_image, SDL3_ttf and Python from the env recipes, so they have the same versions as on
+# macOS, and everything else from the system (Ubuntu 24.04 is the baseline).
+#
+# [build]: the packages setup builds (with their dependencies) when run without arguments. The
+# order does not matter: each recipe builds its dependencies first.
+# [system]: packages the system provides. They are never built, and a recipe's dependency on one
+# does nothing; the system's development package must be installed instead (in comments below,
+# for Ubuntu 24.04).
+
+[build]
+python
+sdl3
+sdl3_image
+sdl3_ttf
+
+[system]
+flac                # libflac-dev
+freetype            # libfreetype-dev
+freetype-noharfbuzz # libfreetype-dev
+gettext             # part of glibc
+glib                # libglib2.0-dev
+harfbuzz            # libharfbuzz-dev
+libffi              # libffi-dev
+libiconv            # part of glibc
+libmpeg2            # libmpeg2-4-dev
+libpng              # libpng-dev
+libsamplerate       # libsamplerate0-dev
+libuuid             # uuid-dev
+mpg123              # libmpg123-dev
+openssl             # libssl-dev
+portmidi            # libportmidi-dev
+sqlite              # libsqlite3-dev
+xz                  # liblzma-dev
+zlib                # zlib1g-dev
+zstd                # libzstd-dev

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Run "make clean" in the Windows build directory .build/$WINDOWS_BUILD (default: .build/windows),
+# Run "make clean" in the Windows build directory from WINDOWS_BUILD (default: .build/windows),
 # keeping the configuration. See common.sh for the environment variables.
 
 set -e

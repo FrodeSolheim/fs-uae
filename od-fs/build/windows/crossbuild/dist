@@ -1,0 +1,102 @@
+#!/usr/bin/env bash
+#
+# Build the Windows release dist: sets up the cross-build environment (quasi-msys2, see
+# quasi-msys2.sh) and runs the dist entry script (od-fs/build/dist/dist) for x86_64-w64-mingw32 in
+# it, which configures (for the dist layout) and builds from scratch in
+# $FSUAE_DIST_BUILD/build/x86_64-w64-mingw32, assembles the dist, puts the zip in
+# $FSUAE_DIST_BUILD/release/<version>/ and runs the dist check. FSUAE_DIST_BUILD is the base
+# directory for the dist scripts' output (default: .build in the project directory, see
+# od-fs/build/dist/common.sh). Arguments are passed to make (default: -j<number of CPUs>).
+# "make -C od-fs dist-windows" and "make -C od-fs release" run this in Docker (docker-run dist).
+#
+# See common.sh and quasi-msys2.sh for the other environment variables. WINDOWS_BUILD is not used:
+# the dist is built in $FSUAE_DIST_BUILD/build/x86_64-w64-mingw32.
+#
+# Usage: dist [<make argument>...]
+#        dist --setup-only
+#
+# --setup-only sets up the cross-build environment (quasi-msys2 and the build Python, as the dist
+# does first) and stops, for example to cache it before building, as .github/workflows/dist.yml
+# does.
+
+set -e
+
+SETUP_ONLY=0
+if [ "$1" = --setup-only ]; then
+    if [ $# -gt 1 ]; then
+        echo "Error: --setup-only takes no other arguments" >&2
+        exit 2
+    fi
+    SETUP_ONLY=1
+    shift
+fi
+
+source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
+source "$HERE/quasi-msys2.sh"
+
+# Build a native Python of the same version as the MSYS2 python package in the snapshot, for
+# byte-compiling the dist's Python code (the bytecode format can change between Python versions).
+# Built once per version, in $QUASI_MSYS2_DIR/build-python-<version>. Sets BUILD_PYTHON3.
+setup_build_python() {
+    local version prefix
+    version="$(sed -n 's/^mingw-w64-x86_64-python-\([0-9.]*\)-[0-9]*$/\1/p' \
+        "$MSYS2_SNAPSHOT_DIR/packages.txt")"
+    if [ -z "$version" ]; then
+        echo "Error: no mingw-w64-x86_64-python version in $MSYS2_SNAPSHOT_DIR/packages.txt" >&2
+        exit 1
+    fi
+    prefix="$QUASI_MSYS2_DIR/build-python-$version"
+    BUILD_PYTHON3="$prefix/bin/python3"
+    if [ -f "$prefix/fs-uae-complete" ]; then
+        return 0
+    fi
+
+    echo
+    echo "Building Python $version (for byte-compiling) in $prefix..."
+    rm -Rf "$prefix"
+    build_python() {
+        wget -q "https://www.python.org/ftp/python/$version/Python-$version.tgz"
+        tar xf "Python-$version.tgz"
+        cd "Python-$version"
+        # Only for compileall: no pip (which needs zlib) and no tests
+        if ! { ./configure --prefix="$prefix" --without-ensurepip --disable-test-modules &&
+            make -j"$(nproc)" && make install; } > build.log 2>&1; then
+            tail -n 30 build.log >&2
+            echo "Error: could not build Python $version" >&2
+            exit 1
+        fi
+    }
+    (
+        unset MAKEFLAGS MFLAGS MAKELEVEL
+        in_temp_dir build_python
+    )
+    "$BUILD_PYTHON3" -c "import sys; print('Built Python', sys.version.split()[0])"
+    touch "$prefix/fs-uae-complete"
+}
+
+missing=()
+for tool in zip unix2dos; do
+    command -v "$tool" > /dev/null || missing+=("$tool")
+done
+if [ ${#missing[@]} -gt 0 ]; then
+    echo "Error: missing tools: ${missing[*]} (install the packages listed in $HERE/apt-packages.txt)" >&2
+    exit 1
+fi
+
+setup_quasi_msys2
+check_tools
+setup_build_python
+if [ "$SETUP_ONLY" = 1 ]; then
+    echo "The cross-build environment is ready in $QUASI_MSYS2_DIR"
+    exit 0
+fi
+
+# As in configure: bootstrap (if needed) before setting up the cross-compiling environment.
+if [ ! -f "$PROJECT_DIR/configure" ]; then
+    "$OD_FS_DIR/bootstrap"
+fi
+windows_env
+# For assemble.sh: the MinGW prefix to copy the DLLs and the Python standard library from, and a
+# build machine Python of the same version for byte-compiling.
+export MINGW_PREFIX="$QUASI_MSYS2_DIR/root/mingw64" BUILD_PYTHON3
+exec "$OD_FS_DIR/build/dist/dist" "$WINDOWS_TRIPLET" "$@"

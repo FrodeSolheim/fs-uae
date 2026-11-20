@@ -1,17 +1,33 @@
-Source: fs-uae
+Source: fs-uae-5
 Section: otherosfs
 Priority: extra
-Maintainer: Frode Solheim <fs-uae@fengestad.no>
-Build-Depends: debhelper (>= 9), libsdl2-dev, libglib2.0-dev, libopenal-dev, gettext, libfreetype6-dev, libxi-dev, libpng-dev, zlib1g-dev, libmpeg2-4-dev, zip, libjpeg-dev, libglew-dev, libxtst-dev, libsdl2-ttf-dev
-Build-Conflicts: libroar-dev
+Maintainer: Frode Solheim <frode@fs-uae.net>
+Build-Depends:
+    debhelper (>= 9),
+    gettext,
+    libflac-dev,
+    libglib2.0-dev,
+    libjpeg-dev,
+    libslirp-dev,
+    libmpeg2-4-dev,
+    libmpg123-dev,
+    libpng-dev,
+    libportmidi-dev,
+    libpython3-dev,
+    libsdl3-dev,
+    libsdl3-image-dev,
+    libsdl3-ttf-dev,
+    libzstd-dev,
+    zip,
+    zlib1g-dev
 Standards-Version: 3.9.4
 Homepage: https://fs-uae.net/
 
-Package: fs-uae
+Package: fs-uae-5
 Architecture: any
 Multi-Arch: foreign
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Description: Cross-platform Amiga emulator based on UAE/WinUAE
- FS-UAE is a cross-platform Amiga emulator based on updated emulation code
- from WinUAE. FS-UAE uses SDL for input, OpenAL for audio and OpenGL
- for graphics.
+Description:
+    Cross-platform Amiga emulator based on UAE/WinUAE
+    FS-UAE is a cross-platform Amiga emulator based on updated emulation code
+    from WinUAE. FS-UAE uses SDL3 for window, audio and input support, and OpenGL for graphics.

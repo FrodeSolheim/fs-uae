@@ -5,12 +5,20 @@
 # Detects the operating system / distribution and installs the build tools and development
 # libraries. Currently supported:
 #
-# - Ubuntu / Debian (and derivatives with ID_LIKE=debian/ubuntu): native Linux build.
-# - MSYS2 (MINGW64, UCRT64, ... shells): native Windows build.
+# - Ubuntu / Debian (and derivatives with ID_LIKE=debian/ubuntu): native Linux build. Where the
+#   release has no SDL3 packages (such as Ubuntu 24.04), offers to build SDL3, SDL3_image and
+#   SDL3_ttf into the env prefix (the SDL3 overlay, see od-fs/build/env), which od-fs/configure
+#   then uses. Debian 12 has no SDL3 packages either, but its Python (3.11) is too old.
+# - MSYS2 (MINGW64 shell): native Windows build, with the MinGW packages pinned to the versions in
+#   the MSYS2 snapshot (od-fs/build/windows/msys2), the same as the Windows cross-build.
 #
 # Usage: od-fs/build/prepare [-y]
 #
-#   -y, --yes       Do not ask for confirmation before installing packages
+#   -y, --yes       Do not ask for confirmation: install the packages, and build the SDL3
+#                   overlay where it is offered
+#
+# MSYS2_MIRROR_URL is the MSYS2 package mirror for the pinned packages (default:
+# https://mirror.msys2.org).
 #
 # --------------------------------------------------------------------------------------------------
 
@@ -23,7 +31,7 @@ for arg in "$@"; do
     case "$arg" in
         -y|--yes) ASSUME_YES=1 ;;
         -h|--help)
-            sed -n '3,13p' "$0" | sed 's/^# \{0,1\}//'
+            sed -n '3,21p' "$0" | sed 's/^# \{0,1\}//'
             exit 0
             ;;
         *)
@@ -37,7 +45,7 @@ done
 # Helpers
 # --------------------------------------------------------------------------------------------------
 
-# download, in_temp_dir, build_libmpeg2 and build_portmidi (shared with the Windows cross build)
+# install_extra_libs (libmpeg2 and PortMidi, shared with the Windows cross-build)
 . "$OD_FS_DIR/build/windows/extra-libs.sh"
 
 if [ "$(id -u)" = "0" ]; then
@@ -65,7 +73,7 @@ DEBIAN_TOOLS="
     unzip
 "
 
-# Libraries checked (required) by configure.ac.
+# Libraries checked (required) by configure.ac, except SDL3 (below).
 DEBIAN_LIBS_REQUIRED="
     libflac-dev
     libgl-dev
@@ -74,9 +82,6 @@ DEBIAN_LIBS_REQUIRED="
     libmpg123-dev
     libpng-dev
     libpython3-dev
-    libsdl3-dev
-    libsdl3-image-dev
-    libsdl3-ttf-dev
     libzstd-dev
     zlib1g-dev
 "
@@ -89,14 +94,87 @@ DEBIAN_LIBS_OPTIONAL="
     libpcap-dev
 "
 
-# Development tools (debugging, Python linting/formatting, headless testing with Mesa).
+# Development tools (debugging, headless testing with Mesa, uv for the Python development tools;
+# see install_python_dev_tools).
 DEBIAN_DEV_TOOLS="
     gdb
-    black
-    isort
-    ruff
+    uv
     libgl1-mesa-dri
 "
+
+# SDL3, also required by configure.ac. On releases without SDL3 packages, prepare offers the SDL3
+# overlay instead: these are built with the env system (od-fs/build/env/setup) into the env prefix,
+# from the same recipes and versions as the dists, and the libsdl3 packages are not installed.
+DEBIAN_SDL3_PACKAGES="
+    libsdl3-dev
+    libsdl3-image-dev
+    libsdl3-ttf-dev
+"
+SDL3_OVERLAY_ENV_PACKAGES="sdl3 sdl3_image sdl3_ttf"
+SDL3_NOT_PACKAGED_MESSAGE="SDL3 is not packaged for this release \
+(Ubuntu 25.04+ and Debian 13+ have it)."
+
+# Tools the env system needs to build the SDL3 overlay.
+DEBIAN_SDL3_OVERLAY_TOOLS="
+    cmake
+    curl
+    ca-certificates
+    python3
+"
+
+# Libraries the SDL3 overlay is built with: SDL3's video and audio backends (from SDL's
+# docs/README-linux.md, without the test tools), FreeType and HarfBuzz for SDL3_ttf (libpng for
+# SDL3_image is among the required packages). Packages a release does not have are skipped; SDL3
+# is then built without that backend.
+# TODO: Could be shared with the Linux dist list (od-fs/build/linux/apt-packages.txt).
+DEBIAN_SDL3_OVERLAY_LIBS="
+    libasound2-dev
+    libaudio-dev
+    libdbus-1-dev
+    libdecor-0-dev
+    libdrm-dev
+    libegl1-mesa-dev
+    libfreetype-dev
+    libgbm-dev
+    libgl1-mesa-dev
+    libgles2-mesa-dev
+    libharfbuzz-dev
+    libibus-1.0-dev
+    libjack-dev
+    libpipewire-0.3-dev
+    libpulse-dev
+    libsndio-dev
+    libudev-dev
+    liburing-dev
+    libwayland-dev
+    libx11-dev
+    libxcursor-dev
+    libxext-dev
+    libxfixes-dev
+    libxi-dev
+    libxkbcommon-dev
+    libxrandr-dev
+    libxss-dev
+    libxtst-dev
+"
+
+# Asks a yes/no question ($1), with yes as the default. With -y, the answer is yes without asking.
+# Without an answer (end of input), it is no.
+confirm() {
+    if [ "$ASSUME_YES" = "1" ]; then
+        echo "$1 [Y/n] y"
+        return 0
+    fi
+    printf '%s [Y/n] ' "$1"
+    if ! read -r answer; then
+        echo
+        return 1
+    fi
+    case "$answer" in
+        ""|[Yy]|[Yy][Ee][Ss]) return 0 ;;
+        *) return 1 ;;
+    esac
+}
 
 debian_package_available() {
     # apt-cache policy prints "Candidate: (none)" or nothing for unknown packages.
@@ -118,6 +196,30 @@ prepare_debian() {
 
     required="$DEBIAN_TOOLS $DEBIAN_LIBS_REQUIRED"
     optional="$DEBIAN_LIBS_OPTIONAL $DEBIAN_DEV_TOOLS"
+
+    # No SDL3 packages in this release: offer the SDL3 overlay instead, unless SDL3 is installed
+    # some other way (od-fs/configure then uses that too).
+    sdl3_overlay=0
+    if debian_package_available libsdl3-dev; then
+        required="$required $DEBIAN_SDL3_PACKAGES"
+    elif pkg-config --exists sdl3 sdl3-image sdl3-ttf 2>/dev/null; then
+        echo
+        echo "$SDL3_NOT_PACKAGED_MESSAGE"
+        echo "Using the SDL3 installed in $(pkg-config --variable=prefix sdl3)."
+    else
+        echo
+        echo "$SDL3_NOT_PACKAGED_MESSAGE"
+        echo "SDL3, SDL3_image and SDL3_ttf can be built from source into the env prefix"
+        echo "(${FSUAE_ENV_DIR:-.build/env}/<triplet> in the project directory), which"
+        echo "od-fs/configure then uses (the SDL3 overlay)."
+        if confirm "Build the SDL3 overlay?"; then
+            sdl3_overlay=1
+            required="$required $DEBIAN_SDL3_OVERLAY_TOOLS"
+            optional="$optional $DEBIAN_SDL3_OVERLAY_LIBS"
+        else
+            required="$required $DEBIAN_SDL3_PACKAGES"
+        fi
+    fi
 
     missing=""
     packages=""
@@ -147,9 +249,8 @@ prepare_debian() {
         case "$missing" in
             *libsdl3*)
                 echo >&2
-                echo "SDL3 is not packaged for this release (Ubuntu 25.04+ / Debian 13+ have it)." >&2
-                echo "Either upgrade, or build SDL3, SDL3_image and SDL3_ttf from source" >&2
-                echo "(see od-fs/build/raspberrypi-deps.sh for an example)." >&2
+                echo "$SDL3_NOT_PACKAGED_MESSAGE" >&2
+                echo "Either upgrade, or run prepare again and accept the SDL3 overlay." >&2
                 ;;
         esac
         exit 1
@@ -160,6 +261,20 @@ prepare_debian() {
         echo "Note: skipping optional packages not available in this release:$skipped"
     fi
 
+    # configure needs python3-embed >= 3.12 (Python 3.12 is FS-UAE's minimum), which some releases
+    # without SDL3 packages do not have either (Debian 12 has Python 3.11). Should those releases be
+    # supported, the way to do it is to build Python into the overlay as well (the env system's
+    # python package, as for the dists) and have od-fs/configure use it, rather than lowering the
+    # minimum.
+    python_version=$(apt-cache policy libpython3-dev 2>/dev/null |
+        sed -n 's/^ *Candidate: *\([0-9]*\.[0-9]*\).*/\1/p')
+    if [ -n "$python_version" ] &&
+        echo "$python_version" | awk -F. '{ exit !($1 < 3 || ($1 == 3 && $2 < 12)) }'; then
+        echo
+        echo "Warning: FS-UAE needs Python 3.12 or newer, and this release has Python" \
+            "$python_version (libpython3-dev), so configure will fail." >&2
+    fi
+
     echo
     if [ "$ASSUME_YES" = "1" ]; then
         # shellcheck disable=SC2086
@@ -168,13 +283,28 @@ prepare_debian() {
         # shellcheck disable=SC2086
         $SUDO apt-get install $packages
     fi
+
+    if [ "$sdl3_overlay" = "1" ]; then
+        build_sdl3_overlay
+    fi
+}
+
+# Builds the SDL3 overlay with the env system, as the user running prepare. The env system's recipes
+# build single-threaded unless told otherwise; CMake reads CMAKE_BUILD_PARALLEL_LEVEL.
+build_sdl3_overlay() {
+    echo
+    echo "Building the SDL3 overlay..."
+    # shellcheck disable=SC2086
+    CMAKE_BUILD_PARALLEL_LEVEL="${CMAKE_BUILD_PARALLEL_LEVEL:-$(nproc)}" \
+        "$OD_FS_DIR/build/env/setup" $SDL3_OVERLAY_ENV_PACKAGES
 }
 
 # --------------------------------------------------------------------------------------------------
 # MSYS2
 # --------------------------------------------------------------------------------------------------
 
-# MSYS (Cygwin-based) tools needed for ./bootstrap, ./configure, make and packaging.
+# MSYS (Cygwin-based) tools needed for ./bootstrap, ./configure, make and packaging (unix2dos, from
+# dos2unix, for the dists). These come from the current MSYS2 repository.
 MSYS2_TOOLS="
     autoconf
     automake
@@ -182,130 +312,99 @@ MSYS2_TOOLS="
     make
     gettext
     git
+    dos2unix
     zip
     unzip
 "
 
-# MinGW packages (without the mingw-w64-<arch>- prefix). Toolchain and libraries checked
-# (required) by configure.ac, plus SDL3_ttf dependencies and cmake/ninja for building PortMidi.
-MSYS2_MINGW_REQUIRED="
-    toolchain
-    pkgconf
-    cmake
-    ninja
-    flac
-    freetype
-    glib2
-    harfbuzz
-    libpng
-    mpg123
-    python
-    sdl3
-    sdl3-image
-    sdl3-ttf
-    zlib
-    zstd
-"
+# The MinGW packages are pinned: exactly the versions in the MSYS2 snapshot's package list
+# (packages.txt) are installed, the same as in the Windows cross-build. The snapshot's
+# requested_packages.txt lists the packages asked for: GCC (whose C++ standard library and runtime
+# Clang uses), Clang and LLD (the default compiler, see od-fs/build/windows/msys2-native.sh), the
+# libraries configure.ac checks for, Python, pkgconf, CMake and Ninja (for PortMidi), GDB and uv.
+# See od-fs/build/windows/update-msys2.sh for updating it.
+MSYS2_SNAPSHOT_DIR="$OD_FS_DIR/build/windows/msys2"
 
-# Optional MinGW development tools.
-MSYS2_MINGW_OPTIONAL="
-    gdb
-    python-black
-    python-isort
-    ruff
-"
-
-msys2_package_available() {
-    pacman -Si "$1" >/dev/null 2>&1
-}
+# msys2_use_default_compiler and msys2_unpinned_package_urls
+. "$OD_FS_DIR/build/windows/msys2-native.sh"
 
 prepare_msys2() {
     echo "Detected MSYS2 ($MSYSTEM)"
     echo
 
-    if [ -z "$MINGW_PACKAGE_PREFIX" ] || [ "$MSYSTEM" = "MSYS" ]; then
-        echo "Error: run this from a MinGW shell (e.g. \"MSYS2 MINGW64\"), not the MSYS shell" >&2
+    snapshot_msystem=$(cat "$MSYS2_SNAPSHOT_DIR/msystem.txt")
+    if [ "$MSYSTEM" != "$snapshot_msystem" ]; then
+        echo "Error: run this from an \"MSYS2 $snapshot_msystem\" shell: the pinned MSYS2" \
+            "packages (in $MSYS2_SNAPSHOT_DIR) are $snapshot_msystem packages" >&2
         exit 1
     fi
-    if [ "$MSYSTEM" != "MINGW64" ]; then
-        echo "Note: release builds use MINGW64; $MSYSTEM may work but is not tested."
-        echo
-    fi
 
-    pacman_flags="--needed"
+    pacman_flags=""
     if [ "$ASSUME_YES" = "1" ]; then
-        pacman_flags="$pacman_flags --noconfirm"
+        pacman_flags="--noconfirm"
     fi
 
     echo "Updating package database..."
     pacman -Sy
-
-    missing=""
-    packages=""
-    for pkg in $MSYS2_TOOLS; do
-        if msys2_package_available "$pkg"; then
-            packages="$packages $pkg"
-        else
-            missing="$missing $pkg"
-        fi
-    done
-    for pkg in $MSYS2_MINGW_REQUIRED; do
-        pkg="$MINGW_PACKAGE_PREFIX-$pkg"
-        if msys2_package_available "$pkg"; then
-            packages="$packages $pkg"
-        else
-            missing="$missing $pkg"
-        fi
-    done
-
-    skipped=""
-    for pkg in $MSYS2_MINGW_OPTIONAL; do
-        pkg="$MINGW_PACKAGE_PREFIX-$pkg"
-        if msys2_package_available "$pkg"; then
-            packages="$packages $pkg"
-        else
-            skipped="$skipped $pkg"
-        fi
-    done
-
-    if [ -n "$missing" ]; then
-        echo
-        echo "Error: the following required packages are not available:" >&2
-        for pkg in $missing; do
-            echo "    $pkg" >&2
-        done
-        exit 1
-    fi
-
-    if [ -n "$skipped" ]; then
-        echo
-        echo "Note: skipping optional packages not available:$skipped"
-    fi
-
     echo
     # shellcheck disable=SC2086
-    pacman -S $pacman_flags $packages
+    pacman -S --needed $pacman_flags $MSYS2_TOOLS
 
-    # libmpeg2 (CD32 FMV) and PortMidi (serial MIDI) have been removed from MSYS2, so use the
-    # package if it exists, otherwise build from source.
-    if [ ! -f "$MINGW_PREFIX/lib/pkgconfig/libmpeg2.pc" ]; then
-        if msys2_package_available "$MINGW_PACKAGE_PREFIX-libmpeg2"; then
-            pacman -S $pacman_flags "$MINGW_PACKAGE_PREFIX-libmpeg2"
-        else
-            echo
-            echo "Building libmpeg2..."
-            in_temp_dir build_libmpeg2 "$MINGW_PREFIX"
+    # The pinned MinGW packages that are not installed in their pinned version: pacman -U installs,
+    # upgrades or downgrades them, downloading the package files (and their signatures) from the
+    # MSYS2 repository. MSYS2 keeps old package files for a few years.
+    # REVIEW: Not run in MSYS2 yet: check that pacman -U downloads the packages with their .sig
+    # files and installs them, also over newer versions (downgrades), and that a second run installs
+    # nothing.
+    urls=$(msys2_unpinned_package_urls "$OD_FS_DIR")
+    if [ -n "$urls" ]; then
+        echo
+        echo "Installing the pinned MinGW packages from $MSYS2_SNAPSHOT_DIR/packages.txt..."
+        # shellcheck disable=SC2086
+        if ! pacman -U $pacman_flags $urls; then
+            echo >&2
+            echo "Error: pacman could not install the pinned packages. If it says that other" \
+                "installed MinGW packages need newer versions (such as packages from the" \
+                "mingw-w64-x86_64-toolchain group that an earlier prepare installed), remove" \
+                "those with pacman -R and run prepare again." >&2
+            exit 1
         fi
     fi
-    if [ ! -f "$MINGW_PREFIX/lib/pkgconfig/portmidi.pc" ]; then
-        if msys2_package_available "$MINGW_PACKAGE_PREFIX-portmidi"; then
-            pacman -S $pacman_flags "$MINGW_PACKAGE_PREFIX-portmidi"
-        else
-            echo
-            echo "Building PortMidi..."
-            in_temp_dir build_portmidi -G Ninja -DCMAKE_INSTALL_PREFIX="$MINGW_PREFIX"
-        fi
+    urls=$(msys2_unpinned_package_urls "$OD_FS_DIR")
+    if [ -n "$urls" ]; then
+        echo "Error: these pinned packages are still not installed:" >&2
+        echo "$urls" >&2
+        exit 1
     fi
+    echo
+    echo "The pinned MinGW packages are installed."
+    echo "Note: pacman -Syu upgrades them; run prepare again to go back to the pinned versions."
+
+    # libmpeg2 (CD32 FMV) and PortMidi (serial MIDI) have been removed from MSYS2: built from source
+    # into the MinGW prefix, by the same script and with the same compiler as in the cross-build.
+    msys2_use_default_compiler
+    install_extra_libs "$MINGW_CHOST" "" "$MINGW_PREFIX"
+}
+
+# --------------------------------------------------------------------------------------------------
+# Python development tools
+# --------------------------------------------------------------------------------------------------
+
+# ruff and mypy are pinned in pyproject.toml and uv.lock (ruff refuses to run in any other version),
+# so they are installed with uv from the lock file instead of from the system's packages, into the
+# project's virtual environment (.venv, or $UV_PROJECT_ENVIRONMENT).
+install_python_dev_tools() {
+    project_dir="$(cd "$OD_FS_DIR/.." && pwd)"
+    echo
+    if ! command -v uv >/dev/null 2>&1; then
+        echo "Note: uv is not installed, so the Python development tools (ruff, mypy) were not"
+        echo "installed. Install uv (https://docs.astral.sh/uv/), then run in $project_dir:"
+        echo
+        echo "    uv sync --locked"
+        return 0
+    fi
+    echo "Installing the Python development tools (ruff, mypy) from uv.lock..."
+    uv sync --locked --project "$project_dir"
 }
 
 # --------------------------------------------------------------------------------------------------
@@ -339,6 +438,8 @@ case "$(uname -s)" in
         exit 1
         ;;
 esac
+
+install_python_dev_tools
 
 echo
 echo "Done! You can now build FS-UAE:"

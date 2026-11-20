@@ -1,0 +1,4 @@
+#!/bin/bash
+
+# Run `pkg-config` with all related env variables unset. Use this to find native libraries.
+env -uPKG_CONFIG_PATH -uPKG_CONFIG_SYSROOT_DIR -uPKG_CONFIG_LIBDIR -uPKG_CONFIG_SYSTEM_INCLUDE_PATH -uPKG_CONFIG_SYSTEM_LIBRARY_PATH pkg-config "$@"

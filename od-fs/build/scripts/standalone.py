@@ -294,7 +294,33 @@ def fix_macos_binary_2(path: str, frameworks_dir: str) -> int:
         print(args)
         p = subprocess.Popen(args)
         assert p.wait() == 0
+    remove_absolute_rpaths(path)
     return changes
+
+
+def macos_rpaths(path: str) -> List[str]:
+    """The rpaths (LC_RPATH) of a Mach-O file, from otool -l."""
+    output = subprocess.run(["otool", "-l", path], check=True, stdout=subprocess.PIPE).stdout
+    rpaths: List[str] = []
+    in_rpath = False
+    for line in output.decode("UTF-8").split("\n"):
+        line = line.strip()
+        if line.startswith("cmd "):
+            in_rpath = line == "cmd LC_RPATH"
+        elif in_rpath and line.startswith("path "):
+            # "path /usr/local/lib (offset 12)"
+            rpaths.append(line[len("path ") :].rsplit(" (offset ", 1)[0])
+    return rpaths
+
+
+def remove_absolute_rpaths(path: str) -> None:
+    """Removes the rpaths that point outside the app (such as /usr/local/lib, which sdl3.pc adds
+    on macOS, or the env prefix): the bundled libraries are loaded from @executable_path, and an
+    rpath on the build machine could load another copy from the user's (Homebrew on Intel Macs)."""
+    for rpath in macos_rpaths(path):
+        if rpath.startswith("/"):
+            print("[FSBUILD] Remove rpath", rpath, "from", path)
+            subprocess.run(["install_name_tool", "-delete_rpath", rpath, path], check=True)
 
 
 def macos_iteration_2(app: str) -> int:

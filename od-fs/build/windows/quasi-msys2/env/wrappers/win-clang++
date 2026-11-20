@@ -1,0 +1,3 @@
+#!/bin/sh
+set -u
+"$WIN_NATIVE_CLANG_CXX" --start-no-unused-arguments $WIN_NATIVE_CLANG_FLAGS --end-no-unused-arguments "$@"

@@ -7,11 +7,30 @@ export CMAKE_PREFIX_PATH=$BUILD_ENV_PREFIX
 
 export C_INCLUDE_PATH=$BUILD_ENV_PREFIX/include
 export CPLUS_INCLUDE_PATH=$BUILD_ENV_PREFIX/include
-export LIBRARY_PATH=$BUILD_ENV_PREFIX/lib:$BUILD_ENV_PREFIX/lib64
 export PKG_CONFIG_PATH=$BUILD_ENV_PREFIX/lib/pkgconfig:$BUILD_ENV_PREFIX/lib64/pkgconfig
 
+if [ -n "$BUILD_ENV_HOST" ]; then
+# Cross mode (setup --host): the prefix's programs and libraries cannot run here, so programs come
+# from the build machine's prefix (the build Python), and pkg-config finds the target's .pc files
+# (the same in the prefix's run script, scripts/_run).
+export PATH=$BUILD_ENV_BUILD_PREFIX/bin:$PATH
+export LD_LIBRARY_PATH=$BUILD_ENV_BUILD_PREFIX/lib:$BUILD_ENV_BUILD_PREFIX/lib64
+export PKG_CONFIG_LIBDIR=/usr/lib/$BUILD_ENV_HOST/pkgconfig:/usr/share/pkgconfig
+export CONFIG_SITE=$BUILD_ENV_CONFIG_SITE
+# No LIBRARY_PATH: a cross compiler ignores it, and pkg-config would leave out the -L for
+# the prefix's libraries (it leaves out those for directories in LIBRARY_PATH).
+unset LIBRARY_PATH
+else
+export LIBRARY_PATH=$BUILD_ENV_PREFIX/lib:$BUILD_ENV_PREFIX/lib64
 export PATH=$BUILD_ENV_PREFIX/bin:$PATH
 export LD_LIBRARY_PATH=$BUILD_ENV_PREFIX/lib:$BUILD_ENV_PREFIX/lib64
+if [ "$(uname -s)" = Darwin ]; then
+    # Every package comes from the prefix on macOS (macos.txt has no system packages), so
+    # pkg-config searches only the prefix, not its own default path (Homebrew's .pc files,
+    # which would link Homebrew's libraries, or fail for the other architecture).
+    export PKG_CONFIG_LIBDIR=$PKG_CONFIG_PATH
+fi
+fi
 
 if [ "$MACOSX_DEPLOYMENT_TARGET" = "" ]; then
 export MACOSX_DEPLOYMENT_TARGET=10.13

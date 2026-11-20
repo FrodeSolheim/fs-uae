@@ -1,0 +1,39 @@
+#!/bin/sh
+#
+# Prints the packages in a section of apt-packages.txt (in this directory), one per line: "tools"
+# (build machine tools) or "libraries" (development packages for the dist's architecture, as plain
+# names). A section can appear more than once in the file; all of them are printed.
+#
+# Usage: apt-packages tools|libraries
+#
+# For example: apt-get install $(apt-packages tools) $(apt-packages libraries | sed 's/$/:arm64/')
+
+set -e
+
+case "$1" in
+    tools | libraries) ;;
+    *)
+        echo "Usage: $0 tools|libraries" >&2
+        exit 2
+        ;;
+esac
+
+FILE="$(dirname "$0")/apt-packages.txt"
+
+awk -v file="$FILE" -v want="[$1]" '
+    { sub(/#.*/, ""); gsub(/[ \t\r]/, "") }
+    $0 == "" { next }
+    /^\[/ {
+        if ($0 != "[tools]" && $0 != "[libraries]") {
+            print "Error: unknown section " $0 " in " file > "/dev/stderr"
+            exit 1
+        }
+        section = $0
+        next
+    }
+    section == "" {
+        print "Error: package " $0 " outside a section in " file > "/dev/stderr"
+        exit 1
+    }
+    section == want { print }
+' "$FILE"

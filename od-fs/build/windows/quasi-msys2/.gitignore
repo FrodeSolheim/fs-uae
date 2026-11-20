@@ -1,0 +1,17 @@
+/cache/**
+/database.current_original
+/database.current_original.sig
+/database.db
+/database.db.sig
+/database.db.unverified
+/database.mk
+/database.mk.bak
+/database/**
+/env/fake_bin/**
+/index/**
+/keyring.kbx
+/msystem.txt
+/requested_packages.txt
+/root/**
+/env/config/meson_cross_file.ini
+/env/config/meson_native_file.ini

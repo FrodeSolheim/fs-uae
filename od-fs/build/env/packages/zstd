@@ -4,7 +4,7 @@ set -e
 # --------------------------------------------------------------------------------------------------
 
 PACKAGE=zstd-1.5.7
-PACKAGE_REVISION=1
+PACKAGE_REVISION=2
 PACKAGE_URL=https://github.com/facebook/zstd/releases/download/v1.5.7/zstd-1.5.7.tar.gz
 PACKAGE_CHECKSUM=eb33e51f49a15e023950cd7825ca74a4a2b43db8354825ac24fc1b7ee09e6fa3
 
@@ -16,7 +16,9 @@ tar xf "$PACKAGE_SOURCES/$PACKAGE.tar.gz"
 cd $PACKAGE
 cd build/cmake
 
-cmake -S . -B _build
+# With the install prefix, so that libzstd.pc points to the prefix, not /usr/local (where an Intel
+# Mac's Homebrew has its own libzstd). zstd is a system package on Linux; this runs on macOS only.
+cmake -S . -B _build -DCMAKE_INSTALL_PREFIX="$PACKAGE_PREFIX"
 cmake --build _build
 cmake --install _build --prefix "$PACKAGE_PREFIX"
 

@@ -1,0 +1,3 @@
+#!/bin/bash
+set -u
+"$WIN_NATIVE_RUSTC" -Clinker="$WIN_HOST_CC" "$@"

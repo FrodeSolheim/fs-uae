@@ -1,0 +1,101 @@
+#!/bin/sh
+#
+# Puts the release files of a v<version> tag in a draft GitHub Release, for the maintainer to check,
+# edit and publish by hand. It never publishes anything.
+#
+# Usage: draft-release <tag> <directory>
+#
+# The directory has the release files and their SHA256SUMS (release_files.py, in this directory,
+# gathers them). Every file in it is uploaded.
+#
+# - No release for the tag yet: makes a draft release of the tag (which must exist on GitHub),
+#   titled "FS-UAE <version>", with short notes that point at od-fs/ChangeLog.
+# - A draft release for the tag (an earlier run of the workflow): replaces its files with these. Its
+#   title and notes, which the maintainer may have edited, are left as they are.
+#
+# Runs gh (the GitHub CLI) in the repository of GH_REPO, or of the current directory, with the token
+# in GH_TOKEN. Used by the release job of .github/workflows/dist.yml.
+
+set -eu
+
+if [ $# -ne 2 ]; then
+    echo "Usage: $0 <tag> <directory>" >&2
+    exit 2
+fi
+tag="$1"
+dir="$2"
+version="${tag#v}"
+
+repo="${GH_REPO:-${GITHUB_REPOSITORY:-}}"
+if [ -n "$repo" ]; then
+    url="${GITHUB_SERVER_URL:-https://github.com}/$repo/blob/$tag/od-fs/ChangeLog"
+    changelog="[od-fs/ChangeLog]($url)"
+else
+    changelog="od-fs/ChangeLog"
+fi
+notes="FS-UAE $version. The changes are listed in $changelog.
+
+The files can be checked with \`sha256sum -c SHA256SUMS\`."
+
+# The files to upload, in order (none of them has a newline in its name).
+files="$(find "$dir" -mindepth 1 -maxdepth 1 -type f | LC_ALL=C sort)"
+
+# Every file but SHA256SUMS is in SHA256SUMS, with the right checksum.
+if [ ! -f "$dir/SHA256SUMS" ]; then
+    echo "Error: $dir has no SHA256SUMS" >&2
+    exit 1
+fi
+listed="$(sed 's/^[0-9a-f]*  //' "$dir/SHA256SUMS" | LC_ALL=C sort)"
+present="$(find "$dir" -mindepth 1 -maxdepth 1 -type f ! -name SHA256SUMS -exec basename {} \; |
+    LC_ALL=C sort)"
+if [ "$listed" != "$present" ]; then
+    echo "Error: the files in $dir are not the ones SHA256SUMS lists" >&2
+    exit 1
+fi
+if ! (cd "$dir" && sha256sum --strict -c SHA256SUMS); then
+    echo "Error: the files in $dir do not match SHA256SUMS" >&2
+    exit 1
+fi
+
+# Runs gh with the files as its last arguments.
+gh_with_files() {
+    (
+        IFS='
+'
+        set -f
+        # shellcheck disable=SC2086 # (split on newlines only, no globbing)
+        gh "$@" $files
+    )
+}
+
+# Whether the release exists and is a draft. gh finds draft releases by their tag too.
+# REVIEW: "release not found" is gh's message (2.x) for a tag without a release; any other failure
+# (authentication, network) stops here rather than make a second release. Check that a first run on
+# GitHub says "Made the draft release", and a second run for the tag "Replaced the files".
+errors="$(mktemp)"
+trap 'rm -f "$errors"' EXIT
+if draft="$(gh release view "$tag" --json isDraft --jq .isDraft 2> "$errors")"; then
+    :
+elif grep -q "release not found" "$errors"; then
+    draft=none
+else
+    cat "$errors" >&2
+    echo "Error: could not look up the release $tag" >&2
+    exit 1
+fi
+
+case "$draft" in
+    none)
+        gh_with_files release create "$tag" --draft --verify-tag --title "FS-UAE $version" \
+            --notes "$notes"
+        echo "Made the draft release $tag."
+        ;;
+    true)
+        gh_with_files release upload "$tag" --clobber
+        echo "Replaced the files of the draft release $tag."
+        ;;
+    *)
+        echo "Error: the release $tag is already published; its files are not replaced" >&2
+        exit 1
+        ;;
+esac

@@ -1,0 +1,19 @@
+#!/bin/bash
+
+if [[ -v WIN_NATIVE_WINDRES ]]; then
+# Add target architecture specification for windres on non-x86_64 hosts
+if [[ $(uname -m) != "x86_64" ]]; then
+    if [[ $MSYSTEM_CARCH == "x86_64" ]]; then
+        "$WIN_NATIVE_WINDRES" "--include=$MSYSTEM_PREFIX/include" --target=pe-x86-64 "$@"
+    elif [[ $MSYSTEM_CARCH == "i686" ]]; then
+        "$WIN_NATIVE_WINDRES" "--include=$MSYSTEM_PREFIX/include" --target=pe-i386 "$@"
+    else
+        "$WIN_NATIVE_WINDRES" "--include=$MSYSTEM_PREFIX/include" "$@"
+    fi
+else
+    "$WIN_NATIVE_WINDRES" "--include=$MSYSTEM_PREFIX/include" "$@"
+fi
+else
+# Even CLANG64 environment has a copy of windres with this name.
+wine windres.exe "$@"
+fi

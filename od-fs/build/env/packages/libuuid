@@ -19,7 +19,7 @@ PACKAGE_CHECKSUM=be9ad9a276f4305ab7dd2f5225c8be1ff54352f565ff4dede9628c1aaa7dec5
 
 if [ "$SYSTEM_OS" = "Linux" ]; then
 
-tar xf "$BUILD_ENV_DIR/_sources/util-linux-2.41.1.tar.xz"
+tar xf "$PACKAGE_SOURCES/util-linux-2.41.1.tar.xz"
 cd util-linux-2.41.1
 
 ./configure --prefix=$PREFIX --disable-all-programs --enable-libuuid

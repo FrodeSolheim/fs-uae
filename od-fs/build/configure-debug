@@ -1,8 +1,11 @@
 #!/bin/sh
+#
+# Configures a debug development build: od-fs/configure (found from this script's location, so it
+# works from any directory) with debugging flags. Arguments are passed on to it.
 
 set -e
 
 CFLAGS="-g -O0 -fstack-protector"
 CXXFLAGS="$CFLAGS"
-CPPFLAGS="-DDEBUG -D_FORTIFY_SORCE=1"
-./configure CPPFLAGS="$CPPFLAGS" CFLAGS="$CFLAGS" CXXFLAGS="$CFLAGS"
+CPPFLAGS="-DDEBUG -D_FORTIFY_SOURCE=1"
+"$(dirname "$0")/../configure" CPPFLAGS="$CPPFLAGS" CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" "$@"

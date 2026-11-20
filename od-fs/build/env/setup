@@ -1,69 +1,224 @@
 #!/bin/sh
+#
+# Sets up the env prefix for the host: builds pinned packages from the recipes in packages/ into
+# .build/env/<triplet>, with downloaded sources in .build/env/sources (see scripts/paths.sh for
+# FSUAE_ENV_DIR and BUILD_ENV_PREFIX, which change these). Packages that are already installed in
+# the prefix are not built again.
+#
+# Usage: setup [--host <triplet>] [<package>...]
+#
+# Without arguments, builds the packages in the [build] section of the OS's package file (linux.txt
+# or macos.txt). With arguments, builds only the packages named. Either way, each recipe builds its
+# dependencies first, and packages in the [system] section are never built (see
+# scripts/dependency).
+#
+# Cross mode (Linux only): --host <triplet> with another triplet than the host's builds the packages
+# for that triplet into .build/env/<triplet>, with the cross compiler <triplet>-gcc. The recipes get
+# the CMake toolchain file (od-fs/build/linux/<triplet>.cmake, see package_cmake_configure in
+# scripts/package.sh) or --build and --host, and configure checks that cannot run are answered in
+# od-fs/build/linux/config.site (CONFIG_SITE). Programs run during the builds are the build
+# machine's: first, setup makes sure that the build machine's own prefix (.build/env/<host
+# triplet>, the one for the native dist) has the same Python, which the Python recipe then uses as
+# the build Python. The prefix's "run" script runs commands with that build Python first in PATH
+# (it also byte-compiles the dist's Python code), and with pkg-config set up for the triplet. The
+# target's development packages must be installed (the multi-arch Docker image has them, see
+# od-fs/build/linux/Dockerfile). --host with the host's own triplet is the same as no --host.
+#
+# Run commands with the prefix's libraries and tools with <prefix>/run <command> (or <prefix>/run
+# for a shell).
+#
+# There are package files for Linux and macOS only. Windows builds use MSYS2 packages instead (the
+# cross-build's quasi-msys2 or native MSYS2), so setup stops there.
 
 set -e
 
-export BUILD_ENV_DIR="$(cd "$(dirname "$0")" && pwd)"
-echo "BUILD_ENV_DIR=$BUILD_ENV_DIR"
-if [ "$BUILD_ENV_PREFIX" != "" ]; then
-echo "Existing BUILD_ENV_PREFIX found in environment"
-else
-export BUILD_ENV_PREFIX="$BUILD_ENV_DIR/_prefix"
-fi
-echo "BUILD_ENV_PREFIX=$BUILD_ENV_PREFIX"
+BUILD_ENV_DIR="$(cd "$(dirname "$0")" && pwd)"
+. "$BUILD_ENV_DIR/../triplet.sh"
 
-echo "Build dependencies"
+# Cross mode: BUILD_ENV_HOST is the triplet to build for, and BUILD_ENV_BUILD_PREFIX the build
+# machine's prefix (exported for the recipes and scripts/env.sh). Not inherited from a "run" shell
+# for a cross prefix.
+unset BUILD_ENV_HOST BUILD_ENV_BUILD_PREFIX
+if [ "$1" = "--host" ]; then
+    if [ -z "$2" ]; then
+        echo "Error: --host needs a triplet" >&2
+        exit 2
+    fi
+    if [ "$2" != "$(host_triplet)" ]; then
+        BUILD_ENV_HOST="$2"
+    fi
+    # The prefix is <base>/<triplet>, not one inherited from a "run" shell for another prefix
+    # (which would get the triplet's packages).
+    unset BUILD_ENV_PREFIX
+    # shellcheck disable=SC2034 # Read by paths.sh.
+    BUILD_ENV_TRIPLET="$2"
+    shift 2
+fi
+
+# Check the cross mode before creating anything.
+if [ -n "$BUILD_ENV_HOST" ]; then
+    BUILD_ENV_LINUX_DIR="$(cd "$BUILD_ENV_DIR/../linux" && pwd)"
+    case "$(uname -s)-$BUILD_ENV_HOST" in
+        Linux-*-linux-*) ;;
+        *)
+            echo "Error: cross mode is for Linux triplets on Linux only (not $BUILD_ENV_HOST" \
+                "on $(uname -s))" >&2
+            exit 1
+            ;;
+    esac
+    if [ ! -f "$BUILD_ENV_LINUX_DIR/$BUILD_ENV_HOST.cmake" ]; then
+        echo "Error: no CMake toolchain file for $BUILD_ENV_HOST in $BUILD_ENV_LINUX_DIR" >&2
+        exit 1
+    fi
+    if ! command -v "$BUILD_ENV_HOST-gcc" > /dev/null; then
+        echo "Error: no cross compiler for $BUILD_ENV_HOST ($BUILD_ENV_HOST-gcc)" >&2
+        exit 1
+    fi
+fi
+
+. "$BUILD_ENV_DIR/scripts/paths.sh"
+# (For example setup without --host from the run shell of a cross prefix.)
+if [ -z "$BUILD_ENV_HOST" ] && [ -f "$BUILD_ENV_PREFIX/cross.sh" ]; then
+    echo "Error: $BUILD_ENV_PREFIX is a cross mode prefix; use setup --host <triplet>" >&2
+    exit 1
+fi
+BUILD_ENV_DIR="$(real_dir "$BUILD_ENV_DIR")"
+export BUILD_ENV_DIR
+echo "BUILD_ENV_DIR=$BUILD_ENV_DIR"
+
+mkdir -p "$BUILD_ENV_PREFIX"
+BUILD_ENV_PREFIX="$(real_dir "$BUILD_ENV_PREFIX")"
+echo "BUILD_ENV_PREFIX=$BUILD_ENV_PREFIX"
+mkdir -p "$PACKAGE_SOURCES"
+PACKAGE_SOURCES="$(real_dir "$PACKAGE_SOURCES")"
+echo "PACKAGE_SOURCES=$PACKAGE_SOURCES"
+
+. "$BUILD_ENV_DIR/scripts/system.sh"
+
+case "$SYSTEM_OS" in
+    Linux) PACKAGE_FILE="$BUILD_ENV_DIR/linux.txt" ;;
+    macOS) PACKAGE_FILE="$BUILD_ENV_DIR/macos.txt" ;;
+    *)
+        echo "Error: no env package file for $SYSTEM_OS" >&2
+        exit 1
+        ;;
+esac
+
+if [ -n "$BUILD_ENV_HOST" ]; then
+    # The build machine's prefix, with the build Python: the same recipe (and so the same Python
+    # version) as the one built for the triplet. Usually already there from the native dist.
+    BUILD_ENV_BUILD_PREFIX="$BUILD_ENV_BASE/$(host_triplet)"
+    echo "Cross mode for $BUILD_ENV_HOST: setting up the build Python in $BUILD_ENV_BUILD_PREFIX"
+    BUILD_ENV_PREFIX="$BUILD_ENV_BUILD_PREFIX" "$BUILD_ENV_DIR/setup" python
+    echo "Cross mode for $BUILD_ENV_HOST: back to $BUILD_ENV_PREFIX"
+    BUILD_ENV_BUILD_PREFIX="$(real_dir "$BUILD_ENV_BUILD_PREFIX")"
+    BUILD_ENV_CONFIG_SITE="$BUILD_ENV_LINUX_DIR/config.site"
+    BUILD_ENV_CMAKE_TOOLCHAIN="$BUILD_ENV_LINUX_DIR/$BUILD_ENV_HOST.cmake"
+    export BUILD_ENV_HOST BUILD_ENV_BUILD_PREFIX BUILD_ENV_CONFIG_SITE BUILD_ENV_CMAKE_TOOLCHAIN
+fi
+
+# Prints the packages in section $1 ("build" or "system") of the package file, separated by spaces.
+# Lines hold a section header ([build] or [system]) or one package name; "#" starts a comment.
+read_section() {
+    awk -v file="$PACKAGE_FILE" -v want="[$1]" '
+        { sub(/#.*/, ""); gsub(/[ \t\r]/, "") }
+        $0 == "" { next }
+        /^\[/ {
+            if ($0 != "[build]" && $0 != "[system]") {
+                print "Error: unknown section " $0 " in " file > "/dev/stderr"
+                exit 1
+            }
+            section = $0
+            next
+        }
+        section == "" {
+            print "Error: package " $0 " outside a section in " file > "/dev/stderr"
+            exit 1
+        }
+        section == want { printf "%s ", $0 }
+    ' "$PACKAGE_FILE"
+}
+
+FILE_BUILD_PACKAGES="$(read_section build)"
+BUILD_ENV_SYSTEM_PACKAGES="$(read_section system)"
+export BUILD_ENV_SYSTEM_PACKAGES
+
+# Check the package file and the arguments before building anything.
+for package in $FILE_BUILD_PACKAGES $BUILD_ENV_SYSTEM_PACKAGES "$@"; do
+    if [ ! -f "$BUILD_ENV_DIR/packages/$package" ]; then
+        echo "Error: no env recipe for package $package (in $PACKAGE_FILE or the arguments)" >&2
+        exit 1
+    fi
+done
+for package in $FILE_BUILD_PACKAGES; do
+    case " $BUILD_ENV_SYSTEM_PACKAGES " in
+        *" $package "*)
+            echo "Error: package $package is in both [build] and [system] in $PACKAGE_FILE" >&2
+            exit 1
+            ;;
+    esac
+done
+
+if [ $# -gt 0 ]; then
+    BUILD_PACKAGES="$*"
+else
+    BUILD_PACKAGES="$FILE_BUILD_PACKAGES"
+fi
+
+echo "Package file: $PACKAGE_FILE"
+echo "Packages: $BUILD_PACKAGES"
+echo "Provided by the system: $BUILD_ENV_SYSTEM_PACKAGES"
 echo -------------------------------------------------------------------------\
 -------
 
 . "$BUILD_ENV_DIR/scripts/env.sh"
-. "$BUILD_ENV_DIR/scripts/system.sh"
 
-echo LIBRARY_PATH=$LIBRARY_PATH
-echo PKG_CONFIG_PATH=$PKG_CONFIG_PATH
+echo LIBRARY_PATH="$LIBRARY_PATH"
+echo PKG_CONFIG_PATH="$PKG_CONFIG_PATH"
+if [ -n "$PKG_CONFIG_LIBDIR" ]; then
+    echo PKG_CONFIG_LIBDIR="$PKG_CONFIG_LIBDIR"
+fi
+if [ -n "$BUILD_ENV_HOST" ]; then
+    echo CONFIG_SITE="$CONFIG_SITE"
+fi
 
 # Create the lib64 dir since is is added to LIBRARY_PATH always for simplicity
 # even though it is only used on some platforms.
-mkdir -p $BUILD_ENV_PREFIX/lib64
+mkdir -p "$BUILD_ENV_PREFIX/lib64"
 
-if [ $SYSTEM_OS = "macOS" ]; then
-echo MACOSX_DEPLOYMENT_TARGET=$MACOSX_DEPLOYMENT_TARGET
+if [ "$SYSTEM_OS" = "macOS" ]; then
+    echo MACOSX_DEPLOYMENT_TARGET="$MACOSX_DEPLOYMENT_TARGET"
 fi
 
 export PACKAGE_PRE="$BUILD_ENV_DIR/scripts/package.sh"
 export PACKAGE_POST="$BUILD_ENV_DIR/scripts/package_post.sh"
-export PACKAGE_DEPENDENCY="$BUILD_ENV_DIR/packages"
-export PACKAGE_SOURCES="$BUILD_ENV_DIR/_sources"
+export PACKAGE_DEPENDENCY="$BUILD_ENV_DIR/scripts/dependency"
 
-for package_script in "$BUILD_ENV_DIR/packages"/*; do
-$package_script
+for package in $BUILD_PACKAGES; do
+    "$PACKAGE_DEPENDENCY" "$package"
 done
-
-
-# if [ -f fsenv/build.sh ]; then
-# sh fsenv/build.sh
-# elif [ -f ./deps.sh ]; then
-# sh ./deps.sh
-# fi
-
-if [ $SYSTEM_OS = "Windows" ]; then
-if [ -d $BUILD_ENV_PREFIX/bin ]; then
-FIND_DLLS="`find $BUILD_ENV_PREFIX/bin -maxdepth 1 -mindepth 1 -name '*.dll'`"
-if [ "$FIND_DLLS" != "" ]; then
-# Copy DLL files to root directory for running executables during development
-echo "cp $BUILD_ENV_PREFIX/bin/*.dll ."
-cp $BUILD_ENV_PREFIX/bin/*.dll .
-else
-echo "No DLL files to copy from $BUILD_ENV_PREFIX/bin"
-fi
-fi
-fi
 
 rm -Rf "$BUILD_ENV_PREFIX/_build"
 
 cp "$BUILD_ENV_DIR/scripts/bashrc" "$BUILD_ENV_PREFIX/.bashrc"
 cp "$BUILD_ENV_DIR/scripts/_run" "$BUILD_ENV_PREFIX/run"
 chmod a+x "$BUILD_ENV_PREFIX/run"
+# The run script reads the cross mode settings from here.
+rm -f "$BUILD_ENV_PREFIX/cross.sh"
+if [ -n "$BUILD_ENV_HOST" ]; then
+    {
+        echo "# Cross mode settings for the run script (written by setup --host)."
+        echo "export BUILD_ENV_HOST='$BUILD_ENV_HOST'"
+        echo "export BUILD_ENV_BUILD_PREFIX='$BUILD_ENV_BUILD_PREFIX'"
+        echo "export BUILD_ENV_CONFIG_SITE='$BUILD_ENV_CONFIG_SITE'"
+        echo "export BUILD_ENV_CMAKE_TOOLCHAIN='$BUILD_ENV_CMAKE_TOOLCHAIN'"
+    } > "$BUILD_ENV_PREFIX/cross.sh"
+fi
 
 echo -------------------------------------------------------------------------\
 -------
-echo "Built dependencies for ${SYSTEM_OS}/${SYSTEM_ARCH}"
+if [ -n "$BUILD_ENV_HOST" ]; then
+    echo "Built dependencies for $BUILD_ENV_HOST in $BUILD_ENV_PREFIX"
+else
+    echo "Built dependencies for ${SYSTEM_OS}/${SYSTEM_ARCH} in $BUILD_ENV_PREFIX"
+fi

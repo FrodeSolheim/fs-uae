@@ -22,7 +22,7 @@ def verify(archive: str, h: Any, checksum: str) -> bool:
 
 
 def main():
-    build_env_dir = os.environ["BUILD_ENV_DIR"]
+    sources_dir = os.environ["PACKAGE_SOURCES"]
     url = sys.argv[1]
     checksum = sys.argv[2]
 
@@ -36,9 +36,8 @@ def main():
         raise Exception("Unknown hash function")
 
     archive = url.split("/")[-1]
-    if not os.path.exists(f"{build_env_dir}/_sources"):
-        os.makedirs(f"{build_env_dir}/_sources")
-    archive = os.path.join(f"{build_env_dir}/_sources", archive)
+    os.makedirs(sources_dir, exist_ok=True)
+    archive = os.path.join(sources_dir, archive)
 
     if os.path.exists(archive):
         if verify(archive, h, checksum):

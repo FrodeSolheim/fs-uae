@@ -3,10 +3,10 @@
 set -e
 # --------------------------------------------------------------------------------------------------
 
-"$PACKAGE_DEPENDENCY/gettext"
-"$PACKAGE_DEPENDENCY/libffi"
-"$PACKAGE_DEPENDENCY/libiconv"
-"$PACKAGE_DEPENDENCY/zlib"
+"$PACKAGE_DEPENDENCY" gettext
+"$PACKAGE_DEPENDENCY" libffi
+"$PACKAGE_DEPENDENCY" libiconv
+"$PACKAGE_DEPENDENCY" zlib
 
 PACKAGE=glib-2.84.3
 PACKAGE_REVISION=1

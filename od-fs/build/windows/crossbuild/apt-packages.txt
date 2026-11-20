@@ -1,0 +1,49 @@
+# The Ubuntu 24.04 packages for cross-compiling the Windows version with the scripts in this
+# directory. Installed by the Dockerfile here, and by a GitHub ubuntu-24.04 runner (or a host) that
+# runs the scripts directly:
+#
+#   sudo apt-get install -y --no-install-recommends $(sed 's/#.*//' apt-packages.txt)
+#
+# with WIN_NATIVE_CLANG_VER set to the version of clang-<version> below (the Dockerfile sets it);
+# see "Directly on the host" in README.md. The MSYS2 packages are not here: quasi-msys2.sh installs
+# them from the snapshot in od-fs/build/windows/msys2.
+#
+# One package per line; "#" starts a comment.
+
+# quasi-msys2's package manager
+gawk
+gpg
+gpgv
+make
+tar
+wget
+xz-utils
+zstd
+
+# Clang 19 or newer is needed for the MSYS2 GCC's libstdc++ headers; Ubuntu 24.04's default clang is
+# 18, so the versioned packages from noble-updates are used (see "Ubuntu release" in README.md). The
+# Dockerfile's WIN_NATIVE_CLANG_VER must match.
+clang-20                  # compiler (also for the cross-compiled libmpeg2 and PortMidi)
+lld-20                    # linker
+llvm-20                   # llvm-windres
+binutils-mingw-w64-x86-64 # x86_64-w64-mingw32-ar/strip/objdump and friends
+
+# bootstrap, and building libmpeg2 and PortMidi
+autoconf
+automake
+build-essential # also builds the native Python that dist byte-compiles with
+cmake
+libtool
+ninja-build
+
+# FS-UAE configure and build, and the dist
+ca-certificates
+curl
+dos2unix # dist (README.txt)
+file
+gettext
+git
+pkgconf
+python3
+unzip
+zip

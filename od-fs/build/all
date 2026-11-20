@@ -1,8 +1,0 @@
-#!/bin/sh
-
-set -e
-
-build/bootstrap
-build/configure
-build/clean
-build/build

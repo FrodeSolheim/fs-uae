@@ -1,0 +1,3 @@
+#!/bin/sh
+set -u
+"$WIN_NATIVE_GCC_CXX" $WIN_NATIVE_GCC_FLAGS "$@"

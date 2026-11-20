@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 #
-# Configure the Windows build in .build/$WINDOWS_BUILD (default: .build/windows), cross-compiling
-# with quasi-msys2, which is set up first if needed. Arguments are passed to od-fs/configure.
-# See common.sh for the environment variables.
+# Configure the Windows build in the build directory from WINDOWS_BUILD (default: .build/windows),
+# cross-compiling with quasi-msys2, which is set up first if needed. Arguments are passed to
+# od-fs/configure. See common.sh for the environment variables.
 
 set -e
 

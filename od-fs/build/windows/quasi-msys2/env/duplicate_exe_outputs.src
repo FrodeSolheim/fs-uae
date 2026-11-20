@@ -1,0 +1,17 @@
+#!/bin/false
+# The above line stops anyone from running this script normally, but allows `source`ing it.
+
+if [[ $WIN_DUPEBIN_CC || $WIN_DUPEBIN_CXX ]]; then
+    echo Nothing to do.
+else
+    export WIN_DUPEBIN_CC=$CC
+    export WIN_DUPEBIN_CXX=$CXX
+    export CC=win-dupebin-cc
+    export CXX=win-dupebin-cxx
+    echo "CC=$CC"
+    echo "CXX=$CXX"
+    echo 'Those wrappers will duplicate the resulting executable with the linux naming convention.'
+    echo 'You can always call them directly without running this script, as long as you'
+    echo '  don'"'"'t manually assign them to `CC`,`CXX`, which would cause infinite recursion.'
+    echo 'The lack of the extension doesn'"'"'t stop `binfmt_misc` from automatically running those binaries with Wine.'
+fi

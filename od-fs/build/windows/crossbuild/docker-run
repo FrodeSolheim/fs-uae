@@ -8,8 +8,9 @@
 #        docker-run <command> [args...]   e.g. docker-run bash
 #
 # The image is built first (quick when cached). The container runs as your own user, with the
-# project directory (and QUASI_MSYS2_DIR, if outside it) mounted at the same path as on the host,
-# since quasi-msys2 and the configured build directory contain absolute paths. Builds in Docker and
+# project directory (and QUASI_MSYS2_DIR, the build directory from WINDOWS_BUILD, and
+# FSUAE_DIST_BUILD when set, if outside it) mounted at the same path as on the host, since
+# quasi-msys2 and the configured build directory contain absolute paths. Builds in Docker and
 # directly on the host can therefore share the same directories.
 #
 # Environment variables (see also common.sh and quasi-msys2.sh):
@@ -17,6 +18,7 @@
 #   DOCKER                       Docker command (default: docker)
 #   FSUAE_WINDOWS_DOCKER_IMAGE   Image tag (default: fs-uae-windows-crossbuild)
 #   FSUAE_WINDOWS_DOCKER_ARGS    Extra arguments for "docker run"
+#   FSUAE_DIST_ORIGIN, FSUAE_DIST_ENVIRONMENT  Passed on (see od-fs/build/dist/common.sh)
 
 set -e
 
@@ -34,24 +36,42 @@ docker="${DOCKER:-docker}"
 image="${FSUAE_WINDOWS_DOCKER_IMAGE:-fs-uae-windows-crossbuild}"
 
 echo "Building Docker image $image..."
-"$docker" build -q -t "$image" - < "$HERE/Dockerfile" > /dev/null
+"$docker" build -q -t "$image" "$HERE" > /dev/null
+
+mount_dirs=("$QUASI_MSYS2_DIR" "$WINDOWS_BUILD_DIR")
+if [ -n "${FSUAE_DIST_BUILD:-}" ]; then
+    # The dist script's output directory (see od-fs/build/dist/common.sh), made absolute.
+    source "$OD_FS_DIR/build/dist/common.sh"
+    mount_dirs+=("$DIST_BUILD_DIR")
+fi
 
 mounts=(-v "$PROJECT_DIR:$PROJECT_DIR")
-case "$QUASI_MSYS2_DIR/" in
-    "$PROJECT_DIR"/*) ;;
-    *)
-        # Create it first, otherwise Docker creates it owned by root.
-        mkdir -p "$QUASI_MSYS2_DIR"
-        mounts+=(-v "$QUASI_MSYS2_DIR:$QUASI_MSYS2_DIR")
-        ;;
-esac
+for dir in "${mount_dirs[@]}"; do
+    case "$dir/" in
+        "$PROJECT_DIR"/*) ;;
+        *)
+            # Create it first, otherwise Docker creates it owned by root.
+            mkdir -p "$dir"
+            mounts+=(-v "$dir:$dir")
+            ;;
+    esac
+done
 
 run_args=(--rm --init --user "$(id -u):$(id -g)" -w "$OD_FS_DIR")
 if [ -t 0 ] && [ -t 1 ]; then
     run_args+=(-it -e TERM)
 fi
-# Nothing needs to persist in HOME (gpg creates ~/.gnupg when quasi-msys2 sets up its keyring).
-run_args+=(-e HOME=/tmp -e WINDOWS_BUILD -e QUASI_MSYS2_DIR)
+# Nothing needs to persist in HOME (gpg creates ~/.gnupg when quasi-msys2 sets up its keyring). The
+# image name is for the build header (build_environment in od-fs/build/dist/common.sh).
+run_args+=(-e HOME=/tmp -e WINDOWS_BUILD -e QUASI_MSYS2_DIR -e "FSUAE_DOCKER_IMAGE=$image")
+for name in FSUAE_DIST_ORIGIN FSUAE_DIST_ENVIRONMENT; do
+    if [ -n "${!name:-}" ]; then
+        run_args+=(-e "$name")
+    fi
+done
+if [ -n "${FSUAE_DIST_BUILD:-}" ]; then
+    run_args+=(-e FSUAE_DIST_BUILD)
+fi
 if [ -n "$MSYS2_MIRROR_URL" ]; then
     run_args+=(-e MSYS2_MIRROR_URL)
 fi

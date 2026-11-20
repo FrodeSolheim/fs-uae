@@ -1,0 +1,7 @@
+#!/bin/bash
+
+# We pipe the output of `ntldd` through `winepath -u` to replace any windows-style paths with linux-style ones.
+# Most of thise is self-explanatory. We apply `realpath` to the result, because there are weird symlinks in `~/.wine`
+#   that winepath includes in its output for contents of `C:\Windows`.
+# -R is passed by default because the Linux `ldd` doesn't have this setting, and is always recrusive.
+wine ntldd.exe -R "$@" | gawk '{gsub(/\r/, ""); if (!match($0, /^\s*.*? => /)) {print $0; next} s = substr($0, RLENGTH+1); if (s == "not found") {print $0; next} a = substr($0, 1, RLENGTH); if (!match(s, /\(0x[^)]+\)$/)) {print $0; next} b = substr(s, 1, RSTART-2); c = substr(s, RSTART-1); gsub(/'"'"'/, "'"'"'\"'"'"'\"'"'"'", b); b = "realpath \"$(winepath -u '"'"'" b "'"'"')\""; if ((b | getline r) <= 0) {print $0; next} print a r c}'

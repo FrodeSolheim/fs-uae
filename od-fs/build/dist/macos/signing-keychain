@@ -1,0 +1,137 @@
+#!/bin/sh
+#
+# Puts the Developer ID certificate that macOS dists are signed with into a temporary keychain, from
+# secrets in the environment, and deletes it again. For CI (the macOS jobs of
+# .github/workflows/dist.yml), where the certificate is not in any keychain; on a Mac that has it in
+# the login keychain, the dist scripts find it there without this.
+#
+# Usage: signing-keychain create | delete
+#
+# create: makes the keychain $RUNNER_TEMP/fs-uae-signing.keychain-db (or in $TMPDIR, /tmp), with a
+# random password, imports the certificate into it, lets codesign use its key without asking, puts
+# it first in the user's keychain search list and checks that it has the signing identity
+# (macos_signing_identity in common.sh). It then sets FSUAE_MACOS_KEYCHAIN to the keychain for the
+# dist scripts (which sign with that keychain only, see common.sh), in $GITHUB_ENV for the later
+# steps of a GitHub job, otherwise it prints it. Needs these variables (the GitHub secrets):
+#
+#   MACOS_CERTIFICATE_P12       The Developer ID Application certificate with its private key, a
+#                               .p12 file, in base64.
+#   MACOS_CERTIFICATE_PASSWORD  The .p12 file's password.
+#   NOTARYTOOL_APPLE_ID, NOTARYTOOL_PASSWORD, NOTARYTOOL_TEAM_ID
+#                               For notarization (see macos_signing_check in common.sh); checked
+#                               here too, so that a missing one is named before anything is built.
+#
+# FSUAE_MACOS_SIGNING decides what happens when one is missing: with "required", it is an error;
+# with "auto" (the default), a warning, and no keychain is made, so the dist is made unsigned. With
+# "off", nothing is done.
+#
+# delete: deletes the keychain ($FSUAE_MACOS_KEYCHAIN, or the one create makes), which also takes it
+# out of the search list. Nothing happens when there is none.
+#
+# The secrets and the keychain's password are never printed.
+
+set -e
+
+PROJECT_DIR="$(cd "$(dirname "$0")/../../../.." && pwd)"
+. "$PROJECT_DIR/od-fs/build/dist/common.sh"
+
+KEYCHAIN="${FSUAE_MACOS_KEYCHAIN:-${RUNNER_TEMP:-${TMPDIR:-/tmp}}/fs-uae-signing.keychain-db}"
+
+create() {
+    if [ "${FSUAE_MACOS_SIGNING:-auto}" = off ]; then
+        echo "Not signing (FSUAE_MACOS_SIGNING=off), so no keychain"
+        return
+    fi
+    missing=""
+    for name in MACOS_CERTIFICATE_P12 MACOS_CERTIFICATE_PASSWORD NOTARYTOOL_APPLE_ID \
+        NOTARYTOOL_PASSWORD NOTARYTOOL_TEAM_ID; do
+        eval "value=\${$name}"
+        [ -n "$value" ] || missing="$missing $name"
+    done
+    if [ -n "$missing" ]; then
+        if [ "$FSUAE_MACOS_SIGNING" = required ]; then
+            echo "Error: cannot sign the macOS dist (FSUAE_MACOS_SIGNING=required);" \
+                "missing:$missing" >&2
+            exit 1
+        fi
+        echo "Warning: no keychain; missing:$missing" >&2
+        echo "Warning: the macOS dist will be made unsigned" >&2
+        github_warning "The macOS dist will be made unsigned; missing:$missing"
+        return
+    fi
+
+    identity="$(macos_signing_identity)"
+    created=""
+    verified=""
+    # The decoded certificate goes in a directory of its own that only we can read, removed on exit;
+    # so does the keychain if anything below fails.
+    umask 077
+    work_dir="$(mktemp -d "${KEYCHAIN%/*}/fs-uae-signing.XXXXXX")"
+    trap 'rm -rf "$work_dir"; [ -z "$created" ] || [ -n "$verified" ] || delete' EXIT
+    p12="$work_dir/certificate.p12"
+    if ! printf '%s' "$MACOS_CERTIFICATE_P12" | tr -d ' \t\r\n' | base64 --decode > "$p12" ||
+        [ ! -s "$p12" ]; then
+        echo "Error: MACOS_CERTIFICATE_P12 is not a .p12 file in base64" >&2
+        exit 1
+    fi
+
+    # Another run's keychain (on a self-hosted runner) is replaced.
+    if [ -e "$KEYCHAIN" ]; then
+        security delete-keychain "$KEYCHAIN"
+    fi
+    password="$(od -An -N24 -tx1 /dev/urandom | tr -d ' \n')"
+    security create-keychain -p "$password" "$KEYCHAIN"
+    created=1
+    # Locks itself after 6 hours (the longest a GitHub job runs), not after 5 minutes or on sleep.
+    security set-keychain-settings -lut 21600 "$KEYCHAIN"
+    security unlock-keychain -p "$password" "$KEYCHAIN"
+    security import "$p12" -k "$KEYCHAIN" -f pkcs12 -P "$MACOS_CERTIFICATE_PASSWORD" \
+        -T /usr/bin/codesign -T /usr/bin/security
+    # Lets codesign use the private key without a prompt (which would wait forever in CI).
+    security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$password" \
+        "$KEYCHAIN" > /dev/null
+
+    # The new keychain first, then the user's keychains as they were. codesign and
+    # find-identity look for identities, and the certificate chain, in the search list.
+    set -- "$KEYCHAIN"
+    while IFS= read -r line; do
+        line="$(echo "$line" | sed 's/^ *"//; s/" *$//')"
+        if [ -n "$line" ] && [ "$line" != "$KEYCHAIN" ]; then
+            set -- "$@" "$line"
+        fi
+    done << EOF
+$(security list-keychains -d user)
+EOF
+    security list-keychains -d user -s "$@"
+
+    if ! security find-identity -v -p codesigning "$KEYCHAIN" | grep -qF "\"$identity\""; then
+        echo "Error: the certificate in MACOS_CERTIFICATE_P12 is not a valid \"$identity\"" \
+            "(NOTARYTOOL_TEAM_ID must be the certificate's team)" >&2
+        exit 1
+    fi
+    verified=1
+    echo "Signing identity \"$identity\" in $KEYCHAIN"
+    if [ -n "$GITHUB_ENV" ]; then
+        echo "FSUAE_MACOS_KEYCHAIN=$KEYCHAIN" >> "$GITHUB_ENV"
+    else
+        echo "Set FSUAE_MACOS_KEYCHAIN=$KEYCHAIN for the dist scripts"
+    fi
+}
+
+delete() {
+    if [ -e "$KEYCHAIN" ]; then
+        security delete-keychain "$KEYCHAIN"
+        echo "Deleted the keychain $KEYCHAIN"
+    else
+        echo "No keychain to delete ($KEYCHAIN)"
+    fi
+}
+
+case "$1" in
+    create) create ;;
+    delete) delete ;;
+    *)
+        echo "Usage: $0 create | delete" >&2
+        exit 2
+        ;;
+esac

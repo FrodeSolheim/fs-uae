@@ -1,0 +1,38 @@
+#!/bin/sh
+# --------------------------------------------------------------------------------------------------
+set -e
+# --------------------------------------------------------------------------------------------------
+
+# liblzma, for Python's _lzma module (on Linux, the system's liblzma-dev). Only the library: the
+# command line tools, scripts, documentation and translations are left out.
+
+PACKAGE_NAME=xz
+PACKAGE_VERSION=5.8.4
+PACKAGE_REVISION=0
+# The release tarball, signed by Lasse Collin (key 3690C240CE51B4670D30AD1C38EE757D69184620).
+PACKAGE_URL=https://github.com/tukaani-project/xz/releases/download/v$PACKAGE_VERSION/xz-$PACKAGE_VERSION.tar.gz
+PACKAGE_CHECKSUM=0014c7886930454fe8bd4228665b51af55eeae560ea135c9c4cd33f55b2591d9
+
+# --------------------------------------------------------------------------------------------------
+. "$PACKAGE_PRE"
+# --------------------------------------------------------------------------------------------------
+
+tar xf "$PACKAGE_SOURCES/xz-$PACKAGE_VERSION.tar.gz"
+cd xz-$PACKAGE_VERSION
+./configure \
+    --prefix="$PACKAGE_PREFIX" \
+    --disable-static \
+    --disable-nls \
+    --disable-doc \
+    --disable-scripts \
+    --disable-xz \
+    --disable-xzdec \
+    --disable-lzmadec \
+    --disable-lzmainfo \
+    --disable-lzma-links
+make
+make install
+
+# --------------------------------------------------------------------------------------------------
+. "$PACKAGE_POST"
+# --------------------------------------------------------------------------------------------------

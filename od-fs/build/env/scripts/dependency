@@ -1,0 +1,28 @@
+#!/bin/sh
+#
+# Builds an env package (and, through its recipe, its dependencies) unless the system provides it.
+# Recipes call it for each dependency ("$PACKAGE_DEPENDENCY" zlib), and setup for each package it
+# builds, so a package in the [system] section of the OS's package file is never built: the call
+# does nothing. A package that is already installed in the prefix is not built again (package.sh).
+#
+# Usage: dependency <package>
+#
+# Expects the environment set up by setup (BUILD_ENV_DIR, BUILD_ENV_SYSTEM_PACKAGES, ...).
+
+set -e
+
+PACKAGE="$1"
+
+case " $BUILD_ENV_SYSTEM_PACKAGES " in
+    *" $PACKAGE "*)
+        echo "$PACKAGE: provided by the system"
+        exit 0
+        ;;
+esac
+
+if [ ! -f "$BUILD_ENV_DIR/packages/$PACKAGE" ]; then
+    echo "Error: no env recipe for package: $PACKAGE" >&2
+    exit 1
+fi
+
+exec "$BUILD_ENV_DIR/packages/$PACKAGE"

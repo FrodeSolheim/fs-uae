@@ -1,0 +1,34 @@
+# Env packages on macOS (read by setup). Everything is built from the env recipes; the system
+# provides none of them.
+#
+# [build]: the packages setup builds (with their dependencies) when run without arguments. The
+# order does not matter: each recipe builds its dependencies first.
+# [system]: packages the system provides. They are never built, and a recipe's dependency on one
+# does nothing.
+
+[build]
+flac
+freetype
+freetype-noharfbuzz
+gettext
+glib
+harfbuzz
+libffi
+libiconv
+libmpeg2
+libpng
+libsamplerate
+libuuid
+mpg123
+openssl
+portmidi
+python
+sdl3
+sdl3_image
+sdl3_ttf
+sqlite
+xz
+zlib
+zstd
+
+[system]

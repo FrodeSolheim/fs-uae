@@ -1,0 +1,88 @@
+# The Ubuntu 24.04 packages for making the Linux dists, read with apt-packages (in this directory).
+# Used by the Dockerfile here, and by the GitHub runners (.github/workflows/dist.yml).
+#
+# [tools]: tools that run on the build machine. Always installed without an architecture suffix.
+# [libraries]: development packages for the dist's architecture, as plain names. The Dockerfile
+# installs them for the image's own architecture; the GitHub runners (and cross-compiling) append
+# :amd64 or :arm64 themselves.
+#
+# SDL3, SDL3_image, SDL3_ttf and Python come from the env recipes (the [build] packages in
+# od-fs/build/env/linux.txt), built into the env prefix at dist time; everything else comes from
+# these packages. There are no development packages for the Python modules on the purge list
+# (tk-dev, libgdbm-dev, libreadline-dev, libncurses-dev), so the env Python is built without them.
+#
+# One package per line; "#" starts a comment.
+
+[tools]
+autoconf
+automake
+build-essential
+ca-certificates # downloads by the env system
+cmake           # SDL3, SDL3_image, SDL3_ttf (env)
+curl            # downloads by the env system
+dos2unix        # README.txt in the dist
+file
+gettext         # msgfmt (configure)
+git
+libtool
+patchelf        # rpaths in the dist
+pkgconf
+python3         # env system scripts, the dist check (3.12+)
+tar
+unzip
+xz-utils
+zip
+
+# FS-UAE (configure.ac). libpython3-dev is not here: the env Python is used.
+[libraries]
+libflac-dev
+libgl-dev
+libglib2.0-dev
+libmpeg2-4-dev
+libmpg123-dev
+libpng-dev
+libportmidi-dev
+libzstd-dev
+zlib1g-dev
+
+# SDL3's video and audio backends (from SDL's docs/README-linux.md, as in od-fs/build/prepare's SDL3
+# overlay), FreeType and HarfBuzz for SDL3_ttf (libpng for SDL3_image is above).
+[libraries]
+libasound2-dev
+libaudio-dev
+libdbus-1-dev
+libdecor-0-dev
+libdrm-dev
+libegl1-mesa-dev
+libfreetype-dev
+libgbm-dev
+libgl1-mesa-dev
+libgles2-mesa-dev
+libharfbuzz-dev
+libibus-1.0-dev
+libjack-dev
+libpipewire-0.3-dev
+libpulse-dev
+libsndio-dev
+libudev-dev
+liburing-dev
+libwayland-dev
+libx11-dev
+libxcursor-dev
+libxext-dev
+libxfixes-dev
+libxi-dev
+libxkbcommon-dev
+libxrandr-dev
+libxss-dev
+libxtst-dev
+
+# Python (env), for the modules in the dists: _ctypes, _uuid, _ssl and _hashlib, _sqlite3, zlib,
+# _bz2 and _lzma.
+[libraries]
+libbz2-dev
+libffi-dev
+liblzma-dev
+libsqlite3-dev
+libssl-dev
+uuid-dev

@@ -199,6 +199,8 @@ EXTRA_DIST =
 fs_uae_SOURCES = \
 	od-fs/fs/asyncqueue.cpp \
 	od-fs/fs/asyncqueue.h \
+	od-fs/fs/file.cpp \
+	od-fs/fs/file.h \
 	od-fs/fs/log.cpp \
 	od-fs/fs/log.h \
 	od-fs/fs/path.cpp \

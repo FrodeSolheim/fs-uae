@@ -6,11 +6,10 @@
 
 #include "fsapp-bitmap.h"
 
-#include <glib.h>
-#include <glib/gstdio.h>
 #include <stdlib.h>
 #include <string.h>
 
+#include "fs/file.h"
 #include "fsapp-data.h"
 #include "fs/log.h"
 #include "fsapp-util.h"
@@ -277,7 +276,7 @@ static int fsapp_bitmap_load_png_stream(fsapp_bitmap_t *image, fsapp_stream_t *s
     image->error = -1;
 
     /*
-    FILE *fp = g_fopen(path, "rb");
+    FILE *fp = FS_OpenFile(path, "rb");
     if (!fp) {
         fsapp_bitmap_log("Could not open %s\n", path);
         free(image);
@@ -449,7 +448,7 @@ static int fsapp_bitmap_save_png_file_from_data(const char *path, void *buffer, 
         return -3;
     }
 
-    fp = g_fopen(path, "wb");
+    fp = FS_OpenFile(path, "wb");
     if (fp == NULL) {
         fsapp_bitmap_log("could not open png file for writing\n");
         return -4;

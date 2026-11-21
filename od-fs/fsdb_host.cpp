@@ -175,7 +175,7 @@ static FILE *fsdb_open_meta_file(const char *meta_file, const char *mode)
     if (g_fsdb_debug) {
         write_log("opening meta file %s mode %s\n", meta_file, mode);
     }
-    FILE *f = g_fopen(meta_file, mode);
+    FILE *f = uae_tfopen(meta_file, mode);
     if (g_fsdb_debug) {
         write_log("- meta file opened? %d\n", f != NULL);
     }

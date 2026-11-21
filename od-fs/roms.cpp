@@ -195,7 +195,7 @@ int amiga_add_rom_file (const char *path, const char *cache_path)
 			if (rom_stat.mtime == cache_stat.mtime) {
 				// we should have cached ROM information...
 				unsigned char buf[4];
-				FILE *f = g_fopen (cache_path, "rb");
+				FILE *f = uae_tfopen (cache_path, "rb");
 				int read_count = 0;
 				if (f != NULL) {
 					read_count = fread (buf, 4, 1, f);
@@ -238,7 +238,7 @@ int amiga_add_rom_file (const char *path, const char *cache_path)
 	}
 	if (crc32 && cache_path != NULL) {
 		write_log ("- crc32 cache file: %s\n", cache_path);
-		FILE *f = g_fopen (cache_path, "wb");
+		FILE *f = uae_tfopen (cache_path, "wb");
 		if (f != NULL) {
 			write_log ("- writing crc32 to ROM cache file\n");
 			unsigned char buf[4];

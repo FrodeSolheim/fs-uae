@@ -142,6 +142,39 @@ bool FS_IsFile(const char *path);
  */
 char *FS_GetAbsolutePath(const char *path);
 
+#ifdef _WIN32
+/**
+ * Convert a path in UTF-8 to UTF-16, for the wide (`W`) functions of Windows. Only on Windows.
+ *
+ * Text that is not valid UTF-8 is an error, not replaced, so that a path is never changed.
+ *
+ * Free the returned string with SDL_free() when it is no longer needed.
+ *
+ * \param path the path, in UTF-8.
+ * \returns a newly allocated path in UTF-16 on success or NULL on failure; call SDL_GetError() for
+ *          more information.
+ *
+ * \threadsafety It is safe to call this function from any thread.
+ */
+wchar_t *FS_ConvertPathToUTF16(const char *path);
+
+/**
+ * Convert a path in UTF-16, from the wide (`W`) functions of Windows, to UTF-8. Only on Windows.
+ *
+ * Text that is not valid UTF-16 (an unpaired surrogate) is an error, not replaced, so that a path
+ * is never changed.
+ *
+ * Free the returned string with SDL_free() when it is no longer needed.
+ *
+ * \param path the path, in UTF-16.
+ * \returns a newly allocated path in UTF-8 on success or NULL on failure; call SDL_GetError() for
+ *          more information.
+ *
+ * \threadsafety It is safe to call this function from any thread.
+ */
+char *FS_ConvertPathToUTF8(const wchar_t *path);
+#endif
+
 #ifdef __cplusplus
 } /* extern "C" */
 #endif

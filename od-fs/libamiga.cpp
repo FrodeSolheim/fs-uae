@@ -306,7 +306,7 @@ void amiga_set_paths(const char **rom_paths,
 int amiga_set_synchronization_log_file(const char *path)
 {
 #ifdef DEBUG_SYNC
-    FILE *f = g_fopen(path, "wb");
+    FILE *f = uae_tfopen(path, "wb");
     if (f) {
         write_log("sync debug log to %s\n", path);
         g_fs_uae_sync_debug_file = f;

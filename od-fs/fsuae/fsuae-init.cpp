@@ -11,8 +11,8 @@
 #include <Python.h>
 #include <SDL3/SDL.h>
 #include <glib.h>
-#include <glib/gstdio.h>
 
+#include "fs/file.h"
 #include "fs/log.h"
 #include "fsapp-main.h"
 #include "fsapp-time.h"
@@ -42,7 +42,7 @@ static const char *g_data_dir = NULL;
 
 static bool check_portable_ini(const char *path)
 {
-    FILE *f = g_fopen(path, "r");
+    FILE *f = FS_OpenFile(path, "r");
     if (f != NULL) {
         char buffer[9];
         int read = fread(buffer, 1, 8, f);

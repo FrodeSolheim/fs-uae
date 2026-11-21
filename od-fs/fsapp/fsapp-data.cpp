@@ -8,11 +8,11 @@
 
 #include <SDL3/SDL.h>
 #include <glib.h>
-#include <glib/gstdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "fsapp-os.h"
+#include "fs/file.h"
 #include "fs/path.h"
 
 // ----------------------------------------------------------------------------
@@ -139,7 +139,7 @@ void fsapp_data_load(const char *name, void **data, int *data_size)
     }
     fsapp_data_log("Path: %s\n", path);
 
-    FILE *f = g_fopen(path, "rb");
+    FILE *f = FS_OpenFile(path, "rb");
     SDL_free(path);
     if (!f) {
         fsapp_data_log("Could not open file!\n");

@@ -149,12 +149,11 @@ static bool IsAbsolutePath(const char *path)
 // no longer fits.
 #define PATH_FULL_PATH_TRIES 4
 
-// The UTF-8 text as UTF-16 (a new string), or NULL with SDL's error set.
-static wchar_t *ConvertToUTF16(const char *text)
+wchar_t *FS_ConvertPathToUTF16(const char *path)
 {
-    int size = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, text, -1, NULL, 0);
+    int size = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, path, -1, NULL, 0);
     if (size <= 0) {
-        SDL_SetError("Could not convert %s to UTF-16 (error %lu)", text, GetLastError());
+        SDL_SetError("Could not convert %s to UTF-16 (error %lu)", path, GetLastError());
         return NULL;
     }
     wchar_t *result = (wchar_t *)SDL_malloc(size * sizeof(wchar_t));
@@ -162,19 +161,17 @@ static wchar_t *ConvertToUTF16(const char *text)
         SDL_OutOfMemory();
         return NULL;
     }
-    if (MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, text, -1, result, size) != size) {
-        SDL_SetError("Could not convert %s to UTF-16 (error %lu)", text, GetLastError());
+    if (MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, path, -1, result, size) != size) {
+        SDL_SetError("Could not convert %s to UTF-16 (error %lu)", path, GetLastError());
         SDL_free(result);
         return NULL;
     }
     return result;
 }
 
-// The UTF-16 text as UTF-8 (a new string), or NULL with SDL's error set. Text that is not valid
-// UTF-16 (an unpaired surrogate) is an error, not replaced, so that a path is never changed.
-static char *ConvertToUTF8(const wchar_t *text)
+char *FS_ConvertPathToUTF8(const wchar_t *path)
 {
-    int size = WideCharToMultiByte(CP_UTF8, WC_ERR_INVALID_CHARS, text, -1, NULL, 0, NULL, NULL);
+    int size = WideCharToMultiByte(CP_UTF8, WC_ERR_INVALID_CHARS, path, -1, NULL, 0, NULL, NULL);
     if (size <= 0) {
         SDL_SetError("Could not convert a path to UTF-8 (error %lu)", GetLastError());
         return NULL;
@@ -184,7 +181,7 @@ static char *ConvertToUTF8(const wchar_t *text)
         SDL_OutOfMemory();
         return NULL;
     }
-    if (WideCharToMultiByte(CP_UTF8, WC_ERR_INVALID_CHARS, text, -1, result, size, NULL, NULL) !=
+    if (WideCharToMultiByte(CP_UTF8, WC_ERR_INVALID_CHARS, path, -1, result, size, NULL, NULL) !=
         size) {
         SDL_SetError("Could not convert a path to UTF-8 (error %lu)", GetLastError());
         SDL_free(result);
@@ -232,7 +229,7 @@ static wchar_t *GetFullPathNameUTF16(const wchar_t *path, const char *path_utf8)
 // string, or NULL with SDL's error set.
 static char *GetFullPathNameUTF8(const char *path)
 {
-    wchar_t *wide = ConvertToUTF16(path);
+    wchar_t *wide = FS_ConvertPathToUTF16(path);
     if (wide == NULL) {
         return NULL;
     }
@@ -241,7 +238,7 @@ static char *GetFullPathNameUTF8(const char *path)
     if (full == NULL) {
         return NULL;
     }
-    char *result = ConvertToUTF8(full);
+    char *result = FS_ConvertPathToUTF8(full);
     SDL_free(full);
     return result;
 }

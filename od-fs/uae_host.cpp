@@ -7,6 +7,8 @@
 #include "uae/io.h"
 #include "uae/glib.h"
 
+#include "fs/file.h"
+
 int64_t uae_ftello64(FILE *stream) {
 #if defined(HAVE_FTELLO64)
     return ftello64(stream);
@@ -55,7 +57,7 @@ char *uae_expand_path(const char *path) {
 
 FILE *uae_tfopen(const char *path, const char *mode) {
     char *p = uae_expand_path(path);
-    FILE *f = g_fopen(p, mode);
+    FILE *f = FS_OpenFile(p, mode);
     g_free(p);
     return f;
 }

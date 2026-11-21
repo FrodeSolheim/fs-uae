@@ -515,7 +515,7 @@ FILE *my_opentext(const TCHAR* name) {
     }
     // FIXME: WinUAE's version does some content checking related to unicode.
     // see fsdb_mywin32.cpp
-    return g_fopen(name, "rb");
+    return uae_tfopen(name, "rb");
 }
 
 bool my_createshortcut(const char *source, const char *target, const char *description) 

@@ -144,7 +144,7 @@ def title_and_notes(version: str, commit: str, repo: str) -> tuple[str, str]:
         'There is no source tarball (`make dist`); the "Source code" archives of this '
         "pre-release are of the commit."
     )
-    return f"FS-UAE {version} (development build)", notes
+    return version, notes
 
 
 def replace_files(github: GitHub, commit: str, version: str, directory: Path) -> str:

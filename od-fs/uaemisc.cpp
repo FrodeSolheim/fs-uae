@@ -55,10 +55,10 @@ void target_default_options (struct uae_prefs *p, int type) {
     if (type == 2 || type == 0) {
         // if this isn't set to -1, will caused problems for parallel
         // port joysticks
-        p->win32_samplersoundcard = -1;
+        p->host_samplersoundcard = -1;
     }
 
-    p->win32_rtgvblankrate = 0;
+    p->host_rtgvblankrate = 0;
 
 #ifdef WORDS_BIGENDIAN
     p->picasso96_modeflags = 0x442;

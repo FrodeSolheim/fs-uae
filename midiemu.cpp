@@ -11,11 +11,7 @@
 #define MT32EMU_API_TYPE 1
 #include <mt32emu.h>
 #include "midiemu.h"
-#ifdef _WIN32
-#include "parser.h"
-#else
-#include "midi.h"
-#endif
+
 
 // MUNT MT-32/CM-32L emulation
 
@@ -132,11 +128,9 @@ static void midi_emu_add_roms(void)
 #else
 	set_mt32_rom_path(path);
 #endif
-#ifdef _WIN32
 	if (!my_existsdir(path)) {
-		_tcscpy(path, _T("c:\\mt32-rom-data\\"));
+		host_midiemu_rom_path(path, MAX_DPATH);
 	}
-#endif
 	if (!my_existsdir(path)) {
 		write_log(_T("mt32emu: rom path missing\n"));
 		return;
@@ -186,11 +180,9 @@ bool midi_emu_available(const TCHAR *id)
 		} else if (rc == 1) {
 			set_mt32_rom_path(path);
 		} else if (rc == 2) {
-#ifdef _WIN32
-			_tcscpy(path, _T("C:\\mt32-rom-data\\"));
-#else
-			continue;
-#endif
+			if (!host_midiemu_rom_path(path, MAX_DPATH)) {
+				continue;
+			}
 		}
 		if (!my_existsdir(path)) {
 			continue;
@@ -312,12 +304,8 @@ void midi_emu_reopen(void)
 #ifdef FSUAE
 
 #else
-		if (currprefs.win32_midioutdev >= 0) {
-#ifdef _WIN32
-			TCHAR *name = midioutportinfo[currprefs.win32_midioutdev]->name;
-#else
-			const TCHAR *name = unix_midi_output_device_config_name_for_id(currprefs.win32_midioutdev);
-#endif
+		if (currprefs.host_midioutdev >= 0) {
+			const TCHAR *name = host_midiemu_output_name(currprefs.host_midioutdev);
 			if (!_tcsncmp(name, _T("Munt "), 5)) {
 				midi_emu_open(name);
 			}

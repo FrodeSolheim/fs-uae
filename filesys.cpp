@@ -1175,6 +1175,25 @@ static int add_filesys_unit (struct uaedev_config_info *ci, bool custom)
 	return nr;
 }
 
+// Host drive discovery must not depend on the private mount table layout.
+int filesys_add_external_unit(struct uaedev_config_info *ci)
+{
+	return add_filesys_unit(ci, true);
+}
+
+bool filesys_volume_name_exists(const struct uaedev_mount_info *mtinf,
+	const TCHAR *name)
+{
+	if (!mtinf)
+		mtinf = &mountinfo;
+	for (int i = 0; i < MAX_FILESYSTEM_UNITS; i++) {
+		const UnitInfo *ui = &mtinf->ui[i];
+		if (ui->open && ui->volname && _tcsicmp(ui->volname, name) == 0)
+			return true;
+	}
+	return false;
+}
+
 int kill_filesys_unitconfig (struct uae_prefs *p, int nr)
 {
 	struct uaedev_config_data *uci;
@@ -1352,7 +1371,7 @@ static void initialize_mountinfo (void)
 	nr = nr_units ();
 	cd_unit_offset = nr;
 	cd_unit_number = 0;
-	if (currprefs.scsi && currprefs.win32_automount_cddrives) {
+	if (currprefs.scsi && currprefs.host_automount_cddrives) {
 		uae_u32 mask = scsi_get_cd_drive_mask ();
 		for (int i = 0; i < 32; i++) {
 			if (mask & (1 << i)) {
@@ -2248,7 +2267,7 @@ int filesys_media_change (const TCHAR *rootdir, int inserted, struct uaedev_conf
 	if (nr >= 0)
 		ui = &mountinfo.ui[nr];
 	/* only configured drives have automount support if automount is disabled */
-	if (!currprefs.win32_automount_removable && (!ui || !ui->configureddrive) && (inserted == 0 || inserted == 1))
+	if (!currprefs.host_automount_removable && (!ui || !ui->configureddrive) && (inserted == 0 || inserted == 1))
 		return 0;
 	if (nr < 0 && !inserted)
 		return 0;
@@ -9811,9 +9830,6 @@ void filesys_install_code (void)
 
 }
 
-#ifdef _WIN32
-#include "od-win32/win32_filesys.cpp"
-#endif
 
 static uae_u8 *restore_filesys_hardfile (UnitInfo *ui, uae_u8 *src)
 {

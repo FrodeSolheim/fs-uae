@@ -1281,17 +1281,17 @@ static void update_gfxparams(struct AmigaMonitor *mon)
 		mon->currentmode.current_height =
 			(int) (state->Height * currprefs.rtg_vert_zoom_mult);
 		currprefs.gfx_apmode[1].gfx_interlaced = false;
-		if (currprefs.win32_rtgvblankrate == 0) {
+		if (currprefs.host_rtgvblankrate == 0) {
 			currprefs.gfx_apmode[1].gfx_refreshrate =
 				currprefs.gfx_apmode[0].gfx_refreshrate;
 			if (currprefs.gfx_apmode[0].gfx_interlaced) {
 				currprefs.gfx_apmode[1].gfx_refreshrate *= 2;
 			}
-		} else if (currprefs.win32_rtgvblankrate < 0) {
+		} else if (currprefs.host_rtgvblankrate < 0) {
 			currprefs.gfx_apmode[1].gfx_refreshrate = 0;
 		} else {
 			currprefs.gfx_apmode[1].gfx_refreshrate =
-				currprefs.win32_rtgvblankrate;
+				currprefs.host_rtgvblankrate;
 		}
 		if (currprefs.gfx_apmode[1].gfx_vsync)
 			mon->currentmode.vsync = 1 + currprefs.gfx_apmode[1].gfx_vsyncmode;
@@ -1331,13 +1331,13 @@ static void update_gfxparams(struct AmigaMonitor *mon)
 		if (isfullscreen() < 0) {
 			if ((currprefs.gf[1].gfx_filter_autoscale == RTG_MODE_CENTER ||
 				 currprefs.gf[1].gfx_filter_autoscale == RTG_MODE_SCALE ||
-				 currprefs.win32_rtgallowscaling) &&
+				 currprefs.host_rtgallowscaling) &&
 				(state->Width != mon->currentmode.native_width ||
 				 state->Height != mon->currentmode.native_height))
 				mon->scalepicasso = 1;
 			if (currprefs.gf[1].gfx_filter_autoscale == RTG_MODE_CENTER)
 				mon->scalepicasso = currprefs.gf[1].gfx_filter_autoscale;
-			if (!mon->scalepicasso && currprefs.win32_rtgscaleaspectratio)
+			if (!mon->scalepicasso && currprefs.host_rtgscaleaspectratio)
 				mon->scalepicasso = -1;
 		} else if (isfullscreen() > 0) {
 			if (!canmatchdepth()) {  // can't scale to different color depth
@@ -1348,7 +1348,7 @@ static void update_gfxparams(struct AmigaMonitor *mon)
 				}
 				if (currprefs.gf[1].gfx_filter_autoscale == RTG_MODE_CENTER)
 					mon->scalepicasso = currprefs.gf[1].gfx_filter_autoscale;
-				if (!mon->scalepicasso && currprefs.win32_rtgscaleaspectratio)
+				if (!mon->scalepicasso && currprefs.host_rtgscaleaspectratio)
 					mon->scalepicasso = -1;
 			}
 		} else if (isfullscreen() == 0) {
@@ -1365,9 +1365,9 @@ static void update_gfxparams(struct AmigaMonitor *mon)
 						state->Width ||
 					currprefs.gfx_monitor[mon->monitor_id].gfx_size.height <
 						state->Height) {
-					if (!currprefs.win32_rtgallowscaling) {
+					if (!currprefs.host_rtgallowscaling) {
 						;
-					} else if (currprefs.win32_rtgscaleaspectratio) {
+					} else if (currprefs.host_rtgscaleaspectratio) {
 						mon->scalepicasso = -1;
 						mon->currentmode.current_width =
 							currprefs.gfx_monitor[mon->monitor_id]
@@ -1394,7 +1394,7 @@ static void update_gfxparams(struct AmigaMonitor *mon)
 						 state->Width ||
 					 currprefs.gfx_monitor[mon->monitor_id].gfx_size.height !=
 						 state->Height) &&
-					currprefs.win32_rtgallowscaling) {
+					currprefs.host_rtgallowscaling) {
 					mon->scalepicasso = 1;
 				} else if (currprefs.gfx_monitor[mon->monitor_id]
 								   .gfx_size.width < state->Width ||
@@ -1414,7 +1414,7 @@ static void update_gfxparams(struct AmigaMonitor *mon)
 								   .gfx_size.height == state->Height) {
 					;
 				} else if (!mon->scalepicasso &&
-						   currprefs.win32_rtgscaleaspectratio) {
+						   currprefs.host_rtgscaleaspectratio) {
 					mon->scalepicasso = -1;
 				}
 			} else {
@@ -1422,9 +1422,9 @@ static void update_gfxparams(struct AmigaMonitor *mon)
 						 state->Width ||
 					 currprefs.gfx_monitor[mon->monitor_id].gfx_size.height !=
 						 state->Height) &&
-					currprefs.win32_rtgallowscaling)
+					currprefs.host_rtgallowscaling)
 					mon->scalepicasso = 1;
-				if (!mon->scalepicasso && currprefs.win32_rtgscaleaspectratio)
+				if (!mon->scalepicasso && currprefs.host_rtgscaleaspectratio)
 					mon->scalepicasso = -1;
 			}
 		}

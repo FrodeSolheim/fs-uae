@@ -585,6 +585,12 @@ static void check_ipl_always(void)
 
 static void addcycles_020(int cycles)
 {
+	if (cpu_level >= 4) {
+		cycles /= 6;
+		if (cycles <= 1) {
+			return;
+		}
+	}
 	if (using_ce020) {
 		out("%s(%d);\n", do_cycles, cycles);
 	} else if (using_prefetch_020) {
@@ -4988,6 +4994,19 @@ static void shift_ce(amodes dmode, int size)
 	}
 }
 
+// 68020 LSd #imm,Dn: cache-case clocks from the timing table (4, matching real A1200
+// measurements); the opcode word already charged 2.
+static void shift_imm_ce020(struct instr *curi)
+{
+	if (using_ce020 != 1 || !isreg(curi->dmode) || curi->smode != immi) {
+		return;
+	}
+	int extra = curi->clocks - 2;
+	if (extra > 0) {
+		out("do_cycles_ce020_internal(%d);\n", extra);
+	}
+}
+
 // BCHG/BSET/BCLR Dx,Dx or #xx,Dx adds 2 cycles if bit number > 15 
 static void bsetcycles(struct instr *curi)
 {
@@ -7121,8 +7140,10 @@ static void gen_opcode (unsigned int opcode)
 			addcycles_ce020 (6);
 		    out("if (frame == 0x0) {\nm68k_areg(regs, 7) += offset; break; }\n");
 			if (cpu_level >= 2) {
-				// 68020+
-				out("else if (frame == 0x1) {\nm68k_areg(regs, 7) += offset; }\n");
+				// 68020+; the 68060 has no throwaway frame (format $1):
+				if (cpu_level <= 4) {
+					out("else if (frame == 0x1) {\nm68k_areg(regs, 7) += offset; }\n");
+				}
 				out("else if (frame == 0x2) {\nm68k_areg(regs, 7) += offset + 4; break; }\n");
 			}
 			if (cpu_level >= 4) {
@@ -8113,6 +8134,11 @@ bccl_not68020:
 			count_readw++;
 		}
 
+		if (using_ce020 == 1) {
+			// 68020 taken DBcc: 6 clocks (cache case) on real A1200 hardware, 7 when the
+			// opcode is longword aligned. The two instruction words already charged 4.
+			out("do_cycles_ce020_internal((oldpc & 2) ? 2 : 3);\n");
+		}
 		fill_prefetch_full_020();
 		returncycles(10);
 		out("}\n");
@@ -8512,6 +8538,7 @@ bccl_not68020:
 		out("}\n");
 		genflags (flag_logical_noclobber, curi->size, "val", "", "");
 		shift_ce (curi->dmode, curi->size);
+		shift_imm_ce020(curi);
 		genastore("val", curi->dmode, "dstreg", curi->size, "data");
 		break;
 	case i_LSL:
@@ -8549,6 +8576,7 @@ bccl_not68020:
 		out("}\n");
 		genflags(flag_logical_noclobber, curi->size, "val", "", "");
 		shift_ce(curi->dmode, curi->size);
+		shift_imm_ce020(curi);
 		genastore("val", curi->dmode, "dstreg", curi->size, "data");
 		break;
 	case i_ROL:

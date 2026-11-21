@@ -190,6 +190,18 @@ int my_existsdir(const char *name) {
     return g_file_test(name, G_FILE_TEST_IS_DIR);
 }
 
+bool my_getcurrentdir(TCHAR *path, int size)
+{
+    if (!path || size <= 0) {
+        return false;
+    }
+    if (getcwd(path, size) != NULL) {
+        return true;
+    }
+    path[0] = 0;
+    return false;
+}
+
 bool my_existsfiledir(const char *name) {
     if (g_fsdb_debug) {
         write_log("my_existsfiledir %s\n", name);

@@ -71,7 +71,7 @@ int16_t	 testPM2 ( void )
     if ( ref > max_ref )
       max_ref = ref;
   }
-  /* Depack_PM20() stores the maximum plus one in a signed short. */
+  /* Depack_PM20() stores the maximum plus one in a signed int16_t. */
   if ( max_ref > 0x7ffe )
   {
     return BAD;

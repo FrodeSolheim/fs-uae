@@ -808,6 +808,15 @@ struct device_functions devicefunc_scsi_ioctl = {
     0,             /* scsiemu_func scsiemu; */
 };
 
+// Automatic CD selection (blkdev.cpp) does not look for host drives.
+int host_cd_next_device(int cursor, TCHAR *name, int name_size)
+{
+    if (name && name_size > 0) {
+        name[0] = 0;
+    }
+    return 0;
+}
+
 #else
 
 int uae_od_fs_blkdev_linux_dummy;

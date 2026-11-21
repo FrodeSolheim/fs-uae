@@ -37,7 +37,6 @@ static int recordbufferframes;
 static float clockspersample;
 static int vsynccnt;
 static int safediff;
-float sampler_evtime;
 
 static int capture_init (void)
 {
@@ -53,7 +52,7 @@ static int capture_init (void)
 	if (currprefs.sampler_freq)
 		samplerate = currprefs.sampler_freq;
 
-	name = record_devices[currprefs.win32_samplersoundcard]->name;
+	name = record_devices[currprefs.host_samplersoundcard]->name;
 
 	wavfmt.wFormatTag = WAVE_FORMAT_PCM;
 	wavfmt.nChannels = 2;
@@ -69,7 +68,7 @@ static int capture_init (void)
 	if (currprefs.sampler_buffer)
 		recordbufferframes = currprefs.sampler_buffer;
 
-	hr = DirectSoundCaptureCreate (&record_devices[currprefs.win32_samplersoundcard]->guid, &lpDS2r, NULL);
+	hr = DirectSoundCaptureCreate (&record_devices[currprefs.host_samplersoundcard]->guid, &lpDS2r, NULL);
 	if (FAILED (hr)) {
 		write_log (_T("SAMPLER: DirectSoundCaptureCreate('%s') failure: %s\n"), name, DXError (hr));
 		return 0;
@@ -119,10 +118,10 @@ static void capture_free (void)
 static evt_t oldcycles;
 static int oldoffset;
 
-uae_u8 sampler_getsample (int channel)
+bool host_sampler_getsample(int channel, int *value)
 {
 #ifdef FSUAE
-	return 0;
+	return false;
 #else
 #if 0
 	int cur_pos;
@@ -138,9 +137,6 @@ uae_u8 sampler_getsample (int channel)
 	int sample, samplecnt;
 	float doffset;
 	int offset;
-
-	if (!currprefs.sampler_stereo)
-		channel = 0;
 
 	if (!inited) {
 		DWORD pos;
@@ -273,23 +269,14 @@ uae_u8 sampler_getsample (int channel)
 
 	if (samplecnt > 0)
 		sample /= samplecnt;
-#if 1
-	 /* yes, not 256, without this max recording volume would still be too quiet on my sound cards */
-	sample /= 128;
-	if (sample < -128)
-		sample = 0;
-	else if (sample > 127)
-		sample = 127;
-	return (uae_u8)(sample - 128);
-#else
-	return (Uae_u8)((sample / 256) - 128);
-#endif
+	*value = sample;
+	return true;
 #endif
 }
 
 int sampler_init (void)
 {
-	if (currprefs.win32_samplersoundcard < 0)
+	if (currprefs.host_samplersoundcard < 0)
 		return 0;
 	return 1;
 }

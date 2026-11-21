@@ -974,6 +974,8 @@
     </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\od-generic\prowizard_host.cpp" />
+    <ClCompile Include="..\midiemu_host.cpp" />
     <ClCompile Include="..\..\archivers\chd\astring.cpp" />
     <ClCompile Include="..\..\archivers\chd\chd.cpp" />
     <ClCompile Include="..\..\archivers\chd\chdcdrom.cpp" />
@@ -1066,11 +1068,24 @@
     <ClCompile Include="..\..\kbmcu\m6805\m68emu.cpp" />
     <ClCompile Include="..\..\kbmcu\m6805\m68_ops.cpp" />
     <ClCompile Include="..\..\logging.cpp" />
+    <ClCompile Include="..\..\od-generic\midi_parser.cpp" />
+    <ClCompile Include="..\..\od-generic\console.cpp" />
     <ClCompile Include="..\..\od-generic\clipboard.cpp" />
+    <ClCompile Include="..\..\od-generic\target_defaults.cpp" />
     <ClCompile Include="..\..\od-generic\focus.cpp" />
+    <ClCompile Include="..\..\od-generic\avsync.cpp" />
     <ClCompile Include="..\..\od-generic\screenshot_common.cpp" />
     <ClCompile Include="..\..\od-generic\uaenet.cpp" />
+    <ClCompile Include="..\..\od-generic\input_defaults.cpp" />
+    <ClCompile Include="..\..\od-generic\input_hotkeys.cpp" />
+    <ClCompile Include="..\..\od-generic\keymap.cpp" />
+    <ClCompile Include="..\..\od-generic\hostcfg.cpp" />
+    <ClCompile Include="..\..\od-generic\hostcfg_compat.cpp" />
+    <ClCompile Include="..\..\od-generic\sound_common.cpp" />
     <ClCompile Include="..\..\od-generic\mman.cpp" />
+    <ClCompile Include="..\..\od-generic\scaler.cpp" />
+    <ClCompile Include="..\..\od-generic\rtg_scaler.cpp" />
+    <ClCompile Include="..\..\od-generic\display_modes.cpp" />
     <ClCompile Include="..\..\od-generic\registry_ini.cpp" />
     <ClCompile Include="..\..\luascript.cpp" />
     <ClCompile Include="..\..\mame\a2410.cpp" />
@@ -1079,6 +1094,7 @@
     <ClCompile Include="..\..\mos6502.cpp" />
     <ClCompile Include="..\..\ncr9x_scsi.cpp" />
     <ClCompile Include="..\..\newcpu_common.cpp" />
+    <ClCompile Include="..\..\rtg_convert.cpp" />
     <ClCompile Include="..\..\86box\cpu\386_common.cpp">
       <AdditionalIncludeDirectories>$(WinUAE86BoxIncludes);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>$(WinUAE86BoxDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -3262,6 +3278,7 @@
     <ClCompile Include="..\..\softfloat\softfloat_fpsp.cpp" />
     <ClCompile Include="..\..\specialmonitors.cpp" />
     <ClCompile Include="..\..\statusline.cpp" />
+    <ClCompile Include="..\..\od-generic\statusbar.cpp" />
     <ClCompile Include="..\..\support\time.cpp" />
     <ClCompile Include="..\..\tabletlibrary.cpp" />
     <ClCompile Include="..\..\test_card.cpp" />
@@ -3279,6 +3296,7 @@
     <ClCompile Include="..\ahidsound_dsonly.cpp" />
     <ClCompile Include="..\ahidsound_new.cpp" />
     <ClCompile Include="..\avioutput.cpp" />
+    <ClCompile Include="..\blkdev_host.cpp" />
     <ClCompile Include="..\blkdev_win32_ioctl.cpp" />
     <ClCompile Include="..\blkdev_win32_spti.cpp" />
     <ClCompile Include="..\bsdsock.cpp" />
@@ -3311,6 +3329,7 @@
     <ClCompile Include="..\rp.cpp" />
     <ClCompile Include="..\screenshot.cpp" />
     <ClCompile Include="..\serial_win32.cpp" />
+    <ClCompile Include="..\..\serial.cpp" />
     <ClCompile Include="..\sounddep\sound.cpp" />
     <ClCompile Include="..\statusline_win32.cpp" />
     <ClCompile Include="..\unicode.cpp" />
@@ -3335,9 +3354,11 @@
     <ClCompile Include="..\..\blitter.cpp" />
     <ClCompile Include="..\..\blkdev.cpp" />
     <ClCompile Include="..\..\blkdev_cdimage.cpp" />
+    <ClCompile Include="..\..\bsdsocket_results.cpp" />
     <ClCompile Include="..\..\bsdsocket.cpp" />
     <ClCompile Include="..\..\catweasel.cpp" />
     <ClCompile Include="..\..\cd32_fmv.cpp" />
+    <ClCompile Include="..\..\od-generic\blkdev_ioctl_common.cpp" />
     <ClCompile Include="..\..\cda_play.cpp" />
     <ClCompile Include="..\..\cdrom.cpp" />
     <ClCompile Include="..\..\cdtv.cpp" />
@@ -3359,19 +3380,23 @@
     <ClCompile Include="..\..\drawing.cpp" />
     <ClCompile Include="..\..\driveclick.cpp" />
     <ClCompile Include="..\..\enforcer.cpp" />
+    <ClCompile Include="..\printer_host.cpp" />
     <ClCompile Include="..\..\epsonprinter.cpp" />
     <ClCompile Include="..\..\expansion.cpp" />
     <ClCompile Include="..\..\fdi2raw.cpp" />
     <ClCompile Include="..\..\filesys.cpp" />
     <ClCompile Include="..\..\fpp.cpp" />
     <ClCompile Include="..\..\fsdb.cpp" />
+    <ClCompile Include="..\win32_filesys.cpp" />
     <ClCompile Include="..\..\fsusage.cpp" />
     <ClCompile Include="..\..\gayle.cpp" />
     <ClCompile Include="..\..\gdb_monitor.cpp" />
     <ClCompile Include="..\..\gdb_protocol.cpp" />
+    <ClCompile Include="..\..\od-generic\gdb_transport.cpp" />
     <ClCompile Include="..\..\gdb_server.cpp" />
     <ClCompile Include="..\..\gdb_target.cpp" />
     <ClCompile Include="..\..\gfxutil.cpp" />
+    <ClCompile Include="..\..\hardfile_cache.cpp" />
     <ClCompile Include="..\..\hardfile.cpp" />
     <ClCompile Include="..\..\identify.cpp" />
     <ClCompile Include="..\..\inputdevice.cpp" />
@@ -3384,7 +3409,11 @@
     <ClCompile Include="..\..\newcpu.cpp" />
     <ClCompile Include="..\..\readcpu.cpp" />
     <ClCompile Include="..\..\rommgr.cpp" />
-    <ClCompile Include="..\..\sampler.cpp" />
+    <ClCompile Include="..\..\od-generic\sampler_common.cpp" />
+    <ClCompile Include="..\zfile_host.cpp" />
+    <ClCompile Include="..\sndboard_host.cpp" />
+    <ClCompile Include="..\dlopen_host.cpp" />
+    <ClCompile Include="..\sampler.cpp" />
     <ClCompile Include="..\..\sana2.cpp" />
     <ClCompile Include="..\..\savestate.cpp" />
     <ClCompile Include="..\..\scsi.cpp" />
@@ -3500,8 +3529,25 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\include\uae\caps.h" />
+    <ClInclude Include="..\..\include\gdb_transport.h" />
+    <ClInclude Include="..\..\include\sndboard_host.h" />
+    <ClInclude Include="..\..\include\zfile_host.h" />
+    <ClInclude Include="..\..\include\target_dlopen.h" />
+    <ClInclude Include="..\..\include\hostcfg.h" />
+    <ClInclude Include="..\..\od-generic\console.h" />
+    <ClInclude Include="..\..\od-generic\input_defaults.h" />
+    <ClInclude Include="..\..\od-generic\keymap.h" />
+    <ClInclude Include="..\..\od-generic\hostcfg.def" />
+    <ClInclude Include="..\..\include\printer_host.h" />
+    <ClInclude Include="..\..\include\serial_host.h" />
+    <ClInclude Include="..\..\od-generic\sound_common.h" />
     <ClInclude Include="..\..\include\hardfile_defaults.h" />
     <ClInclude Include="..\..\include\cfgfile_mount.h" />
+    <ClInclude Include="..\..\od-generic\blkdev_ioctl_common.h" />
+    <ClInclude Include="..\..\od-generic\avsync.h" />
+    <ClInclude Include="..\..\od-generic\scaler.h" />
+    <ClInclude Include="..\..\od-generic\display_modes.h" />
     <ClInclude Include="..\..\include\cpu_selection.h" />
     <ClInclude Include="..\resources\resource.h" />
   </ItemGroup>

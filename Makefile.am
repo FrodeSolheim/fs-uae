@@ -350,6 +350,7 @@ libuae_a_SOURCES = \
 	blkdev_cdimage.cpp \
 	blkdev.cpp \
 	bsdsocket.cpp \
+	bsdsocket_results.cpp \
 	calc.cpp \
 	cd32_fmv_genlock.cpp \
 	cd32_fmv.cpp \
@@ -539,7 +540,6 @@ libuae_a_SOURCES = \
 	include/uae/ppc.h \
 	include/uae/qemu.h \
 	include/uae/segtracker.h \
-	include/uae/seh.h \
 	include/uae/slirp.h \
 	include/uae/socket.h \
 	include/uae/string.h \
@@ -591,8 +591,18 @@ libuae_a_SOURCES = \
 	newcpu.cpp \
 	od-fs/clipboard_fs.cpp \
 	od-generic/clipboard.cpp \
+	od-generic/display_modes.cpp \
+	od-generic/display_modes.h \
 	od-generic/mman.cpp \
 	od-generic/mman_host.h \
+	od-generic/prowizard_host.cpp \
+	od-generic/rtg_scaler.cpp \
+	od-generic/sampler_common.cpp \
+	od-generic/scaler.cpp \
+	od-generic/scaler.h \
+	od-generic/sound_common.cpp \
+	od-generic/sound_common.h \
+	od-generic/target_defaults.cpp \
 	od-generic/uaenet.cpp \
 	od-fs/blkdev-linux.cpp \
 	od-fs/bridge.cpp \
@@ -643,6 +653,7 @@ libuae_a_SOURCES = \
 	od-fs/uae_host.cpp \
 	od-fs/uae-fs.h \
 	od-fs/include/uae/uae_inputevents_def.h \
+	od-fs/include/uae/seh.h \
 	od-fs/include/uae/uae.h \
 	od-fs/uaemisc.cpp \
 	od-fs/video_fs.cpp \
@@ -671,11 +682,11 @@ libuae_a_SOURCES = \
 	od-win32/picasso96_win.h \
 	od-win32/registry.h \
 	od-win32/render.h \
+	od-win32/sampler.cpp \
 	od-win32/serial_win32.cpp \
 	od-win32/sounddep/sound.h \
 	od-unix/sysconfig.h \
 	od-win32/sysconfig.h \
-	od-win32/win32_scaler.cpp \
 	od-win32/win32_uaenet.h \
 	od-win32/win32.cpp \
 	od-win32/win32.h \
@@ -711,7 +722,7 @@ libuae_a_SOURCES = \
 	readcpu.cpp \
 	rommgr.cpp \
 	rtc.cpp \
-	sampler.cpp \
+	rtg_convert.cpp \
 	sana2.cpp \
 	savestate.cpp \
 	scp.cpp \
@@ -719,6 +730,7 @@ libuae_a_SOURCES = \
 	scsiemul.cpp \
 	scsitape.cpp \
 	segtracker.cpp \
+	serial.cpp \
 	slirp_uae.cpp \
 	specialmonitors.cpp \
 	statusline.cpp \
@@ -775,6 +787,24 @@ libuae_a_SOURCES += od-win32/mman_win32.cpp
 else
 libuae_a_SOURCES += od-unix/mman.cpp
 endif
+
+# Native library loaders (uae_dlopen and so on, used by dlopen.cpp)
+if WINDOWS
+libuae_a_SOURCES += od-win32/dlopen_host.cpp
+else
+libuae_a_SOURCES += od-unix/dlopen.cpp
+endif
+
+# CD drive discovery (blkdev.cpp)
+if WINDOWS
+libuae_a_SOURCES += od-win32/blkdev_host.cpp
+else
+libuae_a_SOURCES += od-unix/blkdev_host.cpp
+endif
+
+# Sound board audio capture (sndboard.cpp); without UAE_UNIX_WITH_SDL3 it has
+# no capture on any host
+libuae_a_SOURCES += od-unix/sndboard_host.cpp
 
 # Host backends for the shared packet networking code (od-generic/uaenet.cpp)
 if WITH_UAENET_PCAP

@@ -92,6 +92,7 @@
 #include "uaeipc.h"
 #include "rp.h"
 #include "statusline.h"
+#include "statusbar.h"
 #include "zarchive.h"
 #include "gfxboard.h"
 #include "win32_uaenet.h"
@@ -3997,6 +3998,10 @@ static void writeconfigcache (const TCHAR *path)
 	getconfigcache (cachepath, path);
 	bool hidden = my_isfilehidden (cachepath);
 	my_setfilehidden (cachepath, false);
+	if (!configstoresize) {
+		_wunlink(cachepath);
+		return;
+	}
 	zcache = _tfopen (cachepath, _T("w, ccs=UTF-8"));
 	if (!zcache)
 		return;
@@ -4172,7 +4177,7 @@ static struct ConfigStruct *CreateConfigStore (struct ConfigStruct *oldconfig, i
 static TCHAR *HandleConfiguration (HWND hDlg, int flag, struct ConfigStruct *config, TCHAR *newpath)
 {
 	TCHAR name[MAX_DPATH], desc[MAX_DPATH];
-	TCHAR path[MAX_DPATH];
+	TCHAR path[MAX_DPATH], oldcn[MAX_DPATH];
 	static TCHAR full_path[MAX_DPATH];
 	int ok = 1;
 	bool absolutepath = false;
@@ -4180,6 +4185,7 @@ static TCHAR *HandleConfiguration (HWND hDlg, int flag, struct ConfigStruct *con
 	full_path[0] = 0;
 	name[0] = 0;
 	desc[0] = 0;
+	_tcscpy(oldcn, config_filename);
 	config_pathfilename[0] = 0;
 	GetDlgItemText (hDlg, IDC_EDITNAME, name, MAX_DPATH);
 	if ((name[0] == '\\' && name[1] == '\\') || (_istalpha(name[0]) && name[1] == ':'))
@@ -4261,7 +4267,7 @@ static TCHAR *HandleConfiguration (HWND hDlg, int flag, struct ConfigStruct *con
 				TCHAR szMessage[MAX_DPATH];
 				WIN32GUI_LoadUIString(IDS_COULDNOTLOADCONFIG, szMessage, MAX_DPATH);
 				pre_gui_message(szMessage);
-				config_filename[0] = 0;
+				_tcscpy(config_filename, oldcn);
 				ok = 0;
 			}
 		}
@@ -6365,8 +6371,12 @@ static void loadsavecommands (HWND hDlg, WPARAM wParam, struct ConfigStruct **co
 		{
 			case IDC_CONFIGSEARCH:
 			{
+				TCHAR s[MAX_PATH];
+				_tcscpy(s, config_search);
 				GetDlgItemText(hDlg, IDC_CONFIGSEARCH, config_search, MAX_DPATH);
-				config = refreshconfiglist(hDlg, config);
+				if (_tcscmp(s, config_search)) {
+					config = refreshconfiglist(hDlg, config);
+				}
 				break;
 			}
 		}
@@ -11906,30 +11916,30 @@ static void values_to_expansiondlg(HWND hDlg)
 					   (workprefs.picasso96_modeflags & RGBFF_A8B8G8R8) ? 3 :
 					   (workprefs.picasso96_modeflags & RGBFF_R8G8B8A8) ? 4 :
 					   (workprefs.picasso96_modeflags & RGBFF_B8G8R8A8) ? 5 : 0, 0);
-	if (workprefs.win32_rtgvblankrate <= 0 ||
-		workprefs.win32_rtgvblankrate == 50 ||
-		workprefs.win32_rtgvblankrate == 60 ||
-		workprefs.win32_rtgvblankrate == 70 ||
-		workprefs.win32_rtgvblankrate == 75) {
+	if (workprefs.host_rtgvblankrate <= 0 ||
+		workprefs.host_rtgvblankrate == 50 ||
+		workprefs.host_rtgvblankrate == 60 ||
+		workprefs.host_rtgvblankrate == 70 ||
+		workprefs.host_rtgvblankrate == 75) {
 		xSendDlgItemMessage(hDlg, IDC_RTG_VBLANKRATE, CB_SETCURSEL,
-						   (workprefs.win32_rtgvblankrate == 0) ? 0 :
-						   (workprefs.win32_rtgvblankrate == -1) ? 1 :
-						   (workprefs.win32_rtgvblankrate == -2) ? 0 :
-						   (workprefs.win32_rtgvblankrate == 50) ? 2 :
-						   (workprefs.win32_rtgvblankrate == 60) ? 3 :
-						   (workprefs.win32_rtgvblankrate == 70) ? 4 :
-						   (workprefs.win32_rtgvblankrate == 75) ? 5 : 0, 0);
+						   (workprefs.host_rtgvblankrate == 0) ? 0 :
+						   (workprefs.host_rtgvblankrate == -1) ? 1 :
+						   (workprefs.host_rtgvblankrate == -2) ? 0 :
+						   (workprefs.host_rtgvblankrate == 50) ? 2 :
+						   (workprefs.host_rtgvblankrate == 60) ? 3 :
+						   (workprefs.host_rtgvblankrate == 70) ? 4 :
+						   (workprefs.host_rtgvblankrate == 75) ? 5 : 0, 0);
 	} else {
 		TCHAR tmp[10];
-		_stprintf(tmp, _T("%d"), workprefs.win32_rtgvblankrate);
+		_stprintf(tmp, _T("%d"), workprefs.host_rtgvblankrate);
 		xSendDlgItemMessage(hDlg, IDC_RTG_VBLANKRATE, WM_SETTEXT, 0, (LPARAM) tmp);
 	}
 
 	CheckDlgButton(hDlg, IDC_RTG_SCALE, workprefs.gf[1].gfx_filter_autoscale == RTG_MODE_SCALE);
 	CheckDlgButton(hDlg, IDC_RTG_CENTER, workprefs.gf[1].gfx_filter_autoscale == RTG_MODE_CENTER);
 	CheckDlgButton(hDlg, IDC_RTG_INTEGERSCALE, workprefs.gf[1].gfx_filter_autoscale == RTG_MODE_INTEGER_SCALE);
-	CheckDlgButton(hDlg, IDC_RTG_NONSQUAREPIXELS, workprefs.win32_rtgnonsquarepixels);
-	CheckDlgButton(hDlg, IDC_RTG_SCALE_ALLOW, workprefs.win32_rtgallowscaling);
+	CheckDlgButton(hDlg, IDC_RTG_NONSQUAREPIXELS, workprefs.host_rtgnonsquarepixels);
+	CheckDlgButton(hDlg, IDC_RTG_SCALE_ALLOW, workprefs.host_rtgallowscaling);
 	CheckDlgButton(hDlg, IDC_RTG_VBINTERRUPT, workprefs.rtg_hardwareinterrupt);
 	CheckDlgButton(hDlg, IDC_RTG_HWSPRITE, workprefs.rtg_hardwaresprite);
 	CheckDlgButton(hDlg, IDC_RTG_THREAD, workprefs.rtg_multithread);
@@ -11937,9 +11947,9 @@ static void values_to_expansiondlg(HWND hDlg)
 	CheckDlgButton(hDlg, IDC_RTG_INITIAL_MONITOR, rbc->rtgmem_size > 0 && rbc->initial_active);
 
 	xSendDlgItemMessage(hDlg, IDC_RTG_SCALE_ASPECTRATIO, CB_SETCURSEL,
-					   (workprefs.win32_rtgscaleaspectratio == 0) ? 0 :
-					   (workprefs.win32_rtgscaleaspectratio < 0) ? 1 :
-					   getaspectratioindex(workprefs.win32_rtgscaleaspectratio) + 2, 0);
+					   (workprefs.host_rtgscaleaspectratio == 0) ? 0 :
+					   (workprefs.host_rtgscaleaspectratio < 0) ? 1 :
+					   getaspectratioindex(workprefs.host_rtgscaleaspectratio) + 2, 0);
 }
 
 static INT_PTR CALLBACK ExpansionDlgProc (HWND hDlg, UINT msg, WPARAM wParam, LPARAM lParam)
@@ -12090,13 +12100,13 @@ static INT_PTR CALLBACK ExpansionDlgProc (HWND hDlg, UINT msg, WPARAM wParam, LP
 				setchecked(hDlg, IDC_RTG_NONSQUAREPIXELS, false);
 				break;
 			case IDC_RTG_NONSQUAREPIXELS:
-				workprefs.win32_rtgnonsquarepixels = ischecked(hDlg, IDC_RTG_NONSQUAREPIXELS);
-				if (workprefs.win32_rtgnonsquarepixels) {
+				workprefs.host_rtgnonsquarepixels = ischecked(hDlg, IDC_RTG_NONSQUAREPIXELS);
+				if (workprefs.host_rtgnonsquarepixels) {
 					setchecked(hDlg, IDC_RTG_INTEGERSCALE, false);
 				}
 				break;
 			case IDC_RTG_SCALE_ALLOW:
-				workprefs.win32_rtgallowscaling = ischecked(hDlg, IDC_RTG_SCALE_ALLOW);
+				workprefs.host_rtgallowscaling = ischecked(hDlg, IDC_RTG_SCALE_ALLOW);
 				break;
 			case IDC_RTG_VBINTERRUPT:
 				workprefs.rtg_hardwareinterrupt = ischecked(hDlg, IDC_RTG_VBINTERRUPT);
@@ -12144,13 +12154,13 @@ static INT_PTR CALLBACK ExpansionDlgProc (HWND hDlg, UINT msg, WPARAM wParam, LP
 					v = xSendDlgItemMessage (hDlg, IDC_RTG_SCALE_ASPECTRATIO, CB_GETCURSEL, 0, 0L);
 					if (v != CB_ERR) {
 						if (v == 0) {
-							workprefs.win32_rtgscaleaspectratio = 0;
+							workprefs.host_rtgscaleaspectratio = 0;
 						} else if (v == 1) {
-							workprefs.win32_rtgscaleaspectratio = -1;
+							workprefs.host_rtgscaleaspectratio = -1;
 						} else if (v >= 2) {
-							workprefs.win32_rtgscaleaspectratio = getaspectratio (v - 2);
+							workprefs.host_rtgscaleaspectratio = getaspectratio (v - 2);
 						}
-						workprefs.gf[GF_RTG].gfx_filter_aspect = workprefs.win32_rtgscaleaspectratio;
+						workprefs.gf[GF_RTG].gfx_filter_aspect = workprefs.host_rtgscaleaspectratio;
 					}
 					break;
 				case IDC_RTG_NUM:
@@ -12247,9 +12257,9 @@ static INT_PTR CALLBACK ExpansionDlgProc (HWND hDlg, UINT msg, WPARAM wParam, LP
 					v = xSendDlgItemMessage (hDlg, IDC_RTG_VBLANKRATE, CB_GETCURSEL, 0, 0L);
 					if (v != CB_ERR) {
 						if (v == 0) {
-							workprefs.win32_rtgvblankrate = 0;
+							workprefs.host_rtgvblankrate = 0;
 						} else if (v == 1) {
-							workprefs.win32_rtgvblankrate = -1;
+							workprefs.host_rtgvblankrate = -1;
 						} else {
 							v = xSendDlgItemMessage (hDlg, IDC_RTG_VBLANKRATE, CB_GETLBTEXT, (WPARAM)v, (LPARAM)tmp);
 						}
@@ -12257,7 +12267,7 @@ static INT_PTR CALLBACK ExpansionDlgProc (HWND hDlg, UINT msg, WPARAM wParam, LP
 						v = xSendDlgItemMessage (hDlg, IDC_RTG_VBLANKRATE, WM_GETTEXT, (WPARAM)sizeof tmp / sizeof (TCHAR), (LPARAM)tmp);
 					}
 					if (tmp[0])
-						workprefs.win32_rtgvblankrate = _tstol (tmp);
+						workprefs.host_rtgvblankrate = _tstol (tmp);
 					break;
 				}
 				workprefs.picasso96_modeflags = mask;
@@ -13022,22 +13032,22 @@ static void enable_for_miscdlg (HWND hDlg)
 
 	bool paused = false;
 	bool nosound = false;
-	bool activenojoy = (workprefs.win32_active_input & 4) == 0;
-	bool activenokeyboard = (workprefs.win32_active_input & 1) == 0;
-	bool nojoy = (workprefs.win32_inactive_input & 4) == 0;
+	bool activenojoy = (workprefs.host_active_input & 4) == 0;
+	bool activenokeyboard = (workprefs.host_active_input & 1) == 0;
+	bool nojoy = (workprefs.host_inactive_input & 4) == 0;
 	ew(hDlg, IDC_ACTIVE_PAUSE, paused == false);
 	ew(hDlg, IDC_ACTIVE_NOSOUND, nosound == false && paused == false);
 	if (!paused) {
-		paused = workprefs.win32_active_nocapture_pause;
+		paused = workprefs.host_active_nocapture_pause;
 		if (!nosound)
-			nosound = workprefs.win32_active_nocapture_nosound;
+			nosound = workprefs.host_active_nocapture_nosound;
 		else
-			workprefs.win32_active_nocapture_nosound = true;
+			workprefs.host_active_nocapture_nosound = true;
 	} else {
-		workprefs.win32_active_nocapture_pause = workprefs.win32_active_nocapture_nosound = true;
+		workprefs.host_active_nocapture_pause = workprefs.host_active_nocapture_nosound = true;
 		nosound = true;
 		nojoy = true;
-		workprefs.win32_active_input = 0;
+		workprefs.host_active_input = 0;
 	}
 	ew(hDlg, IDC_ACTIVE_NOJOY, paused == false);
 	ew(hDlg, IDC_ACTIVE_NOKEYBOARD, paused == false);
@@ -13055,18 +13065,18 @@ static void enable_for_miscdlg (HWND hDlg)
 	ew(hDlg, IDC_INACTIVE_NOSOUND, nosound == false && paused == false);
 	ew(hDlg, IDC_INACTIVE_NOJOY, paused == false);
 	if (!paused) {
-		paused = workprefs.win32_inactive_pause;
+		paused = workprefs.host_inactive_pause;
 		if (!nosound)
-			nosound = workprefs.win32_inactive_nosound;
+			nosound = workprefs.host_inactive_nosound;
 		else
-			workprefs.win32_inactive_nosound = true;
+			workprefs.host_inactive_nosound = true;
 		if (!nojoy)
-			nojoy = (workprefs.win32_inactive_input & 4) == 0;
+			nojoy = (workprefs.host_inactive_input & 4) == 0;
 		else
-			workprefs.win32_inactive_input = 0;
+			workprefs.host_inactive_input = 0;
 	} else {
-		workprefs.win32_inactive_pause = workprefs.win32_inactive_nosound = true;
-		workprefs.win32_inactive_input = workprefs.win32_inactive_input = 0;
+		workprefs.host_inactive_pause = workprefs.host_inactive_nosound = true;
+		workprefs.host_inactive_input = workprefs.host_inactive_input = 0;
 		nosound = true;
 		nojoy = true;
 	}
@@ -13080,14 +13090,14 @@ static void enable_for_miscdlg (HWND hDlg)
 	ew(hDlg, IDC_MINIMIZED_NOSOUND, nosound == false && paused == false);
 	ew(hDlg, IDC_MINIMIZED_NOJOY, nojoy == false && paused == false);
 	if (!paused) {
-		paused = workprefs.win32_iconified_pause;
+		paused = workprefs.host_iconified_pause;
 		if (!nosound)
-			nosound = workprefs.win32_iconified_nosound;
+			nosound = workprefs.host_iconified_nosound;
 		else
-			workprefs.win32_iconified_nosound = true;
+			workprefs.host_iconified_nosound = true;
 	} else {
-		workprefs.win32_iconified_pause = workprefs.win32_iconified_nosound = true;
-		workprefs.win32_iconified_input = workprefs.win32_iconified_input = 0;
+		workprefs.host_iconified_pause = workprefs.host_iconified_nosound = true;
+		workprefs.host_iconified_input = workprefs.host_iconified_input = 0;
 		nosound = true;
 		nojoy = true;
 	}
@@ -13150,7 +13160,7 @@ static void misc_scsi (HWND hDlg)
 	xSendDlgItemMessage (hDlg, IDC_SCSIMODE, CB_ADDSTRING, 0, (LPARAM)tmp);
 	xSendDlgItemMessage (hDlg, IDC_SCSIMODE, CB_ADDSTRING, 0, (LPARAM)_T("SPTI"));
 	xSendDlgItemMessage (hDlg, IDC_SCSIMODE, CB_ADDSTRING, 0, (LPARAM)_T("SPTI + SCSI SCAN"));
-	xSendDlgItemMessage (hDlg, IDC_SCSIMODE, CB_SETCURSEL, workprefs.win32_uaescsimode, 0);
+	xSendDlgItemMessage (hDlg, IDC_SCSIMODE, CB_SETCURSEL, workprefs.host_uaescsimode, 0);
 }
 
 static void misc_lang (HWND hDlg)
@@ -13307,19 +13317,19 @@ static void values_to_miscdlg (HWND hDlg)
 
 	} else if (currentpage == MISC2_ID) {
 
-		CheckDlgButton(hDlg, IDC_ACTIVE_PAUSE, workprefs.win32_active_nocapture_pause);
-		CheckDlgButton(hDlg, IDC_ACTIVE_NOSOUND, workprefs.win32_active_nocapture_nosound || workprefs.win32_active_nocapture_pause);
-		CheckDlgButton(hDlg, IDC_ACTIVE_NOJOY, (workprefs.win32_active_input & 4) == 0 || workprefs.win32_active_nocapture_pause);
-		CheckDlgButton(hDlg, IDC_ACTIVE_NOKEYBOARD, (workprefs.win32_active_input & 1) == 0 || workprefs.win32_active_nocapture_pause);
-		CheckDlgButton(hDlg, IDC_INACTIVE_PAUSE, workprefs.win32_inactive_pause);
-		CheckDlgButton(hDlg, IDC_INACTIVE_NOSOUND, workprefs.win32_inactive_nosound || workprefs.win32_inactive_pause);
-		CheckDlgButton(hDlg, IDC_INACTIVE_NOJOY, (workprefs.win32_inactive_input & 4) == 0 || workprefs.win32_inactive_pause);
-		CheckDlgButton(hDlg, IDC_MINIMIZED_PAUSE, workprefs.win32_iconified_pause);
-		CheckDlgButton(hDlg, IDC_MINIMIZED_NOSOUND, workprefs.win32_iconified_nosound || workprefs.win32_iconified_pause);
-		CheckDlgButton(hDlg, IDC_MINIMIZED_NOJOY, (workprefs.win32_iconified_input & 4) == 0 || workprefs.win32_iconified_pause);
-		misc_addpri(hDlg, IDC_ACTIVE_PRIORITY, workprefs.win32_active_capture_priority);
-		misc_addpri(hDlg, IDC_INACTIVE_PRIORITY, workprefs.win32_inactive_priority);
-		misc_addpri(hDlg, IDC_MINIMIZED_PRIORITY, workprefs.win32_iconified_priority);
+		CheckDlgButton(hDlg, IDC_ACTIVE_PAUSE, workprefs.host_active_nocapture_pause);
+		CheckDlgButton(hDlg, IDC_ACTIVE_NOSOUND, workprefs.host_active_nocapture_nosound || workprefs.host_active_nocapture_pause);
+		CheckDlgButton(hDlg, IDC_ACTIVE_NOJOY, (workprefs.host_active_input & 4) == 0 || workprefs.host_active_nocapture_pause);
+		CheckDlgButton(hDlg, IDC_ACTIVE_NOKEYBOARD, (workprefs.host_active_input & 1) == 0 || workprefs.host_active_nocapture_pause);
+		CheckDlgButton(hDlg, IDC_INACTIVE_PAUSE, workprefs.host_inactive_pause);
+		CheckDlgButton(hDlg, IDC_INACTIVE_NOSOUND, workprefs.host_inactive_nosound || workprefs.host_inactive_pause);
+		CheckDlgButton(hDlg, IDC_INACTIVE_NOJOY, (workprefs.host_inactive_input & 4) == 0 || workprefs.host_inactive_pause);
+		CheckDlgButton(hDlg, IDC_MINIMIZED_PAUSE, workprefs.host_iconified_pause);
+		CheckDlgButton(hDlg, IDC_MINIMIZED_NOSOUND, workprefs.host_iconified_nosound || workprefs.host_iconified_pause);
+		CheckDlgButton(hDlg, IDC_MINIMIZED_NOJOY, (workprefs.host_iconified_input & 4) == 0 || workprefs.host_iconified_pause);
+		misc_addpri(hDlg, IDC_ACTIVE_PRIORITY, workprefs.host_active_capture_priority);
+		misc_addpri(hDlg, IDC_INACTIVE_PRIORITY, workprefs.host_inactive_priority);
+		misc_addpri(hDlg, IDC_MINIMIZED_PRIORITY, workprefs.host_iconified_priority);
 
 	}
 }
@@ -13572,14 +13582,14 @@ static INT_PTR MiscDlgProc (HWND hDlg, UINT msg, WPARAM wParam, LPARAM lParam)
 				case IDC_SCSIMODE:
 					v = xSendDlgItemMessage (hDlg, IDC_SCSIMODE, CB_GETCURSEL, 0, 0L);
 					if (v != CB_ERR)
-						workprefs.win32_uaescsimode = v;
+						workprefs.host_uaescsimode = v;
 					break;
 				}
 			}
 		} else if (currentpage == MISC2_ID) {
-			misc_getpri (hDlg, IDC_ACTIVE_PRIORITY, &workprefs.win32_active_capture_priority);
-			misc_getpri (hDlg, IDC_INACTIVE_PRIORITY, &workprefs.win32_inactive_priority);
-			misc_getpri (hDlg, IDC_MINIMIZED_PRIORITY, &workprefs.win32_iconified_priority);
+			misc_getpri (hDlg, IDC_ACTIVE_PRIORITY, &workprefs.host_active_capture_priority);
+			misc_getpri (hDlg, IDC_INACTIVE_PRIORITY, &workprefs.host_inactive_priority);
+			misc_getpri (hDlg, IDC_MINIMIZED_PRIORITY, &workprefs.host_iconified_priority);
 		}
 
 		switch(wParam)
@@ -13690,13 +13700,13 @@ static INT_PTR MiscDlgProc (HWND hDlg, UINT msg, WPARAM wParam, LPARAM lParam)
 			if (!ischecked(hDlg, IDC_INACTIVE_NOSOUND))
 				CheckDlgButton(hDlg, IDC_INACTIVE_PAUSE, BST_UNCHECKED);
 		case IDC_INACTIVE_PAUSE:
-			workprefs.win32_inactive_pause = ischecked (hDlg, IDC_INACTIVE_PAUSE);
-			if (workprefs.win32_inactive_pause) {
+			workprefs.host_inactive_pause = ischecked (hDlg, IDC_INACTIVE_PAUSE);
+			if (workprefs.host_inactive_pause) {
 				CheckDlgButton(hDlg, IDC_INACTIVE_NOSOUND, BST_CHECKED);
 				CheckDlgButton(hDlg, IDC_INACTIVE_NOJOY, BST_CHECKED);
 			}
-			workprefs.win32_inactive_nosound = ischecked(hDlg, IDC_INACTIVE_NOSOUND);
-			workprefs.win32_inactive_input = ischecked(hDlg, IDC_INACTIVE_NOJOY) ? 0 : 4;
+			workprefs.host_inactive_nosound = ischecked(hDlg, IDC_INACTIVE_NOSOUND);
+			workprefs.host_inactive_input = ischecked(hDlg, IDC_INACTIVE_NOJOY) ? 0 : 4;
 			enable_for_miscdlg(hDlg);
 			break;
 		case IDC_ACTIVE_NOJOY:
@@ -13709,12 +13719,12 @@ static INT_PTR MiscDlgProc (HWND hDlg, UINT msg, WPARAM wParam, LPARAM lParam)
 			if (!ischecked (hDlg, IDC_ACTIVE_NOSOUND))
 				CheckDlgButton (hDlg, IDC_ACTIVE_PAUSE, BST_UNCHECKED);
 		case IDC_ACTIVE_PAUSE:
-			workprefs.win32_active_nocapture_pause = ischecked (hDlg, IDC_ACTIVE_PAUSE);
-			if (workprefs.win32_active_nocapture_pause)
+			workprefs.host_active_nocapture_pause = ischecked (hDlg, IDC_ACTIVE_PAUSE);
+			if (workprefs.host_active_nocapture_pause)
 				CheckDlgButton (hDlg, IDC_ACTIVE_NOSOUND, BST_CHECKED);
-			workprefs.win32_active_nocapture_nosound = ischecked (hDlg, IDC_ACTIVE_NOSOUND);
-			workprefs.win32_active_input = ischecked(hDlg, IDC_ACTIVE_NOJOY) ? 0 : 4;
-			workprefs.win32_active_input |= ischecked(hDlg, IDC_ACTIVE_NOKEYBOARD) ? 0 : 1;
+			workprefs.host_active_nocapture_nosound = ischecked (hDlg, IDC_ACTIVE_NOSOUND);
+			workprefs.host_active_input = ischecked(hDlg, IDC_ACTIVE_NOJOY) ? 0 : 4;
+			workprefs.host_active_input |= ischecked(hDlg, IDC_ACTIVE_NOKEYBOARD) ? 0 : 1;
 			enable_for_miscdlg (hDlg);
 			break;
 		case IDC_MINIMIZED_NOJOY:
@@ -13724,13 +13734,13 @@ static INT_PTR MiscDlgProc (HWND hDlg, UINT msg, WPARAM wParam, LPARAM lParam)
 			if (!ischecked(hDlg, IDC_MINIMIZED_NOSOUND))
 				CheckDlgButton(hDlg, IDC_MINIMIZED_PAUSE, BST_UNCHECKED);
 		case IDC_MINIMIZED_PAUSE:
-			workprefs.win32_iconified_pause = ischecked (hDlg, IDC_MINIMIZED_PAUSE);
-			if (workprefs.win32_iconified_pause) {
+			workprefs.host_iconified_pause = ischecked (hDlg, IDC_MINIMIZED_PAUSE);
+			if (workprefs.host_iconified_pause) {
 				CheckDlgButton(hDlg, IDC_MINIMIZED_NOSOUND, BST_CHECKED);
 				CheckDlgButton(hDlg, IDC_MINIMIZED_NOJOY, BST_CHECKED);
 			}
-			workprefs.win32_iconified_nosound = ischecked(hDlg, IDC_MINIMIZED_NOSOUND);
-			workprefs.win32_iconified_input = ischecked(hDlg, IDC_MINIMIZED_NOJOY) ? 0 : 4;
+			workprefs.host_iconified_nosound = ischecked(hDlg, IDC_MINIMIZED_NOSOUND);
+			workprefs.host_iconified_input = ischecked(hDlg, IDC_MINIMIZED_NOJOY) ? 0 : 4;
 			enable_for_miscdlg(hDlg);
 			break;
 		case IDC_KBLED_USB:
@@ -14456,7 +14466,7 @@ static void values_to_sounddlg (HWND hDlg)
 		workprefs.sound_maxbsiz = 0;
 	xSendDlgItemMessage (hDlg, IDC_SOUNDBUFFERRAM, TBM_SETPOS, TRUE, getsoundbufsizeindex (workprefs.sound_maxbsiz));
 
-	xSendDlgItemMessage (hDlg, IDC_SOUNDCARDLIST, CB_SETCURSEL, workprefs.win32_soundcard, 0);
+	xSendDlgItemMessage (hDlg, IDC_SOUNDCARDLIST, CB_SETCURSEL, workprefs.host_soundcard, 0);
 
 	sounddrivesel = xSendDlgItemMessage (hDlg, IDC_SOUNDDRIVE, CB_GETCURSEL, 0, 0);
 	if (sounddrivesel < 0)
@@ -14551,8 +14561,8 @@ static void values_from_sounddlg (HWND hDlg)
 
 	workprefs.sound_interpol = xSendDlgItemMessage (hDlg, IDC_SOUNDINTERPOLATION, CB_GETCURSEL, 0, 0);
 	soundcard = xSendDlgItemMessage (hDlg, IDC_SOUNDCARDLIST, CB_GETCURSEL, 0, 0L);
-	if (soundcard != workprefs.win32_soundcard && soundcard != CB_ERR) {
-		workprefs.win32_soundcard = soundcard;
+	if (soundcard != workprefs.host_soundcard && soundcard != CB_ERR) {
+		workprefs.host_soundcard = soundcard;
 		update_soundgui (hDlg);
 	}
 
@@ -16523,19 +16533,19 @@ static int harddiskdlg_button (HWND hDlg, WPARAM wParam)
 		return 1;
 
 	case IDC_MAPDRIVES_AUTO:
-		workprefs.win32_automount_removable = ischecked (hDlg, IDC_MAPDRIVES_AUTO);
+		workprefs.host_automount_removable = ischecked (hDlg, IDC_MAPDRIVES_AUTO);
 		break;
 
 	case IDC_MAPDRIVES:
-		workprefs.win32_automount_drives = ischecked (hDlg, IDC_MAPDRIVES);
+		workprefs.host_automount_drives = ischecked (hDlg, IDC_MAPDRIVES);
 		break;
 
 	case IDC_MAPDRIVES_REMOVABLE:
-		workprefs.win32_automount_removabledrives = ischecked (hDlg, IDC_MAPDRIVES_REMOVABLE);
+		workprefs.host_automount_removabledrives = ischecked (hDlg, IDC_MAPDRIVES_REMOVABLE);
 		break;
 
 	case IDC_MAPDRIVES_CD:
-		workprefs.win32_automount_cddrives = ischecked (hDlg, IDC_MAPDRIVES_CD);
+		workprefs.host_automount_cddrives = ischecked (hDlg, IDC_MAPDRIVES_CD);
 		break;
 
 	case IDC_MAPDRIVES_LIMIT:
@@ -16543,7 +16553,7 @@ static int harddiskdlg_button (HWND hDlg, WPARAM wParam)
 		break;
 
 	case IDC_MAPDRIVES_NET:
-		workprefs.win32_automount_netdrives = ischecked (hDlg, IDC_MAPDRIVES_NET);
+		workprefs.host_automount_netdrives = ischecked (hDlg, IDC_MAPDRIVES_NET);
 		break;
 
 	case IDC_NOUAEFSDB:
@@ -16611,11 +16621,11 @@ static INT_PTR CALLBACK HarddiskDlgProc (HWND hDlg, UINT msg, WPARAM wParam, LPA
 		Button_SetElevationRequiredState (GetDlgItem (hDlg, IDC_NEW_HD), TRUE);
 
 	case WM_USER:
-		CheckDlgButton (hDlg, IDC_MAPDRIVES_AUTO, workprefs.win32_automount_removable);
-		CheckDlgButton (hDlg, IDC_MAPDRIVES, workprefs.win32_automount_drives);
-		CheckDlgButton (hDlg, IDC_MAPDRIVES_CD, workprefs.win32_automount_cddrives);
-		CheckDlgButton (hDlg, IDC_MAPDRIVES_NET, workprefs.win32_automount_netdrives);
-		CheckDlgButton (hDlg, IDC_MAPDRIVES_REMOVABLE, workprefs.win32_automount_removabledrives);
+		CheckDlgButton (hDlg, IDC_MAPDRIVES_AUTO, workprefs.host_automount_removable);
+		CheckDlgButton (hDlg, IDC_MAPDRIVES, workprefs.host_automount_drives);
+		CheckDlgButton (hDlg, IDC_MAPDRIVES_CD, workprefs.host_automount_cddrives);
+		CheckDlgButton (hDlg, IDC_MAPDRIVES_NET, workprefs.host_automount_netdrives);
+		CheckDlgButton (hDlg, IDC_MAPDRIVES_REMOVABLE, workprefs.host_automount_removabledrives);
 		CheckDlgButton (hDlg, IDC_NOUAEFSDB, workprefs.filesys_no_uaefsdb);
 		CheckDlgButton (hDlg, IDC_NORECYCLEBIN, workprefs.win32_norecyclebin);
 		CheckDlgButton (hDlg, IDC_MAPDRIVES_LIMIT, workprefs.filesys_limit != 0);
@@ -18027,13 +18037,13 @@ static void enable_for_portsdlg (HWND hDlg)
 #endif
 	if (workprefs.prtname[0]) {
 		issampler = false;
-		workprefs.win32_samplersoundcard = -1;
-	} else if (workprefs.win32_samplersoundcard >= 0) {
+		workprefs.host_samplersoundcard = -1;
+	} else if (workprefs.host_samplersoundcard >= 0) {
 		isprinter = false;
 	}
 	ew (hDlg, IDC_PRINTERLIST, isprinter);
 	ew (hDlg, IDC_SAMPLERLIST, issampler);
-	ew (hDlg, IDC_SAMPLER_STEREO, issampler && workprefs.win32_samplersoundcard >= 0);
+	ew (hDlg, IDC_SAMPLER_STEREO, issampler && workprefs.host_samplersoundcard >= 0);
 	ew (hDlg, IDC_PRINTERAUTOFLUSH, isprinter);
 	ew (hDlg, IDC_PRINTERTYPELIST, isprinter && _tcsnicmp(workprefs.prtname, _T("FILE:"), 5));
 	ew (hDlg, IDC_FLUSHPRINTER, isprinteropen () && isprinter ? TRUE : FALSE);
@@ -18262,7 +18272,7 @@ static void values_from_portsdlg (HWND hDlg)
 
 	item = xSendDlgItemMessage (hDlg, IDC_SAMPLERLIST, CB_GETCURSEL, 0, 0L);
 	if(item != CB_ERR) {
-		workprefs.win32_samplersoundcard = item - 1;
+		workprefs.host_samplersoundcard = item - 1;
 		if (item > 0)
 			workprefs.prtname[0] = 0;
 	}
@@ -18289,7 +18299,7 @@ static void values_from_portsdlg (HWND hDlg)
 			}
 			xSendDlgItemMessage(hDlg, IDC_PRINTERTYPELIST, CB_SETCURSEL, 0, 0L);
 		} else if (item > 1) {
-			workprefs.win32_samplersoundcard = -1;
+			workprefs.host_samplersoundcard = -1;
 			item -= 2;
 			if (item < dwEnumeratedPrinters) {
 				_tcscpy (workprefs.prtname, pInfo[item].pName);
@@ -18315,15 +18325,15 @@ static void values_from_portsdlg (HWND hDlg)
 #endif
 	}
 
-	workprefs.win32_midioutdev = midi2dev (midioutportinfo, xSendDlgItemMessage (hDlg, IDC_MIDIOUTLIST, CB_GETCURSEL, 0, 0) - 1, -2);
-	if (bNoMidiIn || workprefs.win32_midioutdev < -1) {
-		workprefs.win32_midiindev = -1;
+	workprefs.host_midioutdev = midi2dev (midioutportinfo, xSendDlgItemMessage (hDlg, IDC_MIDIOUTLIST, CB_GETCURSEL, 0, 0) - 1, -2);
+	if (bNoMidiIn || workprefs.host_midioutdev < -1) {
+		workprefs.host_midiindev = -1;
 	} else {
-		workprefs.win32_midiindev = midi2dev (midiinportinfo, xSendDlgItemMessage (hDlg, IDC_MIDIINLIST, CB_GETCURSEL, 0, 0) - 1, -1);
+		workprefs.host_midiindev = midi2dev (midiinportinfo, xSendDlgItemMessage (hDlg, IDC_MIDIINLIST, CB_GETCURSEL, 0, 0) - 1, -1);
 	}
-	ew (hDlg, IDC_MIDIINLIST, workprefs.win32_midioutdev < -1 ? FALSE : TRUE);
+	ew (hDlg, IDC_MIDIINLIST, workprefs.host_midioutdev < -1 ? FALSE : TRUE);
 
-	workprefs.win32_midirouter = ischecked (hDlg, IDC_MIDIROUTER);
+	workprefs.host_midirouter = ischecked (hDlg, IDC_MIDIROUTER);
 
 	item = xSendDlgItemMessage (hDlg, IDC_SERIAL, CB_GETCURSEL, 0, 0L);
 	if (item != CB_ERR && item > 0) {
@@ -18358,7 +18368,7 @@ static void values_to_portsdlg (HWND hDlg)
 	LRESULT result;
 	int idx;
 
-	xSendDlgItemMessage (hDlg, IDC_SAMPLERLIST, CB_SETCURSEL, workprefs.win32_samplersoundcard + 1, 0);
+	xSendDlgItemMessage (hDlg, IDC_SAMPLERLIST, CB_SETCURSEL, workprefs.host_samplersoundcard + 1, 0);
 	CheckDlgButton (hDlg, IDC_SAMPLER_STEREO, workprefs.sampler_stereo);
 
 	result = 0;
@@ -18400,14 +18410,14 @@ static void values_to_portsdlg (HWND hDlg)
 	SetDlgItemText (hDlg, IDC_PS_PARAMS, workprefs.ghostscript_parameters);
 
 	xSendDlgItemMessage (hDlg, IDC_PRINTERLIST, CB_SETCURSEL, result, 0);
-	xSendDlgItemMessage (hDlg, IDC_MIDIOUTLIST, CB_SETCURSEL, midi2devidx (midioutportinfo, workprefs.win32_midioutdev) + 1, 0);
-	if (workprefs.win32_midiindev >= 0)
-		xSendDlgItemMessage (hDlg, IDC_MIDIINLIST, CB_SETCURSEL, midi2devidx (midiinportinfo, workprefs.win32_midiindev) + 1, 0);
+	xSendDlgItemMessage (hDlg, IDC_MIDIOUTLIST, CB_SETCURSEL, midi2devidx (midioutportinfo, workprefs.host_midioutdev) + 1, 0);
+	if (workprefs.host_midiindev >= 0)
+		xSendDlgItemMessage (hDlg, IDC_MIDIINLIST, CB_SETCURSEL, midi2devidx (midiinportinfo, workprefs.host_midiindev) + 1, 0);
 	else
 		xSendDlgItemMessage (hDlg, IDC_MIDIINLIST, CB_SETCURSEL, 0, 0);
-	ew (hDlg, IDC_MIDIINLIST, workprefs.win32_midioutdev < -1 ? FALSE : TRUE);
-	ew (hDlg, IDC_MIDIROUTER, workprefs.win32_midioutdev >= -1 && workprefs.win32_midiindev >= -1);
-	CheckDlgButton (hDlg, IDC_MIDIROUTER, workprefs.win32_midirouter);
+	ew (hDlg, IDC_MIDIINLIST, workprefs.host_midioutdev < -1 ? FALSE : TRUE);
+	ew (hDlg, IDC_MIDIROUTER, workprefs.host_midioutdev >= -1 && workprefs.host_midiindev >= -1);
+	CheckDlgButton (hDlg, IDC_MIDIROUTER, workprefs.host_midirouter);
 
 	CheckDlgButton(hDlg, IDC_UAESERIAL, workprefs.uaeserial);
 	CheckDlgButton(hDlg, IDC_SER_SHARED, workprefs.serial_demand);
@@ -21804,7 +21814,7 @@ static INT_PTR CALLBACK hw3dDlgProc (HWND hDlg, UINT msg, WPARAM wParam, LPARAM 
 						}
 						currprefs.gf[filter_nativertg].gfx_filter_aspect = workprefs.gf[filter_nativertg].gfx_filter_aspect = v2;
 						if (filter_nativertg == GF_RTG) {
-							currprefs.win32_rtgscaleaspectratio = workprefs.win32_rtgscaleaspectratio = v2;
+							currprefs.host_rtgscaleaspectratio = workprefs.host_rtgscaleaspectratio = v2;
 						}
 						workprefs.gf[filter_nativertg].changed = true;
 						updatedisplayarea(-1);
@@ -23137,10 +23147,23 @@ int dragdrop (HWND hDlg, HDROP hd, struct uae_prefs *prefs, int	currentpage)
 			break;
 		case ZFILE_CONFIGURATION:
 			if (target_cfgfile_load (&workprefs, file, CONFIG_TYPE_DEFAULT, 0)) {
+				if (currentpage == LOADSAVE_ID) {
+					TCHAR *p = _tcsrchr(file, '\\');
+					if (!p) {
+						p = _tcsrchr(file, '/');
+					}
+					SetDlgItemText(panelDlg, IDC_EDITDESCRIPTION, workprefs.description);
+					SetDlgItemText(panelDlg, IDC_EDITNAME, p ? p + 1 : file);
+					_tcscpy(config_filename, p ? p + 1 : file);
+					setguititle(hDlg);
+				}
 				if (full_property_sheet) {
 					inputdevice_updateconfig (NULL, &workprefs);
-					if (!workprefs.start_gui)
+					if (workprefs.start_gui) {
 						ret = 1;
+					} else {
+						ret = -1;
+					}
 				} else {
 					uae_restart(&workprefs, workprefs.start_gui, file);
 					ret = 1;
@@ -23508,9 +23531,15 @@ static INT_PTR CALLBACK DialogProc (HWND hDlg, UINT msg, WPARAM wParam, LPARAM l
 		addnotifications (hDlg, FALSE, TRUE);
 		return TRUE;
 	case WM_DROPFILES:
-		if (dragdrop (hDlg, (HDROP)wParam, (gui_active || full_property_sheet) ? &workprefs : &changed_prefs, currentpage))
-			SendMessage (hDlg, WM_COMMAND, IDOK, 0);
-		updatePanel (currentpage, 0);
+		{
+			int update = dragdrop (hDlg, (HDROP)wParam, (gui_active || full_property_sheet) ? &workprefs : &changed_prefs, currentpage);
+			if (update > 0) {
+				SendMessage (hDlg, WM_COMMAND, IDOK, 0);
+			}
+			if (update >= 0) {
+				updatePanel (currentpage, 0);
+			}
+		}
 		return FALSE;
 	case WM_NOTIFY:
 		{
@@ -24377,20 +24406,16 @@ void gui_fps (int fps, int lines, bool lace, int idle, int color)
 	gui_led(LED_SND, (gui_data.sndbuf_status > 1 || gui_data.sndbuf_status < 0) ? 0 : 1, -1);
 }
 
-#define LED_STRING_WIDTH 40
+#define LED_STRING_WIDTH (STATUSBAR_TEXT_SIZE + 1)
 void gui_led (int led, int on, int brightness)
 {
 	int monid = 0;
 	struct AmigaMonitor *mon = &AMonitors[monid];
-	struct amigadisplay *ad = &adisplays[monid];
 	WORD type;
 	static TCHAR drive_text[NUM_LEDS * LED_STRING_WIDTH];
 	static TCHAR dfx[4][300];
-	TCHAR *ptr, *tt, *p;
-	int pos = -1, j;
-	int writing = 0, playing = 0, active2 = 0;
-	int writeprotected = 0;
-	int center = 0;
+	TCHAR *ptr, *tt;
+	int pos;
 
 	indicator_leds (led, on);
 #ifdef LOGITECHLCD
@@ -24399,6 +24424,7 @@ void gui_led (int led, int on, int brightness)
 	if (D3D_led)
 		D3D_led(led, on, brightness);
 #ifdef RETROPLATFORM
+	int writing = 0;
 	if (led >= LED_DF0 && led <= LED_DF3 && !gui_data.drives[led - LED_DF0].drive_disabled) {
 		rp_floppy_track(led - LED_DF0, gui_data.drives[led - LED_DF0].drive_track);
 		writing = gui_data.drives[led - LED_DF0].drive_writing;
@@ -24407,186 +24433,25 @@ void gui_led (int led, int on, int brightness)
 #endif
 	if (!mon->hStatusWnd)
 		return;
-	tt = NULL;
-	if (led >= LED_DF0 && led <= LED_DF3) {
-		pos = 9 + (led - LED_DF0);
-		ptr = drive_text + pos * LED_STRING_WIDTH;
-		if (gui_data.drives[led - 1].drive_disabled)
-			_tcscpy (ptr, _T(""));
-		else
-			_stprintf (ptr , _T("%02d"), gui_data.drives[led - 1].drive_track);
-		p = gui_data.drives[led - 1].df;
-		j = uaetcslen(p) - 1;
-		if (j < 0)
-			j = 0;
-		while (j > 0) {
-			if (p[j - 1] == '\\' || p[j - 1] == '/')
-				break;
-			j--;
-		}
-		tt = dfx[led - 1];
-		tt[0] = 0;
-		if (uaetcslen(p + j) > 0)
-			_stprintf (tt, _T("%s [CRC=%08X]"), p + j, gui_data.drives[led - 1].crc32);
-		center = 1;
-		if (gui_data.drives[led - 1].drive_writing)
-			writing = 1;
-		if (gui_data.drives[led - 1].floppy_protected)
-			writeprotected = 1;
-	} else if (led == LED_POWER) {
-		pos = 4;
-		ptr = _tcscpy(drive_text + pos * LED_STRING_WIDTH, _T("Power"));
-		center = 1;
-	} else if (led == LED_CAPS) {
-		pos = 5;
-		ptr = _tcscpy(drive_text + pos * LED_STRING_WIDTH, _T("Caps"));
-		center = 1;
-	} else if (led == LED_HD) {
-		pos = 7;
-		ptr = _tcscpy(drive_text + pos * LED_STRING_WIDTH, _T("HD"));
-		center = 1;
-		if (on > 1)
-			writing = 1;
-	} else if (led == LED_CD) {
-		pos = 6;
-		ptr = _tcscpy(drive_text + pos * LED_STRING_WIDTH, _T("CD"));
-		center = 1;
-		if (on >= 0) {
-			if (on & LED_CD_AUDIO)
-				playing = 1;
-			else if (on & LED_CD_ACTIVE2)
-				active2 = 1;
-			on &= 1;
-		}
-	} else if (led == LED_NET) {
-		pos = 8;
-		ptr = _tcscpy(drive_text + pos * LED_STRING_WIDTH, _T("N"));
-		center = 1;
-		if (on > 1)
-			writing = 1;
-	} else if (led == LED_LINES) {
-		pos = 3;
-		ptr = drive_text + pos * LED_STRING_WIDTH;
-		if (gui_data.fps_color < 2) {
-			_stprintf(ptr, _T("%3d%c"), gui_data.lines, gui_data.lace ? 'i' : 'p');
-		} else {
-			_tcscpy(ptr, _T("----"));
-		}
-		on = 1;
-	} else if (led == LED_FPS) {
-		float fps = gui_data.fps / 10.0f;
-		pos = 2;
-		ptr = drive_text + pos * LED_STRING_WIDTH;
-		if (fps > 9999.9)
-			fps = 9999.9;
-		const TCHAR *rec = avioutput_requested ? _T("R") : _T("");
-		if (gui_data.fps_color == 2) {
-			if (ad->picasso_on)
-				_stprintf(ptr, _T("%.1f%s [NS]"), p96vblank, rec);
-			else
-				_stprintf(ptr, _T("No Sync%s"), rec);
-		} else if (gui_data.fps_color == 3) {
-			if (ad->picasso_on)
-				_stprintf(ptr, _T("%.1f%s [---]"), p96vblank, rec);
-			else
-				_stprintf(ptr, _T("FPS: ---%s"), rec);
-		} else if (fps < 1000) {
-			if (ad->picasso_on)
-				_stprintf (ptr, _T("%.1f%s [%.1f]"), p96vblank, rec, fps);
-			else
-				_stprintf (ptr, _T("FPS: %.1f%s"), fps, rec);
-		} else {
-			if (ad->picasso_on)
-				_stprintf(ptr, _T("%.0f%s [%.0f]"), p96vblank, rec, fps);
-			else
-				_stprintf(ptr, _T("FPS: %.0f%s"), fps, rec);
-		}
-		if (gui_data.cpu_halted > 0) {
-			_stprintf (ptr, _T("HALT%d%s"), gui_data.cpu_halted, rec);
-			center = 1;
-		}
-		if (pause_emulation) {
-			_tcscpy (ptr, _T("PAUSED"));
-			center = 1;
-		}
-		on = 1;
-	} else if (led == LED_CPU) {
-		pos = 1;
-		ptr = drive_text + pos * LED_STRING_WIDTH;
-		if (pause_emulation)
-			on = 0;
-		else
-			on = 1;
-		bool m68klabelchange = false;
-		const TCHAR *m68label = _T("CPU");
-		ptr[0] = 0;
-		p = ptr;
-		if (is_ppc_cpu(&currprefs)) {
-			_tcscat(ptr, _T("PPC: "));
-			if (ppc_state == PPC_STATE_ACTIVE)
-				_tcscat(ptr, _T("RUN"));
-			else
-				_tcscat(ptr, _T("STOP"));
-			_tcscat(ptr, _T(" "));
-			p = ptr + _tcslen(ptr);
-			m68label = _T("68k");
-			m68klabelchange = true;
-		}
-		int state = is_x86_cpu(&currprefs);
-		if (state > 0) {
-			_tcscat(ptr, _T("x86: "));
-			if (state == X86_STATE_ACTIVE)
-				_tcscat(ptr, _T("RUN"));
-			else
-				_tcscat(ptr, _T("STOP"));
-			_tcscat(ptr, _T(" "));
-			p = ptr + _tcslen(ptr);
-			m68label = _T("68k");
-			m68klabelchange = true;
-		}
-		if (gui_data.cpu_halted < 0 || gui_data.cpu_stopped) {
-			if (!m68klabelchange)
-				_tcscpy(p, _T("CPU:STOP"));
-			else
-				_tcscat(p, _T("68k: STOP"));
-		} else {
-			_stprintf(p, _T("%s: %.0f%%"), m68label, (double)((gui_data.idle) / 10.0));
-		}
-	} else if (led == LED_SND && gui_data.sndbuf_avail) {
-		pos = 0;
-		ptr = drive_text + pos * LED_STRING_WIDTH;
-		if (gui_data.sndbuf_status < 3 && !pause_emulation && !sound_paused()) {
-			_stprintf (ptr, _T("SND: %+.0f%%"), (double)((gui_data.sndbuf) / 10.0));
-		} else {
-			_tcscpy (ptr, _T("SND: -"));
-			center = 1;
-			on = 0;
-		}
-	} else if (led == LED_MD) {
-		pos = 9 + 3;
-		ptr = _tcscpy(drive_text + pos * LED_STRING_WIDTH, _T("NV"));
-	}
-
-	if (on < 0)
+	statusbar_state state;
+	statusbar_get_state(&state);
+	statusbar_item item;
+	if (!statusbar_format(state, led, on, &item))
 		return;
-
-	type = SBT_OWNERDRAW;
+	pos = statusbar_position(led);
 	if (pos >= 0) {
-		ptr[_tcslen(ptr) + 1] = 0;
-		if (center)
-			ptr[_tcslen(ptr) + 1] |= 1;
-		if (on) {
-			ptr[_tcslen(ptr) + 1] |= 2;
+		ptr = drive_text + pos * LED_STRING_WIDTH;
+		_tcscpy(ptr, item.text);
+		ptr[_tcslen(ptr) + 1] = item.flags;
+		type = SBT_OWNERDRAW;
+		if (item.flags & STATUSBAR_ON)
 			type |= SBT_POPOUT;
+		tt = NULL;
+		if (led >= LED_DF0 && led <= LED_DF3) {
+			tt = dfx[led - LED_DF0];
+			_tcscpy(tt, item.tooltip);
 		}
-		if (writing)
-			ptr[_tcslen(ptr) + 1] |= 4;
-		if (playing)
-			ptr[_tcslen(ptr) + 1] |= 8;
-		if (active2)
-			ptr[_tcslen(ptr) + 1] |= 16;
-		if (writeprotected)
-			ptr[_tcslen(ptr) + 1] |= 32;
+
 		pos += window_led_joy_start;
 		PostMessage(mon->hStatusWnd, SB_SETTEXT, (WPARAM)((pos + 1) | type), (LPARAM)ptr);
 		if (tt != NULL)

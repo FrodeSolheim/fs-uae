@@ -16,9 +16,8 @@
 
 #include "options.h"
 #include "midi.h"
-#ifdef WITH_MIDIEMU
+#include "midi_parser.h"
 #include "midiemu.h"
-#endif
 
 extern int serdev;
 
@@ -41,8 +40,7 @@ static std::vector<unix_midi_output_device> midi_outputs;
 static std::vector<unix_midi_output_device> midi_inputs;
 static bool midi_outputs_enumerated;
 static bool midi_inputs_enumerated;
-static MidiOutStatus out_status;
-static std::vector<uae_u8> sysex_buffer;
+static midi_parser output_parser;
 static std::deque<uae_u8> input_queue;
 static std::mutex input_queue_mutex;
 
@@ -61,21 +59,10 @@ static snd_midi_event_t *alsa_decoder;
 #endif
 static bool midi_in_ready;
 
-static const uae_u8 plen[128] = {
-    2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
-    2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
-    2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
-    2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
-    1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
-    1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
-    2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
-    1,1,2,1,0,0,0,0,0,0,0,0,0,0,0,0
-};
 
 static void midi_reset_parser(void)
 {
-    memset(&out_status, 0, sizeof out_status);
-    sysex_buffer.clear();
+    midi_parser_reset(&output_parser);
 }
 
 static void midi_clear_input_queue(void)
@@ -95,7 +82,7 @@ static void enqueue_midi_input_bytes(const uae_u8 *data, int len)
             input_queue.pop_front();
         }
         input_queue.push_back(data[i]);
-        if (currprefs.win32_midirouter && midi_ready) {
+        if (currprefs.host_midirouter && midi_ready) {
             BYTE out = data[i];
             Midi_Parse(midi_output, &out);
         }
@@ -534,62 +521,22 @@ static void poll_alsa_midi_input(void)
 }
 #endif
 
+static void midi_output_message(const uae_u8 *data, int length)
+{
+    if (data[0] == MIDI_SYSX) {
+        send_midi_bytes(data, length);
+    } else {
+        uae_u8 message[3] = {};
+        memcpy(message, data, length);
+        midi_apply_output_volume(message, length);
+        send_midi_bytes(message, length);
+    }
+}
+
 int Midi_Parse(midi_direction_e direction, BYTE *dataptr)
 {
-    if (direction != midi_output || !dataptr) {
-        return 0;
-    }
-    const uae_u8 data = (uae_u8)*dataptr;
-    if (data >= 0x80) {
-        if (data < MIDI_CLOCK && out_status.sysex) {
-            sysex_buffer.push_back(MIDI_EOX);
-            send_midi_bytes(sysex_buffer.data(), (int)sysex_buffer.size());
-            sysex_buffer.clear();
-            out_status.sysex = 0;
-            out_status.unknown = 1;
-            if (data == MIDI_EOX) {
-                return 0;
-            }
-        }
-        out_status.status = data;
-        out_status.length = plen[data & 0x7f];
-        out_status.posn = 0;
-        out_status.unknown = 0;
-        if (data == MIDI_SYSX) {
-            out_status.sysex = 1;
-            sysex_buffer.clear();
-            sysex_buffer.push_back(data);
-            return 0;
-        }
-        if (out_status.length == 0) {
-            send_midi_bytes(&data, 1);
-        }
-        return 0;
-    }
-    if (out_status.sysex) {
-        if (sysex_buffer.size() < BUFFLEN) {
-            sysex_buffer.push_back(data);
-        }
-        return 0;
-    }
-    if (out_status.unknown) {
-        return 0;
-    }
-    if (++out_status.posn == 1) {
-        out_status.byte1 = data;
-    } else {
-        out_status.byte2 = data;
-    }
-    if (out_status.posn >= out_status.length) {
-        uae_u8 msg[3] = {
-            (uae_u8)out_status.status,
-            (uae_u8)out_status.byte1,
-            (uae_u8)out_status.byte2
-        };
-        const int len = 1 + out_status.length;
-        out_status.posn = 0;
-        midi_apply_output_volume(msg, len);
-        send_midi_bytes(msg, len);
+    if (direction == midi_output && dataptr) {
+        midi_parser_byte(&output_parser, *dataptr, midi_output_message);
     }
     return 0;
 }
@@ -599,13 +546,13 @@ int Midi_Open(void)
     if (midi_ready) {
         return 1;
     }
-    if (currprefs.win32_midioutdev < -1) {
+    if (currprefs.host_midioutdev < -1) {
         return 0;
     }
-    unix_midi_output_device *outdev = find_midi_output(currprefs.win32_midioutdev);
-    unix_midi_output_device *indev = currprefs.win32_midiindev >= 0 ? find_midi_input(currprefs.win32_midiindev) : NULL;
+    unix_midi_output_device *outdev = find_midi_output(currprefs.host_midioutdev);
+    unix_midi_output_device *indev = currprefs.host_midiindev >= 0 ? find_midi_input(currprefs.host_midiindev) : NULL;
     if (!outdev) {
-        write_log(_T("MIDI OUT: no output device for id %d\n"), currprefs.win32_midioutdev);
+        write_log(_T("MIDI OUT: no output device for id %d\n"), currprefs.host_midioutdev);
         return 0;
     }
     if (outdev->emulated) {
@@ -761,6 +708,16 @@ LONG getmidibyte(void)
     LONG value = input_queue.front();
     input_queue.pop_front();
     return value;
+}
+
+const TCHAR *host_midiemu_output_name(int device)
+{
+	return unix_midi_output_device_config_name_for_id(device);
+}
+
+bool host_midiemu_rom_path(TCHAR *, int)
+{
+	return false;
 }
 
 #endif

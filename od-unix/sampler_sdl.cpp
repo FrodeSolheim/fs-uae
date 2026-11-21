@@ -16,7 +16,6 @@
 #define UNIX_SAMPLER_MAX_DEVICES 100
 #define UNIX_SAMPLER_FRAME_BYTES 4
 
-float sampler_evtime;
 
 struct unix_sampler_device {
 	SDL_AudioDeviceID id;
@@ -155,7 +154,7 @@ static bool open_sampler_stream(void)
 		write_log(_T("SDL3: no recording audio devices available\n"));
 		return false;
 	}
-	device_index = currprefs.win32_samplersoundcard;
+	device_index = currprefs.host_samplersoundcard;
 	if (device_index < 0 || device_index >= sampler_device_count) {
 		write_log(_T("SDL3: sampler input device is not selected\n"));
 		return false;
@@ -179,7 +178,7 @@ static bool open_sampler_stream(void)
 
 int sampler_init(void)
 {
-	return currprefs.win32_samplersoundcard >= 0 && enumerate_sampler_devices() > 0;
+	return currprefs.host_samplersoundcard >= 0 && enumerate_sampler_devices() > 0;
 }
 
 void sampler_free(void)
@@ -219,22 +218,11 @@ static void update_sampler_frame(void)
 	}
 }
 
-uae_u8 sampler_getsample(int channel)
+bool host_sampler_getsample(int channel, int *value)
 {
-	int sample;
-
-	if (!currprefs.sampler_stereo) {
-		channel = 0;
-	}
-	channel = channel ? 1 : 0;
 	update_sampler_frame();
-	sample = sampler_last[channel] / 128;
-	if (sample < -128) {
-		sample = 0;
-	} else if (sample > 127) {
-		sample = 127;
-	}
-	return (uae_u8)(sample - 128);
+	*value = sampler_last[channel];
+	return true;
 }
 
 void sampler_vsync(void)

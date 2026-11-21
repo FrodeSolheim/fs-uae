@@ -121,6 +121,9 @@ extern BOOL debuggerinitializing;
 
 #define WRITE_LOG_BUF_SIZE 4096
 
+// Set by the shared -conlogfile switch (main.cpp). FS-UAE does not write a console log file.
+TCHAR *conlogfile = NULL;
+
 /* console functions for debugger */
 
 #ifndef _WIN32

@@ -13,6 +13,7 @@ extern int prowizard_search (unsigned char *in_data, int in_size);
 }
 #endif
 #endif
+void host_prowizard_search(unsigned char *data, int size);
 extern void moduleripper (void);
 
 #endif /* UAE_MODULERIPPER_H */

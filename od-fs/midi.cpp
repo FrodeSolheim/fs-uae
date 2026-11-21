@@ -568,3 +568,29 @@ int Midi_Parse(midi_direction_e direction, uint8_t *c)
 }
 
 #endif /* WITH_MIDI */
+
+#ifdef WITH_MIDIEMU
+
+#include "midiemu.h"
+
+const TCHAR *host_midiemu_output_name(int device)
+{
+	// FS-UAE does not reopen the MIDI emulation from a MIDI output device (midi_emu_reopen).
+	return _T("");
+}
+
+bool host_midiemu_rom_path(TCHAR *path, int size)
+{
+#ifdef _WIN32
+	const TCHAR fallback[] = _T("C:\\mt32-rom-data\\");
+	if (!path || size < (int)(sizeof fallback / sizeof(TCHAR))) {
+		return false;
+	}
+	_tcscpy(path, fallback);
+	return true;
+#else
+	return false;
+#endif
+}
+
+#endif /* WITH_MIDIEMU */

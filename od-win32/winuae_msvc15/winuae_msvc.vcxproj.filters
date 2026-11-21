@@ -13,6 +13,9 @@
       <UniqueIdentifier>{e76a708a-933c-4af4-bad2-0820d79b6a78}</UniqueIdentifier>
       <Extensions>cpp;c;cxx;rc;def;r;odl;idl;hpj;bat</Extensions>
     </Filter>
+    <Filter Include="shared">
+      <UniqueIdentifier>{0c4574df-1b56-4dbf-9c5d-ae72a561a007}</UniqueIdentifier>
+    </Filter>
     <Filter Include="prowizard">
       <UniqueIdentifier>{dab2f6c7-d741-4002-b0c9-566a1536642a}</UniqueIdentifier>
     </Filter>
@@ -103,6 +106,12 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\od-generic\prowizard_host.cpp">
+      <Filter>shared</Filter>
+    </ClCompile>
+    <ClCompile Include="..\midiemu_host.cpp">
+      <Filter>win32</Filter>
+    </ClCompile>
     <ClCompile Include="..\ahidsound_dsonly.cpp">
       <Filter>win32</Filter>
     </ClCompile>
@@ -110,6 +119,9 @@
       <Filter>win32</Filter>
     </ClCompile>
     <ClCompile Include="..\avioutput.cpp">
+      <Filter>win32</Filter>
+    </ClCompile>
+    <ClCompile Include="..\blkdev_host.cpp">
       <Filter>win32</Filter>
     </ClCompile>
     <ClCompile Include="..\blkdev_win32_ioctl.cpp">
@@ -187,6 +199,9 @@
     <ClCompile Include="..\serial_win32.cpp">
       <Filter>win32</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\serial.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
     <ClCompile Include="..\sounddep\sound.cpp">
       <Filter>win32</Filter>
     </ClCompile>
@@ -247,6 +262,9 @@
     <ClCompile Include="..\..\blkdev_cdimage.cpp">
       <Filter>common</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\bsdsocket_results.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\bsdsocket.cpp">
       <Filter>common</Filter>
     </ClCompile>
@@ -255,6 +273,9 @@
     </ClCompile>
     <ClCompile Include="..\..\cd32_fmv.cpp">
       <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\od-generic\blkdev_ioctl_common.cpp">
+      <Filter>shared</Filter>
     </ClCompile>
     <ClCompile Include="..\..\cda_play.cpp">
       <Filter>common</Filter>
@@ -319,6 +340,9 @@
     <ClCompile Include="..\..\enforcer.cpp">
       <Filter>common</Filter>
     </ClCompile>
+    <ClCompile Include="..\printer_host.cpp">
+      <Filter>win32</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\epsonprinter.cpp">
       <Filter>common</Filter>
     </ClCompile>
@@ -337,6 +361,9 @@
     <ClCompile Include="..\..\fsdb.cpp">
       <Filter>common</Filter>
     </ClCompile>
+    <ClCompile Include="..\win32_filesys.cpp">
+      <Filter>win32</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\fsusage.cpp">
       <Filter>common</Filter>
     </ClCompile>
@@ -349,6 +376,9 @@
     <ClCompile Include="..\..\gdb_protocol.cpp">
       <Filter>common</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\od-generic\gdb_transport.cpp">
+      <Filter>shared</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\gdb_server.cpp">
       <Filter>common</Filter>
     </ClCompile>
@@ -356,6 +386,9 @@
       <Filter>common</Filter>
     </ClCompile>
     <ClCompile Include="..\..\gfxutil.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\hardfile_cache.cpp">
       <Filter>common</Filter>
     </ClCompile>
     <ClCompile Include="..\..\hardfile.cpp">
@@ -394,8 +427,20 @@
     <ClCompile Include="..\..\rommgr.cpp">
       <Filter>common</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\sampler.cpp">
-      <Filter>common</Filter>
+    <ClCompile Include="..\..\od-generic\sampler_common.cpp">
+      <Filter>shared</Filter>
+    </ClCompile>
+    <ClCompile Include="..\zfile_host.cpp">
+      <Filter>win32</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sndboard_host.cpp">
+      <Filter>win32</Filter>
+    </ClCompile>
+    <ClCompile Include="..\dlopen_host.cpp">
+      <Filter>win32</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sampler.cpp">
+      <Filter>win32</Filter>
     </ClCompile>
     <ClCompile Include="..\..\sana2.cpp">
       <Filter>common</Filter>
@@ -532,6 +577,9 @@
     <ClCompile Include="..\..\inputrecord.cpp">
       <Filter>common</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\od-generic\statusbar.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\statusline.cpp">
       <Filter>common</Filter>
     </ClCompile>
@@ -622,6 +670,9 @@
     <ClCompile Include="..\..\newcpu_common.cpp">
       <Filter>common</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\rtg_convert.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\scp.cpp">
       <Filter>common</Filter>
     </ClCompile>
@@ -691,23 +742,62 @@
     <ClCompile Include="..\..\logging.cpp">
       <Filter>common</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\od-generic\midi_parser.cpp">
+      <Filter>shared</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\od-generic\console.cpp">
+      <Filter>shared</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\od-generic\clipboard.cpp">
-      <Filter>common</Filter>
+      <Filter>shared</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\od-generic\target_defaults.cpp">
+      <Filter>shared</Filter>
     </ClCompile>
     <ClCompile Include="..\..\od-generic\focus.cpp">
-      <Filter>common</Filter>
+      <Filter>shared</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\od-generic\avsync.cpp">
+      <Filter>shared</Filter>
     </ClCompile>
     <ClCompile Include="..\..\od-generic\screenshot_common.cpp">
-      <Filter>common</Filter>
+      <Filter>shared</Filter>
     </ClCompile>
     <ClCompile Include="..\..\od-generic\uaenet.cpp">
-      <Filter>common</Filter>
+      <Filter>shared</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\od-generic\input_defaults.cpp">
+      <Filter>shared</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\od-generic\input_hotkeys.cpp">
+      <Filter>shared</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\od-generic\keymap.cpp">
+      <Filter>shared</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\od-generic\hostcfg.cpp">
+      <Filter>shared</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\od-generic\hostcfg_compat.cpp">
+      <Filter>shared</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\od-generic\sound_common.cpp">
+      <Filter>shared</Filter>
     </ClCompile>
     <ClCompile Include="..\..\od-generic\mman.cpp">
-      <Filter>common</Filter>
+      <Filter>shared</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\od-generic\scaler.cpp">
+      <Filter>shared</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\od-generic\rtg_scaler.cpp">
+      <Filter>shared</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\od-generic\display_modes.cpp">
+      <Filter>shared</Filter>
     </ClCompile>
     <ClCompile Include="..\..\od-generic\registry_ini.cpp">
-      <Filter>common</Filter>
+      <Filter>shared</Filter>
     </ClCompile>
     <ClCompile Include="..\..\cdtvcr.cpp">
       <Filter>common</Filter>
@@ -965,9 +1055,6 @@
       <Filter>common</Filter>
     </ClCompile>
     <ClCompile Include="..\hq2x_d3d.cpp">
-      <Filter>win32</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\atonce.cpp">
       <Filter>win32</Filter>
     </ClCompile>
     <ClCompile Include="..\..\86box\video\vid_cl54xx.cpp">
@@ -1984,6 +2071,9 @@
     <ClCompile Include="..\..\86box\cpu\x87_timings.cpp">
       <Filter>86box\cpu</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\atonce.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\resources\35floppy.ico">
@@ -2064,11 +2154,21 @@
     <None Include="..\resources\xarcade-winuae.bmp">
       <Filter>win32\Resource Files</Filter>
     </None>
-    <None Include="..\resources\drive_click.wav" />
-    <None Include="..\resources\drive_snatch.wav" />
-    <None Include="..\resources\drive_spin.wav" />
-    <None Include="..\resources\drive_spinnd.wav" />
-    <None Include="..\resources\drive_startup.wav" />
+    <None Include="..\resources\drive_click.wav">
+      <Filter>win32\Resource Files</Filter>
+    </None>
+    <None Include="..\resources\drive_snatch.wav">
+      <Filter>win32\Resource Files</Filter>
+    </None>
+    <None Include="..\resources\drive_spin.wav">
+      <Filter>win32\Resource Files</Filter>
+    </None>
+    <None Include="..\resources\drive_spinnd.wav">
+      <Filter>win32\Resource Files</Filter>
+    </None>
+    <None Include="..\resources\drive_startup.wav">
+      <Filter>win32\Resource Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\resources\winuae.rc">
@@ -2076,10 +2176,69 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\include\hardfile_defaults.h" />
-    <ClInclude Include="..\..\include\cfgfile_mount.h" />
-    <ClInclude Include="..\..\include\cpu_selection.h" />
-    <ClInclude Include="..\resources\resource.h" />
+    <ClInclude Include="..\..\od-generic\console.h">
+      <Filter>shared</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\od-generic\input_defaults.h">
+      <Filter>shared</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\od-generic\keymap.h">
+      <Filter>shared</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\od-generic\hostcfg.def">
+      <Filter>shared</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\hostcfg.h">
+      <Filter>shared</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\od-generic\sound_common.h">
+      <Filter>shared</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\hardfile_defaults.h">
+      <Filter>shared</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\printer_host.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\serial_host.h">
+      <Filter>shared</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\od-generic\blkdev_ioctl_common.h">
+      <Filter>shared</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\od-generic\avsync.h">
+      <Filter>shared</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\od-generic\scaler.h">
+      <Filter>shared</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\od-generic\display_modes.h">
+      <Filter>shared</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\cpu_selection.h">
+      <Filter>shared</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\cfgfile_mount.h">
+      <Filter>shared</Filter>
+    </ClInclude>
+    <ClInclude Include="..\resources\resource.h">
+      <Filter>win32\Resource Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\sndboard_host.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\zfile_host.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\target_dlopen.h">
+      <Filter>shared</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\gdb_transport.h">
+      <Filter>shared</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\uae\caps.h">
+      <Filter>shared</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="..\shaders\VertexShader.hlsl">
@@ -2114,6 +2273,8 @@
     <CustomBuild Include="..\fpux64_80.asm">
       <Filter>nasm</Filter>
     </CustomBuild>
-    <CustomBuild Include="..\fpux86_80.asm" />
+    <CustomBuild Include="..\fpux86_80.asm">
+      <Filter>nasm</Filter>
+    </CustomBuild>
   </ItemGroup>
 </Project>

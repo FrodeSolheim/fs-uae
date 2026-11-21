@@ -15,6 +15,18 @@
 
 #define OPTIONSFILENAME _T("default.uae")
 
+// Optional host hooks that FS-UAE implements itself; od-generic/target_defaults.cpp supplies the
+// others.
+#define TARGET_HAS_MACHDEP_FREE
+#define TARGET_HAS_AUDIO_PULL
+#define TARGET_HAS_STATUSLINE_UPDATED
+#define TARGET_HAS_CUSTOM_FSDB
+#define TARGET_HAS_EXTERNAL_FILESYSTEM
+#define TARGET_HAS_KEYFILE
+#define TARGET_HAS_CPU_RATE
+#define TARGET_HAS_TOUCH_LIGHTPEN
+#define TARGET_HAS_DEBUG_INFO
+
 // Don't define this - will cause home dir to be prepended to config paths.
 // #define OPTIONS_IN_HOME
 

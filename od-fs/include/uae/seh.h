@@ -1,9 +1,8 @@
 /*
  * Structured exception handling
- * Copyright (C) 2014 Frode Solheim
  *
- * Licensed under the terms of the GNU General Public License version 2.
- * See the file 'COPYING' for full license text.
+ * Copyright (c) 2014 Frode Solheim
+ * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
 #ifndef UAE_SEH_H

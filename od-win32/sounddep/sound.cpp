@@ -14,6 +14,7 @@
 
 #include "options.h"
 #include "audio.h"
+#include "od-generic/sound_common.h"
 #include "events.h"
 #include "custom.h"
 #include "threaddep/thread.h"
@@ -195,7 +196,7 @@ int setup_sound (void)
 // FIXME: Maybe we can use this
 #endif
 float sound_sync_multiplier = 1.0;
-float scaled_sample_evtime_orig;
+
 extern float sampler_evtime;
 #ifdef FSUAE
 
@@ -216,9 +217,7 @@ void update_sound (float clk)
 {
 	if (!have_sound)
 		return;
-	scaled_sample_evtime_orig = clk * (float)CYCLE_UNIT * sound_sync_multiplier / sdp->obtainedfreq;
-	scaled_sample_evtime = scaled_sample_evtime_orig;
-	sampler_evtime = clk * CYCLE_UNIT * sound_sync_multiplier;
+	host_sound_update_clock(clk, sdp->obtainedfreq, sound_sync_multiplier);
 #ifdef FSUAE
 	// Here, so that the core's own recalculation of Paula's clock keeps the adjustment.
 	update_sound_rate_adjustment ();
@@ -231,6 +230,7 @@ extern frame_time_t vsynctimebase_orig;
 int avioutput_audio = 0;
 int avioutput_enabled = 0;
 int avioutput_nosoundsync = 1;
+int avioutput_requested = 0;
 #endif
 
 #define ADJUST_LIMIT 6
@@ -239,89 +239,28 @@ int avioutput_nosoundsync = 1;
 #ifdef FSUAE
 #else
 
-void sound_setadjust (float v)
+static void docorrection(struct sound_dp *s, int sndbuf, float sync, int granularity)
 {
-	float mult;
-
-	if (v < -ADJUST_LIMIT)
-		v = -ADJUST_LIMIT;
-	if (v > ADJUST_LIMIT)
-		v = ADJUST_LIMIT;
-
-	mult = (1000.0f + v);
-	if (avioutput_audio && avioutput_enabled && avioutput_nosoundsync)
-		mult = 1000.0f;
-	if (isvsync_chipset () || (avioutput_audio && avioutput_enabled && !currprefs.cachesize)) {
-		vsynctimebase = vsynctimebase_orig;
-		scaled_sample_evtime = scaled_sample_evtime_orig * mult / 1000.0f;
-	} else if (currprefs.cachesize || currprefs.m68k_speed != 0) {
-		vsynctimebase = (int)(vsynctimebase_orig * mult / 1000.0f);
-		scaled_sample_evtime = scaled_sample_evtime_orig;
-	} else {
-		vsynctimebase = (int)(vsynctimebase_orig * mult / 1000.0f);
-		scaled_sample_evtime = scaled_sample_evtime_orig;
-	}
-}
-
-
-static void docorrection (struct sound_dp *s, int sndbuf, float sync, int granulaty)
-{
-	static int tfprev;
-
-	s->avg_correct += sync;
-	s->cnt_correct++;
-
-	if (granulaty < 10)
-		granulaty = 10;
-
-	if (tfprev != timeframes) {
-		float skipmode, avgskipmode;
-		float avg = s->avg_correct / s->cnt_correct;
-
-		skipmode = sync / 100.0f;
-		avgskipmode = avg / (10000.0f / granulaty);
-
-		if ((0 || sound_debug) && (tfprev % 10) == 0) {
-			write_log (_T("%+05d S=%7.1f AVG=%7.1f (IMM=%7.1f + AVG=%7.1f = %7.1f)\n"), sndbuf, sync, avg, skipmode, avgskipmode, skipmode + avgskipmode);
+	static unsigned long previous_frame;
+	unsigned long old_frame = previous_frame;
+	float adjustment;
+	if (host_sound_correct(&s->avg_correct, &s->cnt_correct, &previous_frame,
+		timeframes, sync, granularity, &adjustment)) {
+		if (sound_debug && (old_frame % 10) == 0) {
+			float average = s->avg_correct / s->cnt_correct;
+			float immediate = sync / 100.0f;
+			float correction = average / (10000.0f / (granularity < 10 ? 10 : granularity));
+			write_log(_T("%+05d S=%7.1f AVG=%7.1f (IMM=%7.1f + AVG=%7.1f = %7.1f)\n"),
+				sndbuf, sync, average, immediate, correction, immediate + correction);
 		}
 		gui_data.sndbuf = sndbuf;
-
-		if (skipmode > ADJUST_LIMIT2)
-			skipmode = ADJUST_LIMIT2;
-		if (skipmode < -ADJUST_LIMIT2)
-			skipmode = -ADJUST_LIMIT2;
-
-		sound_setadjust (skipmode + avgskipmode);
-		tfprev = timeframes;
+		sound_setadjust(adjustment);
 	}
 }
 
-
-static float sync_sound (float m)
+static float sync_sound(float error)
 {
-	float skipmode;
-	if (isvsync ()) {
-
-		skipmode = (float)pow(m < 0 ? -m : m, EXPVS) / 2.0f;
-		if (m < 0)
-			skipmode = -skipmode;
-		if (skipmode < -ADJUST_VSSIZE)
-			skipmode = -ADJUST_VSSIZE;
-		if (skipmode > ADJUST_VSSIZE)
-			skipmode = ADJUST_VSSIZE;
-
-	} else if (1) {
-
-		skipmode = (float)pow(m < 0 ? -m : m, EXP) / 2.0f;
-		if (m < 0)
-			skipmode = -skipmode;
-		if (skipmode < -ADJUST_SIZE)
-			skipmode = -ADJUST_SIZE;
-		if (skipmode > ADJUST_SIZE)
-			skipmode = ADJUST_SIZE;
-	}
-
-	return skipmode;
+	return host_sound_sync(error, isvsync() != 0);
 }
 
 static void clearbuffer_ds (struct sound_data *sd)
@@ -622,13 +561,7 @@ void set_volume_sound_device (struct sound_data *sd, int volume, int mute)
 		wasapi_check_state(sd, hr);
 		if (FAILED (hr))
 			write_log (_T("AudioVolume->SetMasterVolume(1.0) failed: %08Xs\n"), hr);
-		if (volume < 100 && !mute) {
-			sd->softvolume = (int)((100.0f - volume) * 32768.0f / 100.0f);
-			if (sd->softvolume >= 32768)
-				sd->softvolume = -1;
-		}
-		if (mute || volume >= 100)
-			sd->softvolume = 0;
+		sd->softvolume = host_sound_gain(volume, mute != 0);
 	}
 
 #endif
@@ -2118,12 +2051,12 @@ static int open_sound (void)
 #else
 	sdp->softvolume = -1;
 	num = enumerate_sound_devices();
-	if (currprefs.win32_soundcard >= num)
-		currprefs.win32_soundcard = changed_prefs.win32_soundcard = 0;
+	if (currprefs.host_soundcard >= num)
+		currprefs.host_soundcard = changed_prefs.host_soundcard = 0;
 	if (num == 0)
 		return 0;
 	ch = get_audio_nativechannels(active_sound_stereo);
-	ret = open_sound_device (sdp, currprefs.win32_soundcard, size, currprefs.sound_freq, ch);
+	ret = open_sound_device (sdp, currprefs.host_soundcard, size, currprefs.sound_freq, ch);
 	if (!ret)
 		return 0;
 	currprefs.sound_freq = changed_prefs.sound_freq = sdp->freq;
@@ -2222,8 +2155,8 @@ int init_sound (void)
 #ifdef FSUAE
 #else
 	if (!started &&
-		(currprefs.win32_start_minimized && currprefs.win32_iconified_nosound ||
-		currprefs.win32_start_uncaptured && currprefs.win32_inactive_nosound))
+		(currprefs.win32_start_minimized && currprefs.host_iconified_nosound ||
+		currprefs.win32_start_uncaptured && currprefs.host_inactive_nosound))
 		pause_sound ();
 #endif
 	started = true;
@@ -2778,30 +2711,6 @@ static void finish_sound_buffer_ds (struct sound_data *sd, uae_u16 *sndbuffer)
 
 #endif
 
-static void channelswap (uae_s16 *sndbuffer, int len)
-{
-	int i;
-	for (i = 0; i < len; i += 2) {
-		uae_s16 t;
-		t = sndbuffer[i];
-		sndbuffer[i] = sndbuffer[i + 1];
-		sndbuffer[i + 1] = t;
-	}
-}
-static void channelswap6 (uae_s16 *sndbuffer, int len)
-{
-	int i;
-	for (i = 0; i < len; i += 6) {
-		uae_s16 t;
-		t = sndbuffer[i + 0];
-		sndbuffer[i + 0] = sndbuffer[i + 1];
-		sndbuffer[i + 1] = t;
-		t = sndbuffer[i + 4];
-		sndbuffer[i + 4] = sndbuffer[i + 5];
-		sndbuffer[i + 5] = t;
-	}
-}
-
 static bool send_sound_do(struct sound_data *sd)
 {
 	int type = sd->devicetype;
@@ -2829,12 +2738,8 @@ static void send_sound (struct sound_data *sd, uae_u16 *sndbuffer)
 		return;
 	if (sd->paused)
 		return;
-	if (sd->softvolume >= 0) {
-		uae_s16 *p = (uae_s16*)sndbuffer;
-		for (int i = 0; i < sd->sndbufsize / 2; i++) {
-			p[i] = p[i] * sd->softvolume / 32768;
-		}
-	}
+	host_sound_apply_gain((uae_s16 *)sndbuffer, sd->sndbufsize / 2, sd->softvolume);
+
 #ifdef WITH_OPENAL
 	if (type == SOUND_DEVICE_AL) {
 		finish_sound_buffer_al (sd, sndbuffer);
@@ -3018,11 +2923,11 @@ static void handle_reset(void)
 		if (sdp->resetcnt <= 0) {
 			write_log(_T("Reopen sound failed. Retrying with default device.\n"));
 			close_sound();
-			int type = sound_devices[currprefs.win32_soundcard]->type;
+			int type = sound_devices[currprefs.host_soundcard]->type;
 			int max = enumerate_sound_devices();
 			for (int i = 0; i < max; i++) {
 				if (sound_devices[i]->alname == NULL && sound_devices[i]->type == type) {
-					currprefs.win32_soundcard = changed_prefs.win32_soundcard = i;
+					currprefs.host_soundcard = changed_prefs.host_soundcard = i;
 					if (open_sound())
 						return;
 					break;
@@ -3052,17 +2957,12 @@ void finish_sound_buffer (void)
 		return;
 	}
 
-	if (currprefs.turbo_emulation) {
-		paula_sndbufpt = paula_sndbuffer;
-		return;
-	}
-	if (currprefs.sound_stereo_swap_paula) {
-		if (get_audio_nativechannels(active_sound_stereo) == 2 || get_audio_nativechannels(active_sound_stereo) == 4)
-			channelswap((uae_s16*)paula_sndbuffer, bufsize / 2);
-		else if (get_audio_nativechannels(active_sound_stereo) >= 6)
-			channelswap6((uae_s16*)paula_sndbuffer, bufsize / 2);
-	}
+	bufsize = host_sound_prepare((uae_s16 *)paula_sndbuffer, bufsize,
+		get_audio_nativechannels(active_sound_stereo), currprefs.sound_stereo_swap_paula,
+		currprefs.turbo_emulation);
 	paula_sndbufpt = paula_sndbuffer;
+	if (!bufsize)
+		return;
 
 #ifdef AVIOUTPUT
 	if (avioutput_audio) {
@@ -3655,17 +3555,9 @@ void sound_mute (int newmute)
 
 void sound_volume (int dir)
 {
-	currprefs.sound_volume_master -= dir * 10;
-	currprefs.sound_volume_cd -= dir * 10;
-	if (currprefs.sound_volume_master < 0)
-		currprefs.sound_volume_master = 0;
-	if (currprefs.sound_volume_master > 100)
-		currprefs.sound_volume_master = 100;
+	currprefs.sound_volume_master = host_sound_volume_step(currprefs.sound_volume_master, dir);
+	currprefs.sound_volume_cd = host_sound_volume_step(currprefs.sound_volume_cd, dir);
 	changed_prefs.sound_volume_master = currprefs.sound_volume_master;
-	if (currprefs.sound_volume_cd < 0)
-		currprefs.sound_volume_cd = 0;
-	if (currprefs.sound_volume_cd > 100)
-		currprefs.sound_volume_cd = 100;
 	changed_prefs.sound_volume_cd = currprefs.sound_volume_cd;
 	set_volume (currprefs.sound_volume_master, sdp->mute);
 	config_changed = 1;

@@ -237,8 +237,8 @@ void amiga_add_rtg_resolution(int width, int height)
 void amiga_map_cd_drives(int enable)
 {
     write_log("setting automount_cddrives to %d\n", enable != 0);
-    currprefs.win32_automount_cddrives = (enable != 0);
-    changed_prefs.win32_automount_cddrives = (enable != 0);
+    currprefs.host_automount_cddrives = (enable != 0);
+    changed_prefs.host_automount_cddrives = (enable != 0);
 }
 
 void amiga_set_deterministic_mode()

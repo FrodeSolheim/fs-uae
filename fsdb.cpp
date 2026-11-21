@@ -225,6 +225,8 @@ a_inode *fsdb_lookup_aino_aname (a_inode *base, const TCHAR *aname)
 		xfree (s);
 	}
 	fclose (f);
+	if (currprefs.filesys_custom_uaefsdb && (base->volflags & MYVOLUMEINFO_STREAMS))
+		return custom_fsdb_lookup_aino_aname (base, aname);
 	return 0;
 }
 
@@ -253,6 +255,8 @@ a_inode *fsdb_lookup_aino_nname (a_inode *base, const TCHAR *nname)
 	}
 	xfree (s);
 	fclose (f);
+	if (currprefs.filesys_custom_uaefsdb && (base->volflags & MYVOLUMEINFO_STREAMS))
+		return custom_fsdb_lookup_aino_nname (base, nname);
 	return 0;
 }
 
@@ -348,10 +352,13 @@ void fsdb_dir_writeback (a_inode *dir)
 		else
 			changes_needed = 1;
 	}
-	if (! entries_needed) {
-		kill_fsdb (dir);
-		TRACE ((_T("fsdb removed\n")));
-		return;
+	if (!entries_needed) {
+		/* Uncached children may still have live database entries. Keep them
+		 * until fsdb_clean_dir can prune the records against the host. */
+		f = get_fsdb(dir, _T("rb"));
+		if (!f)
+			return;
+		fclose(f);
 	}
 
 	if (! changes_needed) {

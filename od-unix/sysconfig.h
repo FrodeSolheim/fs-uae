@@ -31,9 +31,9 @@
 #define MAX_AMIGAMONITORS 4
 #define MAX_AMIGADISPLAYS 4
 #define NATMEM_OFFSET natmem_offset
-/* JIT direct is tested on ARM64 only (macOS and Linux). The x86-64 fault
- * handler builds but hasn't been run on a Unix x86-64 host yet. */
-#if !defined(__aarch64__)
+/* Direct JIT fault recovery is supported on ARM64 and Linux/macOS x86-64.
+ * Other Unix targets retain indirect memory access. */
+#if !defined(__aarch64__) && !((defined(__linux__) || defined(UAE_HOST_DARWIN)) && defined(__x86_64__))
 #define NATMEM_NO_JIT_DIRECT 1
 #endif
 #define PACKAGE_STRING "WinUAE Unix"
@@ -262,5 +262,7 @@ static inline long uae_unix_timezone_offset(void)
 #define UAESCSI_FROGASPI 5
 
 #define DRIVE_CDROM 5
+
+#define TARGET_HAS_CUSTOM_FSDB 1
 
 #endif /* WINUAE_OD_UNIX_SYSCONFIG_H */

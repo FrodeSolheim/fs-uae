@@ -10,17 +10,19 @@ export PREFIX="$BUILD_ENV_PREFIX"
 
 export REINSTALL="$FSENV_REINSTALL"
 
-# Runs cmake to configure a package (arguments: cmake's). On Linux, with the prefix as the install
-# prefix, so that the installed .pc files (and the rpath in sdl3.pc) point to the env prefix and
-# builds find the packages with pkg-config alone (the SDL3 overlay for development builds, see
-# od-fs/configure). Without it, they say /usr/local. In cross mode (setup --host), also with the
+# Runs cmake to configure a package (arguments: cmake's). On Linux and macOS, with the prefix as the
+# install prefix, so that the installed .pc files (and the rpath in sdl3.pc) point to the env prefix
+# and builds find the packages with pkg-config alone (the SDL3 overlay for development builds, see
+# od-fs/configure). Without it, they say /usr/local: on macOS, FS-UAE then linked with
+# -L/usr/local/lib ahead of the prefix, which on an Intel Mac with Homebrew (such as GitHub's
+# runner) linked Homebrew's libraries, built for a newer macOS than the dist's minimum. The dists
+# lose the absolute rpath (scripts/standalone.py). In cross mode (setup --host), also with the
 # CMake toolchain file for the triplet.
-# REVIEW: Not on macOS (not tested there; sdl3.pc would then add the prefix as an rpath).
 package_cmake_configure() {
     if [ -n "$BUILD_ENV_HOST" ]; then
         cmake -DCMAKE_TOOLCHAIN_FILE="$BUILD_ENV_CMAKE_TOOLCHAIN" \
             -DCMAKE_INSTALL_PREFIX="$PACKAGE_PREFIX" "$@"
-    elif [ "$SYSTEM_OS" = "Linux" ]; then
+    elif [ "$SYSTEM_OS" = "Linux" ] || [ "$SYSTEM_OS" = "macOS" ]; then
         cmake -DCMAKE_INSTALL_PREFIX="$PACKAGE_PREFIX" "$@"
     else
         cmake "$@"

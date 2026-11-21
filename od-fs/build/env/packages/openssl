@@ -27,7 +27,17 @@ OPTIONS="shared no-ssl3 no-weak-ssl-ciphers"
 # EDIT: Fixed via the use of the linux32 program
 # ./Configure linux-x86 $OPTIONS --prefix=$PREFIX --openssldir=$PREFIX --libdir=lib
 # else
-./config $OPTIONS --prefix=$PREFIX --openssldir=$PREFIX/ssl --libdir=lib 
+# On macOS, the target for the prefix's architecture (this shell's), not the one config guesses:
+# config asks uname from perl, and an arm64-only perl (Homebrew's, first in PATH on an arm64 Mac
+# or runner) runs natively even when the prefix is built under Rosetta, so config chose
+# darwin64-arm64 for the x86_64 prefix, and Python then built without _ssl and _hashlib.
+if [ "$SYSTEM_OS_ARCH" = "macOS_x86-64" ]; then
+    ./Configure darwin64-x86_64 $OPTIONS --prefix=$PREFIX --openssldir=$PREFIX/ssl --libdir=lib
+elif [ "$SYSTEM_OS_ARCH" = "macOS_ARM64" ]; then
+    ./Configure darwin64-arm64 $OPTIONS --prefix=$PREFIX --openssldir=$PREFIX/ssl --libdir=lib
+else
+    ./config $OPTIONS --prefix=$PREFIX --openssldir=$PREFIX/ssl --libdir=lib
+fi
 # fi
 make
 make install

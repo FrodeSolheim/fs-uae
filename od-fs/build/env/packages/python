@@ -45,6 +45,32 @@ cd Python-$PACKAGE_VERSION
 make
 make install
 
+# The modules a dist needs (REQUIRED_MODULES in od-fs/build/dist/check.py). Python's build leaves
+# out a module whose library configure did not find or could not link, or that did not import
+# after the build, with only a line in its output, so check here: otherwise the prefix is made (and
+# cached) without it, and only the dist check finds out. On failure, show why from config.log. Not
+# in cross mode, where the prefix's Python cannot run.
+if [ -z "$BUILD_ENV_HOST" ]; then
+    missing=
+    for module in _ctypes _hashlib zlib; do
+        if ! "$PACKAGE_PREFIX/bin/python${PACKAGE_VERSION%.*}" -c "import $module"; then
+            missing="$missing $module"
+        fi
+    done
+    if [ -n "$missing" ]; then
+        echo "Error: the Python in $PACKAGE_PREFIX has no$missing" >&2
+        echo "What configure found for them (config.log):" >&2
+        for module in $missing; do
+            grep -n -A1 "checking for stdlib extension module $module\$" config.log >&2 || true
+        done
+        echo "The OpenSSL checks in config.log:" >&2
+        grep -n -A12 -E "Trying link with OPENSSL|checking whether OpenSSL provides" \
+            config.log >&2 || true
+        ls -l build/lib.*/*_failed.so >&2 2> /dev/null || true
+        exit 1
+    fi
+fi
+
 # --------------------------------------------------------------------------------------------------
 . "$PACKAGE_POST"
 # --------------------------------------------------------------------------------------------------

@@ -10,7 +10,7 @@ set -e
 # FIXME: plutosvg for rendering icons/smileys (etc)?
 
 PACKAGE=SDL3_ttf-3.2.2
-PACKAGE_REVISION=1
+PACKAGE_REVISION=2
 PACKAGE_URL=https://www.libsdl.org/projects/SDL_ttf/release/$PACKAGE.tar.gz
 PACKAGE_CHECKSUM=63547d58d0185c833213885b635a2c0548201cc8f301e6587c0be1a67e1e045d
 

@@ -198,6 +198,19 @@ for package in $BUILD_PACKAGES; do
     "$PACKAGE_DEPENDENCY" "$package"
 done
 
+# On macOS every package comes from the prefix, so a .pc file that points to /usr/local or
+# /opt/homebrew (such as CMake's default install prefix) is a mistake: builds then search
+# Homebrew's libraries ahead of the prefix's, where Homebrew is installed.
+if [ "$SYSTEM_OS" = "macOS" ]; then
+    outside=$(grep -l -E "/usr/local|/opt/homebrew" "$BUILD_ENV_PREFIX"/lib/pkgconfig/*.pc \
+        2> /dev/null || true)
+    if [ -n "$outside" ]; then
+        echo "Error: .pc files in the prefix point to /usr/local or /opt/homebrew:" >&2
+        grep -n -E "/usr/local|/opt/homebrew" $outside >&2
+        exit 1
+    fi
+fi
+
 rm -Rf "$BUILD_ENV_PREFIX/_build"
 
 cp "$BUILD_ENV_DIR/scripts/bashrc" "$BUILD_ENV_PREFIX/.bashrc"

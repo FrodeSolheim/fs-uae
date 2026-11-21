@@ -7,7 +7,7 @@ set -e
 # Dependency: wayland?
 
 PACKAGE=SDL3-3.4.20
-PACKAGE_REVISION=1
+PACKAGE_REVISION=2
 CHECKSUM=f3bb06f55bed9557227a700af2ea62e49497ebdf58037732a731a5fb3ef8581f
 
 # --------------------------------------------------------------------------------------------------

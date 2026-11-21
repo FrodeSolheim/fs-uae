@@ -270,18 +270,19 @@ jobs:
           - triplet: arm64-apple-darwin
             arch: arm64
             runner: macos-15
-          # x86_64 is made on both an Intel runner and an arm64 runner (with the env prefix built
-          # under Rosetta and FS-UAE cross-compiled, as with make dist-macos-x86_64 on an arm64
-          # Mac) until they have been timed with a cold and a warm env cache; then the slower one
-          # goes. Their caches are separate (the key has the runner). The arm64 runner's archive is
-          # kept with "rosetta-" in front of its name.
           - triplet: x86_64-apple-darwin
             arch: x86_64
             runner: macos-15-intel
-          - triplet: x86_64-apple-darwin
-            arch: x86_64
-            runner: macos-15
-            artifact-prefix: rosetta-
+          # Disabled while GitHub has Intel runners, which are much faster: x86_64 on an arm64
+          # runner, with the env prefix built under Rosetta (about 2 hours from a cold cache) and
+          # FS-UAE cross-compiled, as with make dist-macos-x86_64 on an arm64 Mac. Its cache is
+          # separate (the key has the runner), and its archive is kept with "rosetta-" in front of
+          # its name and left out of the release and the dev pre-release. Enabled, its failure
+          # alone also stops those jobs.
+          # - triplet: x86_64-apple-darwin
+          #   arch: x86_64
+          #   runner: macos-15
+          #   artifact-prefix: rosetta-
     runs-on: ${{ matrix.runner }}
     env:
       TRIPLET: ${{ matrix.triplet }}
@@ -479,8 +480,6 @@ jobs:
   release:
     name: Draft release
     if: startsWith(github.ref, 'refs/tags/v')
-    # REVIEW: macos includes the x86_64 dist made under Rosetta, which is left out of the release:
-    # while both x86_64 variants are built, a failure of that one alone also stops the release.
     needs: [linux, windows, macos, source]
     runs-on: ubuntu-24.04
     # Only this job and the dev-release job can write to the repository (its releases).
@@ -507,7 +506,7 @@ jobs:
           path: ${{ runner.temp }}/artifacts
 
       # The archive of each platform and the source tarball, with SHA256SUMS. The x86_64 .dmg made
-      # under Rosetta (the artifact named rosetta-FS-UAE-...) is left out.
+      # under Rosetta (the artifact named rosetta-FS-UAE-..., when it is made) is left out.
       - name: Gather the release files
         env:
           VERSION: ${{ steps.version.outputs.version }}
@@ -536,8 +535,6 @@ jobs:
     if: >-
       github.event_name == 'push' && github.ref == 'refs/heads/main'
       && github.repository == 'FrodeSolheim/fs-uae'
-    # REVIEW: as for the release job, a failure of the x86_64 dist made under Rosetta, which is left
-    # out, also stops this job while both x86_64 variants are built.
     needs: [linux, windows, macos]
     runs-on: ubuntu-24.04
     # Only this job and the release job can write to the repository (its releases and tags).
@@ -575,7 +572,7 @@ jobs:
         with:
           path: ${{ runner.temp }}/artifacts
 
-      # The archive of each platform (not the x86_64 .dmg made under Rosetta) under its name in the
+      # The archive of each platform (not an x86_64 .dmg made under Rosetta) under its name in the
       # pre-release, with SHA256SUMS.
       - name: Gather the files
         env:

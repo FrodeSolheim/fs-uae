@@ -786,11 +786,12 @@ else
 libuae_a_SOURCES += od-unix/mman.cpp
 endif
 
-# Native library loaders (uae_dlopen and so on, used by dlopen.cpp)
+# Native library loaders (uae_dlopen and so on, used by dlopen.cpp). od-unix/dlopen.cpp includes
+# its own od-unix/target_dlopen.h, not include/target_dlopen.h (whose inline stub would clash).
 if WINDOWS
 libuae_a_SOURCES += od-win32/dlopen_host.cpp
 else
-libuae_a_SOURCES += od-unix/dlopen.cpp
+libuae_a_SOURCES += od-unix/dlopen.cpp od-unix/target_dlopen.h
 endif
 
 # CD drive discovery (blkdev.cpp)

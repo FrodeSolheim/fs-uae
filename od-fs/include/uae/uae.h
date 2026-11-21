@@ -104,6 +104,11 @@ int amiga_enable_parallel_port(const char *parallel_name);
 void amiga_set_save_image_dir(const char *path);
 void amiga_set_module_ripper_dir(const char *path);
 
+// The host's ROM folder, which fetch_rompath returns (WinUAE's KickstartPath), as opposed to the
+// configuration's rom_path. Until it is set, fetch_rompath returns an empty path (the working
+// directory).
+void amiga_set_rom_dir(const char *path);
+
 // int amiga_set_min_first_line(int line, int ntsc);
 
 enum {

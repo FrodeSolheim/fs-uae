@@ -9,10 +9,13 @@
 
 // FIXME: Maybe call this fs.cpp (corresponding to win32.cpp)
 
+#include <string>
+
 char *g_libamiga_save_image_path = NULL;
 
 static const char **g_native_library_dirs;
 static char *g_module_ripper_dir = NULL;
+static std::string g_rom_dir;
 
 // FIXME:
 extern int relativepaths;
@@ -247,13 +250,12 @@ void fetch_datapath (TCHAR *out, int size)
 	fetch_path (NULL, out, size);
 }
 
+// Like WinUAE's KickstartPath: the host's ROM folder, not the configuration's rom_path (which is
+// for ROM file names in the configuration). The core finds ROMs by name here (MT-32, flash ROMs,
+// CPU board and graphics card ROMs).
 void fetch_rompath(TCHAR *out, int size)
 {
-	int k = 0;
-	while (k < (MAX_PATHS - 1) && currprefs.path_rom.path[k + 1][0]) {
-		k += 1;
-	}
-	uae_tcslcpy(out, currprefs.path_rom.path[k], size);
+	uae_tcslcpy(out, g_rom_dir.c_str(), size);
 }
 
 void fetch_videopath(TCHAR* out, int size)
@@ -278,6 +280,15 @@ void amiga_set_module_ripper_dir(const char *path)
 {
 	write_log("amiga_set_module_ripper_dir %s\n", path);
 	g_module_ripper_dir = strdup(path);
+}
+
+void amiga_set_rom_dir(const char *path)
+{
+	write_log("ROM folder: %s\n", path);
+	g_rom_dir = path;
+	if (!g_rom_dir.empty() && g_rom_dir.back() != '/' && g_rom_dir.back() != FSDB_DIR_SEPARATOR) {
+		g_rom_dir += FSDB_DIR_SEPARATOR;
+	}
 }
 
 } // extern "C"

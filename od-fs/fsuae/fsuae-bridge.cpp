@@ -4,13 +4,36 @@
 #include <stdlib.h>
 #include <uae/uae.h>
 
+#include <string>
+
+#include "fs/path.h"
 #include "fsemu-audio.h"
 #include "fsuae-events.h"
+#include "fsuae-init.h"
 #include "libuae.h"
 
 static void fsuae_bridge_gui_message(const char *message)
 {
     SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION, "GUI message: %s", message);
+}
+
+// The first of the ROM folder's spellings that exists (the names the Python path service also
+// accepts), else Data/ROM.
+static std::string fsuae_bridge_rom_dir(void)
+{
+    std::string first;
+    for (const char *name : {"ROM", "ROMs", "rom", "roms"}) {
+        char *path = FS_JoinPath(fsuae_init_get_data_dir(), name);
+        std::string dir = path;
+        SDL_free(path);
+        if (FS_IsDirectory(dir.c_str())) {
+            return dir;
+        }
+        if (first.empty()) {
+            first = dir;
+        }
+    }
+    return first;
 }
 
 static void fsuae_bridge_write_log(const char *message)
@@ -26,6 +49,8 @@ void fsuae_bridge_configure_libuae(void)
     libuae_cb_write_log = fsuae_bridge_write_log;
 
     amiga_init();
+
+    amiga_set_rom_dir(fsuae_bridge_rom_dir().c_str());
 
     // libuae_set_plugin_dir();
 

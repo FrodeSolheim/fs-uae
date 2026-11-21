@@ -30,6 +30,16 @@ dist-hook:
 	  fi; \
 	fi
 	echo '$(FSUAE_VERSION)' > $(distdir)/.tarball-version
+	for dir in $(DIST_SOURCE_DIRS); do \
+	  find "$(distdir)/$$dir" \( -name '*.o' -o -name '*.a' -o -name .dirstamp \) -type f \
+	    -exec rm -f {} + || exit 1; \
+	  find "$(distdir)/$$dir" -name .deps -type d -prune -exec rm -rf {} + || exit 1; \
+	done
+
+# Directories distributed whole (EXTRA_DIST; add new ones here). In a VPATH build, distdir also
+# copies the build directory's directory of the same name, with its objects, which a build from the
+# tarball would then take for up to date (found through VPATH) and fail to link.
+DIST_SOURCE_DIRS = 86box od-fs/3rdparty/lhafile od-fs/3rdparty/mt32emu
 
 WARNINGS =
 
@@ -1354,7 +1364,7 @@ endif
 # 86box -----------------------------------------------------------------------
 
 # The 86Box sources include many headers which are not listed individually;
-# distribute the whole directory.
+# distribute the whole directory (also listed in DIST_SOURCE_DIRS).
 EXTRA_DIST += 86box
 #
 # Imported 86Box code (replaces the old pcem library). It is third-party code,
@@ -2050,7 +2060,7 @@ libmt32emu_a_SOURCES = \
 	od-fs/3rdparty/mt32emu/src/TVF.cpp \
 	od-fs/3rdparty/mt32emu/src/TVP.cpp \
 	od-fs/3rdparty/mt32emu/src/VersionTagging.cpp
-# Headers are not listed individually above
+# Headers are not listed individually above (the directory is also in DIST_SOURCE_DIRS)
 EXTRA_DIST += od-fs/3rdparty/mt32emu
 
 #	od-fs/3rdparty/mt32emu/src/srchelper/SamplerateAdapter.cpp
@@ -2062,7 +2072,7 @@ EXTRA_DIST += od-fs/3rdparty/mt32emu
 # executable and registered as the embedded Python module lzhlib
 fs_uae_SOURCES += \
 	od-fs/3rdparty/lhafile/lzhlib.c
-# License, readme and tests
+# License, readme and tests (the directory is also in DIST_SOURCE_DIRS)
 EXTRA_DIST += od-fs/3rdparty/lhafile
 
 # --------------------------------------------------------------------------------------------------

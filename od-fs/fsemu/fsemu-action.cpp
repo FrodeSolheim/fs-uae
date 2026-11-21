@@ -3,6 +3,8 @@
 
 #include <stdio.h>
 
+#include "fs/asyncqueue.h"
+#include "fs/log.h"
 #include "fsemu-control.h"
 #include "fsemu-emuthread.h"
 #include "fsemu-glib.h"
@@ -14,7 +16,7 @@ int fsemu_action_log_level = SDL_LOG_PRIORITY_INFO;
 
 static struct {
     bool initialized;
-    GAsyncQueue *posted_to_main;
+    FS_AsyncQueue *posted_to_main;
     // To be able to handle multiple events in the same update call and only
     // reconfigure once.
     bool reconfigure_input;
@@ -180,7 +182,8 @@ void fsemu_action_process_command_in_main(fsemu_action_t action, fsemu_action_st
 void fsemu_action_post_to_main(int action)
 {
     fsemu_emuthread_assert_current();
-    g_async_queue_push(fsemu_action.posted_to_main, GINT_TO_POINTER(action));
+    // Never FSEMU_ACTION_NONE (0): the queue refuses it as a NULL item.
+    FS_PushAsyncQueue(fsemu_action.posted_to_main, (void *)(intptr_t)action);
 }
 
 void fsemu_action_update(void)
@@ -189,8 +192,8 @@ void fsemu_action_update(void)
         return;
     }
     void *data;
-    while ((data = g_async_queue_try_pop(fsemu_action.posted_to_main))) {
-        int action = GPOINTER_TO_INT(data);
+    while ((data = FS_TryPopAsyncQueue(fsemu_action.posted_to_main))) {
+        int action = (int)(intptr_t)data;
         // Maybe process in a different function? Kind of mixing two types of
         // processing here, so maybe not a good idea?
         fsemu_action_process_command_in_main(action, 1);
@@ -203,7 +206,7 @@ void fsemu_action_update(void)
 
 static void fsemu_action_quit(void)
 {
-    g_async_queue_unref(fsemu_action.posted_to_main);
+    FS_DestroyAsyncQueue(fsemu_action.posted_to_main);
     fsemu_action.posted_to_main = NULL;
 }
 
@@ -212,6 +215,12 @@ void fsemu_action_init(void)
     if (FSEMU_MODULE_INIT(action)) {
         return;
     }
-    fsemu_action.posted_to_main = g_async_queue_new();
+    fsemu_action.posted_to_main = FS_CreateAsyncQueue();
+    if (fsemu_action.posted_to_main == NULL) {
+        SDL_LogCritical(SDL_LOG_CATEGORY_APPLICATION, "Could not create the action queue: %s",
+                        SDL_GetError());
+        FS_FlushLog();
+        abort();
+    }
     fsemu_action.action_names = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, NULL);
 }

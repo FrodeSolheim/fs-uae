@@ -119,14 +119,14 @@ int fsemu_video_vsync_frequency(void);
 // before it is measured. Written on the drawing side, read on any thread.
 double fsemu_video_get_host_refresh_interval_ns(void);
 
-// Takes in the next slice of an emulated frame, waiting up to timeout_ns for one (0: only if one
-// has come), and hands it to fsapp as the emulation surface's streamed content: at the first slice
-// of a frame not begun, the frame is begun with the upload region (the crop with a fixed crop
-// policy, the whole frame with auto-crop, the frame's crop policy as its first slice is marked);
-// each slice's rows of the region are
-// uploaded; at the last slice (frame ready) the frame is committed with its source rectangle and
-// picture rectangle. Returns true if it took one in. Drawing side (fsemu's pacer's wait hook).
-bool fsemu_video_work(int64_t timeout_ns);
+// Takes in the next slice of an emulated frame, waiting up to timeout_ms milliseconds for one (0:
+// only if one has come), and hands it to fsapp as the emulation surface's streamed content: at the
+// first slice of a frame not begun, the frame is begun with the upload region (the crop with a
+// fixed crop policy, the whole frame with auto-crop, the frame's crop policy as its first slice is
+// marked); each slice's rows of the region are uploaded; at the last slice (frame ready) the frame
+// is committed with its source rectangle and picture rectangle. Returns true if it took one in.
+// Drawing side (fsemu's pacer's wait hook).
+bool fsemu_video_work(int32_t timeout_ms);
 
 // The picture in this frame, from fsemu's drawing hook (drawing side, before drawing below):
 // refits the content shown to the emulation surface's rectangle in this frame under the fit
@@ -157,10 +157,10 @@ void fsemu_video_set_frame_swapped(int frame, int64_t swapped_ns);
 // start gate of the frame two later (drawing side).
 void fsemu_video_set_frame_vsync(int frame, int64_t vsync_ns, int64_t vsync_predicted_ns);
 
-// From the main thread (the drawing side). Waits up to timeout_ns for a slice (0: only if one has
-// come; -1: until one comes).
+// From the main thread (the drawing side). Waits up to timeout_ms milliseconds for a slice (0: only
+// if one has come; -1: until one comes).
 
-fsemu_video_frame_t *fsemu_video_get_frame(int64_t timeout_ns);
+fsemu_video_frame_t *fsemu_video_get_frame(int32_t timeout_ms);
 
 // These functions can be called from other threads (i.e. emulation threads)
 

@@ -9,6 +9,8 @@
 #include "custom.h"
 #include "disk.h"
 #include "events.h"
+#include "fs/asyncqueue.h"
+#include "fs/log.h"
 #include "fsemu-glib.h"
 #include "gui.h"
 #include "inputdevice.h"
@@ -29,7 +31,7 @@
 
 static struct {
     // GMutex *mutex;
-    GAsyncQueue *main_queue;
+    FS_AsyncQueue *main_queue;
 } module;
 
 void keyboard_settrans(void);
@@ -164,7 +166,13 @@ int amiga_init(void)
            fsemu_lld((int64_t)SDL_NS_TO_US((int64_t)SDL_GetTicksNS() - began_ns)));
 #endif
 
-    module.main_queue = g_async_queue_new();
+    module.main_queue = FS_CreateAsyncQueue();
+    if (module.main_queue == NULL) {
+        SDL_LogCritical(SDL_LOG_CATEGORY_APPLICATION, "Could not create the main queue: %s",
+                        SDL_GetError());
+        FS_FlushLog();
+        abort();
+    }
 
     uae_register_main_thread();
     // Also sets syncbase, the clock's ticks per second.
@@ -814,7 +822,7 @@ void uae_main_free_event(int event, void *data)
 bool uae_main_next_event(int *event, void **data, int* intdata)
 {
     uae_main_event_t *main_event =
-        (uae_main_event_t *) g_async_queue_try_pop(module.main_queue);
+        (uae_main_event_t *) FS_TryPopAsyncQueue(module.main_queue);
     if (main_event == NULL) {
         *event = 0;
         *data = NULL;
@@ -836,7 +844,7 @@ void uae_main_post_event(int event, void *data, int intdata)
     main_event->event = event;
     main_event->data = data;
     main_event->intdata = intdata;
-    g_async_queue_push(module.main_queue, main_event);
+    FS_PushAsyncQueue(module.main_queue, main_event);
     // printf("Posted main event %d (data: %p)\n", event, data);
 }
 

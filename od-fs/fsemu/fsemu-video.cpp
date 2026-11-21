@@ -5,13 +5,13 @@
 #include "fsapp-frame.h"
 #include "fsapp-surface.h"
 #include "fsapp-time.h"
+#include "fs/asyncqueue.h"
+#include "fs/log.h"
 #include "fs/trace.h"
-#include "fsapp-tsan.h"
 #include "fsapp-util.h"
 #include "fsemu-emuthread.h"
 #include "fsemu-frame.h"
 #include "fsemu-frameinfo.h"
-#include "fsemu-glib.h"
 #include "fsemu-layout.h"
 #include "fsemu-mainloop.h"
 #include "fsemu-module.h"
@@ -62,7 +62,7 @@ static struct {
 
 } fsemu_video;
 
-static GAsyncQueue *fsemu_video_frame_queue;
+static FS_AsyncQueue *fsemu_video_frame_queue;
 
 fsemu_video_format_t fsemu_video_format(void)
 {
@@ -312,9 +312,9 @@ static void fsemu_video_take_in_slice(fsemu_video_frame_t *frame)
     }
 }
 
-bool fsemu_video_work(int64_t timeout_ns)
+bool fsemu_video_work(int32_t timeout_ms)
 {
-    fsemu_video_frame_t *frame = fsemu_video_get_frame(timeout_ns);
+    fsemu_video_frame_t *frame = fsemu_video_get_frame(timeout_ms);
     if (frame == NULL) {
         return false;
     }
@@ -450,9 +450,7 @@ void fsemu_video_post_frame(fsemu_video_frame_t *frame)
         frame->flags |= FSEMU_FRAME_FLAG_AUTO_CROP;
     }
 
-    g_async_queue_lock(fsemu_video_frame_queue);
-    // GAsyncQueue's lock is not seen by ThreadSanitizer (fsapp-tsan.h).
-    FSAPP_TSAN_ACQUIRE(fsemu_video_frame_queue);
+    FS_LockAsyncQueue(fsemu_video_frame_queue);
 
     static int last_skipped_frame;
 
@@ -462,26 +460,22 @@ void fsemu_video_post_frame(fsemu_video_frame_t *frame)
         //        frame_number,
         //        fsemu_video.last_posted_frame,
         //        fsemu_video.last_retrieved_frame);
-        GList *keep = NULL;
+        std::vector<fsemu_video_frame_t *> keep;
         fsemu_video_frame_t *f;
-        while (
-            (f = (fsemu_video_frame_t *)g_async_queue_try_pop_unlocked(fsemu_video_frame_queue))) {
+        while ((f = (fsemu_video_frame_t *)FS_TryPopAsyncQueueUnlocked(fsemu_video_frame_queue))) {
             if (f->number == fsemu_video.last_retrieved_frame) {
                 // Need to keep this
-                keep = g_list_append(keep, f);
+                keep.push_back(f);
             } else {
                 fsemu_video_finalize_and_free_frame(f);
             }
         }
-        GList *item = g_list_last(keep);
-        while (item) {
-            g_async_queue_push_front_unlocked(fsemu_video_frame_queue, item->data);
-            item = item->prev;
+        for (size_t i = keep.size(); i > 0; i--) {
+            FS_PushFrontAsyncQueueUnlocked(fsemu_video_frame_queue, keep[i - 1]);
         }
-        g_list_free(keep);
         // fsapp_assert(frame);
 
-        int from = MAX(last_skipped_frame, fsemu_video.last_retrieved_frame + 1);
+        int from = SDL_max(last_skipped_frame, fsemu_video.last_retrieved_frame + 1);
         for (int i = from; i < frame->number; i++) {
             // printf("SKIPPED FRAME %d\n", i);
             last_skipped_frame = i;
@@ -503,10 +497,9 @@ void fsemu_video_post_frame(fsemu_video_frame_t *frame)
     if (last_slice) {
         FSEMU_FRAMEINFO(frame_number).last_slice_posted_ns = posted_ns;
     }
-    g_async_queue_push_unlocked(fsemu_video_frame_queue, frame);
+    FS_PushAsyncQueueUnlocked(fsemu_video_frame_queue, frame);
     fsemu_video.last_posted_frame = frame_number;
-    FSAPP_TSAN_RELEASE(fsemu_video_frame_queue);
-    g_async_queue_unlock(fsemu_video_frame_queue);
+    FS_UnlockAsyncQueue(fsemu_video_frame_queue);
     if (last_slice) {
         fsemu_video.last_whole_posted_frame_plus_one = frame_number + 1;
     }
@@ -518,8 +511,6 @@ void fsemu_video_post_frame(fsemu_video_frame_t *frame)
     // fsemu's pacer takes the slices in on the main loop's drawing side: end its frame wait. Never
     // blocks.
     fsapp_frame_wake();
-
-    // g_async_queue_push(fsemu_video_frame_queue, frame);
 
     // if (frame->partial == 0 || frame->partial == frame->height) {
     //     fsemu_frame_number_posted = fsemu_frame_number_began;
@@ -559,30 +550,21 @@ static void fsemu_video_auto_screenshot(const fsemu_video_frame_t *frame)
     }
 }
 
-fsemu_video_frame_t *fsemu_video_get_frame(int64_t timeout_ns)
+fsemu_video_frame_t *fsemu_video_get_frame(int32_t timeout_ms)
 {
-    fsapp_assert(timeout_ns >= -1);
+    fsapp_assert(timeout_ms >= -1);
     fsemu_video_frame_t *frame;
 
-    g_async_queue_lock(fsemu_video_frame_queue);
-    // GAsyncQueue's lock is not seen by ThreadSanitizer (fsapp-tsan.h).
-    FSAPP_TSAN_ACQUIRE(fsemu_video_frame_queue);
-    if (timeout_ns == 0) {
-        // Maybe not necessary, but did not test timeout 0
-        frame = (fsemu_video_frame_t *)g_async_queue_try_pop_unlocked(fsemu_video_frame_queue);
-    } else if (timeout_ns == -1) {
-        frame = (fsemu_video_frame_t *)g_async_queue_pop_unlocked(fsemu_video_frame_queue);
+    FS_LockAsyncQueue(fsemu_video_frame_queue);
+    if (timeout_ms == 0) {
+        frame = (fsemu_video_frame_t *)FS_TryPopAsyncQueueUnlocked(fsemu_video_frame_queue);
     } else {
-        // GLib's queue takes microseconds: rounded up, so that the wait does not end early.
-        frame = (fsemu_video_frame_t *)g_async_queue_timeout_pop_unlocked(
-            fsemu_video_frame_queue, (guint64)SDL_NS_TO_US(timeout_ns + SDL_NS_PER_US - 1));
+        frame = (fsemu_video_frame_t *)FS_PopAsyncQueueUnlockedTimeout(fsemu_video_frame_queue,
+                                                                       timeout_ms);
     }
-    // Again after the pop, which may have waited (and taken the lock again).
-    FSAPP_TSAN_ACQUIRE(fsemu_video_frame_queue);
 
     if (frame == NULL) {
-        FSAPP_TSAN_RELEASE(fsemu_video_frame_queue);
-        g_async_queue_unlock(fsemu_video_frame_queue);
+        FS_UnlockAsyncQueue(fsemu_video_frame_queue);
         return NULL;
     }
 
@@ -596,13 +578,12 @@ fsemu_video_frame_t *fsemu_video_get_frame(int64_t timeout_ns)
 
     fsemu_video.last_retrieved_frame = frame->number;
 
-    FSAPP_TSAN_RELEASE(fsemu_video_frame_queue);
-    g_async_queue_unlock(fsemu_video_frame_queue);
+    FS_UnlockAsyncQueue(fsemu_video_frame_queue);
 
 #if 0
     // See if there are more events, and only consider the last one.
     fsemu_video_frame_t *frame2;
-    while ((frame2 = g_async_queue_try_pop(fsemu_video_frame_queue))) {
+    while ((frame2 = FS_TryPopAsyncQueue(fsemu_video_frame_queue))) {
         // FIXME: Can also check if an entire frame has been skipped here.
         printf("WARNING: Had to skip frame event\n");
         fsemu_video_free_frame(frame);
@@ -856,7 +837,13 @@ void fsemu_video_init(void)
     // fsemu_option_read_bool_default(
     //     FSEMU_OPTION_LOG_VIDEO, &fsemu_video_log_enabled, false);
 
-    fsemu_video_frame_queue = g_async_queue_new();
+    fsemu_video_frame_queue = FS_CreateAsyncQueue();
+    if (fsemu_video_frame_queue == NULL) {
+        SDL_LogCritical(SDL_LOG_CATEGORY_APPLICATION, "Could not create the video frame queue: %s",
+                        SDL_GetError());
+        FS_FlushLog();
+        abort();
+    }
 
     if (fsemu_video.format == FSEMU_VIDEO_FORMAT_UNKNOWN) {
         fsemu_video_format_t default_format = fsemu_video_default_format();

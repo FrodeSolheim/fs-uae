@@ -197,6 +197,8 @@ AM_CPPFLAGS += -I$(srcdir)/od-fs/fsuae
 EXTRA_DIST =
 
 fs_uae_SOURCES = \
+	od-fs/fs/asyncqueue.cpp \
+	od-fs/fs/asyncqueue.h \
 	od-fs/fs/log.cpp \
 	od-fs/fs/log.h \
 	od-fs/fs/path.cpp \
@@ -250,8 +252,6 @@ fs_uae_SOURCES = \
 	od-fs/fsapp/fsapp-pythonthread.h \
 	od-fs/fsapp/fsapp-refable.cpp \
 	od-fs/fsapp/fsapp-refable.h \
-	od-fs/fsapp/fsapp-semaphore.cpp \
-	od-fs/fsapp/fsapp-semaphore.h \
 	od-fs/fsapp/fsapp-snapshot.h \
 	od-fs/fsapp/fsapp-stream.cpp \
 	od-fs/fsapp/fsapp-stream.h \
@@ -265,7 +265,6 @@ fs_uae_SOURCES = \
 	od-fs/fsapp/fsapp-testscene.h \
 	od-fs/fsapp/fsapp-time.cpp \
 	od-fs/fsapp/fsapp-time.h \
-	od-fs/fsapp/fsapp-tsan.h \
 	od-fs/fsapp/fsapp-util.cpp \
 	od-fs/fsapp/fsapp-util.h \
 	od-fs/fsapp/fsapp-window.cpp \

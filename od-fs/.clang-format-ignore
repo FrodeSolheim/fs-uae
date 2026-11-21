@@ -13,7 +13,6 @@
 # to and listing those it would change.
 blkdev-linux.cpp
 bridge.cpp
-bsdsocket_posix.cpp
 callbacks.h
 cdimage_stubs.cpp
 charset.cpp

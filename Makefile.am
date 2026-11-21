@@ -606,7 +606,6 @@ libuae_a_SOURCES = \
 	od-generic/uaenet.cpp \
 	od-fs/blkdev-linux.cpp \
 	od-fs/bridge.cpp \
-	od-fs/bsdsocket_posix.cpp \
 	od-fs/callbacks.h \
 	od-fs/cdimage_stubs.cpp \
 	od-fs/charset.cpp \
@@ -665,7 +664,6 @@ libuae_a_SOURCES = \
 	od-win32/ahidsound_new.h \
 	od-win32/ahidsound.h \
 	od-win32/avioutput.h \
-	od-win32/bsdsock.cpp \
 	od-win32/caps/caps_win32.cpp \
 	od-win32/caps/caps_win32.h \
 	od-win32/caps/CapsAPI.h \
@@ -800,6 +798,13 @@ if WINDOWS
 libuae_a_SOURCES += od-win32/blkdev_host.cpp
 else
 libuae_a_SOURCES += od-unix/blkdev_host.cpp
+endif
+
+# Host sockets for bsdsocket.library (bsdsocket.cpp)
+if WINDOWS
+libuae_a_SOURCES += od-win32/bsdsock.cpp
+else
+libuae_a_SOURCES += od-unix/bsdsock_unix.cpp
 endif
 
 # Sound board audio capture (sndboard.cpp); without UAE_UNIX_WITH_SDL3 it has

@@ -1,12 +1,11 @@
 from typing import Self, TypeVar
 
-from fsapp.reactive import Emitter, Property, State
-
-from fsgui.drawingcontext import Colour
-from fsgui.font import Font
-from fsgui.types import Size
-from fsgui.widget import Widget
-from fsgui.widgetpainter import WidgetPainter
+from .drawingcontext import Colour
+from .font import Font
+from .reactive import Emitter, Property, State
+from .types import Size
+from .widget import Widget
+from .widgetpainter import WidgetPainter
 
 # class WidgetWithValue[bool] ?
 
@@ -172,10 +171,10 @@ class CheckBox(Widget):
             return
         self._on_check()
 
-    def calculate_min_height(self, width: int) -> int:
+    def calculate_min_height(self, width: float) -> float:
         return 28
 
-    def calculate_min_width(self) -> int:
+    def calculate_min_width(self) -> float:
         tw, _ = self.font.measure_text(self.text)
         return self.check_width + self.gap + tw
 
@@ -183,16 +182,17 @@ class CheckBox(Widget):
         dc = self.create_dc()
         painter = WidgetPainter(self, dc)
 
+        check_width = self.check_width
         x1 = 0
-        y1 = (self.height - self.check_width) // 2
+        y1 = (self.height - check_width) // 2
         # x2 = x1 + self.check_width - 1
         # y2 = y1 + self.check_width - 1
 
         # FIXME: Pressed state
-        painter.paint_box((x1, y1), (self.check_width, self.check_width))
+        painter.paint_box((x1, y1), (check_width, check_width))
 
-        _, th = dc.measure_text(self.text)
-        dc.draw_text(self.text, (self.check_width + self.gap, (self.height - th) // 2))
+        text_x = self.check_width + self.gap
+        dc.draw_text_centred(self.text, (text_x, 0), (self.width - text_x, self.height))
 
         # Drawing a square for now. Maybe draw a proper checkmark later
         # (however, the square is more visible though...)
@@ -211,7 +211,7 @@ class CheckBox(Widget):
             dc.set_fill_colour(fill_colour)
             dc.draw_filled_rectangle(
                 (x1 + p, y1 + p),
-                (self.check_width - 2 * p, self.check_width - 2 * p),
+                (check_width - 2 * p, check_width - 2 * p),
             )
 
     def set_text(self, text: str) -> None:

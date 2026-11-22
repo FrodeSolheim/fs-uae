@@ -67,7 +67,7 @@ fsapp_instance_result_t fsapp_instance_acquire_lock(const char *app_name)
 #ifdef _WIN32
     // Create mutex name: "Global\\AppName-InstanceMutex"
     size_t mutex_name_len = strlen(app_name) + 32; // Extra space for prefix/suffix
-    g_mutex_name = (char *) malloc(mutex_name_len);
+    g_mutex_name = (char *)malloc(mutex_name_len);
     if (g_mutex_name == NULL) {
         return FSAPP_INSTANCE_ERROR;
     }

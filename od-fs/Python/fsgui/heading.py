@@ -1,7 +1,7 @@
-from fsgui.font import Font
-from fsgui.label import Label
-from fsgui.types import Size
-from fsgui.widget import Widget
+from .font import Font
+from .label import Label
+from .types import Size
+from .widget import Widget
 
 
 class Heading(Label):

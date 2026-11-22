@@ -3,8 +3,6 @@ from typing import Any, Callable, NotRequired, Self, TypedDict
 
 from sdl3 import SDL_Event
 
-from fsapp.signal import Signal
-
 logger = logging.getLogger(__name__)
 
 
@@ -28,34 +26,22 @@ class EventService:
         return cls._instance
 
     def __init__(self) -> None:
-        # self.listeners: dict[str, list[Callable[[Event], None]]] = {}
+        # The listeners by event name: of app events (Event) and of the SDL events that fsapp._frame
+        # passes on by name (SDL_Event).
+        self._listeners: dict[str, list[Callable[[Any], None]]] = {}
 
-        self._events: dict[str, Signal[Any]] = {}
-
-    def event(self, name: str) -> Signal[Event]:
-        if name not in self._events:
-            self._events[name] = Signal()
-        return self._events[name]
-
-    def sdl_event(self, name: str) -> Signal[SDL_Event]:
-        if name not in self._events:
-            self._events[name] = Signal()
-        return self._events[name]
-
-    # FIXME: deprecated
     def add_listener(self, name: str, listener: Callable[[Event], None]) -> None:
-        # FIXME: Instead have a list of signal objects indexed in a dict
-        # by name and using that?
-        # self.listeners.setdefault(name, []).append(listener)
-        self.event(name).connect(listener)
+        self._listeners.setdefault(name, []).append(listener)
+
+    def add_sdl_listener(self, name: str, listener: Callable[[SDL_Event], None]) -> None:
+        """Adds a listener of the SDL events that fsapp._frame passes on (EventName.SDL_EVENT_*)."""
+        self._listeners.setdefault(name, []).append(listener)
 
     def has_listeners(self, name: str) -> bool:
-        return self.event(name).count_listeners() > 0
+        return len(self._listeners.get(name, [])) > 0
 
-    # FIXME: deprecated
     def remove_listener(self, listener: Callable[[Event], None], name: str) -> None:
-        # self.listeners[name].remove(listener)
-        self.event(name).disconnect(listener)
+        self._listeners.get(name, []).remove(listener)
 
     def broadcast(self, event: Event) -> None:
         type = event["type"]
@@ -66,10 +52,14 @@ class EventService:
         else:
             logger.debug("EVENT: %r", event)
 
-        self.event(type).emit(event)
+        self._call_listeners(type, event)
 
-        # for listener in self.listeners.get(type, []):
-        #    try:
-        #        listener(event)
-        #    except Exception:
-        #        logging.exception(f"Error broadcasting event {type} to listener {listener}")
+    def broadcast_sdl_event(self, name: str, event: SDL_Event) -> None:
+        self._call_listeners(name, event)
+
+    def _call_listeners(self, name: str, event: Any) -> None:
+        for listener in list(self._listeners.get(name, [])):
+            try:
+                listener(event)
+            except Exception:
+                logger.exception("Error in the listener %r of event %s", listener, name)

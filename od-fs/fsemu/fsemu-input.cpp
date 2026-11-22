@@ -18,11 +18,6 @@
 #include "fsemu-option.h"
 #include "fsemu-sdlinput.h"
 
-// TODO: If You press a shortcut, e.g. Alt+O, but press and release in this
-// order: press Alt, press O, release Alt, release O, then make sure that the
-// the final release of O is not seen by emulation. The Alt modifier should
-// be "sticky" as long as O is kept pressed
-
 #ifdef FSFUSE
 int fsemu_input_log_level = SDL_LOG_PRIORITY_DEBUG;
 #else

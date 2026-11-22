@@ -41,7 +41,7 @@ static void fsemu_testactions_unwarp(int slot)
 
 static void fsemu_testactions_graph(int slot)
 {
-    fsemu_perfgui_cycle_mode();
+    fsemu_perfgui_toggle_mode();
 }
 
 // The kinds of action: the name (followed by a slot from 1 to 9 when it takes one) and what

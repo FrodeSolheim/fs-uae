@@ -1,85 +1,59 @@
-# from io import BytesIO
-from typing import Tuple
+from fsapp.surfaceapi.v1 import Canvas
+from fsapp.surfaceapi.v1 import Surface as SurfaceHandle
 
-import _fsapp_surface  # type: ignore
-
-from fsgui.internal.id import get_next_id
-from fsgui.types import Size
+from ..types import Size
+from .id import get_next_id
 
 
 class Surface:
-    def __init__(self, size: Tuple[int, int], special=0, surface=None):
-        """A new surface, or, with surface, one created elsewhere (an _fsapp_surface capsule, such
-        as the emulation surface), resized to size."""
-        self._special = special
-        # self._buffer = BytesIO()
-        # self._buffer.write(b"\xff\xff\x00\xff" * size[0] * size[1])
-        # self._buffer = Image.new("RGBA", (640, 480))
-        # self._image = Image.frombuffer("RGBA", (640, 480), self._buffer.getbuffer())
+    """A window's surface: its version 1 handle (handle), and the position fsgui last placed it
+    at."""
 
+    def __init__(self, handle: SurfaceHandle) -> None:
+        self.handle = handle
         self._position = 0, 0
-        if surface is None:
-            self._surface = _fsapp_surface.create(size, special)
-        else:
-            self._surface = surface
-            _fsapp_surface.resize(self._surface, size)
-        self._size = size
-        self._z_index = 0
-
-        # self._image = Image.frombuffer(
-        #     "RGBA", size, self._buffer.getbuffer(), "raw", "RGBA", 0, 1
-        # )
-        # # self.id = id(self)
-        # # print(self.id)
         self.id = get_next_id()
 
     def destroy(self) -> None:
-        _fsapp_surface.destroy(self._surface)
-        self._surface = None
-
-    # def update(self):
-    #     im = self._image
-    #     draw = ImageDraw.Draw(im)
-    #     # "BGRA"
-    #     # fill = (0, 255, 0, 255)
-    #     # fill = (255, 0, 0, 255)
-    #     # G B - R
-    #     fill = (255, 0, 0, 255)
-    #     draw.rectangle([(0, 0), (im.size[0] - 1, im.size[1] - 1)], fill)
-    #     draw.line([(200, 10), (400, 10)], fill=128, width=4)
-
-    # def get_buffer(self):
-    #     # return self._buffer.getbuffer()
-    #     # return self._image.tobytes("raw", "RGBA")
-    #     return self._image.tobytes("raw", "RGBA")
+        self.handle.destroy()
 
     def get_size(self) -> Size:
-        return self._size
+        return self.handle.size
 
-    def get_surface(self):
-        return self._surface
+    def resize(self, size: tuple[int, int]) -> None:
+        self.handle.resize(*size)
 
-    def get_surface_tuple(self):
-        return self._surface, self._position
-
-    def resize(self, size: Size):
-        _fsapp_surface.resize(self._surface, size)
-        self._size = size
+    def canvas(self) -> Canvas:
+        """A new canvas for drawing in the surface's buffer (take a new one after a resize)."""
+        return self.handle.canvas()
 
     def commit(self) -> None:
         """Commits what was drawn in the surface (the whole surface): it shows with the UI frame."""
-        _fsapp_surface.commit(self._surface)
+        self.handle.commit()
 
-    def set_position(self, position: Tuple[int, int]):
+    def set_position(self, position: tuple[int, int]) -> None:
         self._position = position
-        # fsapp.set_surface_position(self._surface, position)
-        _fsapp_surface.set_position(self._surface, position)
+        self.handle.set_position(*position)
 
     def set_visible(self, visible: bool) -> None:
-        _fsapp_surface.set_visible(self._surface, visible)
+        if visible:
+            self.handle.show()
+        else:
+            self.handle.hide()
 
-    def set_z_index(self, z_index: float) -> None:
-        if z_index != self._z_index:
-            # print(z_index, "vs", self._z_index)
-            _fsapp_surface.set_z_index(self._surface, z_index)
-            self._z_index = z_index
+    def set_focusable(self, focusable: bool) -> None:
+        """Whether the surface may take keyboard focus."""
+        self.handle.set_focusable(focusable)
+
+    def request_focus(self) -> None:
+        """Asks fsapp for keyboard focus: the window hears whether it got it from FocusIn."""
+        self.handle.request_focus()
+
+    def set_key_target(self, surface: SurfaceHandle | None) -> None:
+        """Names the surface in this top-level's tree that gets the keys while the tree has
+        keyboard focus, or with None this surface itself."""
+        self.handle.set_key_target(surface)
+
+    def raise_surface(self) -> None:
+        """Asks fsapp to raise the surface in front of the others in its band (or of its kind)."""
+        self.handle.raise_()

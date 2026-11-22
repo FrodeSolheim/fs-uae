@@ -5,7 +5,7 @@ logger = logging.getLogger(__name__)
 
 
 class StateVar:
-    """A value that listeners can connect to (an fsapp.connectable.Connectable)."""
+    """A value that listeners can connect to (an fsgui.connectable.Connectable)."""
 
     def __init__(self) -> None:
         self.listeners: list[Callable[[Any], None]] = []

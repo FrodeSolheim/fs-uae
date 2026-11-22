@@ -7,7 +7,6 @@ import _fsapp_channel  # type: ignore
 import _fsuae_main  # type: ignore
 import fsemu
 from fsapp.eventservice import EventService
-from fsapp.tickservice import TickService
 from fsapp.timerservice import TimerService
 from fsemu.inputdeviceservice import InputDeviceService
 from fsemu.inputportservice import InputPortService
@@ -101,7 +100,6 @@ def app_init() -> None:
     services.input_ports = InputPortService().set_instance()
     services.path = PathService().set_instance()
     services.rom = ROMService(services.path)
-    services.tick = TickService().get()
 
     # Remove run directories left behind by sessions that did not end cleanly (crashes). Only
     # those whose owner process has ended are removed, so this is safe with other FS-UAE

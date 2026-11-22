@@ -2,7 +2,7 @@ import logging
 from dataclasses import dataclass
 from typing import Callable, Generic, TypeVar, cast
 
-from fsapp.connectable import Connectable
+from .connectable import Connectable
 
 logger = logging.getLogger(__name__)
 

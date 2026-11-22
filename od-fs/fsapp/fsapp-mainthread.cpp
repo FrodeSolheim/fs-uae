@@ -17,6 +17,7 @@
 #include "fsapp-compositor.h"
 #include "fsapp-gl.h"
 #include "fsapp-gldraw.h"
+#include "fsapp-input.h"
 #include "fsapp-main.h"
 #include "fsapp-presentation.h"
 #include "fsapp-pythonthread.h"
@@ -270,6 +271,14 @@ void fsapp_mainthread_add_event_hook(fsapp_mainthread_event_hook_t hook)
     hooks.event.push_back(hook);
 }
 
+void fsapp_mainthread_call_event_hooks(SDL_Event *event)
+{
+    FSAPP_MAINTHREAD_ASSERT_HOST_WINDOW_SIDE();
+    for (fsapp_mainthread_event_hook_t hook : hooks.event) {
+        hook(event);
+    }
+}
+
 void fsapp_mainthread_add_frame_hook(fsapp_mainthread_frame_hook_t hook)
 {
     assert_can_register();
@@ -513,12 +522,19 @@ static void handle_event(SDL_Event *event)
     // side's wait: the record switches to the host window side for them and back.
     bool drawing_side = fsapp_mainthread.drawing_side;
     fsapp_mainthread.drawing_side = false;
-    // The event hooks see each event first (the emulation's input), then fsapp, which also copies
-    // it for the UI thread.
-    for (fsapp_mainthread_event_hook_t hook : hooks.event) {
-        hook(event);
+    // Mouse positions become pixels before anything sees them (routing's hit test, the event hooks
+    // and the copy for the UI).
+    fsapp_main_convert_event_to_pixels(event);
+    // The shortcuts first: a key event of a shortcut goes nowhere else. Then routing, which decides
+    // whether the event goes to the event hooks (the emulation's input) and to the copy for the UI
+    // thread, then fsapp, which also makes that copy.
+    if (!fsapp_main_handle_shortcut_event(event)) {
+        int destination = fsapp_input_handle_event(event);
+        if (destination & FSAPP_INPUT_TO_EVENT_HOOKS) {
+            fsapp_mainthread_call_event_hooks(event);
+        }
+        fsapp_main_handle_event(event, (destination & FSAPP_INPUT_TO_UI_COPY) != 0);
     }
-    fsapp_main_handle_event(event);
     if (event->type == SDL_EVENT_WINDOW_DISPLAY_CHANGED ||
         event->type == SDL_EVENT_DISPLAY_CURRENT_MODE_CHANGED) {
         display.changed = true;
@@ -568,10 +584,22 @@ static bool check_quit(void)
     return fsapp_mainthread.quit_requested();
 }
 
-// Handles the pending events, then returns true if the main loop should end (check_quit).
+// Gives the navigation repeats that are due (fsapp-input.h) on the host window side, also while the
+// drawing side waits in one-thread mode, as handle_event does.
+static void handle_navigation_repeats(void)
+{
+    bool drawing_side = fsapp_mainthread.drawing_side;
+    fsapp_mainthread.drawing_side = false;
+    fsapp_input_handle_repeats((int64_t)SDL_GetTicksNS());
+    fsapp_mainthread.drawing_side = drawing_side;
+}
+
+// Handles the pending events and the navigation repeats due, then returns true if the main loop
+// should end (check_quit).
 static bool handle_events_and_check_quit(void)
 {
     handle_pending_events();
+    handle_navigation_repeats();
     return check_quit();
 }
 
@@ -605,6 +633,8 @@ static fsapp_frame_wait_result_t frame_wait(int64_t until_ns, bool precise, bool
             }
             handle_event(&event);
         }
+        // The repeats are given when due, also while a frame waits.
+        handle_navigation_repeats();
         if (with_quit && check_quit()) {
             return FSAPP_FRAME_WAIT_QUIT;
         }
@@ -829,6 +859,12 @@ static bool frame_is_needed(void)
 // end, from another thread wakes the loop (fsapp_frame_wake), and the rest comes as events.
 static void frame_wait_idle(int64_t timeout_ns)
 {
+    // A navigation repeat ends the wait when it is due (fsapp-input.h), so that a held direction
+    // repeats without a pacer and with the host window idle.
+    int64_t repeat_ns;
+    if (fsapp_input_get_repeat_deadline_ns(&repeat_ns)) {
+        timeout_ns = SDL_min(timeout_ns, repeat_ns - (int64_t)SDL_GetTicksNS());
+    }
     SDL_Event event;
     // SDL waits whole milliseconds: rounded down (the host window side looks again a little early
     // rather than late), and at least 1.
@@ -910,7 +946,8 @@ static void frame_write_snapshot(const fsapp_snapshot_t *untaken)
 {
     fsapp_snapshot_window_t *window = &fsapp_mainthread.snapshot.window;
     window->sdl_window = g_window;
-    // The size in window coordinates is kept up to date from the window events (fsapp-main.cpp).
+    // The size in window coordinates is kept up to date from the window events (fsapp-main.cpp);
+    // the size in pixels is read now.
     window->width = g_window_width;
     window->height = g_window_height;
     if (!SDL_GetWindowSizeInPixels(g_window, &window->pixel_width, &window->pixel_height)) {

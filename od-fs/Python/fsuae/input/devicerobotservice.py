@@ -1,13 +1,13 @@
 import logging
 from typing import Literal
 
-from fsapp.eventhandler import EventHandler
 from fsapp.timerservice import Timer, TimerService
 from fsemu.inputdevice import InputDevice
 from fsemu.inputdeviceservice import InputDeviceService
 from fsemu.inputport import InputPort
 from fsemu.inputportservice import InputPortService
 
+from fsuae.eventhandler import EventHandler
 from fsuae.reactive2 import Var
 from fsuae.uaeconfig2 import UAEConfig2
 

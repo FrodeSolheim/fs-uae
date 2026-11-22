@@ -1,7 +1,9 @@
 import logging
 
 import fsemu_c  # type: ignore
-from fsapp.surface import SurfaceCapsule
+from fsapp.surfaceapi._capsule import SurfaceCapsule
+from fsapp.surfaceapi._handover import adopt_child
+from fsapp.surfaceapi.v1 import ScaleSupport, Surface
 
 logger = logging.getLogger(__name__)
 
@@ -22,11 +24,12 @@ def set_performance_gui(value: str) -> bool:
     return bool(fsemu_c.set_performance_gui(value))
 
 
-def emulation_surface() -> SurfaceCapsule:
-    """The emulation surface: one for the whole process, created by fsemu, with its content drawn
-    by fsemu. Hands it over to the program's emulator window, which places it like any surface (an
-    _fsapp_surface capsule, for fsgui's Window). Unstable: for the program, not for plugins."""
-    return SurfaceCapsule(fsemu_c.emulation_surface())
+def adopt_emulation_surface(parent: Surface) -> Surface:
+    """Hands the emulation surface (one for the whole process, created by fsemu, with its content
+    drawn by fsemu) over to the program's emulator window: makes it a child of parent, the window's
+    surface, and returns it as a version 1 handle, hidden, which the window places, sizes and shows
+    like any surface. Unstable: for the program, not for plugins."""
+    return adopt_child(SurfaceCapsule(fsemu_c.emulation_surface()), parent, ScaleSupport.ANY)
 
 
 # --------

@@ -1,8 +1,8 @@
 import os
 import sys
 
-from fsgui.mainwindow import MainWindow
-from fsgui.types import Position
+from app.mainwindow import MainWindow
+from fsgui.types import PointerPosition
 from fsgui.windowmanager import WindowManager
 
 from fsuae import version
@@ -45,7 +45,8 @@ class FSUAEMainWindow(MainWindow):
         width = int(692 * 1.5)
         # A test aid for headless runs: FSUAE_WINDOW_SIZE=<width>x<height> sets the client size
         # (inside the border and the title bar), such as 1920x1080 for the performance graph's
-        # sidebars beside a 4:3 picture.
+        # sidebars beside a 4:3 picture. Like the default, it is in design units: the window is
+        # created that size times the display scale.
         width, height = window_size_from_environment(width, height)
 
         # UAE_RECT FULL
@@ -62,7 +63,7 @@ class FSUAEMainWindow(MainWindow):
 
         extra_title = f"{f12_help}{delim}{mouse_help}"
 
-        title = f"FS-UAE  {version} ALPHA"
+        title = f"FS-UAE  {version}"
         super().__init__(title, (width, height), fullscreen=fullscreen, extra_title=extra_title)
         # self.set_background_colour(Colour.GREY_11)
         # self.set_background_colour(Colour.RED)
@@ -76,9 +77,7 @@ class FSUAEMainWindow(MainWindow):
         self.set_background_colour((grey_level, grey_level, grey_level, 0xFF))
 
         self.emulator_window = EmulatorWindow()
-        # self.emulator_window.show()
-
-        # self.emulator = self.emulator_window.special_window
+        self.emulator_window.show()
 
         # self.shortcuts_window = ShortcutsWindow().move((0, 760)).show()
         # self.shortcuts_window = ShortcutsWindow().show()
@@ -93,7 +92,7 @@ class FSUAEMainWindow(MainWindow):
         F12Window.open_changed.connect(self.__update_fullscreen_title_bar)
         self.__update_fullscreen_title_bar()
 
-    def __on_mouse_moved(self, mouse_pos: Position) -> None:
+    def __on_mouse_moved(self, mouse_pos: PointerPosition) -> None:
         self.__update_fullscreen_title_bar()
 
     def __update_fullscreen_title_bar(self) -> None:
@@ -104,7 +103,8 @@ class FSUAEMainWindow(MainWindow):
             # print(mouse_pos)
             ui_is_open = F12Window.has_instance()
 
-            if mouse_pos[1] == 0 or ui_is_open:
+            # REVIEW: The top edge is its first design unit (it was the first pixel row).
+            if 0 <= mouse_pos[1] < 1 or ui_is_open:
                 self.title_bar.set_y(0)
                 self.title_bar.set_width(self.width)
                 self.title_bar.set_visible(True)
@@ -150,10 +150,10 @@ class FSUAEMainWindow(MainWindow):
 
         if fit_w / fit_h > ratio:
             eh = fit_h
-            ew = int(eh * ratio)
+            ew = eh * ratio
         else:
             ew = fit_w
-            eh = int(ew / ratio)
+            eh = ew / ratio
 
         ex = off_x + (fit_w - ew) // 2
         ey = off_y + (fit_h - eh) // 2

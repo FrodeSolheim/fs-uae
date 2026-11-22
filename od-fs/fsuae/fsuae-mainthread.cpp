@@ -7,6 +7,7 @@
 
 #include "fsapp-channel.h"
 #include "fsapp-frame.h"
+#include "fsapp-input.h"
 #include "fsapp-main.h"
 #include "fsapp-mainthread.h"
 #include "fsapp.h"
@@ -96,13 +97,10 @@ static void handle_main_channel_messages(void)
 
 static void handle_mouse_grab(void)
 {
-    bool desired_state;
-    if (g_fsapp_force_ui_cursor) {
-        desired_state = !g_fsapp_force_ui_cursor;
-    } else {
-        desired_state = g_fsapp_mouse_grab;
-    }
+    // Applied while wanted and the emulation surface has keyboard focus (fsapp-input.h).
+    bool desired_state = fsapp_input_is_grab_applied();
 
+    // In window coordinates, SDL's own unit, saved and restored without conversion.
     static float last_mouse_x, last_mouse_y;
 
     bool existing_state = SDL_GetWindowRelativeMouseMode(g_window);

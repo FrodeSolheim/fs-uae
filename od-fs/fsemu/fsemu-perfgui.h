@@ -30,8 +30,8 @@ void fsemu_perfgui_init(void);
 // Returns false, and leaves the mode as it was, for another value. Any thread.
 bool fsemu_perfgui_set_mode_from_string(const char *value);
 
-// Alt+O: cycles the mode (off, sidebars, detailed). Any thread.
-int fsemu_perfgui_cycle_mode(void);
+// Alt+O: toggles the mode between off and detailed (from sidebars, turns it off). Any thread.
+int fsemu_perfgui_toggle_mode(void);
 
 #ifdef FSEMU_INTERNAL
 
@@ -53,11 +53,8 @@ fsemu_perfgui_mode_t fsemu_perfgui_mode(void);
 void fsemu_perfgui_update_adornments(bool session);
 
 // From where fsemu works out the picture rectangle (drawing side: its drawing hook and the commit
-// at frame ready): places the sidebars in the bars beside the picture, both rectangles in window
-// coordinates. pixel_scale is the window's pixels per window coordinate in the frame being drawn
-// (its snapshot's: the drawing side does not ask the window).
-void fsemu_perfgui_place_sidebars(const SDL_Rect *surface_rect, const SDL_Rect *picture_rect,
-                                  double pixel_scale);
+// at frame ready): places the sidebars in the bars beside the picture, both rectangles in pixels.
+void fsemu_perfgui_place_sidebars(const SDL_Rect *surface_rect, const SDL_Rect *picture_rect);
 
 // From fsemu's swapped hook (drawing side), after each swap: the swap's frame record, and the
 // emulated frame it presented (the same one again for a repeat), or -1 when it presented none of

@@ -39,7 +39,7 @@ static struct {
     // thread before the drawing side's first frame.
     SDL_AtomicInt ntsc_mode;
     // The picture policies (fsemu_layout_crop_policy_t, fsemu_layout_fit_policy_t,
-    // fsemu_layout_filter_t), set from any thread (fsemu's event hook: Alt+S, Alt+C) and read by
+    // fsemu_layout_filter_t), set from any thread (fsemu's shortcuts: Mod+S, Mod+C) and read by
     // the emulation thread (the crop) and the drawing side (the fit and the filter), so they are
     // atomic.
     SDL_AtomicInt crop_policy;
@@ -47,7 +47,7 @@ static struct {
     SDL_AtomicInt filter;
     // FIXME: Not currently used
     int client_margins[4];
-    // The emulation surface's rectangle in the host window.
+    // The emulation surface's rectangle in the host window (pixels).
     fsemu_rect_t client_area;
 } fsemu_layout;
 
@@ -256,7 +256,8 @@ void fsemu_layout_video_area(fsemu_rect_t *rect)
 
     int ttop, tright, tbottom, tleft;
     if (fsemu_layout.zoom_mode == 0) {
-        // The margins of the removed fsemu theme module (in 1080p coordinates).
+        // The margins of the removed fsemu theme module, in 1080p coordinates: scaled by the area's
+        // height in pixels.
         ttop = 60;
         tright = 60;
         tbottom = 60;
@@ -271,7 +272,7 @@ void fsemu_layout_video_area(fsemu_rect_t *rect)
     // double margin_scale = video_area.h / 1080.0;
     double margin_scale = rect->h / 1080.0;
 
-    ttop = tbottom * margin_scale + 0.5;
+    ttop = ttop * margin_scale + 0.5;
     tright = tright * margin_scale + 0.5;
     tbottom = tbottom * margin_scale + 0.5;
     tleft = tleft * margin_scale + 0.5;
@@ -500,40 +501,12 @@ void fsemu_layout_video_rect(fsemu_rect_t *rect)
     // printf("ntsc? %d, scale_x %0.1f scale_y %0.1f scaled_w %d scaled_h %d\n", ntsc_aspect_ratio,
     //        scale_x * 2, scale_y * 2, output_w, output_h);
 
-#if 1
-
+    // In pixels, like the emulation surface's rectangle, so the integer fit's steps are whole
+    // pixels.
     rect->w = output_w;
     rect->h = output_h;
     rect->x = video_area.x + (video_area.w - output_w) / 2;
     rect->y = video_area.y + (video_area.h - output_h) / 2;
-
-#else
-    // Calculating borders first to get consistent rounding (down) and use
-    // borders to recalculate width to get equal borders on opposite sides.
-
-    int x_border = (video_area.w - scaled_w) / 2;
-    int y_border = (video_area.h - scaled_h) / 2;
-
-    // We should now have a nice video rect with integer size and position.
-
-    // FIXME: For high-DPI windows where drawable size != window size, and
-    // drawable size is not an integer multiple of window size, we might get
-    // a problem where video rect is _not_ actually of integer size and
-    // position on the underlying drawable, and video shaders assuming
-    // 1:1 pixel mapping will not work correctly. So we might have to re-do
-    // the layoyut both for window size and drawable size (for video renderer)
-    // or always use the real drawable size instead.
-    // FIXME: We probably want to (always) use real drawable size when
-    // possible, since for example, when positioning shadows around a video
-    // rect, we want to do the positioning in real pixels (same coordinate
-    // system as video rect).
-
-    rect->w = video_area.w - 2 * x_border;
-    rect->h = video_area.h - 2 * y_border;
-    rect->x = video_area.x + x_border;
-    rect->y = video_area.y + y_border;
-
-#endif
 
     if (fsemu_layout.zoom_mode >= 2) {
         fsemu_rect_t src_rect;

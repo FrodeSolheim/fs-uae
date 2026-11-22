@@ -1,11 +1,11 @@
 import logging
 
-from fsgui.button import CustomButton
-from fsgui.image import Image
-from fsgui.types import Size
-from fsgui.widget import Widget
-from fsgui.window import Window
-from fsgui.windowmanager import WindowManager
+from .button import CustomButton
+from .image import Image
+from .types import Size
+from .widget import Widget
+from .window import Window
+from .windowmanager import WindowManager
 
 logger = logging.getLogger(__name__)
 
@@ -71,8 +71,7 @@ class WindowTitleBar(Widget):
         title_x = 12
 
         dc.set_font(dc.get_bold_ui_font())
-        _, th = dc.measure_text(self._title)
-        dc.draw_text(self._title, (title_x, (self.height - th) // 2))
+        dc.draw_text_centred(self._title, (title_x, 0), (self.width - title_x, self.height))
 
         # Must (currently) call draw to draw children (seems like a bad idea)
         # super().draw()
@@ -90,6 +89,7 @@ class WindowTitleBar(Widget):
         # self.menu_button.set_position((left_margin, 0))
         # self.minimize_button.set_position((width - height * 3 - right_margin, 0))
         # self.maximize_button.set_position((width - height * 2 - right_margin, 0))
+        self.close_button.set_size((height, height))
         self.close_button.set_position((width - height - right_margin, 0))
 
     # def draw(self):
@@ -110,11 +110,7 @@ class WindowTitleBarButton(CustomButton):
         # FIXME: This is not working...
         self.style.background_color = (255, 255, 255, 255)
 
-        # print(parent, parent.get_size())
-        title_bar_height = parent.get_size()[1]
-
-        # # FIXME: title_bar_height = 36
-        self.set_size((title_bar_height, title_bar_height))
+        # The title bar sizes the button (on_resize).
 
         # FIXME: REMOVE PATH
         path = f"window/{icon_data_name}.png"
@@ -141,8 +137,8 @@ class WindowTitleBarButton(CustomButton):
                 background_color = (0xDD, 0xDD, 0xDD, 0xFF)
             dc.set_fill_colour(background_color)
             dc.draw_filled_rectangle((0, 0), size)
-        iw, ih = 16, 16
-        dc.draw_image(self.icon, ((size[0] - iw) // 2, (size[1] - ih) // 2))
+        iw, ih = self.icon.width, self.icon.height
+        dc.draw_image_scaled(self.icon, ((size[0] - iw) // 2, (size[1] - ih) // 2))
 
 
 class WindowMenuButton(WindowTitleBarButton):

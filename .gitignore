@@ -6,6 +6,7 @@ __pycache__/
 .deps/
 .dirstamp
 *.a
+*.dmp
 *.DS_Store
 *.so
 *.swp

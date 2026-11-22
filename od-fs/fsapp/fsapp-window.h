@@ -15,6 +15,8 @@ extern "C" {
 
 struct fsapp_window {
     SDL_Window *window;
+    // The size asked for, in pixels, until the window is created; then its size in window
+    // coordinates.
     int width;
     int height;
 

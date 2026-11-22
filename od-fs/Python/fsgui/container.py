@@ -1,5 +1,5 @@
-from fsgui.types import Size
-from fsgui.widget import Widget
+from .types import Size
+from .widget import Widget
 
 
 class Container:

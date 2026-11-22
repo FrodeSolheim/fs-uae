@@ -14,6 +14,8 @@
 #include <vector>
 
 #include "fsapp-frame.h"
+#include "fsapp-input.h"
+#include "fsapp-navigation.h"
 #include "fsapp-refable.h"
 
 // FIXME: Maybe rename to fsapp-surface / _fsapp_surface
@@ -60,6 +62,12 @@ static void fsapp_surface_finalize(void *object)
 {
     fsapp_surface_t *surface = (fsapp_surface_t *)object;
     fsapp_surface_log_debug("Finalizing surface %p\n", surface);
+    if (surface->state.parent != NULL) {
+        fsapp_surface_unref(surface->state.parent);
+    }
+    if (surface->state.key_target != NULL) {
+        fsapp_surface_unref(surface->state.key_target);
+    }
     free(surface);
 }
 
@@ -112,6 +120,20 @@ static void fsapp_surface_do_destroy(fsapp_surface_t *surface)
         return;
     }
     surface->destroyed = true;
+    // The key target, a descendant, holds a reference to its parent: released here, so that the two
+    // do not keep each other alive.
+    if (surface->state.key_target != NULL) {
+        fsapp_surface_unref(surface->state.key_target);
+        surface->state.key_target = NULL;
+    }
+    if (surface->event_handler != NULL) {
+        // REVIEW: Destroyed from C, the GIL may not be held. Left alone when Python has ended.
+        if (Py_IsInitialized()) {
+            PyGILState_STATE gil = PyGILState_Ensure();
+            Py_CLEAR(surface->event_handler);
+            PyGILState_Release(gil);
+        }
+    }
     destroy_in_record(surface);
 }
 
@@ -143,6 +165,7 @@ static fsapp_surface_t *fsapp_surface_new(int width, int height, int special)
     fsapp_refable_init_with_finalizer(&surface->refable, fsapp_surface_finalize);
 
     surface->special = special;
+    surface->state.band = FSAPP_STACKING_BAND_NORMAL;
     surface->state.fill_color = {0, 0, 0, 255};
     fsapp_surface_actually_create(surface, width, height);
 
@@ -239,12 +262,78 @@ void fsapp_surface_commit(fsapp_surface_t *surface, const SDL_Rect *damage, int 
     client_changed(surface);
 }
 
-void fsapp_surface_set_z_index(fsapp_surface_t *surface, int z_index)
+// Whether a surface with the role has a parent: a child or popup.
+static bool has_parent_role(fsapp_stacking_role_t role)
 {
-    if (surface->state.z == z_index) {
+    return role == FSAPP_STACKING_ROLE_CHILD || role == FSAPP_STACKING_ROLE_POPUP;
+}
+
+void fsapp_surface_set_role(fsapp_surface_t *surface, fsapp_stacking_role_t role,
+                            fsapp_surface_t *parent)
+{
+    bool takes_parent = has_parent_role(role);
+    // A parent among the surface's own descendants would make a cycle of references.
+    bool descendant = false;
+    for (const fsapp_surface_t *p = parent; p != NULL && !descendant; p = p->state.parent) {
+        descendant = p == surface;
+    }
+    if (takes_parent != (parent != NULL) || descendant || (parent != NULL && parent->destroyed)) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION,
+                     "Surface %p: role %d with parent %p ignored (a child or popup takes a parent, "
+                     "a top-level or an overlay none, and not itself, a descendant or a destroyed "
+                     "surface)",
+                     (void *)surface, (int)role, (void *)parent);
         return;
     }
-    surface->state.z = z_index;
+    if (surface->state.role == role && surface->state.parent == parent) {
+        return;
+    }
+    if (parent != NULL) {
+        fsapp_surface_ref(parent);
+    }
+    if (surface->state.parent != NULL) {
+        fsapp_surface_unref(surface->state.parent);
+    }
+    surface->state.role = role;
+    surface->state.parent = parent;
+    client_changed(surface);
+}
+
+void fsapp_surface_set_key_target(fsapp_surface_t *top_level, fsapp_surface_t *surface)
+{
+    bool in_tree = surface == NULL;
+    for (const fsapp_surface_t *s = surface; s != NULL && !in_tree; s = s->state.parent) {
+        in_tree = s == top_level;
+    }
+    if (top_level->state.role != FSAPP_STACKING_ROLE_TOP_LEVEL || !in_tree ||
+        (surface != NULL && surface->destroyed)) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION,
+                     "Surface %p: key target %p ignored (a top-level names a surface in its tree)",
+                     (void *)top_level, (void *)surface);
+        return;
+    }
+    if (surface == top_level) {
+        surface = NULL;
+    }
+    if (top_level->state.key_target == surface || top_level->destroyed) {
+        return;
+    }
+    if (surface != NULL) {
+        fsapp_surface_ref(surface);
+    }
+    if (top_level->state.key_target != NULL) {
+        fsapp_surface_unref(top_level->state.key_target);
+    }
+    top_level->state.key_target = surface;
+    client_changed(top_level);
+}
+
+void fsapp_surface_set_band(fsapp_surface_t *surface, fsapp_stacking_band_t band)
+{
+    if (surface->state.band == band) {
+        return;
+    }
+    surface->state.band = band;
     client_changed(surface);
 }
 
@@ -255,6 +344,31 @@ void fsapp_surface_set_translucent(fsapp_surface_t *surface, bool translucent)
     }
     surface->state.translucent = translucent;
     client_changed(surface);
+}
+
+static bool is_scale_support(int value)
+{
+    return value == FSAPP_PIXELS_SCALE_ONE || value == FSAPP_PIXELS_SCALE_ANY;
+}
+
+void fsapp_surface_set_scale_support(fsapp_surface_t *surface,
+                                     fsapp_pixels_scale_support_t scale_support)
+{
+    if (!is_scale_support(scale_support)) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Not a scale support: %d, ignored",
+                     (int)scale_support);
+        return;
+    }
+    if (surface->state.scale_support == scale_support) {
+        return;
+    }
+    surface->state.scale_support = scale_support;
+    client_changed(surface);
+}
+
+fsapp_pixels_scale_support_t fsapp_surface_get_scale_support(const fsapp_surface_t *surface)
+{
+    return surface->state.scale_support;
 }
 
 void fsapp_surface_set_fill_color(fsapp_surface_t *surface, SDL_Color fill_color)
@@ -283,6 +397,35 @@ void fsapp_surface_set_visible(fsapp_surface_t *surface, bool visible)
     }
     surface->state.visible = visible;
     client_changed(surface);
+}
+
+void fsapp_surface_set_focusable(fsapp_surface_t *surface, bool focusable)
+{
+    if (surface->state.focusable == focusable) {
+        return;
+    }
+    surface->state.focusable = focusable;
+    client_changed(surface);
+}
+
+static void request_raise_in_record(fsapp_surface_t *surface);
+
+void fsapp_surface_raise(fsapp_surface_t *surface)
+{
+    if (surface->destroyed) {
+        return;
+    }
+    request_raise_in_record(surface);
+}
+
+static void request_focus_in_record(fsapp_surface_t *surface);
+
+void fsapp_surface_request_focus(fsapp_surface_t *surface)
+{
+    if (surface->destroyed) {
+        return;
+    }
+    request_focus_in_record(surface);
 }
 
 void fsapp_surface_resize(fsapp_surface_t *surface, int width, int height)
@@ -317,7 +460,6 @@ void fsapp_surface_draw_filled_rectangle(fsapp_surface_t *surface, const SDL_Rec
                                          SDL_Color color)
 {
     uint32_t pixel = premultiplied_pixel(surface, color.r, color.g, color.b, color.a);
-    // Supports SDL_SetSurfaceClipRect() !!!
     SDL_FillSurfaceRect(surface->sdl, rect, pixel);
 }
 
@@ -328,14 +470,24 @@ PyObject *fsapp_surface_create_python_capsule(fsapp_surface_t *surface)
     return PyCapsule_New(surface, "fsapp_surface_t", fsapp_surface_python_destructor);
 }
 
-static PyObject *fsapp_surface_python_create(PyObject *self, PyObject *args)
+// _fsapp_surface.create(size, special, scale_support=SCALE_ONE).
+// REVIEW: The scale support is set only here, with no Python setter for changing it later.
+static PyObject *fsapp_surface_python_create(PyObject *self, PyObject *args, PyObject *kwargs)
 {
+    static const char *keywords[] = {"", "", "scale_support", NULL};
     int width, height, special;
-    if (!PyArg_ParseTuple(args, "(ii)i:create", &width, &height, &special)) {
+    int scale_support = FSAPP_PIXELS_SCALE_ONE;
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "(ii)i|i:create", (char **)keywords, &width,
+                                     &height, &special, &scale_support)) {
+        return NULL;
+    }
+    if (!is_scale_support(scale_support)) {
+        PyErr_Format(PyExc_ValueError, "Not a scale support: %d", scale_support);
         return NULL;
     }
 
     fsapp_surface_t *surface = fsapp_surface_new(width, height, special);
+    fsapp_surface_set_scale_support(surface, (fsapp_pixels_scale_support_t)scale_support);
 
     PyObject *surface_capsule =
         PyCapsule_New(surface, "fsapp_surface_t", fsapp_surface_python_destructor);
@@ -439,17 +591,79 @@ static PyObject *fsapp_surface_python_set_position(PyObject *self, PyObject *arg
 
 // -------------------------------------------------------------------------------------------------
 
-static PyObject *fsapp_surface_python_set_z_index(PyObject *self, PyObject *args)
+// A PyArg_ParseTuple converter ("O&") from a surface's capsule to its fsapp_surface_t *.
+static int convert_surface(PyObject *object, void *address)
 {
-    PyObject *surface_capsule;
-    int z_index;
-    if (!PyArg_ParseTuple(args, "Oi:set_z_index", &surface_capsule, &z_index)) {
+    fsapp_surface_t *surface = (fsapp_surface_t *)PyCapsule_GetPointer(object, "fsapp_surface_t");
+    if (surface == NULL) {
+        return 0;
+    }
+    *(fsapp_surface_t **)address = surface;
+    return 1;
+}
+
+// As convert_surface, also taking None for NULL.
+static int convert_optional_surface(PyObject *object, void *address)
+{
+    if (object == Py_None) {
+        *(fsapp_surface_t **)address = NULL;
+        return 1;
+    }
+    return convert_surface(object, address);
+}
+
+// _fsapp_surface.set_role(surface, role, parent=None).
+static PyObject *fsapp_surface_python_set_role(PyObject *self, PyObject *args)
+{
+    fsapp_surface_t *surface;
+    int role;
+    fsapp_surface_t *parent = NULL;
+    if (!PyArg_ParseTuple(args, "O&i|O&:set_role", convert_surface, &surface, &role,
+                          convert_optional_surface, &parent)) {
         return NULL;
     }
-    fsapp_surface_t *surface =
-        (fsapp_surface_t *)PyCapsule_GetPointer(surface_capsule, "fsapp_surface_t");
-    SDL_assert(surface != NULL);
-    fsapp_surface_set_z_index(surface, z_index);
+    if (role < FSAPP_STACKING_ROLE_TOP_LEVEL || role > FSAPP_STACKING_ROLE_OVERLAY) {
+        PyErr_Format(PyExc_ValueError, "Not a role: %d", role);
+        return NULL;
+    }
+    fsapp_surface_set_role(surface, (fsapp_stacking_role_t)role, parent);
+    Py_RETURN_NONE;
+}
+
+static PyObject *fsapp_surface_python_set_band(PyObject *self, PyObject *args)
+{
+    fsapp_surface_t *surface;
+    int band;
+    if (!PyArg_ParseTuple(args, "O&i:set_band", convert_surface, &surface, &band)) {
+        return NULL;
+    }
+    if (band < FSAPP_STACKING_BAND_BACKGROUND || band > FSAPP_STACKING_BAND_PANEL) {
+        PyErr_Format(PyExc_ValueError, "Not a band: %d", band);
+        return NULL;
+    }
+    fsapp_surface_set_band(surface, (fsapp_stacking_band_t)band);
+    Py_RETURN_NONE;
+}
+
+static PyObject *fsapp_surface_python_set_key_target(PyObject *self, PyObject *args)
+{
+    fsapp_surface_t *top_level;
+    fsapp_surface_t *surface;
+    if (!PyArg_ParseTuple(args, "O&O&:set_key_target", convert_surface, &top_level,
+                          convert_optional_surface, &surface)) {
+        return NULL;
+    }
+    fsapp_surface_set_key_target(top_level, surface);
+    Py_RETURN_NONE;
+}
+
+static PyObject *fsapp_surface_python_raise_surface(PyObject *self, PyObject *args)
+{
+    fsapp_surface_t *surface;
+    if (!PyArg_ParseTuple(args, "O&:raise_surface", convert_surface, &surface)) {
+        return NULL;
+    }
+    fsapp_surface_raise(surface);
     Py_RETURN_NONE;
 }
 
@@ -487,13 +701,198 @@ static PyObject *fsapp_surface_python_set_visible(PyObject *self, PyObject *args
 
 // -------------------------------------------------------------------------------------------------
 
+static PyObject *fsapp_surface_python_set_focusable(PyObject *self, PyObject *args)
+{
+    PyObject *surface_capsule;
+    int focusable;
+    if (!PyArg_ParseTuple(args, "Op:set_focusable", &surface_capsule, &focusable)) {
+        return NULL;
+    }
+    fsapp_surface_t *surface =
+        (fsapp_surface_t *)PyCapsule_GetPointer(surface_capsule, "fsapp_surface_t");
+    if (surface == NULL) {
+        return NULL;
+    }
+    fsapp_surface_set_focusable(surface, focusable != 0);
+    Py_RETURN_NONE;
+}
+
+static PyObject *fsapp_surface_python_request_focus(PyObject *self, PyObject *args)
+{
+    PyObject *surface_capsule;
+    if (!PyArg_ParseTuple(args, "O:request_focus", &surface_capsule)) {
+        return NULL;
+    }
+    fsapp_surface_t *surface =
+        (fsapp_surface_t *)PyCapsule_GetPointer(surface_capsule, "fsapp_surface_t");
+    if (surface == NULL) {
+        return NULL;
+    }
+    fsapp_surface_request_focus(surface);
+    Py_RETURN_NONE;
+}
+
+// _fsapp_surface.set_handler(surface, handler): the callable that gets the surface's events (or
+// None for none), kept until it is replaced or the surface is destroyed.
+static PyObject *fsapp_surface_python_set_handler(PyObject *self, PyObject *args)
+{
+    PyObject *surface_capsule;
+    PyObject *handler;
+    if (!PyArg_ParseTuple(args, "OO:set_handler", &surface_capsule, &handler)) {
+        return NULL;
+    }
+    fsapp_surface_t *surface =
+        (fsapp_surface_t *)PyCapsule_GetPointer(surface_capsule, "fsapp_surface_t");
+    if (surface == NULL) {
+        return NULL;
+    }
+    if (handler != Py_None && !PyCallable_Check(handler)) {
+        PyErr_SetString(PyExc_TypeError, "The handler is not callable");
+        return NULL;
+    }
+    if (surface->destroyed) {
+        PyErr_SetString(PyExc_ValueError, "The surface is destroyed");
+        return NULL;
+    }
+    PyObject *old = surface->event_handler;
+    surface->event_handler = handler != Py_None ? Py_NewRef(handler) : NULL;
+    Py_XDECREF(old);
+    if (surface->event_handler != NULL) {
+        fsapp_input_on_handler_set(surface);
+    }
+    Py_RETURN_NONE;
+}
+
+// _fsapp_surface.get_id(surface): the surface's id (its address), as surface events name it.
+static PyObject *fsapp_surface_python_get_id(PyObject *self, PyObject *args)
+{
+    PyObject *surface_capsule;
+    if (!PyArg_ParseTuple(args, "O:get_id", &surface_capsule)) {
+        return NULL;
+    }
+    void *surface = PyCapsule_GetPointer(surface_capsule, "fsapp_surface_t");
+    if (surface == NULL) {
+        return NULL;
+    }
+    return PyLong_FromVoidPtr(surface);
+}
+
+// -------------------------------------------------------------------------------------------------
+
+int fsapp_surface_convert_python_clip(PyObject *object, void *address)
+{
+    fsapp_surface_clip_t *clip = (fsapp_surface_clip_t *)address;
+    if (object == Py_None) {
+        clip->set = false;
+        return 1;
+    }
+    if (!PyArg_ParseTuple(object, "iiii:clip", &clip->rect.x, &clip->rect.y, &clip->rect.w,
+                          &clip->rect.h)) {
+        return 0;
+    }
+    clip->set = true;
+    return 1;
+}
+
+void fsapp_surface_begin_clip(fsapp_surface_t *surface, const fsapp_surface_clip_t *clip)
+{
+    if (surface->sdl != NULL && clip->set) {
+        SDL_SetSurfaceClipRect(surface->sdl, &clip->rect);
+    }
+}
+
+void fsapp_surface_end_clip(fsapp_surface_t *surface)
+{
+    if (surface->sdl != NULL) {
+        SDL_SetSurfaceClipRect(surface->sdl, NULL);
+    }
+}
+
+namespace
+{
+
+// Stores a colour in the pixels of a surface's buffer that are inside the clip (the whole buffer
+// when it is not set), for the shapes that SDL does not draw.
+struct plotter {
+    int32_t *pixels;
+    int width;
+    // Empty without a buffer.
+    SDL_Rect clip = {};
+    uint32_t color;
+
+    plotter(fsapp_surface_t *surface, const fsapp_surface_clip_t *surface_clip, uint32_t color)
+        : pixels((int32_t *)surface->data), width(surface->state.width), color(color)
+    {
+        fsapp_surface_begin_clip(surface, surface_clip);
+        SDL_GetSurfaceClipRect(surface->sdl, &clip);
+        fsapp_surface_end_clip(surface);
+    }
+
+    void plot(int x, int y) const
+    {
+        if (x >= clip.x && x < clip.x + clip.w && y >= clip.y && y < clip.y + clip.h) {
+            pixels[y * width + x] = color;
+        }
+    }
+
+    // The pixels from x1 to x2 (inclusive) in row y.
+    void plot_row(int y, int x1, int x2) const
+    {
+        if (y < clip.y || y >= clip.y + clip.h) {
+            return;
+        }
+        x1 = SDL_max(x1, clip.x);
+        x2 = SDL_min(x2, clip.x + clip.w - 1);
+        int32_t *p = pixels + y * width;
+        for (int x = x1; x <= x2; x++) {
+            p[x] = color;
+        }
+    }
+
+    // The pixels from y1 to y2 (inclusive) in column x.
+    void plot_column(int x, int y1, int y2) const
+    {
+        if (x < clip.x || x >= clip.x + clip.w) {
+            return;
+        }
+        y1 = SDL_max(y1, clip.y);
+        y2 = SDL_min(y2, clip.y + clip.h - 1);
+        for (int y = y1; y <= y2; y++) {
+            pixels[y * width + x] = color;
+        }
+    }
+
+    // A round brush of the width centred on x, y.
+    void plot_brush(int x, int y, int line_width) const
+    {
+        if (line_width == 1) {
+            plot(x, y);
+            return;
+        }
+        int half_width = line_width / 2;
+        for (int dy = -half_width; dy <= half_width; dy++) {
+            for (int dx = -half_width; dx <= half_width; dx++) {
+                if (dx * dx + dy * dy <= half_width * half_width + half_width) {
+                    plot(x + dx, y + dy);
+                }
+            }
+        }
+    }
+};
+
+} // namespace
+
+// -------------------------------------------------------------------------------------------------
+
 static PyObject *fsapp_surface_python_draw_filled_rectangle(PyObject *self, PyObject *args)
 {
     PyObject *surface_capsule;
     SDL_Rect rect;
     int r, g, b, a;
-    if (!PyArg_ParseTuple(args, "O(ii)(ii)(iiii):draw_filled_rectangle", &surface_capsule, &rect.x,
-                          &rect.y, &rect.w, &rect.h, &r, &g, &b, &a)) {
+    fsapp_surface_clip_t clip = {};
+    if (!PyArg_ParseTuple(args, "O(ii)(ii)(iiii)|O&:draw_filled_rectangle", &surface_capsule,
+                          &rect.x, &rect.y, &rect.w, &rect.h, &r, &g, &b, &a,
+                          fsapp_surface_convert_python_clip, &clip)) {
         return NULL;
     }
 
@@ -504,7 +903,50 @@ static PyObject *fsapp_surface_python_draw_filled_rectangle(PyObject *self, PyOb
     // FIXME: ASSERT COLOR BYTES.. (0 - 255) - not masking
     // FIXME: For later - release the GIL while doing work?
     SDL_Color color = {(Uint8)r, (Uint8)g, (Uint8)b, (Uint8)a};
+    fsapp_surface_begin_clip(surface, &clip);
     fsapp_surface_draw_filled_rectangle(surface, &rect, color);
+    fsapp_surface_end_clip(surface);
+
+    Py_RETURN_NONE;
+}
+
+// _fsapp_surface.draw_rectangle(surface, (x, y), (w, h), colour, width, clip=None): the outline
+// inside the rectangle, width pixels wide (the whole rectangle when it is that narrow).
+static PyObject *fsapp_surface_python_draw_rectangle(PyObject *self, PyObject *args)
+{
+    PyObject *surface_capsule;
+    int x, y, w, h;
+    int r, g, b, a, line_width;
+    fsapp_surface_clip_t clip = {};
+    if (!PyArg_ParseTuple(args, "O(ii)(ii)(iiii)i|O&:draw_rectangle", &surface_capsule, &x, &y, &w,
+                          &h, &r, &g, &b, &a, &line_width, fsapp_surface_convert_python_clip,
+                          &clip)) {
+        return NULL;
+    }
+
+    fsapp_surface_t *surface =
+        (fsapp_surface_t *)PyCapsule_GetPointer(surface_capsule, "fsapp_surface_t");
+    SDL_assert(surface != NULL);
+
+    if (w <= 0 || h <= 0 || line_width <= 0) {
+        Py_RETURN_NONE;
+    }
+    uint32_t pixel = premultiplied_pixel(surface, r, g, b, a);
+    fsapp_surface_begin_clip(surface, &clip);
+    if (2 * line_width >= w || 2 * line_width >= h) {
+        SDL_Rect rect = {x, y, w, h};
+        SDL_FillSurfaceRect(surface->sdl, &rect, pixel);
+    } else {
+        int inner_h = h - 2 * line_width;
+        SDL_Rect sides[4] = {
+            {x, y, w, line_width},
+            {x, y + h - line_width, w, line_width},
+            {x, y + line_width, line_width, inner_h},
+            {x + w - line_width, y + line_width, line_width, inner_h},
+        };
+        SDL_FillSurfaceRects(surface->sdl, sides, 4, pixel);
+    }
+    fsapp_surface_end_clip(surface);
 
     Py_RETURN_NONE;
 }
@@ -518,8 +960,10 @@ static PyObject *fsapp_surface_python_draw_line(PyObject *self, PyObject *args)
     PyObject *surface_capsule;
     int x1, y1, x2, y2;
     int r, g, b, a, line_width;
-    if (!PyArg_ParseTuple(args, "O(ii)(ii)(iiii)i:draw_line", &surface_capsule, &x1, &y1, &x2, &y2,
-                          &r, &g, &b, &a, &line_width)) {
+    fsapp_surface_clip_t clip = {};
+    if (!PyArg_ParseTuple(args, "O(ii)(ii)(iiii)i|O&:draw_line", &surface_capsule, &x1, &y1, &x2,
+                          &y2, &r, &g, &b, &a, &line_width, fsapp_surface_convert_python_clip,
+                          &clip)) {
         return NULL;
     }
 
@@ -527,77 +971,24 @@ static PyObject *fsapp_surface_python_draw_line(PyObject *self, PyObject *args)
         (fsapp_surface_t *)PyCapsule_GetPointer(surface_capsule, "fsapp_surface_t");
     SDL_assert(surface != NULL);
 
-    // FIXME: Maybe we want to do bounds checking on release as well
-    // Note: Removed strict assertions since widgets may calculate coordinates
-    // slightly outside bounds, but the actual drawing code handles bounds checking
-
     // FIXME: ASSERT COLOR BYTES.. (0 - 255) - not masking
 
-    uint32_t color = premultiplied_pixel(surface, r, g, b, a);
-
-    // FIXME: Check that x2 > x1
-    // FIXME: Check that y2 > y1
-    // FIXME: Out of bounds checking!
-    // FIXME: Clip rect support
-
-    int32_t *pixels = (int32_t *)surface->data;
+    plotter pen(surface, &clip, premultiplied_pixel(surface, r, g, b, a));
 
     // Fast paths for width=1 horizontal and vertical lines
     if (line_width == 1) {
         if (y1 == y2) {
-            // Horizontal line - handle both directions
-            int start_x = (x1 < x2) ? x1 : x2;
-            int end_x = (x1 < x2) ? x2 : x1;
-            if (y1 >= 0 && y1 < surface->state.height) {
-                // Clip to surface bounds
-                if (start_x < 0) {
-                    start_x = 0;
-                }
-                if (end_x >= surface->state.width) {
-                    end_x = surface->state.width - 1;
-                }
-
-                // Only draw if there's something to draw after clipping
-                if (start_x <= end_x) {
-                    int32_t *p = pixels + y1 * surface->state.width + start_x;
-                    for (int x = start_x; x <= end_x; x++) {
-                        *(p++) = color;
-                    }
-                }
-            }
+            pen.plot_row(y1, SDL_min(x1, x2), SDL_max(x1, x2));
             Py_RETURN_NONE;
         } else if (x1 == x2) {
-            // Vertical line - handle both directions
-            int start_y = (y1 < y2) ? y1 : y2;
-            int end_y = (y1 < y2) ? y2 : y1;
-            if (x1 >= 0 && x1 < surface->state.width) {
-                // Clip to surface bounds
-                if (start_y < 0) {
-                    start_y = 0;
-                }
-                if (end_y >= surface->state.height) {
-                    end_y = surface->state.height - 1;
-                }
-
-                // Only draw if there's something to draw after clipping
-                if (start_y <= end_y) {
-                    int32_t *p = pixels + start_y * surface->state.width + x1;
-                    for (int y = start_y; y <= end_y; y++) {
-                        *p = color;
-                        p += surface->state.width;
-                    }
-                }
-            }
+            pen.plot_column(x1, SDL_min(y1, y2), SDL_max(y1, y2));
             Py_RETURN_NONE;
         }
     }
 
     // AI-generated method for non-horizontal/vertical (experiment)
 
-    // General case: thick lines or diagonal lines
-    int half_width = line_width / 2;
-
-    // Bresenham's line algorithm with thick brush
+    // General case: thick lines or diagonal lines, Bresenham's line algorithm with a round brush.
     int dx = abs(x2 - x1);
     int dy = abs(y2 - y1);
     int sx = (x1 < x2) ? 1 : -1;
@@ -608,29 +999,7 @@ static PyObject *fsapp_surface_python_draw_line(PyObject *self, PyObject *args)
     int y = y1;
 
     while (true) {
-        // Draw thick pixel at (x, y) using circular brush
-        if (line_width == 1) {
-            // Fast path for single pixel (diagonal case)
-            if (x >= 0 && x < surface->state.width && y >= 0 && y < surface->state.height) {
-                pixels[y * surface->state.width + x] = color;
-            }
-        } else {
-            // Draw circular brush around current pixel
-            for (int dy_brush = -half_width; dy_brush <= half_width; dy_brush++) {
-                for (int dx_brush = -half_width; dx_brush <= half_width; dx_brush++) {
-                    // Use circular brush (distance from center <= radius)
-                    if (dx_brush * dx_brush + dy_brush * dy_brush <=
-                        half_width * half_width + half_width) {
-                        int plot_x = x + dx_brush;
-                        int plot_y = y + dy_brush;
-                        if (plot_x >= 0 && plot_x < surface->state.width && plot_y >= 0 &&
-                            plot_y < surface->state.height) {
-                            pixels[plot_y * surface->state.width + plot_x] = color;
-                        }
-                    }
-                }
-            }
-        }
+        pen.plot_brush(x, y, line_width);
 
         // Check if we've reached the end point
         if (x == x2 && y == y2) {
@@ -659,8 +1028,10 @@ static PyObject *fsapp_surface_python_draw_circle(PyObject *self, PyObject *args
     PyObject *surface_capsule;
     int center_x, center_y, radius;
     int r, g, b, a, line_width;
-    if (!PyArg_ParseTuple(args, "O(ii)i(iiii)i:draw_circle", &surface_capsule, &center_x, &center_y,
-                          &radius, &r, &g, &b, &a, &line_width)) {
+    fsapp_surface_clip_t clip = {};
+    if (!PyArg_ParseTuple(args, "O(ii)i(iiii)i|O&:draw_circle", &surface_capsule, &center_x,
+                          &center_y, &radius, &r, &g, &b, &a, &line_width,
+                          fsapp_surface_convert_python_clip, &clip)) {
         return NULL;
     }
 
@@ -668,9 +1039,7 @@ static PyObject *fsapp_surface_python_draw_circle(PyObject *self, PyObject *args
         (fsapp_surface_t *)PyCapsule_GetPointer(surface_capsule, "fsapp_surface_t");
     SDL_assert(surface != NULL);
 
-    uint32_t color = premultiplied_pixel(surface, r, g, b, a);
-    int32_t *pixels = (int32_t *)surface->data;
-    int half_width = line_width / 2;
+    plotter pen(surface, &clip, premultiplied_pixel(surface, r, g, b, a));
 
     // Midpoint circle algorithm with thick brush
     int x = 0;
@@ -683,31 +1052,7 @@ static PyObject *fsapp_surface_python_draw_circle(PyObject *self, PyObject *args
         int points_y[] = {y, y, -y, -y, x, x, -x, -x};
 
         for (int i = 0; i < 8; i++) {
-            int px = center_x + points_x[i];
-            int py = center_y + points_y[i];
-
-            if (line_width == 1) {
-                // Fast path for single pixel
-                if (px >= 0 && px < surface->state.width && py >= 0 && py < surface->state.height) {
-                    pixels[py * surface->state.width + px] = color;
-                }
-            } else {
-                // Draw circular brush around each point
-                for (int dy_brush = -half_width; dy_brush <= half_width; dy_brush++) {
-                    for (int dx_brush = -half_width; dx_brush <= half_width; dx_brush++) {
-                        // Use circular brush (distance from center <= radius)
-                        if (dx_brush * dx_brush + dy_brush * dy_brush <=
-                            half_width * half_width + half_width) {
-                            int plot_x = px + dx_brush;
-                            int plot_y = py + dy_brush;
-                            if (plot_x >= 0 && plot_x < surface->state.width && plot_y >= 0 &&
-                                plot_y < surface->state.height) {
-                                pixels[plot_y * surface->state.width + plot_x] = color;
-                            }
-                        }
-                    }
-                }
-            }
+            pen.plot_brush(center_x + points_x[i], center_y + points_y[i], line_width);
         }
 
         if (d < 0) {
@@ -730,8 +1075,10 @@ static PyObject *fsapp_surface_python_draw_filled_circle(PyObject *self, PyObjec
     PyObject *surface_capsule;
     int center_x, center_y, radius;
     int r, g, b, a;
-    if (!PyArg_ParseTuple(args, "O(ii)i(iiii):draw_filled_circle", &surface_capsule, &center_x,
-                          &center_y, &radius, &r, &g, &b, &a)) {
+    fsapp_surface_clip_t clip = {};
+    if (!PyArg_ParseTuple(args, "O(ii)i(iiii)|O&:draw_filled_circle", &surface_capsule, &center_x,
+                          &center_y, &radius, &r, &g, &b, &a, fsapp_surface_convert_python_clip,
+                          &clip)) {
         return NULL;
     }
 
@@ -739,24 +1086,14 @@ static PyObject *fsapp_surface_python_draw_filled_circle(PyObject *self, PyObjec
         (fsapp_surface_t *)PyCapsule_GetPointer(surface_capsule, "fsapp_surface_t");
     SDL_assert(surface != NULL);
 
-    uint32_t color = premultiplied_pixel(surface, r, g, b, a);
-    int32_t *pixels = (int32_t *)surface->data;
+    plotter pen(surface, &clip, premultiplied_pixel(surface, r, g, b, a));
 
     // Midpoint circle algorithm adapted for filled circles
     int x = 0;
     int y = radius;
     int d = 1 - radius;
 
-    // Draw initial horizontal line
-    if (center_y >= 0 && center_y < surface->state.height) {
-        int start_x = (center_x - radius < 0) ? 0 : center_x - radius;
-        int end_x = (center_x + radius >= surface->state.width) ? surface->state.width - 1
-                                                                : center_x + radius;
-        int32_t *line_pixels = pixels + center_y * surface->state.width + start_x;
-        for (int i = start_x; i <= end_x; i++) {
-            *(line_pixels++) = color;
-        }
-    }
+    pen.plot_row(center_y, center_x - radius, center_x + radius);
 
     while (x < y) {
         if (d < 0) {
@@ -767,65 +1104,161 @@ static PyObject *fsapp_surface_python_draw_filled_circle(PyObject *self, PyObjec
         }
         x++;
 
-        // Draw horizontal lines for this y level
-        // Top and bottom lines for x offset
-        if (center_y + y >= 0 && center_y + y < surface->state.height) {
-            int start_x = (center_x - x < 0) ? 0 : center_x - x;
-            int end_x =
-                (center_x + x >= surface->state.width) ? surface->state.width - 1 : center_x + x;
-            int32_t *line_pixels = pixels + (center_y + y) * surface->state.width + start_x;
-            for (int i = start_x; i <= end_x; i++) {
-                *(line_pixels++) = color;
-            }
-        }
-        if (center_y - y >= 0 && center_y - y < surface->state.height) {
-            int start_x = (center_x - x < 0) ? 0 : center_x - x;
-            int end_x =
-                (center_x + x >= surface->state.width) ? surface->state.width - 1 : center_x + x;
-            int32_t *line_pixels = pixels + (center_y - y) * surface->state.width + start_x;
-            for (int i = start_x; i <= end_x; i++) {
-                *(line_pixels++) = color;
-            }
-        }
-
-        // Top and bottom lines for y offset (if different from x)
+        // The rows y away from the centre, and (if different) x away.
+        pen.plot_row(center_y + y, center_x - x, center_x + x);
+        pen.plot_row(center_y - y, center_x - x, center_x + x);
         if (x != y) {
-            if (center_y + x >= 0 && center_y + x < surface->state.height) {
-                int start_x = (center_x - y < 0) ? 0 : center_x - y;
-                int end_x = (center_x + y >= surface->state.width) ? surface->state.width - 1
-                                                                   : center_x + y;
-                int32_t *line_pixels = pixels + (center_y + x) * surface->state.width + start_x;
-                for (int i = start_x; i <= end_x; i++) {
-                    *(line_pixels++) = color;
-                }
-            }
-            if (center_y - x >= 0 && center_y - x < surface->state.height) {
-                int start_x = (center_x - y < 0) ? 0 : center_x - y;
-                int end_x = (center_x + y >= surface->state.width) ? surface->state.width - 1
-                                                                   : center_x + y;
-                int32_t *line_pixels = pixels + (center_y - x) * surface->state.width + start_x;
-                for (int i = start_x; i <= end_x; i++) {
-                    *(line_pixels++) = color;
-                }
-            }
+            pen.plot_row(center_y + x, center_x - y, center_x + y);
+            pen.plot_row(center_y - x, center_x - y, center_x + y);
         }
     }
 
     Py_RETURN_NONE;
 }
 
+// -------------------------------------------------------------------------------------------------
+// Raw access to a surface's buffer (_fsapp_surface.get_buffer).
+
+namespace
+{
+
+// What a buffer's memoryview is made from. It holds a reference to the buffer's SDL_Surface, so
+// that the memory stays valid if a resize or destroy frees the surface's buffer while a view (or a
+// slice of one) is still alive. Released at the end of the UI frame, it exports no more views.
+struct buffer_object {
+    PyObject ob_base;
+    SDL_Surface *sdl;
+    bool released;
+};
+
+} // namespace
+
+static PyTypeObject *g_buffer_type;
+
+// A memoryview handed out by get_buffer in the current UI frame and what it was made from (a
+// reference each), released at its end.
+struct handed_buffer {
+    PyObject *view;
+    buffer_object *object;
+};
+
+static std::vector<handed_buffer> g_buffers;
+
+static int buffer_object_get_buffer(PyObject *self, Py_buffer *view, int flags)
+{
+    buffer_object *object = (buffer_object *)self;
+    if (object->sdl == NULL || object->released) {
+        PyErr_SetString(PyExc_ValueError,
+                        "The surface buffer was released at the end of a UI frame");
+        view->obj = NULL;
+        return -1;
+    }
+    SDL_Surface *sdl = object->sdl;
+    return PyBuffer_FillInfo(view, self, sdl->pixels, (Py_ssize_t)sdl->pitch * sdl->h, 0, flags);
+}
+
+// The SDL_Surface's reference count is not atomic: it is changed only with the GIL held (here,
+// get_buffer, and freeing a surface's buffer on the UI thread or from Python), or where no Python
+// runs.
+static void buffer_object_dealloc(PyObject *self)
+{
+    SDL_DestroySurface(((buffer_object *)self)->sdl);
+    PyTypeObject *type = Py_TYPE(self);
+    type->tp_free(self);
+    Py_DECREF(type);
+}
+
+static PyType_Slot buffer_object_slots[] = {
+    {Py_bf_getbuffer, (void *)buffer_object_get_buffer},
+    {Py_tp_dealloc, (void *)buffer_object_dealloc},
+    {0, NULL},
+};
+
+static PyType_Spec buffer_object_spec = {"_fsapp_surface.Buffer", sizeof(buffer_object), 0,
+                                         Py_TPFLAGS_DEFAULT | Py_TPFLAGS_DISALLOW_INSTANTIATION,
+                                         buffer_object_slots};
+
+// _fsapp_surface.get_buffer(surface): a writable memoryview of the surface's buffer (premultiplied,
+// bytes B, G, R, A on little-endian hosts, rows of width * 4 bytes), released at the end of the UI
+// frame, before the record hands the buffer to the main thread, with what it was made from, which
+// then exports no more views.
+// REVIEW: A slice or cast of the view shares its export and is not released with it: writing
+// through one after the UI frame writes into a buffer that the main thread may be reading (or into
+// a buffer already replaced, which the export keeps alive, so never into freed memory). Revoking
+// those too would take a buffer of our own per UI frame, copied into the surface's at its end.
+static PyObject *fsapp_surface_python_get_buffer(PyObject *self, PyObject *args)
+{
+    fsapp_surface_t *surface;
+    if (!PyArg_ParseTuple(args, "O&:get_buffer", convert_surface, &surface)) {
+        return NULL;
+    }
+    if (surface->sdl == NULL) {
+        PyErr_SetString(PyExc_ValueError, "The surface has no buffer");
+        return NULL;
+    }
+    buffer_object *object = PyObject_New(buffer_object, g_buffer_type);
+    if (object == NULL) {
+        return NULL;
+    }
+    object->sdl = surface->sdl;
+    object->sdl->refcount++;
+    object->released = false;
+    PyObject *view = PyMemoryView_FromObject((PyObject *)object);
+    if (view == NULL) {
+        Py_DECREF(object);
+        return NULL;
+    }
+    // The list takes over the reference to the object.
+    g_buffers.push_back({Py_NewRef(view), object});
+    return view;
+}
+
+// Releases the memoryviews from get_buffer and what they were made from, so that using them, or
+// making a new view from them, raises ValueError. Called with the GIL held when there are any (the
+// Python UI thread holds it through its UI frames).
+static void release_python_buffers(void)
+{
+    for (const handed_buffer &buffer : g_buffers) {
+        buffer.object->released = true;
+        PyObject *result = PyObject_CallMethod(buffer.view, "release", NULL);
+        if (result == NULL) {
+            // A view that something was made from (an export) cannot be released.
+            SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION, "Could not release a surface buffer's view");
+            PyErr_Clear();
+        }
+        Py_XDECREF(result);
+        Py_DECREF(buffer.view);
+        Py_DECREF((PyObject *)buffer.object);
+    }
+    g_buffers.clear();
+}
+
 static PyMethodDef fsapp_surface_python_methods[] = {
-    {"create", fsapp_surface_python_create, METH_VARARGS, "..."},
+    {"create", (PyCFunction)(void (*)(void))fsapp_surface_python_create,
+     METH_VARARGS | METH_KEYWORDS, "..."},
     {"resize", fsapp_surface_python_resize, METH_VARARGS, "..."},
     {"commit", fsapp_surface_python_commit, METH_VARARGS, "..."},
     {"set_position", fsapp_surface_python_set_position, METH_VARARGS, "..."},
-    {"set_z_index", fsapp_surface_python_set_z_index, METH_VARARGS, "..."},
+    {"set_role", fsapp_surface_python_set_role, METH_VARARGS, "..."},
+    {"set_band", fsapp_surface_python_set_band, METH_VARARGS, "..."},
+    {"set_key_target", fsapp_surface_python_set_key_target, METH_VARARGS, "..."},
+    {"raise_surface", fsapp_surface_python_raise_surface, METH_VARARGS, "..."},
     {"set_translucent", fsapp_surface_python_set_translucent, METH_VARARGS, "..."},
     {"set_visible", fsapp_surface_python_set_visible, METH_VARARGS, "..."},
+    {"set_focusable", fsapp_surface_python_set_focusable, METH_VARARGS, "..."},
+    {"request_focus", fsapp_surface_python_request_focus, METH_VARARGS, "..."},
+    {"set_handler", fsapp_surface_python_set_handler, METH_VARARGS, "..."},
+    {"get_id", fsapp_surface_python_get_id, METH_VARARGS, "..."},
+    {"take_events", fsapp_input_python_take_events, METH_VARARGS, "..."},
+    {"set_window_handler", fsapp_input_python_set_window_handler, METH_VARARGS, "..."},
+    {"take_configures", fsapp_input_python_take_configures, METH_VARARGS, "..."},
+    {"take_window_state", fsapp_input_python_take_window_state, METH_VARARGS, "..."},
     {"draw_filled_rectangle", fsapp_surface_python_draw_filled_rectangle, METH_VARARGS, "..."},
+    {"draw_rectangle", fsapp_surface_python_draw_rectangle, METH_VARARGS, "..."},
     {"draw_line", fsapp_surface_python_draw_line, METH_VARARGS, "..."},
     {"draw_circle", fsapp_surface_python_draw_circle, METH_VARARGS, "..."},
     {"draw_filled_circle", fsapp_surface_python_draw_filled_circle, METH_VARARGS, "..."},
+    {"get_buffer", fsapp_surface_python_get_buffer, METH_VARARGS, "..."},
     {"destroy", fsapp_surface_python_destroy, METH_VARARGS, "..."},
     {NULL, NULL, 0, NULL}};
 
@@ -841,7 +1274,55 @@ static PyModuleDef fsapp_surface_python_module = {PyModuleDef_HEAD_INIT,
 
 static PyObject *fsapp_surface_python_initfunc(void)
 {
-    return PyModule_Create(&fsapp_surface_python_module);
+    PyObject *module = PyModule_Create(&fsapp_surface_python_module);
+    if (module == NULL) {
+        return NULL;
+    }
+    if (g_buffer_type == NULL) {
+        g_buffer_type = (PyTypeObject *)PyType_FromSpec(&buffer_object_spec);
+        if (g_buffer_type == NULL) {
+            Py_DECREF(module);
+            return NULL;
+        }
+    }
+    // The kinds of surface events in take_events(), and of their devices.
+    static const struct {
+        const char *name;
+        int kind;
+    } kinds[] = {
+        {"EVENT_KEY_DOWN", FSAPP_INPUT_EVENT_KEY_DOWN},
+        {"EVENT_KEY_UP", FSAPP_INPUT_EVENT_KEY_UP},
+        {"EVENT_FOCUS_IN", FSAPP_INPUT_EVENT_FOCUS_IN},
+        {"EVENT_FOCUS_OUT", FSAPP_INPUT_EVENT_FOCUS_OUT},
+        {"EVENT_NAVIGATION", FSAPP_INPUT_EVENT_NAVIGATION},
+        {"EVENT_POINTER_ENTER", FSAPP_INPUT_EVENT_POINTER_ENTER},
+        {"EVENT_POINTER_LEAVE", FSAPP_INPUT_EVENT_POINTER_LEAVE},
+        {"EVENT_POINTER_MOTION", FSAPP_INPUT_EVENT_POINTER_MOTION},
+        {"EVENT_POINTER_BUTTON", FSAPP_INPUT_EVENT_POINTER_BUTTON},
+        {"EVENT_POINTER_WHEEL", FSAPP_INPUT_EVENT_POINTER_WHEEL},
+        {"EVENT_OUTSIDE_CLICK", FSAPP_INPUT_EVENT_OUTSIDE_CLICK},
+        // The kinds of input devices of navigation events.
+        {"DEVICE_KEYBOARD", FSAPP_NAVIGATION_KEYBOARD},
+        {"DEVICE_GAMEPAD", FSAPP_NAVIGATION_GAMEPAD},
+        // Roles and bands (set_role, set_band).
+        {"ROLE_TOP_LEVEL", FSAPP_STACKING_ROLE_TOP_LEVEL},
+        {"ROLE_CHILD", FSAPP_STACKING_ROLE_CHILD},
+        {"ROLE_POPUP", FSAPP_STACKING_ROLE_POPUP},
+        {"ROLE_OVERLAY", FSAPP_STACKING_ROLE_OVERLAY},
+        {"BAND_BACKGROUND", FSAPP_STACKING_BAND_BACKGROUND},
+        {"BAND_NORMAL", FSAPP_STACKING_BAND_NORMAL},
+        {"BAND_PANEL", FSAPP_STACKING_BAND_PANEL},
+        // Scale supports (create).
+        {"SCALE_ONE", FSAPP_PIXELS_SCALE_ONE},
+        {"SCALE_ANY", FSAPP_PIXELS_SCALE_ANY},
+    };
+    for (const auto &entry : kinds) {
+        if (PyModule_AddIntConstant(module, entry.name, entry.kind) < 0) {
+            Py_DECREF(module);
+            return NULL;
+        }
+    }
+    return module;
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -865,8 +1346,10 @@ struct record_entry {
 // Whether two states have the same layout: all but the size.
 bool same_layout(const fsapp_surface_state_t *a, const fsapp_surface_state_t *b)
 {
-    return a->visible == b->visible && a->x == b->x && a->y == b->y && a->z == b->z &&
-           a->translucent == b->translucent && same_color(a->fill_color, b->fill_color);
+    return a->visible == b->visible && a->x == b->x && a->y == b->y && a->role == b->role &&
+           a->parent == b->parent && a->band == b->band && a->key_target == b->key_target &&
+           a->translucent == b->translucent && same_color(a->fill_color, b->fill_color) &&
+           a->focusable == b->focusable && a->scale_support == b->scale_support;
 }
 
 } // namespace
@@ -878,6 +1361,9 @@ static struct {
     // holding a reference until the host window side has applied it.
     std::vector<record_entry> record;
     std::vector<fsapp_surface_t *> destroyed;
+    // The raise and focus requests of the current UI frame, in order, each holding a reference.
+    std::vector<fsapp_surface_t *> raise_requests;
+    std::vector<fsapp_surface_t *> focus_requests;
     // Whether the first record has been handed over.
     bool handed_first;
     // Whether the UI thread waits, before its next UI frame, for its last record to be taken in
@@ -896,6 +1382,8 @@ static struct {
     // The pending record (when pending).
     std::vector<record_entry> record;
     std::vector<fsapp_surface_t *> destroyed;
+    std::vector<fsapp_surface_t *> raise_requests;
+    std::vector<fsapp_surface_t *> focus_requests;
     bool pending;
     // Whether a UI frame runs (from fsapp_surface_wait_for_next_ui_frame to
     // fsapp_surface_end_ui_frame, the UI thread's sleep after the wait included), and on which
@@ -919,18 +1407,29 @@ static struct {
     // The record being applied (its storage is kept from record to record).
     std::vector<record_entry> record;
     std::vector<fsapp_surface_t *> destroyed;
+    std::vector<fsapp_surface_t *> raise_requests;
+    std::vector<fsapp_surface_t *> focus_requests;
     // The applied surfaces, in the order they were created (in the records), each holding a
     // reference.
     std::vector<fsapp_surface_t *> surfaces;
+    // The last raise order given (fsapp_surface_raise).
+    uint64_t raise_count;
     // Whether a record changed the layout since the flat list was built.
     bool layout_changed;
     bool taken_first;
-    // The flat list, and the surfaces in it while they are put in stacking order.
-    std::vector<fsapp_surface_t *> order;
+    // The stacking unit's input and output (fsapp-stacking.h), and the flat list.
+    std::vector<fsapp_stacking_surface_t> stacking;
+    std::vector<fsapp_stacking_entry_t> order;
+    std::vector<bool> stacked;
     std::vector<fsapp_snapshot_surface_t> flat;
+    // The applied surfaces for routing, from back to front (fsapp_surface_get_routing_surfaces).
+    std::vector<fsapp_routing_surface_t> routing;
     // The record's content and destroyed surfaces, for the snapshot of the frame that takes it.
     std::vector<fsapp_snapshot_content_t> contents;
     std::vector<const void *> destroyed_ids;
+    // The display scale of the last configure (fsapp_surface_set_display_scale), which the applied
+    // surfaces' ratios follow.
+    float display_scale = 1.0f;
 } g_host;
 
 // Puts the destruction of a surface (just marked destroyed) in a record. Inside a UI frame, on its
@@ -967,8 +1466,26 @@ static void destroy_in_record(fsapp_surface_t *surface)
     }
 }
 
+// Puts a raise request in the current UI frame's record. Outside a UI frame (before the UI thread
+// is started), it goes with the first record.
+static void request_raise_in_record(fsapp_surface_t *surface)
+{
+    fsapp_surface_ref(surface);
+    g_ui.raise_requests.push_back(surface);
+}
+
+// Puts a focus request in the current UI frame's record. Outside a UI frame (before the UI thread
+// is started), it goes with the first record.
+static void request_focus_in_record(fsapp_surface_t *surface)
+{
+    fsapp_surface_ref(surface);
+    g_ui.focus_requests.push_back(surface);
+}
+
 bool fsapp_surface_end_ui_frame(void)
 {
+    release_python_buffers();
+
     std::vector<record_entry> &record = g_ui.record;
     record.clear();
     for (fsapp_surface_t *surface : g_changed) {
@@ -1007,7 +1524,10 @@ bool fsapp_surface_end_ui_frame(void)
 
     // The first record is handed over even when it is empty (no surfaces), so that a program
     // without surfaces is drawn at all (no frame is drawn before the first record).
-    bool hand_over = !record.empty() || !destroyed.empty() || !g_ui.handed_first;
+    std::vector<fsapp_surface_t *> &raise_requests = g_ui.raise_requests;
+    std::vector<fsapp_surface_t *> &focus_requests = g_ui.focus_requests;
+    bool hand_over = !record.empty() || !destroyed.empty() || !raise_requests.empty() ||
+                     !focus_requests.empty() || !g_ui.handed_first;
     SDL_LockMutex(g_slot.mutex);
     g_slot.in_ui_frame = false;
     if (hand_over) {
@@ -1015,6 +1535,8 @@ bool fsapp_surface_end_ui_frame(void)
         SDL_assert(!g_slot.pending);
         g_slot.record.swap(record);
         g_slot.destroyed.swap(destroyed);
+        g_slot.raise_requests.swap(raise_requests);
+        g_slot.focus_requests.swap(focus_requests);
         g_slot.pending = true;
         g_slot.handed += 1;
         g_ui.waits_for_taken_in = true;
@@ -1148,16 +1670,95 @@ static void apply_entry(const record_entry *entry)
     }
 }
 
-// Builds the flat list from the applied state: the surfaces with content (or streamed content) that
-// are visible and not empty, in the order they were created, put in stacking order from back to
-// front (by z index, keeping the order of creation for the same z index).
+// The top-level (or overlay) of the applied surface's tree, following the parents of children and
+// popups (only called for surfaces in the stacking order, whose parents lead to one).
+static const fsapp_surface_t *find_applied_top_level(const fsapp_surface_t *surface)
+{
+    while (surface->applied.state.parent != NULL && has_parent_role(surface->applied.state.role)) {
+        surface = surface->applied.state.parent;
+    }
+    return surface;
+}
+
+// The applied surface's ratio: how many device pixels one of its buffer pixels covers.
+static double get_applied_ratio(const fsapp_surface_t *surface)
+{
+    return fsapp_pixels_get_ratio(surface->applied.state.scale_support, g_host.display_scale);
+}
+
+// The applied surface's device rectangle: its rectangle in buffer pixels at its ratio.
+static fsapp_pixels_rectangle_t get_applied_device_rectangle(const fsapp_surface_t *surface)
+{
+    const auto &state = surface->applied.state;
+    fsapp_pixels_rectangle_t rectangle = {state.x, state.y, state.width, state.height};
+    fsapp_pixels_rectangle_t device;
+    fsapp_pixels_get_device_rectangle(&rectangle, get_applied_ratio(surface), &device);
+    return device;
+}
+
+// Computes the stacking order of the applied state and builds routing's list in it (every surface
+// in the stacking order).
+static void build_routing_list(void)
+{
+    const std::vector<fsapp_surface_t *> &surfaces = g_host.surfaces;
+    std::vector<fsapp_stacking_surface_t> &stacking = g_host.stacking;
+    stacking.clear();
+    for (const fsapp_surface_t *surface : surfaces) {
+        const auto &state = surface->applied.state;
+        stacking.push_back(
+            {surface, state.parent, state.role, state.band, surface->applied.raise, state.visible});
+    }
+    std::vector<fsapp_stacking_entry_t> &order = g_host.order;
+    order.resize(surfaces.size());
+    order.resize(fsapp_stacking_compute_order(stacking.data(), (int)stacking.size(), order.data()));
+
+    std::vector<bool> &stacked = g_host.stacked;
+    stacked.assign(surfaces.size(), false);
+    for (const fsapp_stacking_entry_t &entry : order) {
+        stacked[entry.index] = true;
+    }
+    for (size_t i = 0; i < surfaces.size(); i++) {
+        fsapp_surface_t *surface = surfaces[i];
+        // REVIEW: Destroying a parent destroys nothing else: its children and popups are left out
+        // until they are given another parent or destroyed.
+        if (!stacked[i] && !surface->applied.left_out) {
+            SDL_Log("Surface %p left out of the stacking order: its parent %p is not there",
+                    (void *)surface, (void *)surface->applied.state.parent);
+        }
+        surface->applied.left_out = !stacked[i];
+    }
+
+    g_host.routing.clear();
+    for (const fsapp_stacking_entry_t &entry : order) {
+        fsapp_surface_t *surface = surfaces[entry.index];
+        const auto &applied = surface->applied;
+        fsapp_routing_surface_t routing = {};
+        routing.id = surface;
+        // A surface with a buffer and no content yet has an empty rectangle, and takes no click.
+        fsapp_pixels_rectangle_t device = get_applied_device_rectangle(surface);
+        routing.rectangle = {device.x, device.y, device.width, device.height};
+        routing.visible = entry.shown;
+        routing.focusable = applied.state.focusable;
+        routing.takes_pointer = applied.state.role != FSAPP_STACKING_ROLE_OVERLAY;
+        routing.top_level = find_applied_top_level(surface);
+        // Compared with the list's ids only: routing checks that it is in the tree.
+        routing.key_target = applied.state.key_target;
+        routing.popup = applied.state.role == FSAPP_STACKING_ROLE_POPUP;
+        g_host.routing.push_back(routing);
+    }
+}
+
+// Builds routing's list and the flat list from the applied state, in the stacking order: the flat
+// list has the surfaces of routing's list with content (or streamed content) that are shown and
+// not empty.
 static void build_flat_list(void)
 {
-    std::vector<fsapp_surface_t *> &order = g_host.order;
-    order.clear();
-    for (fsapp_surface_t *surface : g_host.surfaces) {
+    build_routing_list();
+    g_host.flat.clear();
+    for (const fsapp_stacking_entry_t &entry : g_host.order) {
+        fsapp_surface_t *surface = g_host.surfaces[entry.index];
         const auto &applied = surface->applied;
-        if (!applied.state.visible || applied.state.width <= 0 || applied.state.height <= 0) {
+        if (!entry.shown || applied.state.width <= 0 || applied.state.height <= 0) {
             continue;
         }
         // A surface without a buffer has content to draw only with streamed content (the emulation
@@ -1165,22 +1766,15 @@ static void build_flat_list(void)
         if (!surface->streamed && (surface->special || !applied.has_content)) {
             continue;
         }
-        order.push_back(surface);
-    }
-    std::stable_sort(order.begin(), order.end(),
-                     [](const fsapp_surface_t *a, const fsapp_surface_t *b) {
-                         return a->applied.state.z < b->applied.state.z;
-                     });
-    g_host.flat.clear();
-    for (const fsapp_surface_t *surface : order) {
-        const auto &applied = surface->applied;
         fsapp_snapshot_surface_t copy = {};
         copy.id = surface;
-        copy.x = applied.state.x;
-        copy.y = applied.state.y;
-        copy.width = applied.state.width;
-        copy.height = applied.state.height;
-        copy.visible = applied.state.visible;
+        fsapp_pixels_rectangle_t device = get_applied_device_rectangle(surface);
+        copy.x = device.x;
+        copy.y = device.y;
+        copy.width = device.width;
+        copy.height = device.height;
+        copy.nearest = fsapp_pixels_is_whole_ratio(get_applied_ratio(surface));
+        copy.visible = entry.shown;
         copy.translucent = applied.state.translucent;
         if (surface->streamed) {
             copy.streamed = true;
@@ -1188,6 +1782,69 @@ static void build_flat_list(void)
         }
         g_host.flat.push_back(copy);
     }
+}
+
+// Gives the applied surface the next raise order.
+static void raise_applied(fsapp_surface_t *surface)
+{
+    g_host.raise_count += 1;
+    surface->applied.raise = g_host.raise_count;
+    g_host.layout_changed = true;
+}
+
+void fsapp_surface_raise_applied(const void *surface)
+{
+    for (fsapp_surface_t *applied : g_host.surfaces) {
+        if (applied == surface) {
+            raise_applied(applied);
+            // Routing's list now, so that the next event is hit tested in the new order; the flat
+            // list, which the snapshot written for the next frame may still be using, with the next
+            // frame.
+            build_routing_list();
+            fsapp_frame_request();
+            return;
+        }
+    }
+}
+
+const fsapp_routing_surface_t *fsapp_surface_get_routing_surfaces(int *count)
+{
+    *count = (int)g_host.routing.size();
+    return g_host.routing.data();
+}
+
+void fsapp_surface_get_relative_position(const void *surface, double x, double y, float *relative_x,
+                                         float *relative_y)
+{
+    *relative_x = (float)x;
+    *relative_y = (float)y;
+    for (const fsapp_routing_surface_t &routing : g_host.routing) {
+        if (routing.id == surface) {
+            const fsapp_routing_rectangle_t &rectangle = routing.rectangle;
+            fsapp_pixels_rectangle_t device = {rectangle.x, rectangle.y, rectangle.width,
+                                               rectangle.height};
+            double buffer_x, buffer_y;
+            fsapp_pixels_convert_to_buffer_position(
+                &device, get_applied_ratio((const fsapp_surface_t *)surface), x, y, &buffer_x,
+                &buffer_y);
+            *relative_x = (float)buffer_x;
+            *relative_y = (float)buffer_y;
+            return;
+        }
+    }
+}
+
+void fsapp_surface_set_display_scale(float display_scale)
+{
+    if (display_scale == g_host.display_scale) {
+        return;
+    }
+    g_host.display_scale = display_scale;
+    // Every "1 only" surface's device rectangle changes: routing's list now, the flat list with
+    // the next frame, as for a raise.
+    g_host.layout_changed = true;
+    build_routing_list();
+    fsapp_frame_request();
 }
 
 void fsapp_surface_write_snapshot(fsapp_snapshot_layout_t *layout,
@@ -1212,6 +1869,8 @@ void fsapp_surface_write_snapshot(fsapp_snapshot_layout_t *layout,
     if (g_slot.pending && !carried) {
         g_host.record.swap(g_slot.record);
         g_host.destroyed.swap(g_slot.destroyed);
+        g_host.raise_requests.swap(g_slot.raise_requests);
+        g_host.focus_requests.swap(g_slot.focus_requests);
         g_slot.pending = false;
         taken = true;
     }
@@ -1232,11 +1891,29 @@ void fsapp_surface_write_snapshot(fsapp_snapshot_layout_t *layout,
             fsapp_surface_unref(entry.surface);
         }
         g_host.record.clear();
+        for (fsapp_surface_t *surface : g_host.raise_requests) {
+            if (surface->applied.live) {
+                raise_applied(surface);
+            }
+            // The record's reference.
+            fsapp_surface_unref(surface);
+        }
+        g_host.raise_requests.clear();
         g_host.taken_first = true;
     }
     if (g_host.layout_changed) {
         build_flat_list();
         g_host.layout_changed = false;
+    }
+    if (taken) {
+        // Keyboard focus follows the record: its fallback, then the focus requests in order.
+        fsapp_input_on_record_applied(g_host.focus_requests.data(),
+                                      (int)g_host.focus_requests.size());
+        for (fsapp_surface_t *surface : g_host.focus_requests) {
+            // The record's reference.
+            fsapp_surface_unref(surface);
+        }
+        g_host.focus_requests.clear();
     }
 
     layout->takes_record = taken || carried;
@@ -1258,20 +1935,18 @@ void fsapp_surface_on_uploaded(const fsapp_snapshot_layout_t *layout)
     SDL_UnlockMutex(g_slot.mutex);
 }
 
+// The surfaces destroyed outside a UI frame that no record took are left in the queue: freeing
+// their buffers here, on the main thread, could race with the UI thread, which may be running a UI
+// frame and freeing a buffer view that shares a buffer (buffer_object_dealloc). The UI thread frees
+// them if it ends another UI frame; otherwise they are left to the program's exit.
 void fsapp_surface_quit(void)
 {
-    std::vector<fsapp_surface_t *> queued;
     SDL_LockMutex(g_slot.mutex);
     g_slot.ended = true;
-    queued.swap(g_slot.queued);
+    int queued = (int)g_slot.queued.size();
     SDL_UnlockMutex(g_slot.mutex);
-    for (fsapp_surface_t *surface : queued) {
-        free_buffer(surface);
-        // The queue's reference.
-        fsapp_surface_unref(surface);
-    }
-    if (!queued.empty()) {
-        SDL_Log("Freed %d destroyed surface(s) left when the main loop ended", (int)queued.size());
+    if (queued > 0) {
+        SDL_Log("%d destroyed surface(s) left when the main loop ended, for the UI thread", queued);
     }
 }
 

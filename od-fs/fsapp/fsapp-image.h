@@ -29,7 +29,14 @@ fsapp_image_t *fsapp_image_load(const char *name);
 
 fsapp_image_t *fsapp_image_load_sized_svg(const char *name, int width, int height);
 
+// Tints the image's own pixels: every pixel that is not transparent gets the colour, its alpha
+// multiplied by the colour's alpha.
 void fsapp_image_tint(fsapp_image_t *image, uint8_t r, uint8_t g, uint8_t b, uint8_t a);
+
+// A tinted copy of the image (as fsapp_image_tint), with one reference for the caller, or NULL on
+// failure (SDL's error is set).
+fsapp_image_t *fsapp_image_create_tinted(fsapp_image_t *image, uint8_t r, uint8_t g, uint8_t b,
+                                         uint8_t a);
 
 #include <SDL3_image/SDL_image.h>
 
@@ -37,11 +44,6 @@ struct fsapp_image {
     FSAPP_REFABLE;
 
     SDL_Surface *surface;
-
-    int left;
-    int top;
-    int bottom;
-    int right;
 };
 
 #ifdef __cplusplus

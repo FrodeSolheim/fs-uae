@@ -1,5 +1,6 @@
 /*
- * Images for the UI: loading, sizing SVG images and tinting, also from Python (_fsapp_image).
+ * Images for the UI: loading, sizing SVG images, tinting, reading pixels and drawing, also from
+ * Python (_fsapp_image).
  *
  * Copyright (c) 2025-2026 Frode Solheim
  */
@@ -8,8 +9,8 @@
 
 #include <Python.h>
 #include <SDL3_ttf/SDL_ttf.h>
-#include <glib.h>
 
+#include "fsapp-pythonthread.h"
 #include "fsapp-refable.h"
 #include "fsapp-surface.h"
 #include "fsapp-util.h"
@@ -53,57 +54,6 @@ static void fsapp_image_finalize(void *object)
 
 // ----------------------------------------------------------------------------
 
-static void fsapp_image_init_9patch(fsapp_image_t *image)
-{
-    uint32_t black = SDL_MapSurfaceRGBA(image->surface, 0, 0, 0, 255);
-    int width = image->surface->w;
-    int height = image->surface->h;
-
-    image->left = 0;
-    image->top = 0;
-    image->bottom = 0;
-    image->right = 0;
-
-    uint32_t *pixels = (uint32_t *)image->surface->pixels;
-    for (int x = 1; x < width - 1; x++) {
-        uint32_t pixel = pixels[x];
-        if (image->left == 0) {
-            if (pixel == black) {
-                // Left border size is same as position of first black pixel
-                // minus 1 due to the transparent border.
-                image->left = x - 1;
-            }
-        } else {
-            if (pixel != black) {
-                // Determine right border size
-                image->right = width - x - 1;
-                break;
-            }
-        }
-    }
-
-    int offset = width;
-    for (int y = 1; y < image->surface->h - 1; y++) {
-        uint32_t pixel = pixels[offset];
-        if (image->top == 0) {
-            if (pixel == black) {
-                image->top = y - 1;
-            }
-        } else {
-            if (pixel != black) {
-                image->bottom = height - y - 1;
-                break;
-            }
-        }
-        offset += width;
-    }
-
-    fsapp_image_log_debug("9 patch image border left %d top %d right %d bottom %d\n", image->left,
-                          image->top, image->right, image->bottom);
-}
-
-// ----------------------------------------------------------------------------
-
 fsapp_image_t *fsapp_image_load(const char *name)
 {
     fsapp_image_t *image = FSAPP_UTIL_MALLOC0(fsapp_image_t);
@@ -133,10 +83,6 @@ fsapp_image_t *fsapp_image_load(const char *name)
 
     if (image->surface->pitch != image->surface->w * 4) {
         SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Pitch is not width * 4");
-    }
-
-    if (g_str_has_suffix(path, ".9p.png")) {
-        fsapp_image_init_9patch(image);
     }
 
     fsapp_image_log_debug("Loaded %s\n", name);
@@ -187,12 +133,6 @@ fsapp_image_t *fsapp_image_load_sized_svg(const char *name, int width, int heigh
         SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Sized SVG pitch is not width * 4");
     }
 
-    // SVG files don't use 9-patch format
-    image->left = 0;
-    image->top = 0;
-    image->bottom = 0;
-    image->right = 0;
-
     fsapp_image_log_debug("Loaded sized SVG %s (%dx%d)\n", name, width, height);
 
     return image;
@@ -201,7 +141,7 @@ fsapp_image_t *fsapp_image_load_sized_svg(const char *name, int width, int heigh
 // REVIEW: The tint changes the image itself, not a surface buffer, so its result stays straight
 // alpha like the rest of the image: drawing the image blends it into the buffer, which
 // premultiplies it (fsapp_image_python_draw). Premultiplying here would multiply by the alpha
-// twice.
+// twice. The tint's alpha multiplies each pixel's (255 keeps the image's shape as it is).
 void fsapp_image_tint(fsapp_image_t *image, uint8_t r, uint8_t g, uint8_t b, uint8_t a)
 {
     if (!image || !image->surface) {
@@ -267,7 +207,7 @@ void fsapp_image_tint(fsapp_image_t *image, uint8_t r, uint8_t g, uint8_t b, uin
                 uint8_t new_r = r;
                 uint8_t new_g = g;
                 uint8_t new_b = b;
-                uint8_t new_a = pixel_a; // Keep original alpha for shape
+                uint8_t new_a = (uint8_t)((pixel_a * a + 127) / 255);
 
                 // Debug first few pixels after tinting
                 if (pixels_processed < 5) {
@@ -296,13 +236,40 @@ void fsapp_image_tint(fsapp_image_t *image, uint8_t r, uint8_t g, uint8_t b, uin
     fsapp_image_log("Tinted image with color (%d, %d, %d, %d)\n", r, g, b, a);
 }
 
+fsapp_image_t *fsapp_image_create_tinted(fsapp_image_t *image, uint8_t r, uint8_t g, uint8_t b,
+                                         uint8_t a)
+{
+    // fsapp_image_tint works on 32-bit pixels with alpha, as images are loaded.
+    SDL_PixelFormat format = image->surface->format;
+    if (format != SDL_PIXELFORMAT_RGBA32 && format != SDL_PIXELFORMAT_BGRA32) {
+        format = SDL_PIXELFORMAT_RGBA32;
+    }
+    SDL_Surface *surface = SDL_ConvertSurface(image->surface, format);
+    if (surface == NULL) {
+        return NULL;
+    }
+    fsapp_image_t *tinted = FSAPP_UTIL_MALLOC0(fsapp_image_t);
+    fsapp_refable_init_with_finalizer(&tinted->refable, fsapp_image_finalize);
+    tinted->surface = surface;
+    fsapp_image_tint(tinted, r, g, b, a);
+    return tinted;
+}
+
 // ----------------------------------------------------------------------------
 
+// The capsule holds the image's reference from its load, released on the UI thread, where the
+// image was loaded and is drawn. Dropped on another thread, the image is left unfreed.
 static void fsapp_image_python_destructor(PyObject *image_capsule)
 {
-#ifdef FSAPP_DEBUG_CLEANUP
-    fsapp_image_log_warning("fsapp_image_python_destructor FIXME: Not implemented\n");
-#endif
+    fsapp_image_t *image = (fsapp_image_t *)PyCapsule_GetPointer(image_capsule, "fsapp_image_t");
+    if (image == NULL) {
+        return;
+    }
+    if (!fsapp_pythonthread_can_free_ui_objects()) {
+        fsapp_image_log_debug("Image %p dropped off the UI thread: not freed\n", image);
+        return;
+    }
+    fsapp_image_unref(image);
 }
 
 // ----------------------------------------------------------------------------
@@ -364,6 +331,58 @@ static PyObject *fsapp_image_python_tint(PyObject *self, PyObject *args)
     Py_RETURN_NONE;
 }
 
+// _fsapp_image.create_tinted(image, (r, g, b, a)): a tinted copy, as a new capsule.
+static PyObject *fsapp_image_python_create_tinted(PyObject *self, PyObject *args)
+{
+    PyObject *image_capsule;
+    int r, g, b, a;
+    if (!PyArg_ParseTuple(args, "O(iiii):create_tinted", &image_capsule, &r, &g, &b, &a)) {
+        return NULL;
+    }
+    fsapp_image_t *image = (fsapp_image_t *)PyCapsule_GetPointer(image_capsule, "fsapp_image_t");
+    if (image == NULL) {
+        return NULL;
+    }
+    fsapp_image_t *tinted =
+        fsapp_image_create_tinted(image, (uint8_t)r, (uint8_t)g, (uint8_t)b, (uint8_t)a);
+    if (tinted == NULL) {
+        PyErr_Format(PyExc_RuntimeError, "Could not copy the image: %s", SDL_GetError());
+        return NULL;
+    }
+    return PyCapsule_New(tinted, "fsapp_image_t", fsapp_image_python_destructor);
+}
+
+// _fsapp_image.get_pixels(image): the image's pixels as bytes, premultiplied, in the surface
+// buffers' format (bytes B, G, R, A on little-endian hosts), rows of width * 4 bytes.
+static PyObject *fsapp_image_python_get_pixels(PyObject *self, PyObject *args)
+{
+    PyObject *image_capsule;
+    if (!PyArg_ParseTuple(args, "O:get_pixels", &image_capsule)) {
+        return NULL;
+    }
+    fsapp_image_t *image = (fsapp_image_t *)PyCapsule_GetPointer(image_capsule, "fsapp_image_t");
+    if (image == NULL) {
+        return NULL;
+    }
+    SDL_Surface *converted = SDL_ConvertSurface(image->surface, SDL_PIXELFORMAT_ARGB8888);
+    if (converted == NULL || !SDL_PremultiplySurfaceAlpha(converted, false)) {
+        PyErr_Format(PyExc_RuntimeError, "Could not convert the image: %s", SDL_GetError());
+        SDL_DestroySurface(converted);
+        return NULL;
+    }
+    int row_size = converted->w * 4;
+    PyObject *pixels = PyBytes_FromStringAndSize(NULL, (Py_ssize_t)row_size * converted->h);
+    if (pixels != NULL) {
+        char *data = PyBytes_AS_STRING(pixels);
+        for (int y = 0; y < converted->h; y++) {
+            SDL_memcpy(data + (size_t)y * row_size,
+                       (Uint8 *)converted->pixels + y * converted->pitch, row_size);
+        }
+    }
+    SDL_DestroySurface(converted);
+    return pixels;
+}
+
 // ----------------------------------------------------------------------------
 
 static PyObject *fsapp_image_python_get_size(PyObject *self, PyObject *args)
@@ -376,7 +395,6 @@ static PyObject *fsapp_image_python_get_size(PyObject *self, PyObject *args)
     fsapp_image_t *image = (fsapp_image_t *)PyCapsule_GetPointer(image_capsule, "fsapp_image_t");
     SDL_assert(image);
 
-    // FIXME: Subtract left/right/top/bottom if a 9patch image?
     return Py_BuildValue("(ii)", image->surface->w, image->surface->h);
 }
 
@@ -386,7 +404,9 @@ static PyObject *fsapp_image_python_draw(PyObject *self, PyObject *args)
 {
     PyObject *image_capsule, *surface_capsule;
     int x, y;
-    if (!PyArg_ParseTuple(args, "OO(ii):draw", &image_capsule, &surface_capsule, &x, &y)) {
+    fsapp_surface_clip_t clip = {};
+    if (!PyArg_ParseTuple(args, "OO(ii)|O&:draw", &image_capsule, &surface_capsule, &x, &y,
+                          fsapp_surface_convert_python_clip, &clip)) {
         return NULL;
     }
     fsapp_image_t *image = (fsapp_image_t *)PyCapsule_GetPointer(image_capsule, "fsapp_image_t");
@@ -406,43 +426,58 @@ static PyObject *fsapp_image_python_draw(PyObject *self, PyObject *args)
     // changes it), which gives src * srcA + dst * (1 - srcA) for colour and
     // srcA + dstA * (1 - srcA) for alpha: premultiplied over a premultiplied buffer. Without one,
     // the blit copies with alpha 255, which is premultiplied as it is.
+    fsapp_surface_begin_clip(surface, &clip);
     SDL_BlitSurface(image->surface, NULL, surface->sdl, &dst_rect);
+    fsapp_surface_end_clip(surface);
 
     Py_RETURN_NONE;
 }
 
 // ----------------------------------------------------------------------------
 
-static PyObject *fsapp_image_python_draw_stretched(PyObject *self, PyObject *args)
+// _fsapp_image.draw_part(image, surface, source, destination, filter, clip=None): the source
+// rectangle of the image (x, y, width, height) drawn into the destination rectangle, scaled with
+// the filter (FILTER_NEAREST or FILTER_LINEAR) when the sizes differ.
+static PyObject *fsapp_image_python_draw_part(PyObject *self, PyObject *args)
 {
     PyObject *image_capsule, *surface_capsule;
-    int x, y, w, h;
-    if (!PyArg_ParseTuple(args, "OO(ii)(ii):draw_stretched", &image_capsule, &surface_capsule, &x,
-                          &y, &w, &h)) {
+    SDL_Rect source, destination;
+    int filter;
+    fsapp_surface_clip_t clip = {};
+    if (!PyArg_ParseTuple(args, "OO(iiii)(iiii)i|O&:draw_part", &image_capsule, &surface_capsule,
+                          &source.x, &source.y, &source.w, &source.h, &destination.x,
+                          &destination.y, &destination.w, &destination.h, &filter,
+                          fsapp_surface_convert_python_clip, &clip)) {
+        return NULL;
+    }
+    if (filter != SDL_SCALEMODE_NEAREST && filter != SDL_SCALEMODE_LINEAR) {
+        PyErr_Format(PyExc_ValueError, "Not a filter: %d", filter);
         return NULL;
     }
     fsapp_image_t *image = (fsapp_image_t *)PyCapsule_GetPointer(image_capsule, "fsapp_image_t");
-    SDL_assert(image);
-
+    if (image == NULL) {
+        return NULL;
+    }
     fsapp_surface_t *surface =
         (fsapp_surface_t *)PyCapsule_GetPointer(surface_capsule, "fsapp_surface_t");
-    SDL_assert(surface);
-
-    // SDL_Rect src_rect = ;
-    SDL_Rect dst_rect = {.x = x, .y = y, .w = w, .h = h};
-
-    // REVIEW: Keeps the buffer premultiplied, as fsapp_image_python_draw: with SDL_BLENDMODE_BLEND,
-    // SDL scales linearly into a temporary surface and then blends that with the image's blend mode
-    // (the 9-grid blit scales each part the same way).
-    if (image->left) {
-        SDL_Rect src_rect = {
-            .x = 1, .y = 1, .w = image->surface->w - 2, .h = image->surface->h - 2};
-        SDL_BlitSurface9Grid(image->surface, &src_rect, image->left, image->right, image->top,
-                             image->bottom, 1.0, SDL_SCALEMODE_LINEAR, surface->sdl, &dst_rect);
-
-    } else {
-        SDL_BlitSurfaceScaled(image->surface, NULL, surface->sdl, &dst_rect, SDL_SCALEMODE_LINEAR);
+    if (surface == NULL) {
+        return NULL;
     }
+    if (source.w <= 0 || source.h <= 0 || destination.w <= 0 || destination.h <= 0) {
+        Py_RETURN_NONE;
+    }
+
+    // REVIEW: Keeps the buffer premultiplied, as fsapp_image_python_draw: scaled with
+    // SDL_BLENDMODE_BLEND, SDL scales into a temporary surface and then blends that with the
+    // image's blend mode.
+    fsapp_surface_begin_clip(surface, &clip);
+    if (source.w == destination.w && source.h == destination.h) {
+        SDL_BlitSurface(image->surface, &source, surface->sdl, &destination);
+    } else {
+        SDL_BlitSurfaceScaled(image->surface, &source, surface->sdl, &destination,
+                              (SDL_ScaleMode)filter);
+    }
+    fsapp_surface_end_clip(surface);
 
     Py_RETURN_NONE;
 }
@@ -451,7 +486,9 @@ static PyObject *fsapp_image_python_draw_stretched(PyObject *self, PyObject *arg
 
 static PyMethodDef fsapp_image_python_methods[] = {
     {"draw", fsapp_image_python_draw, METH_VARARGS, "..."},
-    {"draw_stretched", fsapp_image_python_draw_stretched, METH_VARARGS, "..."},
+    {"draw_part", fsapp_image_python_draw_part, METH_VARARGS, "..."},
+    {"create_tinted", fsapp_image_python_create_tinted, METH_VARARGS, "..."},
+    {"get_pixels", fsapp_image_python_get_pixels, METH_VARARGS, "..."},
     {"load", fsapp_image_python_load, METH_VARARGS, "..."},
     {"load_sized_svg", fsapp_image_python_load_sized_svg, METH_VARARGS, "..."},
     {"tint", fsapp_image_python_tint, METH_VARARGS, "..."},
@@ -470,7 +507,17 @@ static PyModuleDef fsapp_image_python_module = {PyModuleDef_HEAD_INIT,
 
 static PyObject *fsapp_image_python_initfunc(void)
 {
-    return PyModule_Create(&fsapp_image_python_module);
+    PyObject *module = PyModule_Create(&fsapp_image_python_module);
+    if (module == NULL) {
+        return NULL;
+    }
+    // The filters of draw_part.
+    if (PyModule_AddIntConstant(module, "FILTER_NEAREST", SDL_SCALEMODE_NEAREST) < 0 ||
+        PyModule_AddIntConstant(module, "FILTER_LINEAR", SDL_SCALEMODE_LINEAR) < 0) {
+        Py_DECREF(module);
+        return NULL;
+    }
+    return module;
 }
 
 // ----------------------------------------------------------------------------

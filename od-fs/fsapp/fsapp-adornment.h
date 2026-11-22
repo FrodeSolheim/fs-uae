@@ -70,7 +70,7 @@ fsapp_adornment_t *fsapp_adornment_create_in_front_of(struct fsapp_surface *surf
 // owners must not use them after fsapp_mainthread_run has returned either.
 void fsapp_adornment_destroy(fsapp_adornment_t *adornment);
 
-// The rectangle in window coordinates, which the content is stretched to.
+// The rectangle in pixels, which the content is stretched to.
 void fsapp_adornment_set_rect(fsapp_adornment_t *adornment, int x, int y, int width, int height);
 
 // Opaque (the default) or translucent. Translucent content is premultiplied by its alpha.

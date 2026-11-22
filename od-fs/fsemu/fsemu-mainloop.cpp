@@ -1,9 +1,9 @@
 #define FSEMU_INTERNAL
 #include "fsemu-mainloop.h"
 
+#include "fsapp-input.h"
 #include "fsapp-main.h"
 #include "fsapp-mainthread.h"
-#include "fsapp-os.h"
 #include "fsapp-snapshot.h"
 #include "fsapp-surface.h"
 #include "fsapp-time.h"
@@ -27,7 +27,7 @@ static fsapp_surface_t *fsemu_mainloop_surface;
 // Set on the drawing side once the video is initialised (fsemu_mainloop_video_initialized).
 static SDL_AtomicInt fsemu_mainloop_video_initialized_flag;
 
-// Alt+S: the integer fit policy on, or back to the fit policy it replaced (fit, or stretch with the
+// Mod+S: the integer fit policy on, or back to the fit policy it replaced (fit, or stretch with the
 // FILL_SCREEN stretch mode).
 static void fsemu_mainloop_toggle_integer_fit(void)
 {
@@ -42,7 +42,7 @@ static void fsemu_mainloop_toggle_integer_fit(void)
     }
 }
 
-// Alt+C: the auto crop policy on or off.
+// Mod+C: the auto crop policy on or off.
 static void fsemu_mainloop_toggle_auto_crop(void)
 {
     if (fsemu_layout_get_crop_policy() == FSEMU_LAYOUT_CROP_POLICY_AUTO) {
@@ -54,34 +54,39 @@ static void fsemu_mainloop_toggle_auto_crop(void)
 
 void fsemu_mainloop_handle_event(SDL_Event *event)
 {
-    if (fsemu_sdlinput_handle_event(event)) {
-        // return true;
-    }
+    fsemu_sdlinput_handle_event(event);
+}
 
-    switch (event->type) {
-    case SDL_EVENT_KEY_DOWN:
-        // Cmd on macOS, Alt elsewhere, as fsapp-main.cpp's shortcuts.
-#ifdef FSAPP_OS_MACOS
-        if (event->key.mod & SDL_KMOD_LGUI) {
-#else
-        if (event->key.mod & SDL_KMOD_LALT) {
-#endif
-            if (event->key.key == SDLK_P) {
-                // As in FS-UAE 4 (Mod+P).
-                fsemu_control_toggle_paused();
-            }
-            if (event->key.key == SDLK_S) {
-                fsemu_mainloop_toggle_integer_fit();
-            }
-            if (event->key.key == SDLK_C) {
-                fsemu_mainloop_toggle_auto_crop();
-            }
-            if (event->key.key == SDLK_O) {
-                fsemu_perfgui_cycle_mode();
-            }
-        }
-        break;
-    }
+// fsemu's shortcuts (Mod+P, Mod+S, Mod+C and Mod+O), called on the host window side.
+
+static void fsemu_mainloop_toggle_paused_shortcut(void *data)
+{
+    // As in FS-UAE 4 (Mod+P).
+    fsemu_control_toggle_paused();
+}
+
+static void fsemu_mainloop_toggle_integer_fit_shortcut(void *data)
+{
+    fsemu_mainloop_toggle_integer_fit();
+}
+
+static void fsemu_mainloop_toggle_auto_crop_shortcut(void *data)
+{
+    fsemu_mainloop_toggle_auto_crop();
+}
+
+static void fsemu_mainloop_toggle_perfgui_mode_shortcut(void *data)
+{
+    fsemu_perfgui_toggle_mode();
+}
+
+static void fsemu_mainloop_register_shortcuts(void)
+{
+    SDL_Keymod mod = fsapp_main_get_shortcut_mod();
+    fsapp_main_register_shortcut(SDLK_P, mod, fsemu_mainloop_toggle_paused_shortcut, NULL);
+    fsapp_main_register_shortcut(SDLK_S, mod, fsemu_mainloop_toggle_integer_fit_shortcut, NULL);
+    fsapp_main_register_shortcut(SDLK_C, mod, fsemu_mainloop_toggle_auto_crop_shortcut, NULL);
+    fsapp_main_register_shortcut(SDLK_O, mod, fsemu_mainloop_toggle_perfgui_mode_shortcut, NULL);
 }
 
 // Mouse input for the emulation: only while the mouse is in relative mode (the input grab). The
@@ -106,11 +111,9 @@ static void fsemu_mainloop_handle_mouse_event(SDL_Event *event)
         mouse_event.y = event->button.y;
         mouse_event.button = event->button.button;
         mouse_event.state = event->button.down;
-
-        // For now, only let fsemu handle the mouse if mouse is grabbed:
-        if (fsapp_main_is_relative_mouse()) {
-            fsemu_mouse_handle_mouse(&mouse_event);
-        }
+        // Routing gives the hook mouse input only while the input grab is applied, and the click
+        // on the Amiga, which comes before relative mouse mode is set.
+        fsemu_mouse_handle_mouse(&mouse_event);
         break;
 
     case SDL_EVENT_MOUSE_MOTION:
@@ -123,11 +126,7 @@ static void fsemu_mainloop_handle_mouse_event(SDL_Event *event)
         mouse_event.y = event->motion.y;
         mouse_event.rel_x = event->motion.xrel;
         mouse_event.rel_y = event->motion.yrel;
-
-        // For now, only let fsemu handle the mouse if mouse is grabbed:
-        if (fsapp_main_is_relative_mouse()) {
-            fsemu_mouse_handle_mouse(&mouse_event);
-        }
+        fsemu_mouse_handle_mouse(&mouse_event);
         break;
     }
 }
@@ -756,6 +755,11 @@ static void fsemu_mainloop_frame_hook(void)
         fsemu_input_reconfigure();
     }
     fsemu_mainloop_update_pacer();
+    // A click on the Amiga grabs only while a session runs: from its first emulated frame to its
+    // end, paused or not.
+    // REVIEW: Whether this is the right signal for "a session runs".
+    fsapp_input_set_session(SDL_GetAtomicInt(&fsemu_mainloop_pacer.session) ==
+                            FSEMU_MAINLOOP_SESSION_RUNNING);
     fsemu_testactions_run_due();
     // The performance graph is shown while a session is starting or running, and stays (standing
     // still, with no swapped hook to feed it) while paused; it goes when the session stops. The
@@ -782,10 +786,8 @@ static void fsemu_mainloop_drawing_hook(const fsapp_snapshot_window_t *window)
         fsemu_mainloop_pacer_swap_interval(&swap_interval, &follows);
         fsapp_mainthread_set_pacer_swap_interval(swap_interval, follows);
     }
-    double pixel_scale = window->width > 0 ? (double)window->pixel_width / window->width : 1.0;
     fsemu_video_update_picture(SDL_GetAtomicInt(&fsemu_mainloop_pacer.session) ==
-                                   FSEMU_MAINLOOP_SESSION_ENDED,
-                               pixel_scale);
+                               FSEMU_MAINLOOP_SESSION_ENDED);
 }
 
 // The display hook (host window side).
@@ -809,6 +811,11 @@ void fsemu_mainloop_init(void)
     // by fsapp; with no content (before the first frame, after the session) its fill colour shows.
     fsemu_mainloop_surface = fsapp_surface_create(0, 0, true);
     fsapp_surface_attach_streamed_content(fsemu_mainloop_surface, FSAPP_SURFACE_STREAM_BGRA);
+    // Its rectangle and picture rectangle are in device pixels.
+    fsapp_surface_set_scale_support(fsemu_mainloop_surface, FSAPP_PIXELS_SCALE_ANY);
+    // While it has keyboard focus, the keys go to the emulation (fsapp-input.h).
+    fsapp_surface_set_focusable(fsemu_mainloop_surface, true);
+    fsapp_input_set_emulation_surface(fsemu_mainloop_surface);
 
     // The performance graph, drawn as adornments: the swapped hook feeds its rows, and the frame
     // hook draws and commits them.
@@ -819,6 +826,8 @@ void fsemu_mainloop_init(void)
     fsemu_slotplanner_follow_prediction(&fsemu_mainloop_vertical_blank.planning, NULL);
     fsemu_mainloop_init_slot_margin();
     fsemu_testactions_init();
+
+    fsemu_mainloop_register_shortcuts();
 
     // The event hook comes first, so fsemu sees each event before the program's event hooks (if
     // any), and the frame hook before the program's frame hooks.

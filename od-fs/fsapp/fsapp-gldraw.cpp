@@ -111,10 +111,10 @@ typedef struct {
 static struct {
     program_t programs[FSAPP_GLDRAW_PROGRAM_COUNT];
     GLuint vertex_buffer;
-    // While a program is begun: it, and the window size that rectangles are given in.
+    // While a program is begun: it, and the drawable size in pixels that rectangles are given in.
     const program_t *current;
-    int window_width;
-    int window_height;
+    int pixel_width;
+    int pixel_height;
 } gldraw;
 
 // -------------------------------------------------------------------------------------------------
@@ -234,13 +234,13 @@ const char *fsapp_gldraw_init(void)
 
 // -------------------------------------------------------------------------------------------------
 
-void fsapp_gldraw_begin_program(fsapp_gldraw_program_t program, int window_width, int window_height)
+void fsapp_gldraw_begin_program(fsapp_gldraw_program_t program, int pixel_width, int pixel_height)
 {
     SDL_assert(program >= 0 && program < FSAPP_GLDRAW_PROGRAM_COUNT);
     SDL_assert(gldraw.current == NULL);
     gldraw.current = &gldraw.programs[program];
-    gldraw.window_width = window_width;
-    gldraw.window_height = window_height;
+    gldraw.pixel_width = pixel_width;
+    gldraw.pixel_height = pixel_height;
     fsapp_gl.UseProgram(gldraw.current->program);
     fsapp_gl.ActiveTexture(GL_TEXTURE0);
     fsapp_gl.BindBuffer(GL_ARRAY_BUFFER, gldraw.vertex_buffer);
@@ -248,17 +248,16 @@ void fsapp_gldraw_begin_program(fsapp_gldraw_program_t program, int window_width
     fsapp_gl.EnableVertexAttribArray(POSITION_LOCATION);
 }
 
-// Sets the rectangle (window coordinates, y down) uniform. The rectangle goes to the shader in
+// Sets the rectangle (pixels, y down) uniform. The rectangle goes to the shader in
 // normalized device coordinates as its bottom left corner and its size, computed as the
 // compositor's immediate mode computed its corners.
 static void set_rect(const SDL_FRect *rect)
 {
-    const double window_width = gldraw.window_width;
-    const double window_height = gldraw.window_height;
-    fsapp_gl.Uniform4f(gldraw.current->rect, (float)(-1.0 + 2.0 * rect->x / window_width),
-                       (float)(-1.0 + 2.0 * (window_height - rect->h - rect->y) / window_height),
-                       (float)(2.0 * rect->w / window_width),
-                       (float)(2.0 * rect->h / window_height));
+    const double pixel_width = gldraw.pixel_width;
+    const double pixel_height = gldraw.pixel_height;
+    fsapp_gl.Uniform4f(gldraw.current->rect, (float)(-1.0 + 2.0 * rect->x / pixel_width),
+                       (float)(-1.0 + 2.0 * (pixel_height - rect->h - rect->y) / pixel_height),
+                       (float)(2.0 * rect->w / pixel_width), (float)(2.0 * rect->h / pixel_height));
 }
 
 // Places the quad (at z = 0) at the window depth: with the depth range collapsed to it, every

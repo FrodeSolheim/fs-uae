@@ -4,10 +4,11 @@ import logging
 import _fsapp
 import sdl3
 
+from fsapp import surfaceevent
 from fsapp.event import FSAppEvent
 from fsapp.eventname import EventName
 from fsapp.eventservice import EventService
-from fsapp.frameservice import FrameService
+from fsapp.surfaceapi import _uiframe
 from fsapp.timerservice import TimerService
 
 logger = logging.getLogger(__name__)
@@ -61,7 +62,7 @@ def handle_event(event: sdl3.SDL_Event, event_service: EventService):
         except KeyError:
             pass
         else:
-            event_service.sdl_event(event_name).emit(event)
+            event_service.broadcast_sdl_event(event_name, event)
 
 
 def frame2():
@@ -80,6 +81,17 @@ def frame2():
         #     continue
         notification_service.broadcast(event)
 
+    # The shortcuts registered from Python (_fsapp.register_shortcut) that were pressed, and the
+    # menu input (_fsapp.register_menu_input).
+    for callback in _fsapp.take_shortcut_callbacks():
+        try:
+            callback()
+        except Exception:
+            logger.exception("Error in the shortcut callback %r", callback)
+
+    # The surface events (key, navigation, focus and pointer events), to the surfaces' handlers.
+    surfaceevent.deliver()
+
     events: list[sdl3.SDL_Event] = []
 
     event_capsules = _fsapp.get_events()  # type: ignore
@@ -92,9 +104,6 @@ def frame2():
         event._capsule = event_capsule
 
         events.append(event)
-
-    # The UI toolkit (fsgui) registers with the frame service.
-    FrameService.get().frame(events)
 
     event_service = EventService.instance()
     for event in events:
@@ -111,19 +120,20 @@ def frame2():
 def frame() -> int | None:
     """The UI frame's work, which the UI thread runs in each UI frame (fsapp-pythonthread.h).
 
-    Runs the due timers, then the app events, the copied SDL events and the frame service's
-    handlers (fsgui's frame), and then the timers that have become due meanwhile (such as one due
-    at once, set by an event handler), so that they run in the UI frame of what set them, before
-    fsapp ends the UI frame and collects its record. Returns the next timer's time on the clock
-    (SDL's, in microseconds), or None, so that the UI thread's sleep ends then.
+    Runs the due timers, then the app events, the callbacks of the shortcuts pressed, the surface
+    events (fsapp.surfaceevent), the copied SDL events (hotplug and user events), the surface API
+    objects' UI frame callbacks (fsgui's frame among them), and then the timers that have become
+    due meanwhile (such as one due at once, set by an event handler), so that they run in the UI
+    frame of what set them, before fsapp ends the UI frame and collects its record. Returns the next
+    timer's time on the clock (SDL's, in microseconds), or None, so that the UI thread's sleep ends
+    then.
     """
     timer_service = TimerService.get()
-    try:
-        timer_service.run_due()
-        frame2()
-        timer_service.run_due()
-    except Exception:
-        logger.exception("Exception handled during frame processing")
-        # import traceback
-        # traceback.print_exc()
+    # Each step in a try of its own, so that an exception in one (such as in an event's delivery)
+    # does not skip the others: the UI frame callbacks run every UI frame.
+    for step in (timer_service.run_due, frame2, _uiframe.run, timer_service.run_due):
+        try:
+            step()
+        except Exception:
+            logger.exception("Exception handled during frame processing")
     return timer_service.get_next_time_us()

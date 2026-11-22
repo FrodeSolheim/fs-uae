@@ -1,9 +1,9 @@
 import logging
 
-from fsgui.font import Font
-from fsgui.types import Colour, Size
-from fsgui.widget import Widget
-from fsgui.widgetpainter import WidgetPainter
+from .font import Font
+from .types import Colour, Size
+from .widget import Widget
+from .widgetpainter import WidgetPainter
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +23,7 @@ class BaseSlider(Widget):
         self.handle_width = 17
         self.handle_height = 28
 
-        self._handle_rect = (0, 0, 0, 0)
+        self._handle_rect: tuple[float, float, float, float] = (0, 0, 0, 0)
         self._handle_tracking = False
 
         self.stops: list[int] = []
@@ -41,10 +41,10 @@ class BaseSlider(Widget):
         self.enable_hover_state()
         self.enable_pressed_state()
 
-    def calculate_min_height(self, width: int) -> int:
+    def calculate_min_height(self, width: float) -> float:
         return 28
 
-    def calculate_min_width(self) -> int:
+    def calculate_min_width(self) -> float:
         # FIXME:
         return 260
 
@@ -91,6 +91,8 @@ class BaseSlider(Widget):
         dc = self.create_dc()
         painter = WidgetPainter(self, dc)
 
+        self._update_positions()
+
         slider_area_height = 8
         y = (self.height - slider_area_height) // 2
 
@@ -111,9 +113,18 @@ class BaseSlider(Widget):
         else:
             dc.set_pen_colour(Colour.GREY_BB)
 
+        # The stops are lines, from the left edge of their unit.
+        stop_width = dc.design_line_to_pixels(1)
+        stop_height = 5
+        dc.set_fill_colour(dc.pen_colour)
+        pixels = dc.pixel_view
         for x in self.stops:
-            dc.draw_line((x, 0), (x, 4))
-            dc.draw_line((x, self.height - 5), (x, self.height - 1))
+            px, top, _, ph = dc.rect_to_view_pixels((x, 0), (1, stop_height))
+            pixels.draw_filled_rectangle((px, top), (stop_width, ph))
+            px, bottom, _, ph = dc.rect_to_view_pixels(
+                (x, self.height - stop_height), (1, stop_height)
+            )
+            pixels.draw_filled_rectangle((px, bottom), (stop_width, ph))
 
         # self.paint_handle(dc, 0, 0)
         painter.paint_button(
@@ -207,17 +218,17 @@ class BaseSlider(Widget):
 
     def _update_handle_rect(self) -> None:
         w, h = self.get_size()
+        handle_width = self.handle_width
+        handle_height = self.handle_height
         x = 0
-        y = (h - self.handle_height) // 2
+        y = (h - handle_height) // 2
 
         if self.max - self.min == 0:
             x = 0
         else:
-            x = int(
-                round(((w - self.handle_width) * (self.value - self.min) / (self.max - self.min)))
-            )
+            x = int(round(((w - handle_width) * (self.value - self.min) / (self.max - self.min))))
 
-        self._handle_rect = (x, y, self.handle_width, self.handle_height)
+        self._handle_rect = (x, y, handle_width, handle_height)
 
 
 class DiscreteSlider(BaseSlider):

@@ -246,14 +246,20 @@ fs_uae_SOURCES = \
 	od-fs/fsapp/fsapp-gldraw.h \
 	od-fs/fsapp/fsapp-image.cpp \
 	od-fs/fsapp/fsapp-image.h \
+	od-fs/fsapp/fsapp-input.cpp \
+	od-fs/fsapp/fsapp-input.h \
 	od-fs/fsapp/fsapp-instance.cpp \
 	od-fs/fsapp/fsapp-instance.h \
 	od-fs/fsapp/fsapp-main.cpp \
 	od-fs/fsapp/fsapp-main.h \
 	od-fs/fsapp/fsapp-mainthread.cpp \
 	od-fs/fsapp/fsapp-mainthread.h \
+	od-fs/fsapp/fsapp-navigation.cpp \
+	od-fs/fsapp/fsapp-navigation.h \
 	od-fs/fsapp/fsapp-os.h \
 	od-fs/fsapp/fsapp-pacer.h \
+	od-fs/fsapp/fsapp-pixels.cpp \
+	od-fs/fsapp/fsapp-pixels.h \
 	od-fs/fsapp/fsapp-presentation-backend.h \
 	od-fs/fsapp/fsapp-presentation-macos.cpp \
 	od-fs/fsapp/fsapp-presentation-wayland.cpp \
@@ -264,7 +270,13 @@ fs_uae_SOURCES = \
 	od-fs/fsapp/fsapp-pythonthread.h \
 	od-fs/fsapp/fsapp-refable.cpp \
 	od-fs/fsapp/fsapp-refable.h \
+	od-fs/fsapp/fsapp-routing.cpp \
+	od-fs/fsapp/fsapp-routing.h \
+	od-fs/fsapp/fsapp-shortcuts.cpp \
+	od-fs/fsapp/fsapp-shortcuts.h \
 	od-fs/fsapp/fsapp-snapshot.h \
+	od-fs/fsapp/fsapp-stacking.cpp \
+	od-fs/fsapp/fsapp-stacking.h \
 	od-fs/fsapp/fsapp-stream.cpp \
 	od-fs/fsapp/fsapp-stream.h \
 	od-fs/fsapp/fsapp-streamed.cpp \
@@ -2409,6 +2421,7 @@ EXTRA_DIST += \
 	od-fs/Python/fsapp/reactive.py \
 	od-fs/Python/fsapp/signal.py \
 	od-fs/Python/fsapp/surface.py \
+	od-fs/Python/fsapp/surfaceenums.py \
 	od-fs/Python/fsapp/tickservice.py \
 	od-fs/Python/fsapp/var.py \
 	od-fs/Python/fsemu/__init__.py \

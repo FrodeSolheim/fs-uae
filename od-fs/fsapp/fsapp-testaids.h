@@ -1,10 +1,10 @@
 /*
  * Test aids for headless runs of the main loop, turned on by environment variables: the simulated
  * display (FSAPP_SIMULATED_DISPLAY_HZ, with late swaps and a compositor's lead with presentation
- * feedback), the simulated drawing delay (FSAPP_SIMULATED_RENDER_US)
- * and test input (FSAPP_TEST_INPUT). They are off, and cost one check each where the main loop
- * asks, unless their variable is set. Main thread only (the test input pushes its events from SDL's
- * timer thread).
+ * feedback), the simulated drawing delay (FSAPP_SIMULATED_RENDER_US), test input
+ * (FSAPP_TEST_INPUT) and the test display scale (FSAPP_TEST_DISPLAY_SCALE). They are off, and cost
+ * one check each where the main loop asks, unless their variable is set. Main thread only (the test
+ * input pushes its events from SDL's timer thread).
  *
  * Copyright (c) 2026 Frode Solheim
  * SPDX-License-Identifier: GPL-2.0-or-later
@@ -84,6 +84,15 @@ bool fsapp_testaids_take_simulated_presentation(int64_t swap_number, int64_t tic
 // record's rendering finished, so the pacer sees a slow drawing. It tests missed swap deadlines and
 // the slot margin.
 int64_t fsapp_testaids_get_simulated_render_delay_ns(int64_t swap_number);
+
+// Overrides the display scale SDL gives (display_scale) with the test display scale
+// (FSAPP_TEST_DISPLAY_SCALE=<scale>, such as 1.5 or 2), a test aid for headless runs, where SDL's
+// offscreen driver has a display scale of 1; without the variable, returns display_scale as it is.
+// fsapp asks wherever it reads or predicts the display scale, so that the configures, the surface
+// scales, the window's hit test and fsgui all follow it. The host window's size in device pixels
+// and its pixel density are SDL's. The variable is read at the first call (logged there when set);
+// a value that is not a scale more than 0 is logged and ignored. Main thread only.
+float fsapp_testaids_override_display_scale(float display_scale);
 
 #ifdef __cplusplus
 } // extern "C"

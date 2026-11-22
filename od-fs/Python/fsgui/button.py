@@ -1,8 +1,8 @@
 from typing import Any, Callable, Self
 
-from fsgui.types import Size
-from fsgui.widget import Widget
-from fsgui.widgetpainter import WidgetPainter
+from .types import Size
+from .widget import Widget
+from .widgetpainter import WidgetPainter
 
 
 class BaseButton(Widget):
@@ -86,10 +86,10 @@ class Button(BaseButton):
         #     "widgets/button-pressed.9p.png"
         # )
 
-    def calculate_min_height(self, width: int) -> int:
+    def calculate_min_height(self, width: float) -> float:
         return 28
 
-    def calculate_min_width(self) -> int:
+    def calculate_min_width(self) -> float:
         tw, _ = self.font.measure_text(self.text)
         return tw + self.padding[1] + self.padding[3]
 
@@ -122,12 +122,9 @@ class Button(BaseButton):
 
         available = self.width - self.padding[1] - self.padding[3]
 
-        tw, th = dc.measure_text(self.text)
-
         # dc.draw_text(self._text, ((ww - tw) // 2, 6))
-        dc.draw_text(
-            self.text,
-            (self.padding[3] + (available - tw) // 2, (self.height - th) // 2),
+        dc.draw_text_centred(
+            self.text, (self.padding[3], 0), (available, self.height), horizontally=True
         )
 
     def set_text(self, text: str) -> None:

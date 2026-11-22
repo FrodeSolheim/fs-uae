@@ -131,9 +131,8 @@ bool fsemu_video_work(int32_t timeout_ms);
 // The picture in this frame, from fsemu's drawing hook (drawing side, before drawing below):
 // refits the content shown to the emulation surface's rectangle in this frame under the fit
 // policy (also while paused), places the performance graph's sidebars, passes on the filter, and
-// drops the content when the session has stopped (and commits no frame while it is). pixel_scale
-// is the window's pixels per window coordinate in this frame's snapshot.
-void fsemu_video_update_picture(bool session_stopped, double pixel_scale);
+// drops the content when the session has stopped (and commits no frame while it is).
+void fsemu_video_update_picture(bool session_stopped);
 
 // True once fsemu_video_init has been called (on the main thread).
 bool fsemu_video_initialized(void);

@@ -1,42 +1,12 @@
 import fsemu
-from fsgui.specialwindow import SpecialWindow
-from fsgui.window import Window
-from fsgui.windowmanager import WindowManager
+from fsapp.surfaceapi.v1 import Band
+from fsgui.surfacewindow import SurfaceWindow
 
 
-class EmulatorWindow(Window):
-    def __init__(self):
-        # size = (752, 572)
-        # size = (800, 650)
+class EmulatorWindow(SurfaceWindow):
+    """The emulator window: a top-level in the background band showing the emulation surface
+    (created and drawn by fsemu) as its child and key target, so that focusing the window gives the
+    Amiga the keys."""
 
-        # UAE_RECT
-        # position = (660, 90)
-        # size = (692, 540)
-        size = None
-
-        super().__init__("Amiga display", size=size)
-
-        # The emulation surface, created by fsemu, which also draws its content.
-        self.special_window = SpecialWindow(size=size, surface=fsemu.emulation_surface())
-        self.special_window.show()
-        # self.set_position(position)
-
-        # self.close()
-        # self.move((2000, 2000))
-        # self.special_window.set_size((int(692 * 1.5), int(540 * 1.5)))
-        # self.special_window.set_position((328, 36))
-
-        # FIXME: Only when we're hiding the emulator window itself...
-        self.special_window.set_layer(Window.LAYER_BELOW)
-
-    def on_bring_to_front(self) -> None:
-        # FIXME: Handle the case where the special window manager is brought
-        # to front? Maybe set some kind of non-interactive flag on the special
-        # window so that the mouse events are passed through to EmulatorWindow?
-        WindowManager().get().bring_window_to_front(self.special_window)
-
-    def on_move(self):
-        self.special_window.set_position(self.get_position())
-
-    def on_resize(self):
-        self.special_window.set_size(self.get_size())
+    def __init__(self) -> None:
+        super().__init__("Amiga display", fsemu.adopt_emulation_surface, band=Band.BACKGROUND)

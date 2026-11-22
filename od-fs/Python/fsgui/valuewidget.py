@@ -1,10 +1,9 @@
 from typing import Generic, Self, TypeVar
 
-from fsapp.reactive import Property, State
-
-from fsgui.font import Font
-from fsgui.types import Size
-from fsgui.widget import Widget
+from .font import Font
+from .reactive import Property, State
+from .types import Size
+from .widget import Widget
 
 T = TypeVar("T")
 

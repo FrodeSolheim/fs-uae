@@ -5,7 +5,7 @@ from fsapp.constants import FSAPP_MESSAGE_INIT_SDL_GAMEPAD
 from fsapp.eventname import EventName
 from fsapp.eventservice import Event, EventService
 from fsapp.main import post_to_fsapp_main
-from fsapp.signal import Signal
+from fsgui.signal import Signal
 from sdl3 import SDL_Event
 
 from fsemu.inputdevice import InputDevice
@@ -53,23 +53,21 @@ class InputDeviceService:
         # FIXME: Can remove this event now?
         # self.event_service.event("FSEMU_INPUTDEVICE_ADDED").connect(self.__inputdevice_added)
 
-        self.event_service.event(EventName.FSAPP_GAMEPAD_NAME).connect(self.__gamepad_name)
+        self.event_service.add_listener(EventName.FSAPP_GAMEPAD_NAME, self.__gamepad_name)
 
-        self.event_service.sdl_event(EventName.SDL_EVENT_GAMEPAD_ADDED).connect(
-            self.__gamepad_added
+        self.event_service.add_sdl_listener(EventName.SDL_EVENT_GAMEPAD_ADDED, self.__gamepad_added)
+        self.event_service.add_sdl_listener(
+            EventName.SDL_EVENT_GAMEPAD_REMAPPED, self.__gamepad_remapped
         )
-        self.event_service.sdl_event(EventName.SDL_EVENT_GAMEPAD_REMAPPED).connect(
-            self.__gamepad_remapped
-        )
-        self.event_service.sdl_event(EventName.SDL_EVENT_GAMEPAD_REMOVED).connect(
-            self.__gamepad_removed
+        self.event_service.add_sdl_listener(
+            EventName.SDL_EVENT_GAMEPAD_REMOVED, self.__gamepad_removed
         )
 
-        self.event_service.sdl_event(EventName.SDL_EVENT_JOYSTICK_ADDED).connect(
-            self.__joystick_added
+        self.event_service.add_sdl_listener(
+            EventName.SDL_EVENT_JOYSTICK_ADDED, self.__joystick_added
         )
-        self.event_service.sdl_event(EventName.SDL_EVENT_JOYSTICK_REMOVED).connect(
-            self.__joystick_removed
+        self.event_service.add_sdl_listener(
+            EventName.SDL_EVENT_JOYSTICK_REMOVED, self.__joystick_removed
         )
 
         # fsemu input adds these devices automatically - mirroring that here

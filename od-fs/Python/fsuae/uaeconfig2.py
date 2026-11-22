@@ -1,6 +1,6 @@
 import logging
 
-from fsapp.reactive import Var
+from fsgui.reactive import Var
 
 logger = logging.getLogger(__name__)
 

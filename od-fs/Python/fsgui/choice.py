@@ -1,15 +1,17 @@
 import logging
 from typing import Any, Sequence, Union
 
-from fsgui.borderlesswindow import BorderlessWindow
-from fsgui.drawingcontext import Colour, DrawingContext
-from fsgui.font import Font
-from fsgui.item import Item
-from fsgui.mainwindow import MainWindow
-from fsgui.transparentwindow import TransparentWindow
-from fsgui.types import Position, Size
-from fsgui.widget import Widget
-from fsgui.widgetpainter import WidgetPainter
+from fsapp.surfaceapi.v1 import Navigation, NavigationEvent, Role
+
+from .borderlesswindow import BorderlessWindow
+from .drawingcontext import Colour
+from .font import Font
+from .item import Item
+from .types import Position, Size
+from .widget import Widget
+from .widgetpainter import WidgetPainter
+from .window import Window
+from .windowmanager import get_client_size
 
 logger = logging.getLogger(__name__)
 
@@ -36,15 +38,7 @@ class Choice(Widget):
             item.index = i
             self.items.append(item)
         # self.items = [Item(x) for x in items]
-        self.button_size = (24, 28)
         # self.button = ChoiceButton()
-
-        self.min_width = 0
-        for item in self.items:
-            tw, _th = self.font.measure_text(item.text)
-            mw = 1 + 6 + tw + 6 + self.button_size[0]
-            if mw > self.min_width:
-                self.min_width = mw
 
         if len(items) > 0:
             self.index = 0
@@ -99,17 +93,24 @@ class Choice(Widget):
         else:
             logger.warning("remove_item_by_data - item not found")
 
-    def calculate_min_height(self, width: int) -> int:
+    @property
+    def button_size(self) -> Size:
+        return 24, 28
+
+    def calculate_min_height(self, width: float) -> float:
         return 28
 
-    def calculate_min_width(self) -> int:
+    def calculate_min_width(self) -> float:
         # FIXME: This should be handled by Widget?
         if self._min_width is not None:
             return self._min_width
 
-        # tw, _ = self.font.measure_text(self.text)
-        # return self.check_width + self.gap + tw
-        return self.min_width
+        # The outline, the text's margins and the button.
+        min_width = 0.0
+        for item in self.items:
+            tw, _th = self.font.measure_text(item.text)
+            min_width = max(min_width, 1 + 6 + 6 + 24 + tw)
+        return min_width
 
     def find_index_by_data(self, data: Any) -> int | None:
         for item in self.items:
@@ -144,8 +145,12 @@ class Choice(Widget):
         else:
             dc.set_pen_colour(Colour.GREY_BB)
         # Overriding button corner
-        dc.draw_point(button_pos)
-        dc.draw_point((button_pos[0], self.height - 1))
+        button_x, button_y, _, button_height = dc.rect_to_view_pixels(button_pos, self.button_size)
+        unit = dc.design_line_to_pixels(1)
+        dc.set_fill_colour(dc.pen_colour)
+        pixels = dc.pixel_view
+        pixels.draw_filled_rectangle((button_x, button_y), (unit, unit))
+        pixels.draw_filled_rectangle((button_x, button_y + button_height - unit), (unit, unit))
         # dc.draw_line((button_pos), (button_pos[0], 0))
 
         # FIXME: can self.index be none?
@@ -153,8 +158,6 @@ class Choice(Widget):
             text = self.items[self.index].text
         else:
             text = ""
-        _, th = dc.measure_text(text)
-
         # FIXME: FROM THEME
         if self.enabled:
             dc.set_text_colour(Colour.GREY_22)
@@ -162,13 +165,13 @@ class Choice(Widget):
             dc.set_text_colour(Colour.GREY_88)
 
         # FIXME: 6 - variable from theme, same as TextField
-        dc.draw_text(text, (6, (self.height - th) // 2))
+        dc.draw_text_centred(text, (6, 0), (self.width - 6, self.height))
 
     def _open_dropdown(self) -> None:
         def on_select():
             self.set_index(dropdown.index)
 
-        dropdown = ChoiceMenu(self.items, self.index, on_select=on_select)
+        dropdown = ChoiceMenu(self.get_window(), self.items, self.index, on_select=on_select)
         dropdown.set_width(self.width)
         # dropdown.resize((300, 100))
         # window_pos = self.get_window().position
@@ -176,14 +179,14 @@ class Choice(Widget):
         dropdown_x = x
         dropdown_y = y + self.height
 
-        # Subtract 1 to let the borders overlay
+        # Subtract the outline to let the borders overlay
         dropdown_y -= 1
 
-        main_size = MainWindow.get().get_size()
+        main_size = get_client_size()
         if dropdown_y + dropdown.height > main_size[1]:
             dropdown_y = y - dropdown.height
 
-            # Adding 1 to let the borders overlay
+            # Adding the outline to let the borders overlay
             dropdown_y += 1
 
         dropdown.move((dropdown_x, dropdown_y))
@@ -199,29 +202,15 @@ class Choice(Widget):
         # FIXME: on_select
 
 
-# FIXME: The transparent window should resize if the main window resizes?
-# FIXME: Do not cover main window titlebar (???)
-class ChoiceBackgroundWindow(TransparentWindow):
-    def __init__(self, controlling_widget) -> None:
-        size = MainWindow.get().get_size()
-        super().__init__(size=size)
-        self.controlling_widget = controlling_widget
-
-        self.set_focusable(False)
-
-    def _on_destroy(self) -> None:
-        self.controlling_widget = None
-
-    def on_left_press(self) -> None:
-        self.controlling_widget.close()
-
-
 class ChoiceMenu(BorderlessWindow):
+    """A choice's menu: a popup of the choice's window, so that fsapp makes it the key target while
+    it is open and tells it of a press outside it (OutsideClick), which closes it."""
+
     # FIXME: on_activate vs on_select
     # FIXME: callback type
-    def __init__(self, items: list[Item], index: int, on_select) -> None:
+    def __init__(self, parent: Window, items: list[Item], index: int, on_select) -> None:
         size = 200, 100
-        super().__init__(size=size)
+        super().__init__(size=size, role=Role.POPUP, parent=parent)
 
         self.set_focusable(False)
 
@@ -234,12 +223,9 @@ class ChoiceMenu(BorderlessWindow):
 
         # self.style.background_color = Colour.RED
 
-        self.background_window = ChoiceBackgroundWindow(self)
-        self.background_window.show()
-
         # FIXME: Free surfaces and textures
 
-        self.item_height = 28 - 2
+        self.item_height = WidgetPainter.get_item_height()
 
         # FIXME: Could use padding
         # self.border_width = 1
@@ -259,11 +245,6 @@ class ChoiceMenu(BorderlessWindow):
         # opened in (on mouse press).
         self._close_on_release = False
 
-    # def close(self) -> None:
-    #     # self.background_window.destroy()
-    #     # self.destroy()
-    #     # self.background_window.destroy()
-
     def get_index_at_position(self, position: Position) -> int | None:
         x, y = position
         if x < self.padding[3] or x >= self.width - self.padding[1]:
@@ -274,6 +255,10 @@ class ChoiceMenu(BorderlessWindow):
             ((y - self.padding[0]) / (self.height - self.padding[0] - self.padding[2]))
             * len(self.items)
         )
+
+    def on_left_press(self) -> None:
+        # A press on the open menu itself (not the one that opened it, handed over by the choice).
+        self._close_on_release = True
 
     def on_left_release(self) -> None:
         index = self.get_index_at_position(self.get_mouse_position())
@@ -292,57 +277,41 @@ class ChoiceMenu(BorderlessWindow):
                 if self.items[index].enabled:
                     self.set_temp_index(index)
 
-    def on_close(self) -> None:
-        self.background_window.close()
+    def on_outside_click(self) -> None:
+        self.close()
+
+    def on_navigation(self, event: NavigationEvent) -> None:
+        match event.value:
+            case Navigation.UP:
+                self._move_temp_index(-1)
+            case Navigation.DOWN:
+                self._move_temp_index(1)
+            case Navigation.ACCEPT:
+                if self.items[self._temp_index].enabled:
+                    self.index = self._temp_index
+                    self._on_select()
+                self.close()
+            case Navigation.BACK:
+                self.close()
+            case _:
+                pass
+
+    def _move_temp_index(self, step: int) -> None:
+        """Highlights the next enabled item up (step -1) or down (step 1), if there is one."""
+        index = self._temp_index + step
+        while 0 <= index < len(self.items):
+            if self.items[index].enabled:
+                self.set_temp_index(index)
+                return
+            index += step
 
     def _on_destroy(self) -> None:
         self._on_select = None
 
-    # def on_left_press(self) -> None:
-    #     self.close()
-
     def on_paint(self) -> None:
         dc = self.create_dc()
-        # FIXME: Only draw border/outline! Items will be drawn over!
-        dc.set_pen_colour(Colour.GREY_AA)
-        dc.set_fill_colour(Colour.WHITE)
-        dc.draw_filled_rectangle_with_outline((0, 0), self.size)
-
-        x = self.padding[3]
-        y = self.padding[0]
-        w = self.width - self.padding[1] - self.padding[3]
-        h = self.item_height
-
-        for i, item in enumerate(self.items):
-            self.paint_item(dc, item, (x, y), (w, h), i == self._temp_index)
-            y += h
-
-    def paint_item(
-        self,
-        dc: DrawingContext,
-        item: Item,
-        position: Position,
-        size: Size,
-        selected: bool,
-    ) -> None:
-        if selected:
-            fill_colour = (0x66, 0x88, 0xBB, 0xFF)
-            text_colour = Colour.WHITE
-        elif item.enabled:
-            fill_colour = Colour.WHITE
-            text_colour = Colour.GREY_22
-        else:
-            fill_colour = Colour.WHITE
-            text_colour = Colour.GREY_99
-
-        dc.set_text_colour(text_colour)
-        dc.set_fill_colour(fill_colour)
-        dc.draw_filled_rectangle(position, size)
-        _tw, th = dc.measure_text(item.text)
-        # FIXME: Get 6 from theme
-        x = position[0] + 6 - 1
-        y = position[1] + (size[1] - th) // 2
-        dc.draw_text(item.text, (x, y))
+        painter = WidgetPainter(self, dc)
+        painter.paint_items(self.items, self.size, self.padding, self._temp_index)
 
     def set_index(self, index: int) -> None:
         if index == self.index:

@@ -9,6 +9,8 @@
 #include <Python.h>
 #include <SDL3/SDL.h>
 
+#include <atomic>
+
 #include "fsapp-frame.h"
 #include "fsapp-main.h"
 #include "fsapp-surface.h"
@@ -34,6 +36,11 @@ static SDL_AtomicInt g_ui_frame_requested;
 
 static PyThreadState *g_pythread_state;
 static SDL_Thread *g_python_thread;
+
+// Set from just before the UI thread is created until it ends, and its ID while it runs (0 until
+// it has started).
+static std::atomic<bool> g_ui_thread_running;
+static std::atomic<SDL_ThreadID> g_ui_thread_id;
 
 // The test scene (FSAPP_TEST_SCENE), whose stand-in UI thread runs in place of the Python UI, or
 // NULL.
@@ -326,6 +333,7 @@ static int testscene_thread_main(fsapp_testscene_t *scene)
 // how it ended.
 static int python_thread_function(void *data)
 {
+    g_ui_thread_id.store(SDL_GetCurrentThreadID());
     int status = g_test_scene ? testscene_thread_main(g_test_scene) : python_thread_main();
     if (status != 0) {
         // The thread ends holding the GIL (see fsapp_pythonthread_stop). The main thread sees the
@@ -338,6 +346,8 @@ static int python_thread_function(void *data)
         // The main loop looks for it (fsapp_pythonthread_has_failed), also while it idles.
         fsapp_frame_wake();
     }
+    g_ui_thread_id.store(0);
+    g_ui_thread_running.store(false);
     SDL_SetAtomicInt(&g_python_thread_done, 1);
     return status;
 }
@@ -372,7 +382,11 @@ void fsapp_pythonthread_start(const char *module_name, const char *function_name
     // Release the GIL and allow the Python thread to use the Python API (the stand-in UI thread
     // does not use it, and nothing else does then either).
     g_pythread_state = PyEval_SaveThread();
+    g_ui_thread_running.store(true);
     g_python_thread = SDL_CreateThread(python_thread_function, "ui", NULL);
+    if (g_python_thread == NULL) {
+        g_ui_thread_running.store(false);
+    }
 }
 
 bool fsapp_pythonthread_stop(int64_t timeout_ns)
@@ -408,6 +422,11 @@ bool fsapp_pythonthread_stop(int64_t timeout_ns)
     // still holding the GIL, and the Python API must not be used anymore.
     SDL_Log("Python thread ended (status %d)", status);
     return status == 0;
+}
+
+bool fsapp_pythonthread_can_free_ui_objects(void)
+{
+    return !g_ui_thread_running.load() || g_ui_thread_id.load() == SDL_GetCurrentThreadID();
 }
 
 void fsapp_pythonthread_wake(void)

@@ -47,6 +47,8 @@
 	<string>10.13.0</string>
 	<key>NSAppleScriptEnabled</key>
 	<false/>
+	<key>NSHighResolutionCapable</key>
+	<true/>
 	<key>NSHumanReadableCopyright</key>
 	<string>Copyright 2011-2025 Frode Solheim</string>
 	<key>NSMainNibFile</key>

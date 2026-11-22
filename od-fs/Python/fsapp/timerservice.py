@@ -7,7 +7,7 @@ import _fsapp
 
 logger = logging.getLogger(__name__)
 
-TimerCallback = Callable[[], None]
+TimerCallback = Callable[[], object]
 
 
 class Timer:

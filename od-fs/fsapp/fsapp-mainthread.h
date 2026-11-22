@@ -6,14 +6,15 @@
  * render thread mode the main thread runs the host window side and the render thread the drawing
  * side (below, "The two modes"):
  *
- * - The host window side: the events (the event hooks, then fsapp's handling, which carries out
- *   window operations such as resizing and fullscreen at once, and copies each event for the UI
- *   thread), the display hooks when the host display changes and the frame hooks. It then writes
- *   the frame's snapshot (fsapp-snapshot.h): the window's size in window coordinates and in
- *   pixels, its scale, its background colour, the host refresh rate and whether every swap waits
- *   for a host vertical blank, the surface layout (the pending record of a UI frame taken and
- *   applied, the flat list, and the record's content and destroyed surfaces), the adornments, and
- *   the pacer.
+ * - The host window side: the events (the shortcuts, fsapp-main.h, which consume their key events;
+ *   then routing, fsapp-input.h, which gives input to the event hooks or to the focused surface;
+ *   then fsapp's handling, which carries out window operations such as resizing and fullscreen at
+ *   once, and copies the events that routing leaves to the UI for the UI thread), the display hooks
+ *   when the host display changes and the frame hooks. It then writes the frame's snapshot
+ *   (fsapp-snapshot.h): the window's size in pixels and in window coordinates, its scale, its
+ *   background colour, the host refresh rate and whether every swap waits for a host vertical
+ *   blank, the surface layout (the pending record of a UI frame taken and applied, the flat list,
+ *   and the record's content and destroyed surfaces), the adornments, and the pacer.
  * - The drawing side: everything with GL, the wait and the swap. It takes the snapshot when its
  *   frame starts and reads none of the host window side's state but that, and calls no window
  *   functions (but the swap and the swap interval). Its first frame makes fsapp's GL state (the
@@ -144,13 +145,21 @@ extern "C" {
 struct fsapp_snapshot;
 struct fsapp_snapshot_window;
 
-// Called for each SDL event, before fsapp handles it and copies it for the UI thread (host window
-// side). Also called for the events pumped while the drawing side waits in one-thread mode, so it
-// may run between the drawing side's own calls, and in render thread mode at the same time as
-// them: what an event hook shares with drawing-side code must be atomic or locked.
+// Called for the input events that routing gives the emulation (fsapp-input.h: keys and gamepad
+// buttons and axes while the emulation surface has keyboard focus or the input grab is applied,
+// mouse input while the grab is applied; never the menu input, but a release of Start made by fsapp
+// when Start and Select become the menu input), and for every hotplug event (keyboards, mice,
+// joysticks and gamepads added or removed); for no other event (host window side). Called before
+// fsapp handles the event. Also called for the events pumped while the drawing side waits in
+// one-thread mode, so it may run between the drawing side's own calls, and in render thread mode at
+// the same time as them: what an event hook shares with drawing-side code must be atomic or locked.
 typedef void (*fsapp_mainthread_event_hook_t)(SDL_Event *event);
 
 void fsapp_mainthread_add_event_hook(fsapp_mainthread_event_hook_t hook);
+
+// Calls the event hooks with an event that fsapp makes itself for the emulation (fsapp-input.h:
+// the release of Start when Start and Select become the menu input). Host window side.
+void fsapp_mainthread_call_event_hooks(SDL_Event *event);
 
 // Called once per frame on the host window side, once the host window exists: after the events
 // and the display hooks, and before the snapshot (also before the UI's first record, when no frame

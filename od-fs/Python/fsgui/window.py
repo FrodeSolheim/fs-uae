@@ -1,11 +1,41 @@
 import logging
+import weakref
 from typing import Self
 
-from fsapp.frameservice import FrameService
+from fsapp.surfaceapi.v1 import (
+    Band,
+    Configure,
+    FocusIn,
+    FocusOut,
+    KeyDown,
+    KeyUp,
+    NavigationEvent,
+    OutsideClick,
+    PointerButton,
+    PointerEnter,
+    PointerLeave,
+    PointerMotion,
+    PointerWheel,
+    Role,
+    ScaleSupport,
+    SurfaceEvent,
+)
+from fsapp.surfaceapi.v1 import Surface as SurfaceHandle
 
-from fsgui.internal.surface import Surface
-from fsgui.types import Borders, PaddingParam, Position, Size, SizeParam
-from fsgui.widget import Widget
+from .internal.api import get_api
+from .internal.surface import Surface
+from .scale import get_scale, position_from_pixels, size_to_pixels, to_pixels
+from .types import (
+    Borders,
+    PaddingParam,
+    PixelPosition,
+    PixelSize,
+    PointerPosition,
+    Position,
+    Size,
+    SizeParam,
+)
+from .widget import Widget
 
 logger = logging.getLogger(__name__)
 
@@ -17,16 +47,12 @@ logger = logging.getLogger(__name__)
 FOCUSED_BORDER_COLOR = (0xFF, 0xFF, 0xFF, 0xFF)
 UNFOCUSED_BORDER_COLOR = (0xCC, 0xCC, 0xCC, 0xFF)
 
+# The height of the title bar of fsgui's decorated windows, in design units. The host window's title
+# bar is the top's, with a height of its own.
+WINDOW_TITLE_BAR_HEIGHT = 36
+
 
 class Window(Widget):
-    LAYER_BACKGROUND = -20
-    LAYER_BELOW = -10
-    LAYER_NORMAL = 0
-    LAYER_ABOVE = 10
-    LAYER_HIGHEST = 20
-
-    # LAYER_ON_TOP = 20
-
     # The window's position is its surface's, set in the record without a repaint.
     _repaint_on_move = False
 
@@ -37,12 +63,14 @@ class Window(Widget):
         borders: Borders | None = None,
         padding: PaddingParam = None,
         size: SizeParam = None,
-        special=0,
-        surface=None,
+        role: Role = Role.TOP_LEVEL,
+        parent: "Window | None" = None,
+        band: Band = Band.NORMAL,
+        buffer: bool = True,
     ):
-        if size is None:
-            size = (1, 1)
-
+        """A window, hidden, of its role in fsapp's stacking order: a top-level (in the band) or an
+        overlay, or a child or popup of the parent window. buffer=False makes a window without a
+        buffer, which draws nothing itself (a window showing another surface)."""
         # FIXME: self.params (for outline, thickness, colors, etc)
 
         # FIXME: Handle window offset internally and modify .surface x / y coordinates
@@ -53,31 +81,27 @@ class Window(Widget):
         # FIXME: Some logic would also be easier if all windows have a sub-widget inside to
         # contain widgets - would remove some origin-compensating code??
 
-        self.outline = 1
-        self.thickness = 0
-
         # Borders outside of the "normal" drawing area. Maybe only the Window
         # class has these? Or maybe they should be moved to the Widget class?
-        if borders is not None:
-            self._top_border = borders.top
-            self._right_border = borders.right
-            self._bottom_border = borders.bottom
-            self._left_border = borders.left
-        else:
-            # self._top_border = 37
-            # self._right_border = 5
-            # self._bottom_border = 5
-            # self._left_border = 5
-            self._top_border = 36 + self.outline
-            self._right_border = self.thickness + self.outline
-            self._bottom_border = self.thickness + self.outline
-            self._left_border = self.thickness + self.outline
+        self._set_borders(borders)
+
+        # For a new scale (rescale): the minimum width the window was last fitted to its content
+        # with (resize_to_fit_content), to fit it again, and whether its width and height were given
+        # since, which it keeps.
+        self._fit_min_width: float | None = None
+        self._width_given = False
+        self._height_given = False
 
         # Dirty: something the window draws has changed since it last painted (Widget.refresh), so
         # it must be painted and committed again. A window starts dirty.
         self._dirty = True
 
-        self._layer = 0
+        # Its place in fsapp's stacking order, fixed when its surface is created.
+        if (parent is not None) != (role in (Role.CHILD, Role.POPUP)):
+            raise ValueError("a child or popup window has a parent, and only they have one")
+        self._role = role
+        self._parent_window = parent
+        self._band = band
         self._visible = False
         self._title = title
         self._window_position = (0, 0)
@@ -85,13 +109,18 @@ class Window(Widget):
 
         # FIXME: Move to Widget?
         # FIXME: Differentiate between Window focus and Widget focus?
+        # Whether the window's surface has keyboard focus (FocusIn and FocusOut).
         self.focused = False
 
         # self._focus_on_show = True
+        # Whether the window may take keyboard focus (its surface's focusable flag).
         self._focusable = True
 
         # _update_window_size needs _title_bar property
         self._title_bar = None
+
+        if size is None:
+            size = (1, 1)
 
         # self._update_window_position(size)
         self._update_window_size(size)
@@ -101,7 +130,31 @@ class Window(Widget):
         # FIXME: Set in Widget
         # FIXME: Make sure to clear this reference on destroy...
         self._window = self
-        self._surface = Surface(self._window_size, special, surface)
+        # Weak, so that the handler does not keep the window alive.
+        window_ref = weakref.ref(self)
+
+        def handle_surface_event(event: SurfaceEvent) -> None:
+            window = window_ref()
+            if window is not None:
+                window._handle_surface_event(event)
+
+        # fsgui draws at any scale (the display scale), so its surfaces support any.
+        size_pixels = self.get_surface_size()
+        if parent is None:
+            handle = get_api().create_surface(
+                size_pixels,
+                handle_surface_event,
+                role=role,
+                band=band,
+                scale_support=ScaleSupport.ANY,
+                buffer=buffer,
+            )
+        elif role == Role.POPUP:
+            handle = parent._surface.handle.create_popup(size_pixels, handle_surface_event)
+        else:
+            handle = parent._surface.handle.create_child(size_pixels, handle_surface_event)
+        self._surface = Surface(handle)
+        self._surface.set_focusable(self._focusable)
 
         self.surface = self._surface
 
@@ -111,13 +164,13 @@ class Window(Widget):
         # self.set_size(size)
 
         # Importing here to sidestep circular import issues
-        from fsgui.windowmanager import WindowManager
+        from .windowmanager import WindowManager
 
         WindowManager.get().add_window(self)
 
         # Maybe a more explicit way to check if the titlebar should be present?
 
-        from fsgui.windowtitlebar import WindowTitleBar
+        from .windowtitlebar import WindowTitleBar
 
         if self._top_border == 0:
             # self._title_bar = None
@@ -133,10 +186,10 @@ class Window(Widget):
     # FIXME: A separate draw_background / erase function do run before draw?
 
     def center_window(self) -> Self:
-        from fsgui.mainwindow import MainWindow
+        from .windowmanager import get_client_size
 
         size = self.get_size()
-        main_size = MainWindow.get().get_size()
+        main_size = get_client_size()
 
         # FIXME: Calculation is done without properly considering title bars
         # (both for main window and window) and window borders, so centering
@@ -155,13 +208,11 @@ class Window(Widget):
         self.destroy()
 
     def create_window_dc(self) -> "DrawingContext":
-        dc = self.create_dc()
-        # dc = DrawingContext(self)
-        # FIXME: Hackish to set origin in DrawingContext constructor and then reset..
-        dc.origin = (0, 0)
-        return dc
+        return self._create_dc((0, 0), self.get_window_size())
 
-    def destroy(self):
+    def destroy(self) -> None:
+        self._close_popups()
+
         # Not strictly necessary to run destroy explicitly. It will be done implicitly when the
         # surface is no longer referenced, but a good idea to free the surface buffers already now
         # in case the reference is held somewhere.
@@ -179,7 +230,7 @@ class Window(Widget):
         # Called by super().destroy
         # self._on_destroy()
 
-        from fsgui.windowmanager import WindowManager
+        from .windowmanager import WindowManager
 
         WindowManager.get().remove_window(self)
 
@@ -194,7 +245,7 @@ class Window(Widget):
     #     return (self._left_border, self._top_border)
 
     # Could also be called find_child_widget_at_position (don't return self)
-    def find_widget_at_position(self, position: Position):
+    def find_widget_at_position(self, position: PointerPosition):
         """Coordinates are relative to the widget itself.
 
         Overrides Widget implementation to account for window borders.
@@ -232,9 +283,48 @@ class Window(Widget):
         return None
 
     def focus(self) -> None:
-        from fsgui.windowmanager import WindowManager
+        """Asks for keyboard focus for the window (ignored unless it is focusable and visible). The
+        window manager's focus_window follows when it is granted (FocusIn)."""
+        self._surface.request_focus()
 
-        WindowManager.get().focus_window(self)
+    def _handle_surface_event(self, event: SurfaceEvent) -> None:
+        from .windowmanager import WindowManager
+
+        window_manager = WindowManager.get()
+        match event:
+            case PointerEnter(x=x, y=y) | PointerMotion(x=x, y=y):
+                window_manager.handle_pointer_motion(self, self._from_pixels(x, y))
+            case PointerLeave():
+                window_manager.handle_pointer_leave(self)
+            case PointerButton(x=x, y=y, button=button, down=down, clicks=clicks):
+                window_manager.handle_pointer_button(
+                    self, self._from_pixels(x, y), button, down, clicks
+                )
+            case PointerWheel(x=x, y=y, dx=dx, dy=dy):
+                window_manager.handle_pointer_wheel(self, self._from_pixels(x, y), dx, dy)
+            case KeyDown():
+                self.on_key_down(event)
+            case KeyUp():
+                self.on_key_up(event)
+            case NavigationEvent():
+                logger.debug("%r: %r", self, event)
+                self.on_navigation(event)
+            case OutsideClick():
+                self.on_outside_click()
+            # A popup that has the keys leaves the focused look on its tree's top-level window.
+            case FocusIn():
+                window_manager.focus_window(self.get_top_level_window())
+            case FocusOut():
+                window_manager.unfocus_window(self.get_top_level_window())
+            case Configure(scale=surface_scale):
+                window_manager.handle_surface_scale(surface_scale)
+            case _:
+                pass
+
+    def _from_pixels(self, x: float, y: float) -> PointerPosition:
+        """A pointer position in pixels relative to the window's surface, in design units relative
+        to the window."""
+        return position_from_pixels((x, y), get_scale())
 
     def get_window_position(self) -> Position:
         return self._window_position
@@ -244,6 +334,29 @@ class Window(Widget):
 
     def get_window_size(self) -> Size:
         return self._window_size
+
+    def get_surface_position(self) -> PixelPosition:
+        """The window's position (with its borders) in pixels, relative to the main window's client
+        area: rounded on its own, so that the window keeps its size in pixels when it moves."""
+        scale = get_scale()
+        return (
+            to_pixels(self._window_position[0], scale),
+            to_pixels(self._window_position[1], scale),
+        )
+
+    def get_surface(self) -> SurfaceHandle:
+        """The window's surface (version 1 of the surface API), for calls that take one."""
+        return self._surface.handle
+
+    def get_surface_size(self) -> PixelSize:
+        """The window's size (with its borders) in pixels: its surface's size, rounded as the
+        drawing context rounds the window's far edges."""
+        return size_to_pixels(self._window_size, get_scale())
+
+    def place_surfaces(self, position: PixelPosition) -> None:
+        """Places the window's surface at position (pixels in the host window), as fsgui does in
+        every UI frame after the window's update. A window with child surfaces places them too."""
+        self._surface.set_position(position)
 
     def move(self, position: Position) -> Self:
         self._update_window_position(position)
@@ -264,6 +377,19 @@ class Window(Widget):
         if self._title_bar is not None:
             self._title_bar.style.background_color = FOCUSED_BORDER_COLOR
 
+    def on_key_down(self, event: KeyDown) -> None:
+        """A key pressed while the window has keyboard focus."""
+
+    def on_key_up(self, event: KeyUp) -> None:
+        """A key released while the window has keyboard focus."""
+
+    def on_navigation(self, event: NavigationEvent) -> None:
+        """Navigation from a gamepad or a navigation key while the window has keyboard focus (after
+        the key's on_key_down)."""
+
+    def on_outside_click(self) -> None:
+        """A press outside every open popup, for a popup window (which no window gets)."""
+
     def on_paint(self) -> None:
         self.paint_background()
         self.paint_border()
@@ -279,7 +405,12 @@ class Window(Widget):
 
         dc = self.create_window_dc()
         dc.set_fill_colour(fill)
-        dc.draw_filled_rectangle((self._left_border, self._top_border), self.get_size())
+        # Below the title bar from edge to edge: the outline, a line, can be thinner than its unit,
+        # and the background fills the pixels between it and the content.
+        window_width, window_height = self.get_window_size()
+        dc.draw_filled_rectangle(
+            (0, self._top_border), (window_width, window_height - self._top_border)
+        )
         # self.draw_border()
 
         # for child in self._children:
@@ -288,52 +419,43 @@ class Window(Widget):
 
     def paint_border(self) -> None:
         dc = self.create_window_dc()
+        size = self.get_window_size()
+        outline = self.outline
+
+        # The top "border" is drawn by the title bar widget. The outline is drawn around it, and the
+        # title bar's colour fills the pixels between them.
+        if self._title_bar is not None:
+            dc.set_fill_colour(self._title_bar.style.background_color)
+            dc.draw_filled_rectangle((0, 0), (size[0], self._top_border))
+        dc.set_pen_colour((0x90, 0x90, 0x90, 0xFF))
+        dc.draw_outline(
+            (0, 0),
+            size,
+            top=bool(self._top_border),
+            right=bool(self._right_border),
+            bottom=bool(self._bottom_border),
+            left=bool(self._left_border),
+        )
 
         # FIXME: Variable from style?
         if self.focused:
             dc.set_fill_colour(FOCUSED_BORDER_COLOR)
         else:
             dc.set_fill_colour(UNFOCUSED_BORDER_COLOR)
-
-        size = self.get_window_size()
-
-        # The top "border" is drawn by the title bar widget
-        # dc.draw_filled_rectangle((0, 0), (window_size[0], self._top_border))
-
-        dc.set_pen_colour((0x90, 0x90, 0x90, 0xFF))
-        # dc.set_pen_colour((0xFF, 0x00, 0xFF, 0xFF))
-
-        # FIXME: Can skip outer 1 px... -Not anymore
-        if self._top_border:
-            if self.outline:
-                dc.draw_line((0, 0), (size[0] - 1, 0))
-
+        side_height = size[1] - self._top_border - self._bottom_border
         if self._left_border:
-            if self.outline:
-                dc.draw_line((0, 1), (0, size[1] - 2))
             dc.draw_filled_rectangle(
-                (self.outline, self._top_border),
-                (
-                    self._left_border - self.outline,
-                    size[1] - self._top_border - self._bottom_border,
-                ),
+                (outline, self._top_border), (self._left_border - outline, side_height)
             )
         if self._right_border:
-            if self.outline:
-                dc.draw_line((size[0] - 1, 1), (size[0] - 1, size[1] - 2))
             dc.draw_filled_rectangle(
-                (self._window_size[0] - self._right_border, self._top_border),
-                (
-                    self._right_border - self.outline,
-                    size[1] - self._top_border - self._bottom_border,
-                ),
+                (size[0] - self._right_border, self._top_border),
+                (self._right_border - outline, side_height),
             )
         if self._bottom_border:
-            if self.outline:
-                dc.draw_line((0, size[1] - 1), (size[0] - 1, size[1] - 1))
             dc.draw_filled_rectangle(
-                (self.outline, size[1] - self._bottom_border),
-                (size[0] - 2 * self.outline, self._bottom_border - self.outline),
+                (outline, size[1] - self._bottom_border),
+                (size[0] - 2 * outline, self._bottom_border - outline),
             )
 
         # if self._left_border:
@@ -351,16 +473,43 @@ class Window(Widget):
         #         line_color,
         #     )
 
+    def rescale(self) -> None:
+        """The scale has changed (WindowManager.rescale_windows): the window keeps its position and
+        size, fitted to its content again if it was (minimum sizes from text may have changed),
+        takes a surface of its new size in pixels and is painted again."""
+        if self._fit_min_width is not None and self.layout is not None:
+            width, height = self._calculate_fit_size(self._fit_min_width)
+            if self._width_given:
+                width = self.get_width()
+            if self._height_given:
+                height = self.get_height()
+            self._set_size((width, height))
+        self.mark_dirty()
+
     def raise_(self) -> None:
-        from fsgui.windowmanager import WindowManager
+        from .windowmanager import WindowManager
 
         WindowManager.get().bring_window_to_front(self)
 
-    def resize_to_fit_content(self, min_width: int = 0) -> None:
+    def resize(self, size: Size) -> Self:
+        self.set_size(size)
+        return self
+
+    def resize_to_fit_content(self, min_width: float = 0) -> None:
+        """Resizes the window to its layout's minimum size, at least min_width wide. It is fitted
+        again when the scale changes."""
         if self.layout is None:
             logger.warning("resize_to_fit_content called without layout")
             return
 
+        self._fit_min_width = min_width
+        self._width_given = False
+        self._height_given = False
+        self._set_size(self._calculate_fit_size(min_width))
+
+    def _calculate_fit_size(self, min_width: float) -> Size:
+        """The layout's minimum size, at least min_width wide."""
+        assert self.layout is not None
         layout_min_width = self.layout.calculate_min_width()
         width = max(layout_min_width + self.padding[1] + self.padding[3], min_width)
         height = (
@@ -368,12 +517,26 @@ class Window(Widget):
             + self.padding[0]
             + self.padding[2]
         )
-        # print("\n\n\n\nHEIGHT", height)
+        return width, height
 
-        self._set_size((width, height))
+    def set_size(self, size: Size) -> None:
+        self._width_given = True
+        self._height_given = True
+        self._set_size(size)
 
-    def set_focusable(self, focusable) -> None:
+    def set_width(self, width: float) -> Self:
+        self._width_given = True
+        self._set_size((width, self.get_height()))
+        return self
+
+    def set_height(self, height: float) -> Self:
+        self._height_given = True
+        self._set_size((self.get_width(), height))
+        return self
+
+    def set_focusable(self, focusable: bool) -> None:
         self._focusable = focusable
+        self._surface.set_focusable(focusable)
 
     # def set_focus_on_show(self, focus_on_show) -> None:
     #     self._focus_on_show = focus_on_show
@@ -412,10 +575,10 @@ class Window(Widget):
         # (a widget added, removed or resized, its text or the window's size changed).
         self.layout_children()
 
-        if self._surface.get_size() != self.get_window_size():
+        surface_size = self.get_surface_size()
+        if self._surface.get_size() != surface_size:
             logger.debug("Window has changed size, must update surface")
-            # fsapp.resize_surface(self._surface)
-            self._surface.resize(self.get_window_size())
+            self._surface.resize(surface_size)
             # The resized surface's buffer has lost its content.
             self._dirty = True
 
@@ -444,6 +607,21 @@ class Window(Widget):
         # size = self.size
         # fill = self.style.background_color
         # fsapp.draw_filled_rectangle(surface, (0, 0, size[0], size[1]), fill)
+
+    def _set_borders(self, borders: Borders | None) -> None:
+        # The outline is a border of one design unit, outside the title bar.
+        self.outline = 1
+        self.thickness = 0
+        if borders is not None:
+            self._top_border = borders.top
+            self._right_border = borders.right
+            self._bottom_border = borders.bottom
+            self._left_border = borders.left
+        else:
+            self._top_border = WINDOW_TITLE_BAR_HEIGHT + self.outline
+            self._right_border = self.thickness + self.outline
+            self._bottom_border = self.thickness + self.outline
+            self._left_border = self.thickness + self.outline
 
     def _update_window_position(self, position: Position) -> None:
         window_x = position[0] - self._left_border
@@ -478,17 +656,26 @@ class Window(Widget):
         if self._title_bar is not None:
             self._reposition_and_resize_title_bar(size)
 
-    @property
-    def layer(self) -> bool:
-        return self._layer
+    def _close_popups(self) -> None:
+        """Closes the popups below the window in its tree: they are not open while it is hidden, and
+        would otherwise stay in the window manager after it is destroyed."""
+        from .windowmanager import WindowManager
 
-    def set_layer(self, layer: int) -> Self:
-        from fsgui.windowmanager import WindowManager
+        for window in WindowManager.get().get_windows():
+            if window._role != Role.POPUP or window.is_destroyed():
+                continue
+            ancestor = window._parent_window
+            while ancestor is not None and ancestor is not self:
+                ancestor = ancestor._parent_window
+            if ancestor is self:
+                window.close()
 
-        WindowManager.get()._change_window_layer(self, self._layer, layer)
-        self._layer = layer
-
-        return self
+    def get_top_level_window(self) -> "Window":
+        """The top-level window of the window's tree (itself unless it is a child or popup)."""
+        window = self
+        while window._parent_window is not None:
+            window = window._parent_window
+        return window
 
     @property
     def visible(self) -> bool:
@@ -509,14 +696,16 @@ class Window(Widget):
         if self._dirty:
             return
         self._dirty = True
-        FrameService.request_ui_frame()
+        get_api().request_ui_frame()
 
     def set_visible(self, visible: bool) -> None:
+        if not visible:
+            self._close_popups()
         self._visible = visible
         self._surface.set_visible(visible)
         if visible and self._dirty:
             # A window shown after its update in this UI frame is painted in the next.
-            FrameService.request_ui_frame()
+            get_api().request_ui_frame()
 
 
-from fsgui.drawingcontext import DrawingContext  # noqa: E402
+from .drawingcontext import DrawingContext  # noqa: E402

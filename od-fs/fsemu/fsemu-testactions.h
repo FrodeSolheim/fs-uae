@@ -7,8 +7,8 @@
  *
  * FSEMU_TEST_ACTIONS is a comma-separated list of <seconds>:<action>, the seconds counted from when
  * the main loop starts (fractions allowed), with the actions pause, resume, warp, unwarp, save<N>
- * and load<N> (a savestate slot from 1 to 9) and graph (the performance graph's next mode, as
- * Alt+O: off, sidebars, detailed), such as "20:pause,25:resume,30:save1,35:load1".
+ * and load<N> (a savestate slot from 1 to 9) and graph (toggles the performance graph as Alt+O
+ * does, between off and detailed), such as "20:pause,25:resume,30:save1,35:load1".
  *
  * Copyright (c) 2026 Frode Solheim
  * SPDX-License-Identifier: GPL-2.0-or-later

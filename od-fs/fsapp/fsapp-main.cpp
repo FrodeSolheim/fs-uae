@@ -20,17 +20,23 @@
 #include <Python.h>
 #include <signal.h>
 
+#include <vector>
+
 #include "fsapp-channel.h"
 #include "fsapp-events.h"
 #include "fsapp-font.h"
 #include "fsapp-frame.h"
 #include "fsapp-gl.h"
 #include "fsapp-image.h"
+#include "fsapp-input.h"
 #include "fsapp-main.h"
 #include "fsapp-mainthread.h"
 #include "fsapp-os.h"
+#include "fsapp-pixels.h"
 #include "fsapp-pythonthread.h"
+#include "fsapp-shortcuts.h"
 #include "fsapp-surface.h"
+#include "fsapp-testaids.h"
 #include "fsapp-time.h"
 #include "fsapp-window.h"
 
@@ -348,6 +354,7 @@ fsapp_window_t *fsapp_main_create_window(const char *title, int width, int heigh
     return window;
 }
 
+// create_window(title, (width, height), fullscreen), the size in pixels.
 static PyObject *emb_create_window(PyObject *self, PyObject *args)
 {
     const char *title;
@@ -438,7 +445,7 @@ static PyObject *fsapp_main_python_get_mouse_grab(PyObject *self, PyObject *args
     if (!PyArg_ParseTuple(args, ":get_mouse_grab")) {
         return NULL;
     }
-    if (g_fsapp_mouse_grab) {
+    if (fsapp_input_is_grab_wanted()) {
         Py_RETURN_TRUE;
     } else {
         Py_RETURN_FALSE;
@@ -505,21 +512,6 @@ static PyObject *fsapp_main_python_get_event_pointer(PyObject *self, PyObject *a
     return PyLong_FromVoidPtr(pointer);
 }
 
-bool g_fsapp_force_ui_cursor = false;
-
-static PyObject *fsapp_py_force_ui_cursor(PyObject *self, PyObject *args)
-{
-    int force_ui_cursor;
-    if (!PyArg_ParseTuple(args, "p:fsapp_force_ui_cursor", &force_ui_cursor)) {
-        return NULL;
-    }
-    g_fsapp_force_ui_cursor = force_ui_cursor != 0;
-    SDL_Log("Force UI cursor: %d", g_fsapp_force_ui_cursor);
-    // The program's frame hook applies it (the input grab), also while the main loop idles.
-    fsapp_frame_wake();
-    Py_RETURN_NONE;
-}
-
 static PyObject *fsapp_main_python_get_main_channel(PyObject *self, PyObject *args)
 {
     if (!PyArg_ParseTuple(args, ":get_main_channel")) {
@@ -573,6 +565,32 @@ static PyObject *fsapp_main_python_log(PyObject *self, PyObject *args)
     Py_RETURN_NONE;
 }
 
+// The display scale predicted before the host window exists (fsapp_main_init).
+static float g_predicted_display_scale = 1.0f;
+
+// The display scale of the last configure, or the predicted one before the host window exists.
+static float get_display_scale(void)
+{
+    fsapp_pixels_configure_t configure;
+    if (fsapp_input_get_configure(&configure)) {
+        return configure.scale;
+    }
+    return g_predicted_display_scale;
+}
+
+// _fsapp.get_display_scale().
+static PyObject *fsapp_main_python_get_display_scale(PyObject *self, PyObject *args)
+{
+    if (!PyArg_ParseTuple(args, ":get_display_scale")) {
+        return NULL;
+    }
+    return PyFloat_FromDouble(get_display_scale());
+}
+
+static PyObject *fsapp_main_python_register_shortcut(PyObject *self, PyObject *args);
+static PyObject *fsapp_main_python_take_shortcut_callbacks(PyObject *self, PyObject *args);
+static PyObject *fsapp_main_python_register_menu_input(PyObject *self, PyObject *args);
+
 // -------------------------------------------------------------------------------------------------
 
 static PyMethodDef EmbMethods[] = {
@@ -586,7 +604,6 @@ static PyMethodDef EmbMethods[] = {
     {"close_window", fsapp_py_close_window, METH_VARARGS, "..."},
     {"open_file_dialog", fsapp_py_open_file_dialog, METH_VARARGS, "..."},
     {"open_url", fsapp_py_open_url, METH_VARARGS, "..."},
-    {"force_ui_cursor", fsapp_py_force_ui_cursor, METH_VARARGS, "..."},
     {"set_fullscreen", fsapp_py_set_fullscreen, METH_VARARGS, "..."},
     {"quit", fsapp_main_python_quit, METH_VARARGS, "..."},
     {"get_mouse_grab", fsapp_main_python_get_mouse_grab, METH_VARARGS, "..."},
@@ -596,6 +613,10 @@ static PyMethodDef EmbMethods[] = {
     {"get_monotonic_us", fsapp_main_python_get_monotonic_us, METH_VARARGS, "..."},
     {"request_ui_frame", fsapp_main_python_request_ui_frame, METH_VARARGS, "..."},
     {"log", fsapp_main_python_log, METH_VARARGS, "..."},
+    {"register_shortcut", fsapp_main_python_register_shortcut, METH_VARARGS, "..."},
+    {"take_shortcut_callbacks", fsapp_main_python_take_shortcut_callbacks, METH_VARARGS, "..."},
+    {"register_menu_input", fsapp_main_python_register_menu_input, METH_VARARGS, "..."},
+    {"get_display_scale", fsapp_main_python_get_display_scale, METH_VARARGS, "..."},
     {NULL, NULL, 0, NULL}};
 
 static PyModuleDef EmbModule = {
@@ -626,6 +647,11 @@ static PyObject *PyInit_fsapp(void)
             return NULL;
         }
     }
+    if (PyModule_AddIntConstant(module, "SHORTCUT_MOD", fsapp_main_get_shortcut_mod()) < 0 ||
+        PyModule_AddIntConstant(module, "TITLE_BAR_HEIGHT", FSAPP_PIXELS_TITLE_BAR_HEIGHT) < 0) {
+        Py_DECREF(module);
+        return NULL;
+    }
     return module;
 }
 
@@ -644,57 +670,82 @@ bool fsapp_main_install_python_log(void)
     return true;
 }
 
+// The window's size in window coordinates and in pixels, as SDL has them now (the size in pixels
+// is the size in window coordinates when SDL cannot give it).
+static void get_pixels_sizes(SDL_Window *window, fsapp_pixels_sizes_t *sizes)
+{
+    SDL_GetWindowSize(window, &sizes->width, &sizes->height);
+    if (!SDL_GetWindowSizeInPixels(window, &sizes->pixel_width, &sizes->pixel_height)) {
+        sizes->pixel_width = sizes->width;
+        sizes->pixel_height = sizes->height;
+    }
+}
+
 static SDL_HitTestResult SDLCALL hit_test_callback(SDL_Window *win, const SDL_Point *area,
                                                    void *data)
 {
     // FIXME: Not if maximized / fullscreen?
     // FIXME: Possibly get these rectangle areas via Python
 
-    int w, h;
-    SDL_GetWindowSize(win, &w, &h);
-#if 0
-    if (area->y < 2) {
-        if (area->x < 8) {
-            return SDL_HITTEST_RESIZE_TOPLEFT;
-        }
-        else if (area->x >= w - 8) {
-            return SDL_HITTEST_RESIZE_TOPRIGHT;
-        } else {
-            return SDL_HITTEST_RESIZE_TOP;
-        }
-    }
-#endif
-    if (area->y >= h - 4) {
-        if (area->x < 8) {
-            return SDL_HITTEST_RESIZE_BOTTOMLEFT;
-        } else if (area->x >= w - 8) {
-            return SDL_HITTEST_RESIZE_BOTTOMRIGHT;
-        } else {
-            return SDL_HITTEST_RESIZE_BOTTOM;
-        }
-    }
-    if (area->y < 36) {
-        if (area->x < 36) {
-            // Menu button?
-            return SDL_HITTEST_NORMAL;
-        }
-        if (area->x >= w - 36 * 3) {
-            // Minimize, Maximize, Close
-            return SDL_HITTEST_NORMAL;
-        }
+    // The point converted from window coordinates to pixels, and the zones scaled by the display
+    // scale of the last configure, the one fsgui's title bar follows.
+    fsapp_pixels_sizes_t sizes;
+    get_pixels_sizes(win, &sizes);
+    float x, y;
+    fsapp_pixels_convert_from_window_position(&sizes, (float)area->x, (float)area->y, &x, &y);
+    float display_scale = get_display_scale();
+    switch (fsapp_pixels_hit_test(sizes.pixel_width, sizes.pixel_height, x, y, display_scale)) {
+    case FSAPP_PIXELS_HIT_DRAGGABLE:
         return SDL_HITTEST_DRAGGABLE;
-    }
-    if (area->x < 4) {
+    case FSAPP_PIXELS_HIT_RESIZE_LEFT:
         return SDL_HITTEST_RESIZE_LEFT;
-    }
-    if (area->x >= w - 4) {
+    case FSAPP_PIXELS_HIT_RESIZE_RIGHT:
         return SDL_HITTEST_RESIZE_RIGHT;
-    }
-    if (area->y >= h - 4) {
+    case FSAPP_PIXELS_HIT_RESIZE_BOTTOM:
         return SDL_HITTEST_RESIZE_BOTTOM;
+    case FSAPP_PIXELS_HIT_RESIZE_BOTTOM_LEFT:
+        return SDL_HITTEST_RESIZE_BOTTOMLEFT;
+    case FSAPP_PIXELS_HIT_RESIZE_BOTTOM_RIGHT:
+        return SDL_HITTEST_RESIZE_BOTTOMRIGHT;
+    case FSAPP_PIXELS_HIT_NORMAL:
+        break;
     }
-
     return SDL_HITTEST_NORMAL;
+}
+
+static void init_shortcuts(void);
+
+// The pixel density the host window will have, predicted before it exists and knows its display:
+// the primary display's desktop mode's (1 except on macOS and Wayland).
+// REVIEW: Wrong when the window opens on another display with another density, such as a Retina
+// display beside a non-Retina primary display on a Mac (the window may open at twice its intended
+// size), and unknown on Wayland, where SDL may not know an output's density before a window is on
+// it. Check on such a Mac and on GNOME Wayland at 150 %: the log's SDL_CreateWindow line (the
+// predicted density) against the Host window line (the window's sizes).
+static float predict_pixel_density(void)
+{
+    const SDL_DisplayMode *mode = SDL_GetDesktopDisplayMode(SDL_GetPrimaryDisplay());
+    if (mode != NULL && mode->pixel_density > 0.0f) {
+        return mode->pixel_density;
+    }
+    return 1.0f;
+}
+
+// The display scale the host window will have (SDL_GetWindowDisplayScale is the display's content
+// scale times the window's pixel density), predicted before it exists: the primary display's
+// content scale times the predicted pixel density.
+// REVIEW: Wrong where predict_pixel_density is, or when the window opens on a display with another
+// content scale than the primary display's (Windows with monitors at different scales). Check on a
+// Retina Mac, on Windows at 125 % and 150 % and on GNOME Wayland at 150 % that the log's Predicted
+// display scale equals the first Configure's; until that configure, fsgui is laid out at the
+// predicted scale.
+static float predict_display_scale(void)
+{
+    float content_scale = SDL_GetDisplayContentScale(SDL_GetPrimaryDisplay());
+    if (content_scale <= 0.0f) {
+        content_scale = 1.0f;
+    }
+    return fsapp_testaids_override_display_scale(content_scale * predict_pixel_density());
 }
 
 bool fsapp_main_init(int argc, char *argv[], int *error)
@@ -711,6 +762,8 @@ bool fsapp_main_init(int argc, char *argv[], int *error)
     g_fsapp_event_mutex = SDL_CreateMutex();
 
     g_fsapp_main_channel = fsapp_channel_create();
+
+    init_shortcuts();
 
     // FIXME: Order should be (roughly):
     // - Init SDL
@@ -733,6 +786,9 @@ bool fsapp_main_init(int argc, char *argv[], int *error)
 
     // We want all clicks, also the "first ones"
     SDL_SetHint(SDL_HINT_MOUSE_FOCUS_CLICKTHROUGH, "1");
+
+    g_predicted_display_scale = predict_display_scale();
+    SDL_Log("Predicted display scale: %g", g_predicted_display_scale);
 
     if (!TTF_Init()) {
         SDL_Log("Couldn't initialize SDL_ttf: %s", SDL_GetError());
@@ -772,8 +828,6 @@ static void fsapp_main_toggle_fullscreen(void)
     SDL_SetWindowFullscreen(g_window, window->fullscreen);
 }
 
-bool g_fsapp_mouse_grab = false;
-
 void fsapp_main_get_window_size(int *width, int *height)
 {
     FSAPP_MAINTHREAD_ASSERT_HOST_WINDOW_SIDE();
@@ -785,6 +839,35 @@ void fsapp_main_get_window_size_in_pixels(int *width, int *height)
 {
     FSAPP_MAINTHREAD_ASSERT_HOST_WINDOW_SIDE();
     SDL_GetWindowSizeInPixels(g_window, width, height);
+}
+
+void fsapp_main_convert_event_to_pixels(SDL_Event *event)
+{
+    FSAPP_MAINTHREAD_ASSERT_HOST_WINDOW_SIDE();
+    float *x, *y;
+    switch (event->type) {
+    case SDL_EVENT_MOUSE_MOTION:
+        x = &event->motion.x;
+        y = &event->motion.y;
+        break;
+    case SDL_EVENT_MOUSE_BUTTON_DOWN:
+    case SDL_EVENT_MOUSE_BUTTON_UP:
+        x = &event->button.x;
+        y = &event->button.y;
+        break;
+    case SDL_EVENT_MOUSE_WHEEL:
+        x = &event->wheel.mouse_x;
+        y = &event->wheel.mouse_y;
+        break;
+    default:
+        return;
+    }
+    if (g_window == NULL) {
+        return;
+    }
+    fsapp_pixels_sizes_t sizes;
+    get_pixels_sizes(g_window, &sizes);
+    fsapp_pixels_convert_from_window_position(&sizes, *x, *y, x, y);
 }
 
 bool fsapp_main_is_relative_mouse(void)
@@ -802,23 +885,230 @@ void fsapp_main_set_relative_mouse(bool relative_mouse)
     }
 }
 
-static void fsapp_main_toggle_mouse_grab(void)
+// ----------------------------------------------------------------------------
+// Shortcuts (fsapp-main.h).
+
+namespace
 {
-    if (g_fsapp_force_ui_cursor) {
-        // While UI cursor is forced, we don't toggle the desired state of the non-ui cursor in
-        // in order to avoid confusion
-        return;
+
+// What a shortcut does: a C callback on the main thread, or a Python callable for the UI thread.
+// Registrations are never removed, so the Python callable (a reference of the registration's own)
+// lives as long as the program.
+struct shortcut {
+    SDL_Keycode key;
+    SDL_Keymod modifiers;
+    fsapp_main_shortcut_callback_t callback;
+    void *data;
+    PyObject *python_callback;
+};
+
+} // namespace
+
+// The registry, written by registrations (any thread) and read by the host window side, the menu
+// input's Python callable, and the Python callables of the shortcuts (and the menu input) pressed
+// since the UI thread last took them, under the mutex. Registrations are never removed, so their
+// callables live as long as the program.
+static struct {
+    SDL_Mutex *mutex;
+    fsapp_shortcuts_t *registry;
+    std::vector<PyObject *> pressed_python_callbacks;
+    PyObject *menu_input_callback;
+} fsapp_main_shortcuts;
+
+SDL_Keymod fsapp_main_get_shortcut_mod(void)
+{
+#ifdef FSAPP_OS_MACOS
+    return SDL_KMOD_LGUI;
+#else
+    return SDL_KMOD_LALT;
+#endif
+}
+
+static int register_shortcut(SDL_Keycode key, SDL_Keymod modifiers,
+                             fsapp_main_shortcut_callback_t callback, void *data,
+                             PyObject *python_callback)
+{
+    SDL_assert(fsapp_main_shortcuts.mutex != NULL);
+    shortcut *s = new shortcut{key, modifiers, callback, data, python_callback};
+    SDL_LockMutex(fsapp_main_shortcuts.mutex);
+    int id = fsapp_shortcuts_add(fsapp_main_shortcuts.registry, key, modifiers, s);
+    SDL_UnlockMutex(fsapp_main_shortcuts.mutex);
+    if (id == 0) {
+        delete s;
     }
+    return id;
+}
 
-    g_fsapp_mouse_grab = !g_fsapp_mouse_grab;
-    // The UI hears of it from an app event (which wakes the UI thread), rather than by polling.
-    fsapp_events_push_int("FSAPP_MOUSE_GRAB", g_fsapp_mouse_grab ? 1 : 0);
+int fsapp_main_register_shortcut(SDL_Keycode key, SDL_Keymod modifiers,
+                                 fsapp_main_shortcut_callback_t callback, void *data)
+{
+    SDL_assert(callback != NULL);
+    return register_shortcut(key, modifiers, callback, data, NULL);
+}
 
-    // Changed in main thread
-    // fsapp_window_t* window = (fsapp_window_t*)g_windows->data;
-    // window->relative_mouse = !window->relative_mouse;
-    // SDL_Log("Set mouse grab = %d", window->relative_mouse);
-    // SDL_SetWindowRelativeMouseMode(g_window, window->relative_mouse);
+// The shortcut's name for the log, such as "Mod+G" or "F12".
+static void get_shortcut_name(const shortcut *s, char *name, size_t size)
+{
+    char modifiers[16] = "";
+    if (s->modifiers == fsapp_main_get_shortcut_mod()) {
+        SDL_strlcpy(modifiers, "Mod+", sizeof(modifiers));
+    } else if (s->modifiers != SDL_KMOD_NONE) {
+        SDL_snprintf(modifiers, sizeof(modifiers), "0x%04x+", s->modifiers);
+    }
+    SDL_snprintf(name, size, "%s%s", modifiers, SDL_GetKeyName(s->key));
+}
+
+bool fsapp_main_handle_shortcut_event(const SDL_Event *event)
+{
+    FSAPP_MAINTHREAD_ASSERT_HOST_WINDOW_SIDE();
+    if (event->type != SDL_EVENT_KEY_DOWN && event->type != SDL_EVENT_KEY_UP) {
+        return false;
+    }
+    fsapp_shortcuts_hit_t hit;
+    shortcut pressed = {};
+    SDL_LockMutex(fsapp_main_shortcuts.mutex);
+    fsapp_shortcuts_handle_key(fsapp_main_shortcuts.registry, event->key.key, event->key.mod,
+                               event->key.down, event->key.repeat, &hit);
+    if (hit.activated) {
+        pressed = *(const shortcut *)hit.data;
+        if (pressed.python_callback != NULL) {
+            fsapp_main_shortcuts.pressed_python_callbacks.push_back(pressed.python_callback);
+        }
+    }
+    SDL_UnlockMutex(fsapp_main_shortcuts.mutex);
+    if (hit.activated) {
+        char name[64];
+        get_shortcut_name(&pressed, name, sizeof(name));
+        SDL_Log("Shortcut %s", name);
+        // The C callback runs outside the lock, so that it may register shortcuts.
+        if (pressed.callback != NULL) {
+            pressed.callback(pressed.data);
+        } else {
+            // The UI thread runs the Python callback in its next UI frame (fsapp._frame).
+            fsapp_pythonthread_wake();
+        }
+    }
+    return hit.consumed;
+}
+
+static void toggle_fullscreen_shortcut(void *data)
+{
+    fsapp_main_toggle_fullscreen();
+}
+
+static void toggle_mouse_grab_shortcut(void *data)
+{
+    fsapp_input_toggle_grab();
+}
+
+static void quit_shortcut(void *data)
+{
+    fsapp_main_quit();
+}
+
+static void init_shortcuts(void)
+{
+    fsapp_main_shortcuts.mutex = SDL_CreateMutex();
+    fsapp_main_shortcuts.registry = fsapp_shortcuts_create();
+    SDL_Keymod mod = fsapp_main_get_shortcut_mod();
+    fsapp_main_register_shortcut(SDLK_F11, SDL_KMOD_NONE, toggle_fullscreen_shortcut, NULL);
+    fsapp_main_register_shortcut(SDLK_F, mod, toggle_fullscreen_shortcut, NULL);
+    fsapp_main_register_shortcut(SDLK_G, mod, toggle_mouse_grab_shortcut, NULL);
+    fsapp_main_register_shortcut(SDLK_Q, mod, quit_shortcut, NULL);
+}
+
+// _fsapp.register_shortcut(key, modifiers, callback): registers a shortcut whose callback runs on
+// the UI thread (_fsapp.pyi).
+static PyObject *fsapp_main_python_register_shortcut(PyObject *self, PyObject *args)
+{
+    unsigned int key;
+    unsigned int modifiers;
+    PyObject *callback;
+    if (!PyArg_ParseTuple(args, "IIO:register_shortcut", &key, &modifiers, &callback)) {
+        return NULL;
+    }
+    if (!PyCallable_Check(callback)) {
+        PyErr_SetString(PyExc_TypeError, "The callback is not callable");
+        return NULL;
+    }
+    if (modifiers > 0xffff) {
+        PyErr_Format(PyExc_ValueError, "Not SDL's modifiers: 0x%x", modifiers);
+        return NULL;
+    }
+    Py_INCREF(callback);
+    int id = register_shortcut(key, (SDL_Keymod)modifiers, NULL, NULL, callback);
+    if (id == 0) {
+        Py_DECREF(callback);
+        PyErr_Format(PyExc_ValueError, "The key 0x%x with modifiers 0x%x is already a shortcut",
+                     key, modifiers);
+        return NULL;
+    }
+    return PyLong_FromLong(id);
+}
+
+bool fsapp_main_handle_menu_input(void)
+{
+    FSAPP_MAINTHREAD_ASSERT_HOST_WINDOW_SIDE();
+    SDL_LockMutex(fsapp_main_shortcuts.mutex);
+    PyObject *callback = fsapp_main_shortcuts.menu_input_callback;
+    if (callback != NULL) {
+        fsapp_main_shortcuts.pressed_python_callbacks.push_back(callback);
+    }
+    SDL_UnlockMutex(fsapp_main_shortcuts.mutex);
+    if (callback == NULL) {
+        return false;
+    }
+    // The UI thread runs it in its next UI frame (fsapp._frame).
+    fsapp_pythonthread_wake();
+    return true;
+}
+
+// _fsapp.register_menu_input(callback): registers the callback of the menu input, run on the UI
+// thread (_fsapp.pyi).
+static PyObject *fsapp_main_python_register_menu_input(PyObject *self, PyObject *args)
+{
+    PyObject *callback;
+    if (!PyArg_ParseTuple(args, "O:register_menu_input", &callback)) {
+        return NULL;
+    }
+    if (!PyCallable_Check(callback)) {
+        PyErr_SetString(PyExc_TypeError, "The callback is not callable");
+        return NULL;
+    }
+    SDL_LockMutex(fsapp_main_shortcuts.mutex);
+    bool registered = fsapp_main_shortcuts.menu_input_callback != NULL;
+    if (!registered) {
+        Py_INCREF(callback);
+        fsapp_main_shortcuts.menu_input_callback = callback;
+    }
+    SDL_UnlockMutex(fsapp_main_shortcuts.mutex);
+    if (registered) {
+        PyErr_SetString(PyExc_ValueError, "The menu input is already registered");
+        return NULL;
+    }
+    Py_RETURN_NONE;
+}
+
+// _fsapp.take_shortcut_callbacks(): the callbacks of the Python shortcuts and the menu input
+// pressed since the last call, in the order pressed (fsapp._frame runs them in the UI frame).
+static PyObject *fsapp_main_python_take_shortcut_callbacks(PyObject *self, PyObject *args)
+{
+    if (!PyArg_ParseTuple(args, ":take_shortcut_callbacks")) {
+        return NULL;
+    }
+    std::vector<PyObject *> callbacks;
+    SDL_LockMutex(fsapp_main_shortcuts.mutex);
+    callbacks.swap(fsapp_main_shortcuts.pressed_python_callbacks);
+    SDL_UnlockMutex(fsapp_main_shortcuts.mutex);
+    PyObject *result = PyList_New((Py_ssize_t)callbacks.size());
+    if (result == NULL) {
+        return NULL;
+    }
+    for (size_t i = 0; i < callbacks.size(); i++) {
+        Py_INCREF(callbacks[i]);
+        PyList_SET_ITEM(result, (Py_ssize_t)i, callbacks[i]);
+    }
+    return result;
 }
 
 // ----------------------------------------------------------------------------
@@ -831,9 +1121,8 @@ static void add_python_event(SDL_Event *event)
     g_event_list = g_list_append(g_event_list, event_copy);
     SDL_UnlockMutex(g_fsapp_event_mutex);
     // The UI thread runs a UI frame for the copied events: one for all those copied while it runs
-    // a UI frame or waits for its last record to be taken in. REVIEW: Mouse motion wakes it too,
-    // uncapped (at most one UI frame per frame drawn, while each hands over a record; one that
-    // changes nothing can follow the last at once). Should UI frames on mouse motion be capped?
+    // a UI frame or waits for its last record to be taken in. Pointer events are not copied
+    // (fsapp-input.h), so mouse motion does not wake it here.
     fsapp_pythonthread_wake();
 }
 
@@ -881,13 +1170,63 @@ static void stop_without_opengl(const char *what)
     SDL_free(message);
 }
 
+// Sends a configure when the host window's size in pixels or display scale differs from the last
+// sent (or none has been sent).
+static void update_configure(void)
+{
+    if (g_window == NULL) {
+        return;
+    }
+    fsapp_pixels_sizes_t sizes;
+    get_pixels_sizes(g_window, &sizes);
+    fsapp_pixels_configure_t configure;
+    configure.width = sizes.pixel_width;
+    configure.height = sizes.pixel_height;
+    configure.scale = fsapp_testaids_override_display_scale(SDL_GetWindowDisplayScale(g_window));
+    if (configure.scale <= 0.0f) {
+        configure.scale = 1.0f;
+    }
+    fsapp_surface_set_display_scale(configure.scale);
+    if (fsapp_input_send_configure(&configure)) {
+        SDL_Log("Configure: %dx%d pixels, display scale %g", configure.width, configure.height,
+                configure.scale);
+    }
+}
+
+// The host window's state, sent to the UI when it changes (fsapp_input_send_window_state).
+static fsapp_input_window_state_t g_window_state;
+
+// Updates the host window's state from an event, and sends it when a window event has changed it.
+// REVIEW: Restoring a maximized window from minimized says not maximized; SDL's window flags would
+// say maximized.
+static void update_window_state(const SDL_Event *event)
+{
+    switch (event->type) {
+    case SDL_EVENT_WINDOW_MAXIMIZED:
+        g_window_state.maximized = true;
+        break;
+    case SDL_EVENT_WINDOW_RESTORED:
+        g_window_state.maximized = false;
+        break;
+    case SDL_EVENT_WINDOW_ENTER_FULLSCREEN:
+        g_window_state.fullscreen = true;
+        break;
+    case SDL_EVENT_WINDOW_LEAVE_FULLSCREEN:
+        g_window_state.fullscreen = false;
+        break;
+    default:
+        return;
+    }
+    fsapp_input_send_window_state(&g_window_state);
+}
+
 // Creates the host window and its GL context. The host window side makes the GL context and no GL
 // objects; the drawing side makes those, and logs the OpenGL information, when its first frame
 // starts. Without the window or the context, the program stops with an error, and the host window
 // stays unset, so that no frame is drawn.
 static void create_window(fsapp_window_t *window)
 {
-    int window_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE;
+    int window_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY;
     window_flags |= SDL_WINDOW_BORDERLESS;
     if (window->fullscreen) {
         window_flags |= SDL_WINDOW_FULLSCREEN;
@@ -919,8 +1258,14 @@ static void create_window(fsapp_window_t *window)
         SDL_Log("Wayland: double buffer %s",
                 SDL_GetHintBoolean(SDL_HINT_VIDEO_DOUBLE_BUFFER, false) ? "on" : "off");
     }
-    SDL_Log("SDL_CreateWindow");
-    window->window = SDL_CreateWindow(window->title, window->width, window->height, window_flags);
+    // The size asked for is in pixels; SDL takes window coordinates, so it is converted with the
+    // pixel density the window will have.
+    float density = predict_pixel_density();
+    int width = fsapp_pixels_convert_to_window_length(window->width, density);
+    int height = fsapp_pixels_convert_to_window_length(window->height, density);
+    SDL_Log("SDL_CreateWindow %dx%d (%dx%d pixels at a predicted pixel density of %g)", width,
+            height, window->width, window->height, density);
+    window->window = SDL_CreateWindow(window->title, width, height, window_flags);
     if (window->window == NULL) {
         stop_without_opengl("the window could not be created");
         return;
@@ -940,12 +1285,23 @@ static void create_window(fsapp_window_t *window)
     g_window = window->window;
 
     SDL_GetWindowSize(window->window, &g_window_width, &g_window_height);
-    SDL_Log("SDL_GetWindowSize -> %dx%d", g_window_width, g_window_height);
+    window->width = g_window_width;
+    window->height = g_window_height;
+    int pixel_width = 0, pixel_height = 0;
+    SDL_GetWindowSizeInPixels(window->window, &pixel_width, &pixel_height);
+    SDL_Log("Host window: %dx%d, %dx%d pixels", g_window_width, g_window_height, pixel_width,
+            pixel_height);
 
     SDL_SetWindowHitTest(g_window, hit_test_callback, NULL);
+
+    update_configure();
+    SDL_WindowFlags flags = SDL_GetWindowFlags(g_window);
+    g_window_state.maximized = (flags & SDL_WINDOW_MAXIMIZED) != 0;
+    g_window_state.fullscreen = (flags & SDL_WINDOW_FULLSCREEN) != 0;
+    fsapp_input_send_window_state(&g_window_state);
 }
 
-void fsapp_main_handle_event(SDL_Event *event)
+void fsapp_main_handle_event(SDL_Event *event, bool copy_for_ui)
 {
     FSAPP_MAINTHREAD_ASSERT_HOST_WINDOW_SIDE();
     // SDL_Log("Handle event\n");
@@ -958,6 +1314,7 @@ void fsapp_main_handle_event(SDL_Event *event)
         window = (fsapp_window_t *)g_windows->data;
     }
 
+    update_window_state(event);
     switch (event->type) {
     case SDL_EVENT_GAMEPAD_ADDED:
         // SDL_GUIDToString(SDL_GetGamepadGUIDForID(event->gdevice.which), guid, 33);
@@ -966,48 +1323,6 @@ void fsapp_main_handle_event(SDL_Event *event)
         //                   event->gdevice.which, 0, 0, 0);
         break;
 
-    case SDL_EVENT_KEY_DOWN:
-        // printf("%d\n", event->key.scancode);
-        // if (event->key.key == SDLK_ESCAPE) {
-        //     SDL_Log("Escape pressed\n");
-        //     fsapp_main_quit();
-        // }
-
-        if (event->key.key == SDLK_F11) {
-            SDL_Log("F11 pressed\n");
-            fsapp_main_toggle_fullscreen();
-        }
-
-        // if (event->key.key == SDLK_F12) {
-        //     SDL_Log("F12 pressed\n");
-        //     // fsapp_main_toggle_fullscreen();
-        //     fsapp_events_push_int("FSAPP_KEY_PRESS", event->key.key);
-        // }
-
-#ifdef FSAPP_OS_MACOS
-        if (event->key.mod & SDL_KMOD_LGUI) {
-#else
-        if (event->key.mod & SDL_KMOD_LALT) {
-#endif
-            if (event->key.key == SDLK_F) {
-                // FIXME: We could in set a state wanted flag and do the
-                // actual operation later (maybe no point though).
-
-                SDL_Log("Alt+F pressed\n");
-                fsapp_main_toggle_fullscreen();
-            }
-            if (event->key.key == SDLK_G) {
-                SDL_Log("Alt+G pressed\n");
-                fsapp_main_toggle_mouse_grab();
-
-                // FIXME: Grabbing...!
-            }
-            if (event->key.key == SDLK_Q) {
-                SDL_Log("Alt+Q pressed");
-                fsapp_main_quit();
-            }
-        }
-        break;
     case SDL_EVENT_QUIT:
         fsapp_main_quit();
         break;
@@ -1017,15 +1332,15 @@ void fsapp_main_handle_event(SDL_Event *event)
         window->height = event->window.data2;
         g_window_width = window->width;
         g_window_height = window->height;
+        update_configure();
         break;
 
-    case SDL_EVENT_MOUSE_BUTTON_DOWN:
-        // The emulation's event hook has already seen the event (and passed mouse input to the
-        // emulation if the relative mouse mode is on, except for the middle button).
-        if (event->button.button == SDL_BUTTON_MIDDLE) {
-            fsapp_main_toggle_mouse_grab();
-        }
+    case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
+    case SDL_EVENT_WINDOW_DISPLAY_SCALE_CHANGED:
+    case SDL_EVENT_WINDOW_DISPLAY_CHANGED:
+        update_configure();
         break;
+
     case SDL_EVENT_WINDOW_MOUSE_ENTER:
 #ifdef DEBUG_MOUSE_CAPTURE_COORD_CLIP_ISSUE
         SDL_Log("mouse enter\n");
@@ -1088,7 +1403,7 @@ void fsapp_main_handle_event(SDL_Event *event)
     // printf("--- %d ---\n", event->type);
 
     // FIXME: Don't recall why we got some events with type 0?
-    if (event->type != 0) {
+    if (event->type != 0 && copy_for_ui) {
         add_python_event(event);
         // void* event_copy = malloc(sizeof(SDL_Event));
         // memcpy(event_copy, event, sizeof(SDL_Event));

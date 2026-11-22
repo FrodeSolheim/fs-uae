@@ -25,13 +25,23 @@ extern "C" {
 struct fsapp_surface;
 
 // Create the emulation surface (with streamed content: the emulated frames, which fsemu's pacer
-// takes in and commits) and register fsemu's hooks with fsapp's main loop: its event hook (input
-// and its shortcuts), frame hook (input reconfiguration, and setting or clearing fsemu's pacer),
+// takes in and commits; focusable, and fsapp's emulation surface, fsapp-input.h) and register
+// fsemu's shortcuts and its hooks with fsapp's main loop: its event hook (below), frame hook (input
+// reconfiguration, setting or clearing fsemu's pacer, and telling fsapp whether a session runs),
 // drawing hook (the video setup at the drawing side's first frame, and the picture's fit in every
 // frame) and display hook. fsemu's pacer paces the main loop by the emulated frames: it is set from
 // the session's first emulated frame until pause or the session's end, and again on resume
 // (fsemu_mainloop_set_session and _set_paused); otherwise the main loop runs without a pacer. Call
 // on the main thread before the UI thread starts and before the program registers its own hooks.
+//
+// The event hook gets only the input that fsapp's routing gives the emulation (fsapp-input.h):
+// keys and gamepad buttons and axes while the emulation surface has keyboard focus or the input
+// grab is applied, mouse input while the grab is applied and the click on the Amiga that turns it
+// on (fsemu tells fsapp whether a session runs, for it), each release where its press went;
+// and every hotplug event (keyboards, mice, joysticks and gamepads added or removed). It is not
+// called for shortcuts, for the menu input (Guide, or Start and Select together: Start pressed
+// first reaches it, and gets a release made by fsapp when Select completes the chord), for input
+// that goes to a UI surface or nowhere, or for other events.
 void fsemu_mainloop_init(void);
 
 // True once fsemu's video is initialised, which its drawing hook does at the main loop's first

@@ -1,6 +1,6 @@
 from typing import Callable, Generic, ParamSpec, Protocol, TypeVar, runtime_checkable
 
-from fsapp.signal import Signal
+from fsgui.signal import Signal
 
 T = TypeVar("T")
 U = TypeVar("U")

@@ -1,7 +1,7 @@
-from fsapp.surface import SurfaceCapsule
+from fsapp.surfaceapi.v1 import Band, Role
 
-from fsgui.types import Borders, PaddingParam, SizeParam
-from fsgui.window import Window
+from .types import Borders, PaddingParam, SizeParam
+from .window import Window
 
 
 class BorderlessWindow(Window):
@@ -10,16 +10,21 @@ class BorderlessWindow(Window):
         title: str = "",
         padding: PaddingParam = None,
         size: SizeParam = None,
-        special: int = 0,
-        surface: SurfaceCapsule | None = None,
+        *,
+        role: Role = Role.TOP_LEVEL,
+        parent: Window | None = None,
+        band: Band = Band.NORMAL,
+        buffer: bool = True,
     ) -> None:
         super().__init__(
             title,
             borders=Borders(0, 0, 0, 0),
             padding=padding,
             size=size,
-            special=special,
-            surface=surface,
+            role=role,
+            parent=parent,
+            band=band,
+            buffer=buffer,
         )
 
     def paint_border(self) -> None:

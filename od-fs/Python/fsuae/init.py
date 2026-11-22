@@ -17,9 +17,11 @@ def init():
 
     fsapp_init()
 
-    from fsgui import fsgui_init
+    from fsapp import fsapp
+    from fsgui import fsgui_init, set_resource_dirs
 
     fsgui_init()
+    set_resource_dirs(fonts=fsapp.fonts_dirs, images=fsapp.images_dirs)
 
     from app.app_init import app_init
 

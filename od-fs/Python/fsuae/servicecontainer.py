@@ -1,7 +1,6 @@
 from typing import Self
 
 from fsapp.eventservice import EventService
-from fsapp.tickservice import TickService
 from fsemu.inputdeviceservice import InputDeviceService
 from fsemu.inputportservice import InputPortService
 
@@ -33,7 +32,6 @@ class ServiceContainer:
     input_ports: InputPortService
     path: PathService
     rom: ROMService
-    tick: TickService
     uae_config: UAEConfigService
 
     def __init__(self) -> None:

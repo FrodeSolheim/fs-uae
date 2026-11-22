@@ -9,6 +9,7 @@
 #include <Python.h>
 #include <SDL3_ttf/SDL_ttf.h>
 
+#include "fsapp-pythonthread.h"
 #include "fsapp-refable.h"
 #include "fsapp-surface.h"
 #include "fsapp-util.h"
@@ -58,6 +59,9 @@ static void fsapp_font_finalize(void *object)
 {
     fsapp_font_t *font = (fsapp_font_t *)object;
     fsapp_font_log_debug("Finalizing font %p\n", font);
+    if (font->text) {
+        TTF_DestroyText(font->text);
+    }
     if (font->font) {
         TTF_CloseFont(font->font);
     }
@@ -96,7 +100,11 @@ fsapp_font_t *fsapp_font_load(const char *name, int size)
     // font->font = TTF_OpenFontIO(font->rwops, 0, size);
 
     font->font = TTF_OpenFont(name, size);
-    SDL_assert(font->font);
+    if (!font->font) {
+        fsapp_font_log_error("TTF_OpenFont: %s\n", SDL_GetError());
+        fsapp_font_unref(font);
+        return NULL;
+    }
     font->engine = fsapp_font_engine;
     SDL_assert(font->engine);
     font->text = TTF_CreateText(font->engine, font->font, "", 0);
@@ -104,15 +112,6 @@ fsapp_font_t *fsapp_font_load(const char *name, int size)
 
     // TTF_SetFontHinting(font->font, TTF_HINTING_LIGHT_SUBPIXEL);
     // TTF_SetFontHinting(font->font, TTF_HINTING_LIGHT);
-
-    // FIXME: Must data remain valid?
-    // free(data);
-
-    if (!font->font) {
-        fsapp_font_log_error("TTF_OpenFontRW: %s\n", SDL_GetError());
-        fsapp_font_unref(font);
-        return NULL;
-    }
 
     fsapp_font_log("Loaded %s (%d)\n", name, size);
 
@@ -124,11 +123,21 @@ fsapp_font_t *fsapp_font_load(const char *name, int size)
 
 // ----------------------------------------------------------------------------
 
+// The capsule holds the font's reference from fsapp_font_load, released on the UI thread, where the
+// font was loaded and is drawn with. Dropped on another thread, the font is left unfreed.
+// REVIEW: Nothing draws with a freed font: every drawing call takes the capsule, which a handle
+// (fsapp.surfaceapi.v1.Font, fsgui's font cache) keeps alive while it may draw.
 static void fsapp_font_python_destructor(PyObject *font_capsule)
 {
-#ifdef FSAPP_DEBUG_CLEANUP
-    printf("fsapp_font_python_destructor FIXME: Not implemented\n");
-#endif
+    fsapp_font_t *font = (fsapp_font_t *)PyCapsule_GetPointer(font_capsule, "fsapp_font_t");
+    if (font == NULL) {
+        return;
+    }
+    if (!fsapp_pythonthread_can_free_ui_objects()) {
+        fsapp_font_log_debug("Font %p dropped off the UI thread: not freed\n", font);
+        return;
+    }
+    fsapp_font_unref(font);
 }
 
 // ----------------------------------------------------------------------------
@@ -144,6 +153,8 @@ static PyObject *fsapp_font_python_load(PyObject *self, PyObject *args)
     fsapp_font_t *font = fsapp_font_load(name, size);
     if (font == NULL) {
         SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Could not load font %s at size %d: %s", name, size,
+                     SDL_GetError());
+        PyErr_Format(PyExc_RuntimeError, "Could not load font %s at size %d: %s", name, size,
                      SDL_GetError());
         return NULL;
     }
@@ -207,9 +218,11 @@ static PyObject *fsapp_font_python_draw_text(PyObject *self, PyObject *args)
     const char *string;
     int x, y;
     int r, g, b, a;
+    fsapp_surface_clip_t clip = {};
     // FIXME: It seems like the text should not be freed (true)?
-    if (!PyArg_ParseTuple(args, "OOs(ii)(iiii):draw_text", &font_capsule, &surface_capsule, &string,
-                          &x, &y, &r, &g, &b, &a)) {
+    if (!PyArg_ParseTuple(args, "OOs(ii)(iiii)|O&:draw_text", &font_capsule, &surface_capsule,
+                          &string, &x, &y, &r, &g, &b, &a, fsapp_surface_convert_python_clip,
+                          &clip)) {
         return NULL;
     }
 
@@ -240,7 +253,9 @@ static PyObject *fsapp_font_python_draw_text(PyObject *self, PyObject *args)
     // and srcA + dstA * (1 - srcA) for alpha. The engine's fill operations (underline and
     // strikethrough) would write the straight colour with SDL_FillSurfaceRect, but fsapp sets no
     // font style.
+    fsapp_surface_begin_clip(surface, &clip);
     TTF_DrawSurfaceText(font->text, x, y, surface->sdl);
+    fsapp_surface_end_clip(surface);
 
     Py_END_ALLOW_THREADS;
     Py_RETURN_NONE;
@@ -253,8 +268,11 @@ static PyObject *fsapp_font_python_draw_text_wrapped(PyObject *self, PyObject *a
     PyObject *font_capsule, *surface_capsule;
     const char *string;
     int x, y, wrap_width;
-    if (!PyArg_ParseTuple(args, "OOs(ii)i:draw_text", &font_capsule, &surface_capsule, &string, &x,
-                          &y, &wrap_width)) {
+    int r = 0, g = 0, b = 0, a = 255;
+    fsapp_surface_clip_t clip = {};
+    if (!PyArg_ParseTuple(args, "OOs(ii)i|(iiii)O&:draw_text_wrapped", &font_capsule,
+                          &surface_capsule, &string, &x, &y, &wrap_width, &r, &g, &b, &a,
+                          fsapp_surface_convert_python_clip, &clip)) {
         return NULL;
     }
 
@@ -274,7 +292,7 @@ static PyObject *fsapp_font_python_draw_text_wrapped(PyObject *self, PyObject *a
     // FIXME: SDL3_ttf does not seem to have a function to draw wrapped text
     // directly to an existing surface, so we have to blit the temp surface...
     // (Check if there is another way?)
-    SDL_Color color = {.r = 0, .g = 0, .b = 0, .a = 255};
+    SDL_Color color = {(Uint8)r, (Uint8)g, (Uint8)b, (Uint8)a};
 
     SDL_Surface *temp_surface =
         TTF_RenderText_Blended_Wrapped(font->font, string, 0, color, wrap_width);
@@ -282,7 +300,9 @@ static PyObject *fsapp_font_python_draw_text_wrapped(PyObject *self, PyObject *a
     SDL_Rect dest = {.x = x, .y = y};
     // REVIEW: Keeps the buffer premultiplied: SDL_ttf gives blended text a straight-alpha surface
     // with SDL_BLENDMODE_BLEND, which blends it as in fsapp_font_python_draw_text.
+    fsapp_surface_begin_clip(surface, &clip);
     SDL_BlitSurface(temp_surface, NULL, surface->sdl, &dest);
+    fsapp_surface_end_clip(surface);
     SDL_DestroySurface(temp_surface);
 
     Py_END_ALLOW_THREADS;

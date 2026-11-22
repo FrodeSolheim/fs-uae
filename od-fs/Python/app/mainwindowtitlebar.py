@@ -1,10 +1,14 @@
 import _fsapp
-
+from fsapp.surfaceapi.v1 import Band
 from fsgui.borderlesswindow import BorderlessWindow
 from fsgui.button import CustomButton
 from fsgui.font import Font
 from fsgui.image import Image
 from fsgui.widget import Widget
+
+# The height of the main window's title bar, in design units: fsapp's, so that the host window's
+# hit test matches it.
+TITLE_BAR_HEIGHT: int = _fsapp.TITLE_BAR_HEIGHT
 
 # FIXME: Must send rectangles to fsapp for which the titlebar hit test should be
 # ignored - so basically for all interactive child widgets.
@@ -12,7 +16,10 @@ from fsgui.widget import Widget
 
 class MainWindowTitleBar(BorderlessWindow):
     def __init__(self, title, size, extra_title=""):
-        super().__init__("", size=size)
+        super().__init__("", size=size, band=Band.PANEL)
+        # The host window's title bar, not a window of its own: a click on it leaves the keys where
+        # they are.
+        self.set_focusable(False)
         # self.style.background_color = (56, 56, 56, 255)
         # self.style.background_color = (255, 255, 255, 255)
 
@@ -43,18 +50,16 @@ class MainWindowTitleBar(BorderlessWindow):
         dc.set_fill_colour(self.style.background_color)
         dc.draw_filled_rectangle((0, 0), self.get_size())
 
-        tw, th = dc.measure_text(self._title)
         # tx = 42
         title_x = 12
-        title_y = (self.height - th) // 2
-        dc.draw_text(self._title, (title_x, title_y))
+        dc.draw_text_centred(self._title, (title_x, 0), (self.width - title_x, self.height))
 
         if self.extra_title:
             # Right-aligned next to the window buttons, so it does not overlap long (dev build)
             # version numbers in the left-aligned title.
-            tw, th = dc.measure_text(self.extra_title)
+            tw, _ = dc.measure_text(self.extra_title)
             extra_title_x = self.minimize_button.get_position()[0] - 12 - tw
-            dc.draw_text(self.extra_title, (extra_title_x, title_y))
+            dc.draw_text_centred(self.extra_title, (extra_title_x, 0), (tw, self.height))
 
         # tx = tx + tw + 12
         # sub_title = "V5 PREVIEW"
@@ -69,6 +74,8 @@ class MainWindowTitleBar(BorderlessWindow):
 
         right_margin = 0
 
+        for button in (self.minimize_button, self.maximize_button, self.close_button):
+            button.set_size((height, height))
         self.minimize_button.set_position((width - height * 3 - right_margin, 0))
         self.maximize_button.set_position((width - height * 2 - right_margin, 0))
         self.close_button.set_position((width - height - right_margin, 0))
@@ -90,9 +97,7 @@ class MainTitleBarButton(CustomButton):
         # Or transparent background / let main titlebar shine through?
         self.style.background_color = (255, 255, 255, 255)
 
-        # print(parent, parent.get_size())
-        title_bar_height = parent.get_size()[1]
-        self.set_size((title_bar_height, title_bar_height))
+        # The title bar sizes the button (on_resize).
 
         # FIXME: REMOVE PATH
         path = f"window/{icon_data_name}.png"
@@ -116,8 +121,8 @@ class MainTitleBarButton(CustomButton):
                 background_color = (0xDD, 0xDD, 0xDD, 0xFF)
             dc.set_fill_colour(background_color)
             dc.draw_filled_rectangle((0, 0), size)
-        iw, ih = 16, 16
-        dc.draw_image(self.icon, ((size[0] - iw) // 2, (size[1] - ih) // 2))
+        iw, ih = self.icon.width, self.icon.height
+        dc.draw_image_scaled(self.icon, ((size[0] - iw) // 2, (size[1] - ih) // 2))
 
 
 class MenuButton(MainTitleBarButton):
@@ -152,7 +157,7 @@ class MaximizeButton(MainTitleBarButton):
         # self.style.background_color = (0, 255, 0, 255)
 
     def _on_activate(self) -> None:
-        from fsgui.mainwindow import MainWindow
+        from app.mainwindow import MainWindow
 
         main_window = MainWindow.get()
         if main_window.fullscreen:

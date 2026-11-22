@@ -172,16 +172,13 @@ static struct {
     // the upload region).
     bool has_content;
     SDL_Rect source;
-    // The picture rectangle last given to fsapp (the surface's coordinates).
+    // The picture rectangle last given to fsapp (the surface's pixels).
     SDL_Rect picture;
-    // The emulation surface's rectangle (window coordinates) as last seen by the drawing hook
-    // (surface_known), and whether it is in the frame being drawn.
+    // The emulation surface's rectangle (pixels) as last seen by the drawing hook (surface_known),
+    // and whether it is in the frame being drawn.
     bool surface_known;
     bool surface_visible;
     SDL_Rect surface_rect;
-    // The window's pixels per window coordinate in the frame being drawn (from its snapshot), for
-    // placing the sidebars: the drawing side does not ask the window itself.
-    double pixel_scale;
     // The session has stopped: the content is dropped, and no frame is committed.
     bool stopped;
     // The filter last passed to fsapp (fsapp's default is linear).
@@ -189,7 +186,7 @@ static struct {
 } fsemu_video_stream;
 
 // The picture rectangle for the content shown (its source size) in the emulation surface's
-// rectangle, by fsemu's layout code under the fit policy, in the surface's coordinates. Places the
+// rectangle, by fsemu's layout code under the fit policy, in the surface's pixels. Places the
 // performance graph's sidebars from it when the surface is in this frame.
 static SDL_Rect fsemu_video_fit_picture(void)
 {
@@ -200,14 +197,14 @@ static SDL_Rect fsemu_video_fit_picture(void)
     }
     const SDL_Rect *surface_rect = &fsemu_video_stream.surface_rect;
     const SDL_Rect *source = &fsemu_video_stream.source;
-    // The layout is made in the emulation surface's rectangle (window coordinates).
+    // The layout is made in the emulation surface's rectangle (pixels).
     fsemu_layout_set_client_area(surface_rect);
     fsemu_layout_set_size_2(surface_rect->w, surface_rect->h);
     fsemu_layout_set_video_size(source->w, source->h);
     fsemu_layout_set_pixel_aspect(((double)source->w / source->h) / (4.0 / 3.0));
     fsemu_layout_video_rect(&picture);
     if (fsemu_video_stream.surface_visible) {
-        fsemu_perfgui_place_sidebars(surface_rect, &picture, fsemu_video_stream.pixel_scale);
+        fsemu_perfgui_place_sidebars(surface_rect, &picture);
     }
     picture.x -= surface_rect->x;
     picture.y -= surface_rect->y;
@@ -323,10 +320,9 @@ bool fsemu_video_work(int32_t timeout_ms)
     return true;
 }
 
-void fsemu_video_update_picture(bool session_stopped, double pixel_scale)
+void fsemu_video_update_picture(bool session_stopped)
 {
     fsapp_surface_t *surface = fsemu_mainloop_emulation_surface();
-    fsemu_video_stream.pixel_scale = pixel_scale;
     SDL_Rect surface_rect;
     fsemu_video_stream.surface_visible = fsapp_surface_get_frame_rectangle(surface, &surface_rect);
     if (fsemu_video_stream.surface_visible) {
@@ -357,7 +353,7 @@ void fsemu_video_update_picture(bool session_stopped, double pixel_scale)
     }
     if (!fsemu_video_stream.has_content) {
         // The fill shows in the whole surface, so no sidebars are shown.
-        fsemu_perfgui_place_sidebars(&surface_rect, &surface_rect, pixel_scale);
+        fsemu_perfgui_place_sidebars(&surface_rect, &surface_rect);
         return;
     }
     // A refit to the surface's rectangle in this frame (a resize, Alt+S, also while paused).
@@ -599,40 +595,6 @@ fsemu_video_frame_t *fsemu_video_get_frame(int32_t timeout_ms)
 
     return frame;
 }
-
-// FIXME: COPY WINDOW / LAYOUT SIZE on main <-> video sync ??
-/*
-static void fsemu_video_convert_coordinates(SDL_Rect *out,
-                                            fsemu_rect *in,
-                                            int coordinates)
-{
-    // FIXME: Use copy of window size? Layout?
-    fsemu_size_t window_size;
-    fsemu_window_size(&window_size);
-
-    if (coordinates == FSEMU_COORD_REAL) {
-        out->w = in->w;
-        out->h = in->h;
-        out->x = in->x;
-        out->y = in->y;
-    } else if (coordinates == FSEMU_COORD_1080P_LEFT) {
-        double scale = window_size.h / 1080.0;
-
-        out->w = in->w * scale;
-        out->h = in->h * scale;
-        out->x = in->x * scale;
-        out->y = in->y * scale;
-
-    } else if (coordinates == FSEMU_COORD_1080P_RIGHT) {
-        double scale = window_size.h / 1080.0;
-
-        out->w = in->w * scale;
-        out->h = in->h * scale;
-        out->x = window_size.w - (1920 - in->x) * scale;
-        out->y = in->y * scale;
-    }
-}
-*/
 
 #if 1
 

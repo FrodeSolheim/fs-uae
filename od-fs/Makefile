@@ -91,6 +91,39 @@ clean-windows:
 	$(WINDOWS_DOCKER_RUN) clean
 
 # --------------------------------------------------------------------------------------------------
+# The native Windows WinUAE (winuae64.exe), cross-compiled with ../od-win32/crossbuild (in Docker,
+# see its README.md) in ../.build/winuae-crossbuild, and copied here, so that WinUAE runs with od-fs
+# as its data directory, for comparing it with FS-UAE. TOOLCHAIN (default: msvc) and CONFIG are
+# passed on; running this accepts Microsoft's license for the downloaded MSVC toolchain and Windows
+# SDK, as "make -C ../od-win32/crossbuild" does. Run it from od-fs: wine winuae64.exe <config>.
+
+WINUAE_BUILD_DIR ?= $(abspath ../.build/winuae-crossbuild/build-x64-$(or $(TOOLCHAIN),msvc))
+
+winuae: winuae.ini
+	$(MAKE) -C ../od-win32/crossbuild build BUILD_DIR=$(WINUAE_BUILD_DIR)
+	cp -p $(WINUAE_BUILD_DIR)/winuae64.exe winuae64.exe
+
+# An existing winuae.ini next to the executable enables portable mode: WinUAE's data directory is
+# then od-fs, whatever the Wine prefix has (without it, a Public Documents\Amiga Files\WinUAE folder
+# or WinUAE's registry settings can move it elsewhere), and its settings are kept in this file. The
+# paths are those of ../od-win32/Makefile's winuae.ini, whose Data links to this Data. The file is
+# only created when missing; delete it to recreate it.
+winuae.ini:
+	printf '%s\r\n' \
+		'[WinUAE]' \
+		'ConfigurationPath=.\Data\Configs\' \
+		'KickstartPath=.\Data\ROM\' \
+		'NVRAMPath=.\Data\NVRAM\' \
+		'RecursiveROMScan=2' \
+		'RelativePaths=1' \
+		'RipperPath=.\Data\Rips\' \
+		'SaveimagePath=.\Data\SaveImages\' \
+		'ScreenshotPath=.\Data\Screenshots\' \
+		'StatefilePath=.\Data\Savestates\' \
+		'VideoPath=.\Data\Videos\' \
+		> winuae.ini
+
+# --------------------------------------------------------------------------------------------------
 # Dists, made with the dist entry script (build/dist/dist) in the environment for each platform.
 # The scripts write their build, dist and release directories under FSUAE_DIST_BUILD, default
 # .build in the project directory (see build/dist/common.sh): the build in <base>/build/<triplet>,
@@ -182,4 +215,4 @@ format:
 .PHONY: build build-windows clean-windows configure-windows default default-target dist \
 	dist-linux dist-linux-aarch64 dist-linux-x86_64 dist-macos dist-macos-x86_64 \
 	dist-windows \
-	format release windows
+	format release windows winuae

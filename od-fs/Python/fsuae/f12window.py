@@ -3,11 +3,11 @@ from typing import ClassVar, Self
 
 import _fsapp  # type: ignore
 import fsemu
-from fsapp.eventservice import Event
-from fsapp.signal import Signal
+from fsapp.surfaceapi.v1 import Keycode, Keymod
 from fsgui.button import Button
 from fsgui.heading import Heading
 from fsgui.layout import HorizontalLayout, VerticalLayout
+from fsgui.signal import Signal
 from fsgui.window import Window
 from uae.inputevent import InputEvent
 
@@ -41,19 +41,16 @@ class F12Window(Window):
         return cls._instance
 
     @classmethod
-    def on_key_press_cls(cls, event: Event) -> None:
-        if event["intdata"] == 1073741893:
-            print("F12 pressed (python)")
-            print(event)
-            if hasattr(cls, "_instance"):
-                cls._instance.close()
-            else:
-                print(cls.instance().center_window().show())
-                cls.instance().center_window().show()
+    def toggle(cls) -> None:
+        """Open the F12 window, or close it if it is open."""
+        if hasattr(cls, "_instance"):
+            cls._instance.close()
+        else:
+            cls.instance().center_window().show()
 
     @classmethod
     def setup(cls, services: ServiceContainer):
-        services.event.add_listener("FSAPP_KEY_PRESS", cls.on_key_press_cls)
+        _fsapp.register_shortcut(Keycode.F12, Keymod.NONE, cls.toggle)
 
     def __init__(self) -> None:
         super().__init__("Quick settings (Temporary UI)", padding=24)
@@ -105,14 +102,8 @@ class F12Window(Window):
 
         self.resize_to_fit_content()
 
-        # FIXME: Move to on_show? on_open or similar?
-        _fsapp.force_ui_cursor(True)  # type: ignore
-
     def __del__(self) -> None:
         print("__del__", self)
-
-    def on_close(self) -> None:
-        _fsapp.force_ui_cursor(False)  # type: ignore
 
     def open_data_folder(self):
         services = ServiceContainer().instance()

@@ -2,17 +2,24 @@ import logging
 import traceback
 from typing import Any, Callable, Optional, Self, TypeVar, overload
 
-from fsapp.connectable import Connectable
-from fsapp.reactive import Observable0, Observable1, Property, State
-from fsapp.var import Var
-
-from fsgui.drawingcontext import DrawingContext
-from fsgui.font import Font
-from fsgui.internal.surface import Surface
-from fsgui.parentstack import ParentStack
-from fsgui.style import Style
-from fsgui.types import Colour, PaddingParam, Position, Size, SizeParam
-from fsgui.widgetorlayout import WidgetOrLayout
+from .connectable import Connectable
+from .drawingcontext import DrawingContext
+from .font import Font
+from .internal.surface import Surface
+from .parentstack import ParentStack
+from .reactive import Observable0, Observable1, Property, State
+from .style import Style
+from .types import (
+    Colour,
+    Padding,
+    PaddingParam,
+    PointerPosition,
+    Position,
+    Size,
+    SizeParam,
+)
+from .var import Var
+from .widgetorlayout import WidgetOrLayout
 
 logger = logging.getLogger(__name__)
 
@@ -37,8 +44,8 @@ class Widget(WidgetOrLayout):
         parent: Optional["Widget"] = None,
         size: SizeParam = None,
     ):
-        from fsgui.layout import Layout
-        from fsgui.window import Window
+        from .layout import Layout
+        from .window import Window
 
         self.style = Style()
 
@@ -59,9 +66,7 @@ class Widget(WidgetOrLayout):
 
         if padding is None:
             padding = (0, 0, 0, 0)
-        elif isinstance(padding, int):
-            padding = (padding, padding, padding, padding)
-        self.padding: tuple[int, int, int, int] = padding
+        self.padding = padding
 
         self._pressed_state_enabled = False
         self._is_mouse_pressed = False
@@ -131,8 +136,8 @@ class Widget(WidgetOrLayout):
             self.width = 1
             self.height = 1
 
-        self._min_width: int | None = None
-        self._min_height: int | None = None
+        self._min_width: float | None = None
+        self._min_height: float | None = None
 
         # self._old_size = self._size
 
@@ -148,6 +153,17 @@ class Widget(WidgetOrLayout):
         # A widget added to a window, and its enabled state changing, change what the window draws.
         self.refresh()
         self.on(self.enabled_state, self._refresh_on_change)
+
+    @property
+    def padding(self) -> tuple[float, float, float, float]:
+        """The padding (top, right, bottom, left)."""
+        return self._padding
+
+    @padding.setter
+    def padding(self, padding: Padding) -> None:
+        if isinstance(padding, (int, float)):
+            padding = (padding, padding, padding, padding)
+        self._padding = padding
 
     @property
     def enabled(self) -> bool:
@@ -253,21 +269,24 @@ class Widget(WidgetOrLayout):
                 # FIXME: Log to log file
                 traceback.print_exc()
 
-    def calculate_min_height(self, width: int) -> int:
+    def calculate_min_height(self, width: float) -> float:
         # FIXME: Not accounting for padding...!
         if self.layout is not None:
             return self.layout.calculate_min_height(width)
         # raise NotImplementedError()
         return 1
 
-    def calculate_min_width(self) -> int:
+    def calculate_min_width(self) -> float:
         if self.layout is not None:
             return self.layout.calculate_min_width()
         # raise NotImplementedError()
         return 1
 
     def create_dc(self) -> "DrawingContext":
-        dc = DrawingContext(self._surface, self.get_dc_offset(), self.font)
+        return self._create_dc(self.get_dc_offset(), self.get_size())
+
+    def _create_dc(self, origin: Position, size: Size) -> "DrawingContext":
+        dc = DrawingContext(self._surface, origin, self.font, size)
         if not self.enabled:
             dc.set_text_colour(Colour.GREY_88)
         return dc
@@ -277,7 +296,7 @@ class Widget(WidgetOrLayout):
         self.refresh()
         self.enabled_state.destroy()
 
-        from fsgui.windowmanager import WindowManager
+        from .windowmanager import WindowManager
 
         # Call all on_destroy event listeners
         try:
@@ -376,7 +395,7 @@ class Widget(WidgetOrLayout):
         self._refresh_on_pressed_state = True
 
     # Could also be called find_child_widget_at_position (don't return self)
-    def find_widget_at_position(self, position: Position):
+    def find_widget_at_position(self, position: PointerPosition):
         """Coordinates are relative to the widget itself."""
 
         x, y = position
@@ -398,7 +417,7 @@ class Widget(WidgetOrLayout):
     def get_dc_offset(self) -> Position:
         return self._surface_pos
 
-    def get_height(self) -> int:
+    def get_height(self) -> float:
         return self._size[1]
 
     def get_absolute_position(self) -> Position:
@@ -411,8 +430,16 @@ class Widget(WidgetOrLayout):
             parent = parent.parent
         return (x, y)
 
-    def get_mouse_position(self) -> tuple[int, int]:
-        from fsgui.windowmanager import WindowManager
+    def get_click_count(self) -> int:
+        """The click count of the press being handled (in on_left_press or on_right_press): 1 for a
+        single click, 2 for a double click and so on."""
+        from .windowmanager import WindowManager
+
+        return WindowManager.get().get_click_count()
+
+    def get_mouse_position(self) -> PointerPosition:
+        """The mouse pointer's position relative to the widget."""
+        from .windowmanager import WindowManager
 
         mouse_pos = WindowManager.get().get_mouse_position()
         window_pos = self.get_window().get_window_position()
@@ -428,7 +455,7 @@ class Widget(WidgetOrLayout):
     def get_size(self) -> Size:
         return self._size
 
-    def get_width(self) -> int:
+    def get_width(self) -> float:
         return self._size[0]
 
     def get_window(self):
@@ -490,9 +517,6 @@ class Widget(WidgetOrLayout):
                 self.refresh()
 
     def on_mouse_enter(self):
-        # FIXME: mouse enter/leave events also when mouse exits the main window
-        # (e.g. MainTitlebar)
-
         if self._hover_state_enabled:
             self._is_mouse_hovering = True
             if self._refresh_on_hover_state:
@@ -506,6 +530,16 @@ class Widget(WidgetOrLayout):
 
     def on_mouse_motion(self):
         pass
+
+    def on_right_press(self) -> None:
+        """The right button pressed on the widget."""
+
+    def on_right_release(self) -> None:
+        """The right button released, after it was pressed on the widget."""
+
+    def on_wheel(self, dx: float, dy: float) -> None:
+        """The wheel turned over the widget, by dx, dy (fractions of a notch; positive is away from
+        the user, or to the right)."""
 
     def on_move(self):
         pass
@@ -538,7 +572,8 @@ class Widget(WidgetOrLayout):
     def _refresh_on_change(self, _value: object) -> None:
         self.refresh()
 
-    def set_min_width(self, min_width: int | None) -> Self:
+    def set_min_width(self, min_width: float | None) -> Self:
+        """The minimum width (for the widgets that use it)."""
         self._min_width = min_width
         # FIXME: Schedule parent re-layout?
         return self
@@ -564,23 +599,23 @@ class Widget(WidgetOrLayout):
         # somehow and do a resize pass? Not sure... -but maybe.
         self.on_resize()
 
-    def set_width(self, width: int) -> Self:
+    def set_width(self, width: float) -> Self:
         self.set_size((width, self.get_height()))
         return self
 
-    def set_height(self, height: int) -> Self:
+    def set_height(self, height: float) -> Self:
         self.set_size((self.get_width(), height))
         return self
 
-    def set_x(self, x: int) -> Self:
+    def set_x(self, x: float) -> Self:
         self.set_position((x, self.y))
         return self
 
-    def set_y(self, y: int) -> Self:
+    def set_y(self, y: float) -> Self:
         self.set_position((self.x, y))
         return self
 
     def transfer_mouse_tracking(self, widget: "Widget") -> None:
-        from fsgui.windowmanager import WindowManager
+        from .windowmanager import WindowManager
 
         WindowManager.get().transfer_mouse_tracking(self, widget)

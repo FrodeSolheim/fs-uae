@@ -1,11 +1,15 @@
 import logging
 
 import _fsapp
+from fsapp import surfaceevent
+from fsapp.surfaceapi.v1 import Configure, PointerMotion
+from fsapp.surfaceevent import WindowEvent, WindowState
+from fsgui import scale, windowmanager
+from fsgui.types import PixelPosition, PixelSize, Size, TColour
+from fsgui.windowmanager import WindowManager
 
-from fsgui.mainwindowborder import MainWindowBorder
-from fsgui.mainwindowtitlebar import MainWindowTitleBar
-from fsgui.types import Size, TColour
-from fsgui.window import Window
+from app.mainwindowborder import MainWindowBorder
+from app.mainwindowtitlebar import TITLE_BAR_HEIGHT, MainWindowTitleBar
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +31,12 @@ class MainWindow:
         cls._instance = instance
 
     def __init__(self, title: str, size: Size, *, fullscreen: bool = False, extra_title: str = ""):
-        self._top_border = 36
+        """size is the client size (inside the title bar and the border): the host window is
+        created that size times the display scale, with its title bar and border."""
+        # The scale the border and the client area are computed at: fsgui's, which follows its
+        # surfaces' configures (until the first, the display scale predicted for the window).
+        self._scale = scale.get_scale()
+        client_pixels = scale.scaled_pair(size)
 
         self.show_extra_borders = True
         self.extra_title = extra_title
@@ -44,30 +53,33 @@ class MainWindow:
 
         self.border = MainWindowBorder()
 
-        main_titlebar_height = self._top_border
         self.title_bar = MainWindowTitleBar(
-            title, size=(size[0], main_titlebar_height), extra_title=extra_title
+            title, size=(size[0], TITLE_BAR_HEIGHT), extra_title=extra_title
         )
-        # FIXME: Must affect Z layering (does not do so now)
-        self.title_bar.set_layer(Window.LAYER_HIGHEST)
         self.title_bar.show()
         self.border.title_bar = self.title_bar
 
-        self._real_width = size[0] + self.border.left + self.border.right
-        self._real_height = size[1] + self.border.top + self.border.bottom
+        # The host window's size in pixels.
+        self._real_width = client_pixels[0] + self.border.left + self.border.right
+        self._real_height = client_pixels[1] + self.border.top + self.border.bottom
 
         print("FS-UAE real size", self._real_width, self._real_height)
 
-        self._width = size[0]
-        self._height = size[1]
+        self._width: float = size[0]
+        self._height: float = size[1]
+        windowmanager.set_client_size(size)
 
         real_size = (self._real_width, self._real_height)
 
         self._background_colour = (0, 0, 0, 255)
 
+        # The size is in pixels.
         self._window = _fsapp.create_window(title, real_size, fullscreen)
 
         MainWindow.set(self)
+
+        # The host window's size in pixels comes with each configure.
+        surfaceevent.set_window_handler(self._on_window_event)
 
         self._maximized = False
         self._fullscreen = fullscreen
@@ -88,10 +100,17 @@ class MainWindow:
         _fsapp.set_window_background_color(self._window, colour)
 
     def get_size(self) -> Size:
+        """The client area's size (inside the title bar and the border)."""
         return (self._width, self._height)
 
-    def get_window_size(self) -> Size:
+    def get_window_size(self) -> PixelSize:
+        """The host window's size in pixels."""
         return (self._real_width, self._real_height)
+
+    def get_client_origin(self) -> PixelPosition:
+        """Where the client area starts in the host window, in pixels: fsgui's windows are placed
+        relative to it."""
+        return (self.border.left, self.border.top)
 
     @property
     def fullscreen(self) -> bool:
@@ -107,7 +126,7 @@ class MainWindow:
         #     # self.title_bar.set_width(1920)
 
     @property
-    def height(self) -> int:
+    def height(self) -> float:
         return self._height
 
     def is_maximized(self):
@@ -129,8 +148,10 @@ class MainWindow:
         self.border._resize_border(
             self._fullscreen, self._maximized, (self._real_width, self._real_height)
         )
+        origin = self.get_client_origin()
+        windowmanager.set_client_origin(scale.position_from_pixels(origin, self._scale))
 
-    def _resize(self, size: Size) -> None:
+    def _resize(self, size: PixelSize) -> None:
         logger.debug("MainWindow._resize %r", size)
         # self.border._resize_border(self._fullscreen, self._maximized, size)
         # self.border._resize_border(size)
@@ -139,20 +160,41 @@ class MainWindow:
         # FIXME: This needs to call MainTitleBar.on_resize somehow...
         self.on_resize()
 
-    def _update_size(self, window_size: Size) -> None:
+    def _update_size(self, window_size: PixelSize) -> None:
+        """The host window has window_size in pixels."""
         # Must update _size before calling _resize()
         self._real_width = window_size[0]
         self._real_height = window_size[1]
 
-        # self._width = window_size[0]
-        # self._height = window_size[1] - self._top_border
-
-        self._width = window_size[0] - self.border.left - self.border.right
-        self._height = window_size[1] - self.border.top - self.border.bottom
+        client_width = window_size[0] - self.border.left - self.border.right
+        client_height = window_size[1] - self.border.top - self.border.bottom
+        self._width = client_width / self._scale
+        self._height = client_height / self._scale
+        windowmanager.set_client_size((self._width, self._height))
 
         self._resize(window_size)
 
-    def update_size(self, window_size: Size) -> None:
+    def _on_window_event(self, event: WindowEvent) -> None:
+        match event:
+            case Configure(width=width, height=height, scale=display_scale):
+                # fsgui's windows get the scale from their own configures (and are rescaled by
+                # fsgui); the border and the client area follow it here.
+                new_scale = scale.normalize_scale(display_scale)
+                if new_scale != self._scale:
+                    self._scale = new_scale
+                    self._update_size((width, height))
+                else:
+                    self.update_size((width, height))
+            case WindowState(maximized=maximized, fullscreen=fullscreen):
+                self.update_maximized(maximized)
+                self.update_fullscreen(fullscreen)
+            case PointerMotion(x=x, y=y):
+                origin = self.get_client_origin()
+                WindowManager.get().handle_host_pointer_motion((x - origin[0], y - origin[1]))
+            case _:
+                pass
+
+    def update_size(self, window_size: PixelSize) -> None:
         if window_size != self.get_window_size():
             self._update_size(window_size)
 
@@ -208,7 +250,7 @@ class MainWindow:
     #         self._maximized = maximized
 
     @property
-    def width(self) -> int:
+    def width(self) -> float:
         return self._width
 
     # def on_paint(self) -> None:

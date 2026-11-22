@@ -41,11 +41,11 @@ extern "C" {
 typedef struct fsapp_snapshot_window {
     // The window to swap. The drawing side uses it only for SDL_GL_SwapWindow.
     SDL_Window *sdl_window;
-    // The size in window coordinates, which the surfaces' positions and sizes are in.
+    // The size in window coordinates, SDL's unit, for host window operations only.
     int width;
     int height;
-    // The size in pixels (of the drawable), which differs from the size in window coordinates with
-    // high pixel density.
+    // The size in pixels (of the drawable), which the surfaces' positions and sizes are in. It
+    // differs from the size in window coordinates with high pixel density.
     int pixel_width;
     int pixel_height;
     // Pixels per window coordinate (SDL_GetWindowPixelDensity).
@@ -68,12 +68,15 @@ typedef struct fsapp_snapshot_surface {
     // Identifies the surface (and the drawing side's texture for it) from frame to frame. The
     // drawing side never dereferences it.
     const void *id;
-    // The rectangle in window coordinates. For a surface with a buffer, the size is that of its
-    // last committed content (its texture's).
+    // The device rectangle (fsapp_pixels_get_device_rectangle): for a surface with a buffer, its
+    // last committed content (its texture's size, in buffer pixels) at its position, at its ratio.
+    // The whole texture is drawn into it.
     int x;
     int y;
     int width;
     int height;
+    // Whether its texture is drawn with nearest sampling (its ratio is whole), else linear.
+    bool nearest;
     bool visible;
     // Translucent (blended with its content's alpha, premultiplied) or opaque (its content's alpha
     // ignored), as the client set it (fsapp_surface_set_translucent).
@@ -124,9 +127,8 @@ typedef struct fsapp_snapshot_layout {
     // (fsapp_surface_on_uploaded), which lets the UI thread start its next UI frame.
     bool takes_record;
     // The flat list: the surfaces with content (a buffer committed at least once) or streamed
-    // content that are visible and not empty, in stacking order from back to front. The host window
-    // side orders them by z index, lowest first, and in the order they were created for the same z
-    // index; the order is the list's (the drawing side sees no z index).
+    // content that are shown (they and their ancestors visible) and not empty, from back to front
+    // in the stacking order, which the host window side computes (fsapp-stacking.h).
     const fsapp_snapshot_surface_t *surfaces;
     int surface_count;
     // The record's content: the surfaces committed in it.
@@ -147,7 +149,7 @@ typedef struct fsapp_snapshot_adornment {
     // The surface it is attached in front of (its id in the layout, fsapp_snapshot_surface_t.id)
     // for FSAPP_ADORNMENT_IN_FRONT_OF_SURFACE, else NULL. The drawing side never dereferences it.
     const void *surface;
-    // The rectangle in window coordinates.
+    // The rectangle in pixels.
     int x;
     int y;
     int width;

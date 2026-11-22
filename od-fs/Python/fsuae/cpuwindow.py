@@ -1,10 +1,10 @@
 from typing import Self
 
 from fsgui.choice import Choice
+from fsgui.item import Item as MenuItem
 from fsgui.layout import VerticalLayout
 from fsgui.window import Window
 
-from fsuae.floppycontrolwindow import MenuItem
 from fsuae.servicecontainer import ServiceContainer
 from fsuae.uaeconfig import UAEConfig
 

@@ -21,7 +21,7 @@ class TestWindow(DecoratedWindow):
         label.set_position((20, 20))
 
         def on_button_activate():
-            from fsgui.filedialog import FileDialog
+            from app.filedialog import FileDialog
 
             # FIXME: Maybe on_accept should accept dialog as a param instead?
             # FIXME: Maybe all callbacks / signals should get the object

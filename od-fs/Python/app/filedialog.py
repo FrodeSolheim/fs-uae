@@ -1,7 +1,7 @@
 from typing import Callable
 
 import _fsapp  # type: ignore
-
+from fsapp.surfaceapi._handover import capsule_of
 from fsgui.widget import Widget
 from fsgui.window import Window
 
@@ -49,7 +49,7 @@ class FileDialog:
 
     def show(self) -> None:
         if self._window is not None:
-            surface = self._window._surface.get_surface()
+            surface = capsule_of(self._window.get_surface())
         else:
             surface = None
         _fsapp.open_file_dialog(surface, self)  # type: ignore

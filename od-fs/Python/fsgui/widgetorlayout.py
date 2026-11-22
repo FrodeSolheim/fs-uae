@@ -1,22 +1,22 @@
 from types import TracebackType
 from typing import Any, Callable, Optional, Self, Type, Union
 
-from fsgui.parentstack import ParentStack
-from fsgui.types import ExpandParam, Position, Size, SizeParam
+from .parentstack import ParentStack
+from .types import ExpandParam, Position, Size, SizeParam
 
 
 class LayoutData:
-    min_size = (0, 0)
-    size = 0
+    min_size: Size = (0, 0)
+    size: float = 0
 
 
 class WidgetOrLayout:
     parent: Union["WidgetOrLayout", None] = None
 
-    x: int = 0
-    y: int = 0
-    width: int = 0
-    height: int = 0
+    x: float = 0
+    y: float = 0
+    width: float = 0
+    height: float = 0
 
     def __init_subclass__(cls, **kwargs: Any):
         # print("__init_subclass begin", cls, kwargs)
@@ -69,10 +69,10 @@ class WidgetOrLayout:
         # Mainly useful for Layouts to index align based on direction (0/1)
         return (self._halign, self._valign)
 
-    def calculate_min_height(self, width: int) -> int:
+    def calculate_min_height(self, width: float) -> float:
         raise NotImplementedError()
 
-    def calculate_min_width(self) -> int:
+    def calculate_min_width(self) -> float:
         raise NotImplementedError()
 
     def expand(self, expand: float = 1.0) -> Self:
@@ -91,13 +91,13 @@ class WidgetOrLayout:
     def get_position(self) -> Position:
         return (self.x, self.y)
 
-    def get_height(self) -> int:
+    def get_height(self) -> float:
         return self.height
 
     def get_size(self) -> Size:
         return (self.width, self.height)
 
-    def get_width(self) -> int:
+    def get_width(self) -> float:
         return self.width
 
     def layout_children(self) -> None:

@@ -41,14 +41,13 @@ typedef enum fsapp_gldraw_program {
 const char *fsapp_gldraw_init(void);
 
 // Begin drawing with the program: use it, bind the vertex buffer, set and enable the attribute
-// pointer, and make texture unit 0 the active one. Rectangles are given in window coordinates of a
-// window of window_width x window_height (the viewport is the step's to set). Only the program's
+// pointer, and make texture unit 0 the active one. Rectangles are given in pixels of a drawable of
+// pixel_width x pixel_height (the viewport is the step's to set). Only the program's
 // state (and the depth range, for each rectangle) is set: blending, the depth test and the masks
 // are the step's.
-void fsapp_gldraw_begin_program(fsapp_gldraw_program_t program, int window_width,
-                                int window_height);
+void fsapp_gldraw_begin_program(fsapp_gldraw_program_t program, int pixel_width, int pixel_height);
 
-// Draw the texture into the rectangle (window coordinates, y down), with a texture program begun.
+// Draw the texture into the rectangle (pixels, y down), with a texture program begun.
 // The texture's first row is at the top of the rectangle. depth is the window depth (0 to 1), which
 // every fragment gets exactly: it sets the depth range to it (glDepthRange(depth, depth)), so a
 // depth that is exactly representable in the depth buffer is stored as it is. The texture's filter

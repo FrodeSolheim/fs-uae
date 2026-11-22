@@ -7,11 +7,12 @@ import math
 import time
 from typing import ClassVar, Self
 
-from fsapp.eventservice import Event
-from fsapp.reactive import Var
+import _fsapp
+from fsapp.surfaceapi.v1 import Keycode
 from fsapp.timerservice import Timer, TimerService
 from fsgui.drawingcontext import Colour
 from fsgui.layout import VerticalLayout
+from fsgui.reactive import Var
 from fsgui.widget import Widget
 from fsgui.window import Window
 
@@ -34,10 +35,10 @@ class AnalogClockWidget(Widget):
         self.on(self.minutes, lambda _: self.refresh())
         self.on(self.seconds, lambda _: self.refresh())
 
-    def calculate_min_height(self, width: int) -> int:
+    def calculate_min_height(self, width: float) -> float:
         return width  # Make it square
 
-    def calculate_min_width(self) -> int:
+    def calculate_min_width(self) -> float:
         return 100  # Minimum reasonable size
 
     def on_paint(self) -> None:
@@ -69,7 +70,7 @@ class AnalogClockWidget(Widget):
             inner_x = center_x + (radius - 15) * math.cos(angle)
             inner_y = center_y + (radius - 15) * math.sin(angle)
 
-            dc.draw_line((int(inner_x), int(inner_y)), (int(outer_x), int(outer_y)))
+            dc.draw_line((inner_x, inner_y), (outer_x, outer_y))
 
         # Draw minute marks
         dc.set_line_width(1)
@@ -81,7 +82,7 @@ class AnalogClockWidget(Widget):
                 inner_x = center_x + (radius - 10) * math.cos(angle)
                 inner_y = center_y + (radius - 10) * math.sin(angle)
 
-                dc.draw_line((int(inner_x), int(inner_y)), (int(outer_x), int(outer_y)))
+                dc.draw_line((inner_x, inner_y), (outer_x, outer_y))
 
         # Get current time values
         hours = self.hours.value
@@ -96,7 +97,7 @@ class AnalogClockWidget(Widget):
 
         dc.set_line_width(4)
         dc.set_line_colour(Colour.BLACK)
-        dc.draw_line((center_x, center_y), (int(hour_x), int(hour_y)))
+        dc.draw_line((center_x, center_y), (hour_x, hour_y))
 
         # Draw minute hand
         minute_angle = (minutes * 6 - 90) * math.pi / 180
@@ -105,7 +106,7 @@ class AnalogClockWidget(Widget):
         minute_y = center_y + minute_length * math.sin(minute_angle)
 
         dc.set_line_width(3)
-        dc.draw_line((center_x, center_y), (int(minute_x), int(minute_y)))
+        dc.draw_line((center_x, center_y), (minute_x, minute_y))
 
         # Draw second hand
         second_angle = (seconds * 6 - 90) * math.pi / 180
@@ -115,7 +116,7 @@ class AnalogClockWidget(Widget):
 
         dc.set_line_width(1)
         dc.set_line_colour(Colour.RED)
-        dc.draw_line((center_x, center_y), (int(second_x), int(second_y)))
+        dc.draw_line((center_x, center_y), (second_x, second_y))
 
         # Draw center dot
         dc.set_fill_colour(Colour.BLACK)
@@ -145,20 +146,16 @@ class ClockWindow(Window):
         return cls._instance
 
     @classmethod
-    def on_key_press_cls(cls, event: Event) -> None:
-        print(event)
-        # F10 key code (SDL3 SDLK_F10)
-        if event["intdata"] == 1073741883:  # SDLK_F10
-            print("F10 pressed - Analog Clock")
-            if cls._instance is not None:
-                cls._instance.close()
-            else:
-                instance = cls.instance()
-                instance.center_window().show()
+    def toggle(cls) -> None:
+        """Open the clock window, or close it if it is open."""
+        if cls._instance is not None:
+            cls._instance.close()
+        else:
+            cls.instance().center_window().show()
 
     @classmethod
     def setup(cls, services: ServiceContainer):
-        services.event.add_listener("FSAPP_KEY_PRESS", cls.on_key_press_cls)
+        _fsapp.register_shortcut(Keycode.T, _fsapp.SHORTCUT_MOD, cls.toggle)
 
     def __init__(self) -> None:
         super().__init__("Clock", size=(200, 200), padding=16)
@@ -202,5 +199,5 @@ class ClockWindow(Window):
 
 # Convenience function to set up the clock app
 def setup_clock_app(services: ServiceContainer) -> None:
-    """Set up the analog clock app with F10 key binding"""
+    """Set up the analog clock app with its shortcut, Mod+T"""
     ClockWindow.setup(services)

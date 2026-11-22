@@ -1,4 +1,4 @@
-from fsgui.widget import Widget
+from .widget import Widget
 
 
 class LineHeightWidget(Widget):

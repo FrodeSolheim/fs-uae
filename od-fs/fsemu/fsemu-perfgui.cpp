@@ -5,7 +5,6 @@
 #define FSEMU_INTERNAL
 #include "fsemu-perfgui.h"
 
-#include <math.h>
 #include <stdint.h>
 #include <string.h>
 
@@ -55,7 +54,7 @@ static_assert(FSEMU_AUDIOSTRIP_WIDTH == FSEMU_GRAPHROWS_WIDTH,
 
 int fsemu_perfgui_log_level = SDL_LOG_PRIORITY_INFO;
 
-// The mode (fsemu_perfgui_mode_t), changed from any thread (Alt+O in the event hook, the UI
+// The mode (fsemu_perfgui_mode_t), changed from any thread (the Mod+O shortcut, the UI
 // thread's config), and read on the main loop's two sides.
 static SDL_AtomicInt fsemu_perfgui_mode_value;
 
@@ -361,14 +360,16 @@ static const char *fsemu_perfgui_mode_name(int mode)
     }
 }
 
-int fsemu_perfgui_cycle_mode(void)
+int fsemu_perfgui_toggle_mode(void)
 {
-    // Off, sidebars, detailed, off: the enum's order.
+    // Off to detailed, anything else to off. The sidebars are left out of the toggle for now (only
+    // performance_gui=sidebars turns them on).
     int mode;
     int old_mode;
     do {
         old_mode = SDL_GetAtomicInt(&fsemu_perfgui_mode_value);
-        mode = (old_mode + 1) % (FSEMU_PERFGUI_MODE_DETAILED + 1);
+        mode = old_mode == FSEMU_PERFGUI_MODE_OFF ? FSEMU_PERFGUI_MODE_DETAILED
+                                                  : FSEMU_PERFGUI_MODE_OFF;
     } while (!SDL_CompareAndSwapAtomicInt(&fsemu_perfgui_mode_value, old_mode, mode));
     fsemu_perfgui_log("Performance graph: %s\n", fsemu_perfgui_mode_name(mode));
     return mode;
@@ -401,18 +402,6 @@ bool fsemu_perfgui_set_mode_from_string(const char *value)
 
 // ----------------------------------------------------------------------------
 // The adornments.
-
-// The window's pixels per window coordinate (host window side).
-static double fsemu_perfgui_pixel_scale(void)
-{
-    int window_width, window_height, pixel_width, pixel_height;
-    fsapp_main_get_window_size(&window_width, &window_height);
-    fsapp_main_get_window_size_in_pixels(&pixel_width, &pixel_height);
-    if (window_width <= 0 || pixel_width <= 0) {
-        return 1.0;
-    }
-    return (double)pixel_width / window_width;
-}
 
 // Whether fsapp has taken in the content last committed to both adornments (also true before the
 // first commit), so that the image may change again.
@@ -536,14 +525,13 @@ void fsemu_perfgui_update_adornments(bool session)
         fsemu_perfgui_adornments[0] != NULL) {
         // Each strip is the image's half, 240 pixels wide at 1080p and scaled by whole steps of
         // the window's height (2x at 4K), at the window's left and right edges, full height.
-        int window_width, window_height, pixel_width, pixel_height;
-        fsapp_main_get_window_size(&window_width, &window_height);
+        int pixel_width, pixel_height;
         fsapp_main_get_window_size_in_pixels(&pixel_width, &pixel_height);
         int step = SDL_max(1, pixel_height / FSEMU_PERFGUI_STEP_HEIGHT);
-        int strip_width = (int)lround(FSEMU_GRAPHROWS_WIDTH * step / fsemu_perfgui_pixel_scale());
-        fsapp_adornment_set_rect(fsemu_perfgui_adornments[0], 0, 0, strip_width, window_height);
-        fsapp_adornment_set_rect(fsemu_perfgui_adornments[1], window_width - strip_width, 0,
-                                 strip_width, window_height);
+        int strip_width = FSEMU_GRAPHROWS_WIDTH * step;
+        fsapp_adornment_set_rect(fsemu_perfgui_adornments[0], 0, 0, strip_width, pixel_height);
+        fsapp_adornment_set_rect(fsemu_perfgui_adornments[1], pixel_width - strip_width, 0,
+                                 strip_width, pixel_height);
     }
     // Before the snapshot is written (after the frame hooks), so that a commit is taken in by the
     // drawing side's next frame.
@@ -551,8 +539,7 @@ void fsemu_perfgui_update_adornments(bool session)
     SDL_UnlockMutex(fsemu_perfgui_lock);
 }
 
-void fsemu_perfgui_place_sidebars(const SDL_Rect *surface_rect, const SDL_Rect *picture_rect,
-                                  double pixel_scale)
+void fsemu_perfgui_place_sidebars(const SDL_Rect *surface_rect, const SDL_Rect *picture_rect)
 {
     SDL_LockMutex(fsemu_perfgui_lock);
     if (fsemu_perfgui_adornments[0] != NULL &&
@@ -565,7 +552,7 @@ void fsemu_perfgui_place_sidebars(const SDL_Rect *surface_rect, const SDL_Rect *
         // a change of the picture (resizing, Alt+S, Alt+C, the emulated video's size) one frame
         // later, so for that frame a strip can be drawn where the picture has grown into its bar
         // (in front of it).
-        int min_bar = (int)ceil(FSEMU_GRAPHROWS_WIDTH / (pixel_scale > 0.0 ? pixel_scale : 1.0));
+        int min_bar = FSEMU_GRAPHROWS_WIDTH;
         int left_bar = picture_rect->x - surface_rect->x;
         int right_bar = (surface_rect->x + surface_rect->w) - (picture_rect->x + picture_rect->w);
         if (left_bar >= min_bar) {

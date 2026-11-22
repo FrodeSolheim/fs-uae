@@ -1,14 +1,28 @@
 import logging
 import os
 
+from fsapp.surfaceapi.v1 import Band
 from fsgui.borderlesswindow import BorderlessWindow
-from fsgui.types import Size
+from fsgui.scale import get_scale, line_to_pixels, scaled
+from fsgui.types import PixelSize
 from fsgui.window import Window
+
+from app.mainwindowtitlebar import TITLE_BAR_HEIGHT, MainWindowTitleBar
 
 logger = logging.getLogger(__name__)
 
 
+# REVIEW: The chrome in pixels rather than design units.
 class MainWindowBorder:
+    """The main window's title bar, border and outline, drawn by fsgui windows around the client
+    area. Its sizes (top, left, right, bottom, outline) are in pixels, as the host window's size and
+    fsapp's hit test are, so that the border windows add up exactly to the host window's size and
+    the client area starts at a whole pixel at any scale; its windows are placed in design units,
+    those pixels over the scale."""
+
+    # Set by the main window.
+    title_bar: MainWindowTitleBar
+
     def __init__(self):
         self._maximized = False
         self._fullscreen = False
@@ -33,23 +47,15 @@ class MainWindowBorder:
 
         # FIXME: Maybe detect Wayland/Linux here... -Not entirely correct yet, we could be
         # running on XWayland...
+        # In design units.
         if os.environ.get("WAYLAND_DISPLAY"):
-            self.outline = 1
+            self._outline = 1
         else:
-            self.outline = 0
+            self._outline = 0
 
-        self.thickness = 0
+        self._thickness = 0
 
-        if show_extra_borders:
-            self.top_border.height = self.outline
-            self.left_border.width = self.thickness + self.outline
-            self.right_border.width = self.thickness + self.outline
-            self.bottom_border.height = self.thickness + self.outline
-        else:
-            self.top_border.height = 0
-            self.left_border.width = 0
-            self.right_border.width = 0
-            self.bottom_border.height = 0
+        self._show_extra_borders = show_extra_borders
 
         # If the width or height is 0, the windows will not be drawn or handled at all by the
         # rendering code, so we can always "show" the borders regardless.
@@ -65,27 +71,41 @@ class MainWindowBorder:
         # self.bottom_border.show()
 
     @property
+    def outline(self) -> int:
+        """The outline's width in pixels, a line."""
+        return line_to_pixels(self._outline, get_scale())
+
+    @property
+    def _side(self) -> int:
+        """The side and bottom borders' thickness in pixels."""
+        if not self._show_extra_borders:
+            return 0
+        return scaled(self._thickness) + self.outline
+
+    @property
     def top(self) -> int:
         if self._fullscreen:
             return 0
         if self._maximized:
             # FIXME: titlebar height
-            return 36
-        return 36 + self.outline
+            return scaled(TITLE_BAR_HEIGHT)
+        return scaled(TITLE_BAR_HEIGHT) + self.outline
 
     @property
     def left(self) -> int:
-        return 0 if (self._fullscreen or self._maximized) else self.left_border.width
+        return 0 if (self._fullscreen or self._maximized) else self._side
 
     @property
     def right(self) -> int:
-        return 0 if (self._fullscreen or self._maximized) else self.right_border.width
+        return 0 if (self._fullscreen or self._maximized) else self._side
 
     @property
     def bottom(self) -> int:
-        return 0 if (self._fullscreen or self._maximized) else self.bottom_border.height
+        return 0 if (self._fullscreen or self._maximized) else self._side
 
-    def _resize_border(self, fullscreen: bool, maximized: bool, size: Size) -> None:
+    def _resize_border(self, fullscreen: bool, maximized: bool, size: PixelSize) -> None:
+        """Places the title bar and the border around the client area of a host window of size (in
+        pixels)."""
         logger.debug("MainWindow._reposition_borders %r", size)
         self._fullscreen = fullscreen
         self._maximized = maximized
@@ -103,47 +123,30 @@ class MainWindowBorder:
         if fullscreen:
             return
 
+        scale = get_scale()
         top = self.top
 
         if maximized:
-            self.title_bar.set_position((0, -top))
-            self.title_bar.set_width(size[0])
+            self.title_bar.set_position((0, -top / scale))
+            self.title_bar.set_size((size[0] / scale, top / scale))
             return
 
-        # top = self.title_bar.height
         left = self.left
         right = self.right
         bottom = self.bottom
-        side_height = size[1] - top - bottom
-        # print(top)
+        outline = self.outline
+        client_width = size[0] - left - right
+        client_height = size[1] - top - bottom
 
-        # self.title_bar.set_width(size[0])
+        def place(window: Window, x: int, y: int, width: int, height: int) -> None:
+            window.set_position((x / scale, y / scale))
+            window.set_size((width / scale, height / scale))
 
-        # self.border.left_border.set_position((0, top))
-        # self.border.left_border.set_height(side_height)
-
-        # self.border.right_border.set_position((size[0] - self.border.right_border.width, top))
-        # self.border.right_border.set_height(side_height)
-
-        # self.border.bottom_border.set_width(size[0])
-
-        # FIXME: ... for titlebar, support 1 px borders around the entire thing?
-        # FIXME: self.outline
-
-        self.title_bar.set_position((-left + self.outline, -top + self.outline))
-        self.title_bar.set_width(size[0] - 2 * self.outline)
-
-        self.top_border.set_position((-left, -top))
-        self.top_border.set_size((size[0], self.top))
-
-        self.left_border.set_position((-left, 0))
-        self.left_border.set_height(side_height)
-
-        self.right_border.set_position((size[0] - right - left, 0))
-        self.right_border.set_height(side_height)
-
-        self.bottom_border.set_position((-left, size[1] - top - bottom))
-        self.bottom_border.set_width(size[0])
+        place(self.title_bar, -left + outline, -top + outline, size[0] - 2 * outline, top - outline)
+        place(self.top_border, -left, -top, size[0], top)
+        place(self.left_border, -left, 0, left, client_height)
+        place(self.right_border, client_width, 0, right, client_height)
+        place(self.bottom_border, -left, client_height, size[0], bottom)
 
 
 class MainWindowBorderParams:
@@ -154,8 +157,10 @@ class MainWindowBorderParams:
 
 class _MainWindowBorderWindow(BorderlessWindow):
     def __init__(self, params: MainWindowBorderParams) -> None:
-        super().__init__()
-        self.set_layer(Window.LAYER_HIGHEST)
+        super().__init__(band=Band.PANEL)
+        # The host window's border, not a window of its own: a click on it leaves the keys where
+        # they are.
+        self.set_focusable(False)
         # self.outline_colour = (255, 0, 255, 255)
         self.params = params
 
@@ -163,36 +168,26 @@ class _MainWindowBorderWindow(BorderlessWindow):
 class _MainWindowTopBorder(_MainWindowBorderWindow):
     def on_paint(self) -> None:
         dc = self.create_dc()
-        size = self.size
-
         dc.set_pen_colour(self.params.outline_colour)
-        dc.draw_line((1, 0), (size[0] - 2, 0))
-        dc.draw_line((0, 0), (0, size[1] - 1))
-        dc.draw_line((size[0] - 1, 0), (size[0] - 1, size[1] - 1))
+        dc.draw_outline((0, 0), self.size, bottom=False)
 
 
 class _MainWindowLeftBorder(_MainWindowBorderWindow):
     def on_paint(self) -> None:
         dc = self.create_dc()
-        size = self.size
-
         dc.set_pen_colour(self.params.outline_colour)
-        dc.draw_line((0, 0), (0, size[1] - 1))
+        dc.draw_outline((0, 0), self.size, top=False, right=False, bottom=False)
 
 
 class _MainWindowRightBorder(_MainWindowBorderWindow):
     def on_paint(self) -> None:
         dc = self.create_dc()
-        size = self.size
-
         dc.set_pen_colour(self.params.outline_colour)
-        dc.draw_line((size[0] - 1, 0), (size[0] - 1, size[1] - 1))
+        dc.draw_outline((0, 0), self.size, top=False, bottom=False, left=False)
 
 
 class _MainWindowBottomBorder(_MainWindowBorderWindow):
     def on_paint(self) -> None:
         dc = self.create_dc()
-        size = self.size
-
         dc.set_pen_colour(self.params.outline_colour)
-        dc.draw_line((0, size[1] - 1), (size[0] - 1, size[1] - 1))
+        dc.draw_outline((0, 0), self.size, top=False, right=False, left=False)

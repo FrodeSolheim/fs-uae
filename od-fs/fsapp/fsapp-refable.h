@@ -7,6 +7,8 @@
 #ifndef FSAPP_REFABLE_H
 #define FSAPP_REFABLE_H
 
+#include <SDL3/SDL.h>
+
 #include "fsapp-config.h"
 
 #ifdef __cplusplus
@@ -15,7 +17,8 @@ extern "C" {
 
 struct fsapp_refable_struct {
     char magic[4];
-    int ref_count;
+    // Atomic, so that references can be taken and released on different threads.
+    SDL_AtomicInt ref_count;
     void (*cleanup_handler)(void *);
 };
 

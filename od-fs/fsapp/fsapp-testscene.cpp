@@ -51,7 +51,14 @@ struct scene_surface {
     SDL_Rect rect;
     SDL_Color color;
     bool translucent;
-    int z;
+    // "1 only" (fsapp's default) unless the line says scale any.
+    fsapp_pixels_scale_support_t scale_support;
+    // Its place in the stacking order: its role, its parent's index (a child or popup), its band,
+    // and whether it is raised when created.
+    fsapp_stacking_role_t role;
+    int parent;
+    fsapp_stacking_band_t band;
+    bool raised;
     // For the emulation surface: the streamed content's filter (nearest, else linear) and format
     // (RGB565, else BGRA).
     bool nearest;
@@ -72,7 +79,7 @@ struct scene_adornment {
 
 // A change that the stand-in UI thread makes in a later UI frame, to the surface with an index.
 struct scene_change {
-    enum kind { MOVE, SHOW, HIDE, TRANSLUCENT, DRAW, COMMIT, RESIZE, DESTROY } kind;
+    enum kind { MOVE, SHOW, HIDE, RAISE, TRANSLUCENT, DRAW, COMMIT, RESIZE, DESTROY } kind;
     int surface;
     // MOVE: the new position.
     int x;
@@ -92,10 +99,15 @@ const struct {
     const char *instruction;
     enum scene_change::kind kind;
 } g_change_instructions[] = {
-    {"move", scene_change::MOVE},     {"show", scene_change::SHOW},
-    {"hide", scene_change::HIDE},     {"translucent", scene_change::TRANSLUCENT},
-    {"draw", scene_change::DRAW},     {"commit", scene_change::COMMIT},
-    {"resize", scene_change::RESIZE}, {"delete", scene_change::DESTROY},
+    {"move", scene_change::MOVE},
+    {"show", scene_change::SHOW},
+    {"hide", scene_change::HIDE},
+    {"raise", scene_change::RAISE},
+    {"translucent", scene_change::TRANSLUCENT},
+    {"draw", scene_change::DRAW},
+    {"commit", scene_change::COMMIT},
+    {"resize", scene_change::RESIZE},
+    {"delete", scene_change::DESTROY},
 };
 
 // The changes of an at line: made in the stand-in UI thread's first UI frame after the swap.
@@ -303,6 +315,9 @@ bool line_parser::parse_surface(bool emulation, std::string &error)
 {
     scene_surface surface = {};
     surface.emulation = emulation;
+    surface.role = FSAPP_STACKING_ROLE_TOP_LEVEL;
+    surface.parent = -1;
+    surface.band = FSAPP_STACKING_BAND_NORMAL;
     size_t index = 1;
     if (words.size() < index + 4 || !rect(index, &surface.rect, error)) {
         error = error.empty() ? "wrong number of arguments" : error;
@@ -323,17 +338,48 @@ bool line_parser::parse_surface(bool emulation, std::string &error)
         if (!emulation && words[index] == "translucent") {
             surface.translucent = true;
             index += 1;
+        } else if (!emulation && words[index] == "scale" && index + 1 < words.size()) {
+            const std::string &support = words[index + 1];
+            if (support != "one" && support != "any") {
+                error = "not a scale support: " + support;
+                return false;
+            }
+            surface.scale_support =
+                support == "any" ? FSAPP_PIXELS_SCALE_ANY : FSAPP_PIXELS_SCALE_ONE;
+            index += 2;
         } else if (emulation && (words[index] == "nearest" || words[index] == "linear")) {
             surface.nearest = words[index] == "nearest";
             index += 1;
         } else if (emulation && words[index] == "rgb565") {
             surface.rgb565 = true;
             index += 1;
-        } else if (words[index] == "z" && index + 1 < words.size()) {
-            if (!integer(index + 1, &surface.z, error)) {
+        } else if (words[index] == "band" && index + 1 < words.size()) {
+            const std::string &band = words[index + 1];
+            if (band == "background") {
+                surface.band = FSAPP_STACKING_BAND_BACKGROUND;
+            } else if (band == "normal") {
+                surface.band = FSAPP_STACKING_BAND_NORMAL;
+            } else if (band == "panel") {
+                surface.band = FSAPP_STACKING_BAND_PANEL;
+            } else {
+                error = "not a band: " + band;
                 return false;
             }
             index += 2;
+        } else if ((words[index] == "child" || words[index] == "popup") &&
+                   index + 1 < words.size()) {
+            surface.role =
+                words[index] == "child" ? FSAPP_STACKING_ROLE_CHILD : FSAPP_STACKING_ROLE_POPUP;
+            if (!surface_index(index + 1, &surface.parent, error)) {
+                return false;
+            }
+            index += 2;
+        } else if (words[index] == "overlay") {
+            surface.role = FSAPP_STACKING_ROLE_OVERLAY;
+            index += 1;
+        } else if (words[index] == "raise") {
+            surface.raised = true;
+            index += 1;
         } else {
             error = "unknown option: " + words[index];
             return false;
@@ -467,6 +513,7 @@ bool line_parser::parse_change(enum scene_change::kind kind, std::string &error)
         break;
     case scene_change::SHOW:
     case scene_change::HIDE:
+    case scene_change::RAISE:
     case scene_change::DESTROY:
         if (!count(2, 2, error)) {
             return false;
@@ -707,6 +754,7 @@ void fsapp_testscene_set_up_gl_grab(const fsapp_testscene_t *scene)
 // -------------------------------------------------------------------------------------------------
 // The stand-in UI thread.
 
+// Creates a surface; a child's or popup's parent is among the surfaces created before it.
 static fsapp_surface_t *create_surface(const fsapp_testscene_t *scene, const scene_surface *item)
 {
     fsapp_surface_t *surface;
@@ -716,15 +764,22 @@ static fsapp_surface_t *create_surface(const fsapp_testscene_t *scene, const sce
         fsapp_surface_attach_streamed_content(surface, item->rgb565 ? FSAPP_SURFACE_STREAM_RGB565
                                                                     : FSAPP_SURFACE_STREAM_BGRA);
         fsapp_surface_set_fill_color(surface, scene->fill);
+        fsapp_surface_set_scale_support(surface, FSAPP_PIXELS_SCALE_ANY);
     } else {
         surface = fsapp_surface_create(item->rect.w, item->rect.h, false);
         SDL_Rect whole = {0, 0, item->rect.w, item->rect.h};
         fsapp_surface_draw_filled_rectangle(surface, &whole, item->color);
         fsapp_surface_set_translucent(surface, item->translucent);
+        fsapp_surface_set_scale_support(surface, item->scale_support);
     }
     fsapp_surface_set_position(surface, item->rect.x, item->rect.y);
-    fsapp_surface_set_z_index(surface, item->z);
+    fsapp_surface_set_role(surface, item->role,
+                           item->parent >= 0 ? scene->live_surfaces[item->parent] : NULL);
+    fsapp_surface_set_band(surface, item->band);
     fsapp_surface_set_visible(surface, true);
+    if (item->raised) {
+        fsapp_surface_raise(surface);
+    }
     return surface;
 }
 
@@ -776,6 +831,9 @@ static void make_change(fsapp_testscene_t *scene, const scene_change &change)
         break;
     case scene_change::HIDE:
         fsapp_surface_set_visible(surface, false);
+        break;
+    case scene_change::RAISE:
+        fsapp_surface_raise(surface);
         break;
     case scene_change::TRANSLUCENT:
         fsapp_surface_set_translucent(surface, change.on);

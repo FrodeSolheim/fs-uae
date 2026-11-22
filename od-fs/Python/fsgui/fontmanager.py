@@ -1,10 +1,11 @@
 import os
 from typing import Optional
 
-import _fsapp_font  # type: ignore
-from fsapp import fsapp
+from fsapp.surfaceapi.v1 import Font as LoadedFont
 
-from fsgui.font import Font, FontWeight
+from .font import Font, FontWeight
+from .internal.api import get_api
+from .resources import get_fonts_dirs
 
 
 class FontManager:
@@ -20,7 +21,7 @@ class FontManager:
         if sentinel != "__sentinel__":
             raise Exception("Missing __sentinel__")
 
-        self._font_cache: dict[tuple[str, int, FontWeight], Font] = {}
+        self._font_cache: dict[tuple[str, int, FontWeight], LoadedFont] = {}
 
         # FIXME: Path/directory lookup!
         # self.regular_font_14 = Font(
@@ -57,7 +58,10 @@ class FontManager:
     def bold_font_14(self):
         return Font("Roboto", 14, FontWeight.BOLD)
 
-    def get_with_cache(self, name: str, size: int, weight: FontWeight = FontWeight.NORMAL):
+    def get_with_cache(
+        self, name: str, size: int, weight: FontWeight = FontWeight.NORMAL
+    ) -> LoadedFont:
+        """The font loaded at size in pixels, cached per name, pixel size and weight."""
         if name == "UI":
             name = "Roboto"
 
@@ -80,7 +84,7 @@ class FontManager:
             weight_name = "Bold"
 
         font_file_name = f"{name}-{weight_name}.ttf"
-        for fonts_dir in fsapp.fonts_dirs:
+        for fonts_dir in get_fonts_dirs():
             font_path = os.path.join(fonts_dir, font_file_name)
             print(font_path)
             if os.path.exists(font_path):
@@ -88,7 +92,7 @@ class FontManager:
         else:
             raise FileNotFoundError(font_file_name)
 
-        font = _fsapp_font.load(font_path, size)  # type: ignore
+        font = get_api().load_font(font_path, size)
         self._font_cache[cache_key] = font
         return self._font_cache[cache_key]
 

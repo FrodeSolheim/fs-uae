@@ -20,21 +20,29 @@ class Colour(tuple[int, int, int, int]):
 
 TColour = tuple[int, int, int, int]
 
+# Positions, sizes, padding, borders and mouse positions are in design units (fsgui/scale.py).
 ExpandParam = bool | float
-Padding = tuple[int, int, int, int] | int
-PaddingParam = Padding | int | None
-Position = tuple[int, int]
-Size = tuple[int, int]
+Padding = tuple[float, float, float, float] | float
+PaddingParam = Padding | None
+Position = tuple[float, float]
+PointerPosition = tuple[float, float]
+Size = tuple[float, float]
 SizeParam = Size | None
+
+# In pixels: surfaces, the host window, and what a drawing context rounds design units to.
+PixelPosition = tuple[int, int]
+PixelSize = tuple[int, int]
+# x, y, width, height.
+PixelRect = tuple[int, int, int, int]
 
 
 class Borders:
-    top: int = 0
-    right: int = 0
-    bottom: int = 0
-    left: int = 0
+    top: float = 0
+    right: float = 0
+    bottom: float = 0
+    left: float = 0
 
-    def __init__(self, top: int, right: int, bottom: int, left: int):
+    def __init__(self, top: float, right: float, bottom: float, left: float):
         self.top = top
         self.right = right
         self.bottom = bottom

@@ -1,147 +1,31 @@
 import logging
 
-import sdl3
-from fsapp.eventservice import EventService
-from fsapp.tickservice import TickService
-
-from fsgui.mainwindow import MainWindow
-from fsgui.windowmanager import WindowManager
+from .scale import get_scale, to_pixels
+from .windowmanager import WindowManager, get_client_origin
 
 logger = logging.getLogger(__name__)
 
 
-class State:
-    # mouse_x = -1.0
-    # mouse_y = -1.0
-    # last_mouse_x = -1.0
-    # last_mouse_y = -1.0
-    # mouse_pos = (-1.0, -1.0)
-    mouse_pos: tuple[int, int] = (-1, -1)
-    last_mouse_pos = (-1.0, -1.0)
-
-
-state = State()
 window_manager = WindowManager.get()
 
 
-def maybe_move_mouse(window_manager: WindowManager):
-    """Used to just move the mouse when needed, to reduce the number of events."""
-    if state.mouse_pos != state.last_mouse_pos:
-        main_window = MainWindow.get()
-        # origin = (main_window._left_border, main_window._top_border)
-        # FIXME: main_window.origin?
-        origin = (main_window.border.left, main_window.border.top)
-
-        window_manager.handle_mouse_moved(
-            (state.mouse_pos[0] - origin[0], state.mouse_pos[1] - origin[1])
-        )
-
-        # window_manager.handle_mouse_moved(state.mouse_pos)
-        state.last_mouse_pos = state.mouse_pos
-
-
-# # FIXME: Move to fsapp?
-# def handle_user_event(event: sdl3.SDL_UserEvent):
-#     print("handle_user_event")
-#     print(event.code)
-#     str_value = ""
-#     if event.data2 is not None:
-#         c_string: ctypes.c_char_p = ctypes.cast(event.data2, ctypes.c_char_p)
-#         if c_string.value is None:
-#             logger.warning("ctypes c_char_p value was None")
-#         else:
-#             str_value = c_string.value.decode("UTF-8")
-#     int_value = event.data1
-#     print(repr(int_value))
-#     print(repr(str_value))
-
-
-def handle_event(event: sdl3.SDL_Event):
-    if event.type == sdl3.SDL_EVENT_MOUSE_MOTION:
-        # print("state.mouse_pos", event.motion.y, event.motion.yrel, event.motion.which)
-        if event.motion.which:
-            # relative mouse event, which we ignore
-            pass
-        else:
-            state.mouse_pos = (int(event.motion.x), int(event.motion.y))
-        return
-    else:
-        maybe_move_mouse(window_manager)
-
-    if event.type == sdl3.SDL_EVENT_MOUSE_BUTTON_DOWN:
-        print("SDL_MOUSEBUTTONDOWN")
-        if event.button.button == 1:
-            # If mouse has been moved, it must be processed before the click!
-            # maybe_move_mouse(window_manager)
-            window_manager.handle_left_mouse_button(True)
-    elif event.type == sdl3.SDL_EVENT_MOUSE_BUTTON_UP:
-        print("SDL_MOUSEBUTTONDOWN")
-        if event.button.button == 1:
-            # maybe_move_mouse(window_manager)
-            window_manager.handle_left_mouse_button(False)
-    elif event.type == sdl3.SDL_EVENT_KEY_DOWN:
-        # maybe_move_mouse(window_manager)
-        if event.key.key == sdl3.SDLK_F12:
-            # FIXME: Remove hack
-            notification_service = EventService.instance()
-            notification_service.broadcast({"type": "FSAPP_KEY_PRESS", "intdata": 1073741893})
-        if event.key.key == sdl3.SDLK_F10:
-            # FIXME: Remove hack
-            notification_service = EventService.instance()
-            notification_service.broadcast({"type": "FSAPP_KEY_PRESS", "intdata": 1073741883})
-
-        pass
-    elif event.type == sdl3.SDL_EVENT_KEY_UP:
-        # maybe_move_mouse(window_manager)
-        pass
-
-    elif event.type == sdl3.SDL_EVENT_WINDOW_RESIZED:
-        width = event.window.data1
-        height = event.window.data2
-        MainWindow.get().update_size((width, height))
-    elif event.type == sdl3.SDL_EVENT_WINDOW_MAXIMIZED:
-        MainWindow.get().update_maximized(True)
-    elif event.type == sdl3.SDL_EVENT_WINDOW_RESTORED:
-        MainWindow.get().update_maximized(False)
-    elif event.type == sdl3.SDL_EVENT_WINDOW_ENTER_FULLSCREEN:
-        MainWindow.get().update_fullscreen(True)
-    elif event.type == sdl3.SDL_EVENT_WINDOW_LEAVE_FULLSCREEN:
-        MainWindow.get().update_fullscreen(False)
-
-
-def frame(events: list[sdl3.SDL_Event]) -> None:
-    for event in events:
-        handle_event(event)
-    maybe_move_mouse(window_manager)
-
-    # FIXME: fsapp or fsgui responsibility?
-    # Ticks run in every UI frame, but never cause one: UI code that must run at a time or on an
-    # event uses timers (fsapp.timerservice) and events, and animation requests UI frames
-    # (FrameService.request_ui_frame).
-    TickService.get().broadcast()
-
+def frame() -> None:
+    """fsgui's UI frame, its API object's UI frame callback: updates the windows (layout, and paint
+    and commit when dirty) and places their surfaces relative to the client origin."""
     # Could in theory update the surfaces first, and then continue running Python code without
     # allowing surface updates. It is possible this could improve concurrency w.r.t. the main
     # thread, but as it is now, no big point (probably).
 
-    z_index = 1
-    main_window = MainWindow.get()
-    # FIXME: main_window.origin?
-    # origin = (main_window._left_border, main_window._top_border)
-    origin = (main_window.border.left, main_window.border.top)
+    scale = get_scale()
+    client_origin = get_client_origin()
+    origin = (to_pixels(client_origin[0], scale), to_pixels(client_origin[1], scale))
     for window in window_manager.get_windows():
         try:
             window.update()
-            position = window._window_position
+            position = window.get_surface_position()
             if window.surface is not None:
-                window.surface.set_z_index(z_index)
-                surface_position = (position[0] + origin[0], position[1] + origin[1])
-                # window.surface.set_position(window.surface.x)
-                window.surface.set_position(surface_position)
-                # print(window, z_index)
+                window.place_surfaces((position[0] + origin[0], position[1] + origin[1]))
         except Exception:
             # FIXME: Make sure to propagate error level to SDL logger, and use custom
             # colors when printing to stderr on supported consoles???
             logger.exception("Error updating window")
-
-        z_index = z_index + 1

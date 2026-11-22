@@ -1,19 +1,28 @@
 /*
  * Surfaces: what the UI draws into, composited into the host window.
  *
+ * A surface's positions, sizes, buffer, damage and picture rectangle are in its buffer pixels: for
+ * a surface with the scale support "any", pixels of the host window's drawable (device pixels); for
+ * one with "1 only" (the default), pixels that cover ratio device pixels each (fsapp-pixels.h). The
+ * host window side draws and hit tests each surface at its device rectangle
+ * (fsapp_pixels_get_device_rectangle), with nearest sampling when its ratio is whole, else linear,
+ * and gives pointer positions to it in its buffer pixels.
+ *
  * Each surface's state is split in two, so that no field is shared between threads:
  *
- * - The client state is what its client (the UI thread) has set: its buffer, size, position, z
- *   index, visibility, translucent flag and fill colour, and the damage committed since the last
- *   UI frame ended. The setters below write it. Only the UI thread reads and writes it (or the
- *   main thread before the UI thread is started, when the program sets up its surfaces).
+ * - The client state is what its client (the UI thread) has set: its buffer, size, position, role
+ *   and parent, band, key target, visibility, translucent flag, fill colour, focusable flag and
+ *   scale support, its event handler, and the damage committed since the last UI frame ended. The
+ *   setters below write it. Only the UI thread reads and writes it (or the main thread before the
+ *   UI thread is started, when the program sets up its surfaces).
  * - The applied state is what the main loop's host window side has applied from the records: the
  *   live surfaces that the flat list is built from. Only the host window side reads and writes it.
  *
  * A UI frame is one run of the UI thread's work (the program's frame function). Everything it
  * changes reaches the compositor through one record: at the end of each UI frame, fsapp collects
  * the surfaces created and changed in it, with their new client state and, for those committed,
- * their content (buffer, size and damaged rectangles), and hands the record over in a pending slot
+ * their content (buffer, size and damaged rectangles), and the raise and focus requests made in it
+ * (fsapp_surface_raise, fsapp_surface_request_focus), and hands the record over in a pending slot
  * under a short lock (never held while drawing, uploading or running Python), waking the main
  * loop. A UI frame that changed nothing hands over nothing (except the first UI frame, which always
  * does). Setters that set the value a surface already has change nothing. The UI frame's end is
@@ -41,11 +50,17 @@
  * content" below). Its frames do not go through the records: its client hands them to fsapp on the
  * drawing side, uploading each into the back one of two textures and committing it, which makes it
  * the front texture, drawn into the picture rectangle; the rest of the surface's rectangle (the
- * bars) is filled with its fill colour. Its rectangle, visibility, z index and fill colour are
- * client state like any surface's.
+ * bars) is filled with its fill colour. Its rectangle, visibility, place in the stacking order and
+ * fill colour are client state like any surface's.
  *
- * The refcount keeps a surface alive while its client (the Python capsule, or a C client), a record
- * or the applied state holds it.
+ * The stacking order (back to front) of the applied surfaces is computed from their roles, parents,
+ * bands and raise order (fsapp-stacking.h, which has the rules); the flat list and routing's list
+ * follow it. A surface left out of it (a child or popup whose parent is gone) is neither drawn nor
+ * routed to, and neither is one that is not shown: a hidden surface hides its descendants.
+ *
+ * The refcount keeps a surface alive while its client (the Python capsule, or a C client), a child
+ * whose parent it is, a top-level whose key target it is (until that top-level is destroyed), a
+ * record or the applied state holds it.
  *
  * Copyright (c) 2025-2026 Frode Solheim
  */
@@ -58,8 +73,11 @@
 
 #include "fsapp-config.h"
 #include "fs/log.h"
+#include "fsapp-pixels.h"
 #include "fsapp-refable.h"
+#include "fsapp-routing.h"
 #include "fsapp-snapshot.h"
+#include "fsapp-stacking.h"
 
 struct fsapp_surface;
 typedef struct fsapp_surface fsapp_surface_t;
@@ -101,12 +119,23 @@ typedef struct fsapp_surface_state {
     // content.
     int width;
     int height;
-    // The z index (fsapp_surface_set_z_index).
-    int z;
+    // The role, and the parent of a child or popup, else NULL (fsapp_surface_set_role). In the
+    // client state, the surface holds a reference to its parent.
+    fsapp_stacking_role_t role;
+    fsapp_surface_t *parent;
+    // A top-level's band (fsapp_surface_set_band).
+    fsapp_stacking_band_t band;
+    // A top-level's key target, or NULL for itself (fsapp_surface_set_key_target). In the client
+    // state, the surface holds a reference to it until the surface is destroyed.
+    fsapp_surface_t *key_target;
     // Whether the surface is translucent (fsapp_surface_set_translucent).
     bool translucent;
     // The fill colour of a surface with streamed content (fsapp_surface_set_fill_color).
     SDL_Color fill_color;
+    // Whether a top-level's tree may take keyboard focus (fsapp_surface_set_focusable).
+    bool focusable;
+    // What its client can draw at (fsapp_surface_set_scale_support).
+    fsapp_pixels_scale_support_t scale_support;
 } fsapp_surface_state_t;
 
 struct fsapp_surface {
@@ -133,6 +162,9 @@ struct fsapp_surface {
     // Whether the surface has been destroyed (fsapp_surface_destroy).
     bool destroyed;
 
+    // The Python callable that gets the surface's events (_fsapp_surface.set_handler), or NULL.
+    PyObject *event_handler;
+
     fsapp_surface_state_t state;
     // Whether the surface has been committed in the current UI frame, and the damage of its commits
     // in it (fsapp_surface_commit): the whole surface, or the rectangles (clipped, not empty).
@@ -156,6 +188,10 @@ struct fsapp_surface {
         // Whether a surface with a buffer has content (committed with a size that is not empty).
         bool has_content;
         fsapp_surface_state_t state;
+        // The raise order (fsapp-stacking.h): 0 until it is first raised (fsapp_surface_raise).
+        uint64_t raise;
+        // Whether it was left out of the last stacking order (logged when it is first left out).
+        bool left_out;
     } applied;
 };
 
@@ -191,8 +227,8 @@ void fsapp_surface_destroy(fsapp_surface_t *surface);
 //
 // The upload region is the part of a frame the client uploads; it lands at texel (0, 0), and the
 // slices and the source rectangle are given in its coordinates (its top row first). The picture
-// rectangle is in the surface's coordinates (relative to its top left corner, in window
-// coordinates), so moving the surface needs no change; it may extend beyond the surface, and is
+// rectangle is in the surface's coordinates (relative to its top left corner, in pixels), so
+// moving the surface needs no change; it may extend beyond the surface, and is
 // clipped to it.
 
 // Attach streamed content with its pixel format to a surface without a buffer, when it is created,
@@ -241,7 +277,7 @@ void fsapp_surface_set_streamed_picture(fsapp_surface_t *surface, const SDL_Rect
 // no content, and its fill colour shows over its whole rectangle, until the next commit.
 void fsapp_surface_drop_streamed_content(fsapp_surface_t *surface);
 
-// The surface's rectangle (window coordinates) in the frame being drawn, as the frame's snapshot
+// The surface's rectangle (pixels) in the frame being drawn, as the frame's snapshot
 // has it, so that a drawing hook can fit the picture without asking the host window side. Returns
 // whether the surface is in the frame's flat list (visible and not empty); if not, rect is left as
 // it is.
@@ -273,39 +309,109 @@ void fsapp_surface_commit(fsapp_surface_t *surface, const SDL_Rect *damage, int 
 // started; _fsapp_surface's resize does the same).
 void fsapp_surface_resize(fsapp_surface_t *surface, int width, int height);
 
-// Unstable, until surface roles replace it (surface API step 4): the surface's place in the
-// stacking order. Higher is in front; surfaces with the same z index are stacked in the order they
-// were created, later ones in front. Any int. 0 by default. Like the other setters below, it writes
-// the client state, so call it on the UI thread inside a UI frame (or before the UI thread is
-// started); the change goes with the UI frame's record (_fsapp_surface's set_z_index does the
-// same).
-void fsapp_surface_set_z_index(fsapp_surface_t *surface, int z_index);
+// Unstable: the surface's role and, for a child or popup, its parent, which decide its place in the
+// stacking order (fsapp-stacking.h). A top-level by default. A child or popup takes a parent, and a
+// top-level or an overlay none: a call that breaks this, or names the surface itself, one of its
+// descendants or a destroyed surface as the parent, is logged as an error and ignored. The surface
+// holds a reference to its parent. A child's or popup's position is in the host window's pixels, as
+// any surface's: it does not follow its parent. Like the other setters below, it writes the client
+// state, so call it on the UI thread inside a UI frame (or before the UI thread is started); the
+// change goes with the UI frame's record (_fsapp_surface's set_role does the same).
+// REVIEW: The strictness about parents and roles, and that children do not follow their parent.
+void fsapp_surface_set_role(fsapp_surface_t *surface, fsapp_stacking_role_t role,
+                            fsapp_surface_t *parent);
+
+// Unstable: the band of a top-level (fsapp-stacking.h; it counts for top-levels only). Normal by
+// default. Called as fsapp_surface_set_role (_fsapp_surface's set_band does the same).
+void fsapp_surface_set_band(fsapp_surface_t *surface, fsapp_stacking_band_t band);
+
+// Unstable, for the top: names the surface in a top-level's tree that gets the keys while the tree
+// has keyboard focus (its key target, fsapp-input.h), or with NULL the top-level itself, as by
+// default. The key target stays named while it is hidden or out of the tree, and the top-level gets
+// the keys meanwhile. A call for a surface that is not a top-level, or naming a surface outside its
+// tree or destroyed, is logged as an error and ignored. Called as fsapp_surface_set_role
+// (_fsapp_surface's set_key_target does the same).
+void fsapp_surface_set_key_target(fsapp_surface_t *top_level, fsapp_surface_t *surface);
+
+// Unstable: raises the surface in front of the others of its kind (fsapp-stacking.h): a top-level
+// in front of the top-levels in its band, an overlay in front of the overlays, and a child or popup
+// in front of its siblings. The request goes with the UI frame's record and is applied after the
+// record's other changes, in order with the UI frame's other raise requests; it is ignored for a
+// surface destroyed by then. Called as fsapp_surface_set_role (_fsapp_surface's raise_surface does
+// the same).
+// REVIEW: Whether children and popups should be raised among their siblings, or only top-levels and
+// overlays raised.
+void fsapp_surface_raise(fsapp_surface_t *surface);
 
 // Unstable: whether the surface is translucent (blended with its content's alpha, premultiplied) or
-// opaque (its content's alpha ignored). Opaque by default. Called as fsapp_surface_set_z_index
+// opaque (its content's alpha ignored). Opaque by default. Called as fsapp_surface_set_role
 // (_fsapp_surface's set_translucent does the same).
 void fsapp_surface_set_translucent(fsapp_surface_t *surface, bool translucent);
 
 // Unstable: the fill colour of a surface with streamed content (the emulation surface), for fsapp
 // to fill the surface's rectangle with before the wait, so that the bars around its content and a
 // surface with no content show it. Its alpha is ignored (the fill is opaque). Black by default.
-// Called as fsapp_surface_set_z_index.
+// Called as fsapp_surface_set_role.
 void fsapp_surface_set_fill_color(fsapp_surface_t *surface, SDL_Color fill_color);
 
-// The surface's position in window coordinates. Called as fsapp_surface_set_z_index
+// The surface's position in its buffer pixels. Called as fsapp_surface_set_role
 // (_fsapp_surface's set_position does the same).
 void fsapp_surface_set_position(fsapp_surface_t *surface, int x, int y);
 
-// Whether the surface is shown (hidden when created). Called as fsapp_surface_set_z_index
+// Whether the surface is shown (hidden when created). Called as fsapp_surface_set_role
 // (_fsapp_surface's set_visible does the same).
 void fsapp_surface_set_visible(fsapp_surface_t *surface, bool visible);
 
-// Fills a rectangle of the surface's buffer with a colour (straight RGBA), clipped to the buffer,
-// storing it premultiplied in the buffer's format, as fsapp's drawing functions all leave the
-// buffer. Call it on the UI thread inside a UI frame (_fsapp_surface's draw_filled_rectangle does
-// the same); it shows once committed.
+// Unstable: whether a top-level's tree may take keyboard focus (fsapp-input.h; for other surfaces
+// it does not count). Not focusable by default. Called as fsapp_surface_set_role (_fsapp_surface's
+// set_focusable does the same).
+void fsapp_surface_set_focusable(fsapp_surface_t *surface, bool focusable);
+
+// Unstable: the surface's scale support (fsapp-pixels.h): "1 only" (FSAPP_PIXELS_SCALE_ONE) by
+// default, or "any" (FSAPP_PIXELS_SCALE_ANY). Its handler's configure follows it: the host
+// window's size in its buffer pixels and its surface scale (fsapp_pixels_get_surface_configure).
+// An unknown value is logged as an error and ignored. Like the other setters, call it on the UI
+// thread inside a UI frame (or before the UI thread is started); the change goes with the UI
+// frame's record. From Python it is set only when the surface is created (_fsapp_surface's create
+// takes it).
+void fsapp_surface_set_scale_support(fsapp_surface_t *surface,
+                                     fsapp_pixels_scale_support_t scale_support);
+
+// Unstable: the surface's scale support (fsapp_surface_set_scale_support), from the client state:
+// call it on the UI thread (or before the UI thread is started).
+fsapp_pixels_scale_support_t fsapp_surface_get_scale_support(const fsapp_surface_t *surface);
+
+// Unstable: asks for keyboard focus for the surface's tree (fsapp-input.h). The request goes with
+// the UI frame's record and is applied, in order with the UI frame's other requests, after the
+// record's other changes; it is ignored if the tree's top-level is not focusable or not visible
+// then. Called as fsapp_surface_set_role (_fsapp_surface's request_focus does the same).
+void fsapp_surface_request_focus(fsapp_surface_t *surface);
+
+// Fills a rectangle of the surface's buffer with a colour (straight RGBA), clipped to the buffer's
+// clip rectangle, storing it premultiplied in the buffer's format, as fsapp's drawing functions all
+// leave the buffer. Call it on the UI thread inside a UI frame (_fsapp_surface's
+// draw_filled_rectangle does the same); it shows once committed.
 void fsapp_surface_draw_filled_rectangle(fsapp_surface_t *surface, const SDL_Rect *rect,
                                          SDL_Color color);
+
+// The clip rectangle that the Python drawing functions of _fsapp_surface, _fsapp_font and
+// _fsapp_image take last: (x, y, width, height) in the buffer's pixels, or None (or left out) for
+// the whole buffer.
+typedef struct fsapp_surface_clip {
+    bool set;
+    SDL_Rect rect;
+} fsapp_surface_clip_t;
+
+// A PyArg_ParseTuple converter ("O&") from a clip rectangle or None to an fsapp_surface_clip_t.
+int fsapp_surface_convert_python_clip(PyObject *object, void *address);
+
+// Makes the clip (intersected with the buffer) the buffer's clip rectangle until
+// fsapp_surface_end_clip: SDL's fills and blits draw only inside it, and fsapp's own drawing code
+// reads it with SDL_GetSurfaceClipRect.
+void fsapp_surface_begin_clip(fsapp_surface_t *surface, const fsapp_surface_clip_t *clip);
+
+// Makes the whole buffer the clip rectangle again.
+void fsapp_surface_end_clip(fsapp_surface_t *surface);
 
 // A new Python capsule for the surface, as _fsapp_surface's functions take. The capsule holds a
 // reference, and destroys the surface when it is freed. Call with the GIL held.
@@ -314,9 +420,10 @@ PyObject *fsapp_surface_create_python_capsule(fsapp_surface_t *surface);
 // ----------------------------------------------------------------------------
 // The record (see the top of this file), for fsapp's UI thread and main loop.
 
-// The UI thread, at the end of each UI frame: collects the UI frame's record and hands it over, if
-// anything changed (or it is the first UI frame), waking the main loop. Returns whether it handed
-// one over.
+// The UI thread, at the end of each UI frame: releases the views of the buffers that Python took in
+// it (_fsapp_surface.get_buffer; with the GIL held when Python took any), then collects the UI
+// frame's record and hands it over, if anything changed (or it is the first UI frame), waking the
+// main loop. Returns whether it handed one over.
 bool fsapp_surface_end_ui_frame(void);
 
 // The UI thread, at the start of each UI frame (the first too): waits until the last record handed
@@ -346,12 +453,37 @@ bool fsapp_surface_has_taken_first_record(void);
 void fsapp_surface_write_snapshot(fsapp_snapshot_layout_t *layout,
                                   const fsapp_snapshot_layout_t *untaken);
 
+// The host window side: the applied surfaces for routing (fsapp-routing.h), in the stacking order
+// (back to front), with their device rectangles (fsapp_pixels_get_device_rectangle), visibility,
+// focusable flag, whether they take pointer input, their tree's top-level and a top-level's key
+// target, as of the last record applied or raise. The storage is the host window side's, until the
+// next record is applied or a surface is raised.
+const fsapp_routing_surface_t *fsapp_surface_get_routing_surfaces(int *count);
+
+// The host window side: a position in device pixels relative to an applied surface in routing's
+// list, in its buffer pixels (fsapp_pixels_convert_to_buffer_position); unchanged for a surface not
+// in it.
+void fsapp_surface_get_relative_position(const void *surface, double x, double y, float *relative_x,
+                                         float *relative_y);
+
+// The host window side, with each configure: the display scale, which the applied surfaces' ratios
+// follow (fsapp_pixels_get_ratio). A change rebuilds routing's list at once and the flat list with
+// the next frame, which this asks for.
+void fsapp_surface_set_display_scale(float display_scale);
+
+// The host window side: raises an applied surface (identified by its pointer, as in routing's list;
+// nothing happens for one that is not applied) as fsapp_surface_raise does, at once rather than
+// with a record: for a press (fsapp-input.h). Routing's list follows at once, the flat list with
+// the next frame, which this asks for.
+void fsapp_surface_raise_applied(const void *surface);
+
 // The drawing side, at the end of the UI upload of every frame: marks the layout's record (if it
 // carries one) taken in, which lets the UI thread start its next UI frame.
 void fsapp_surface_on_uploaded(const fsapp_snapshot_layout_t *layout);
 
-// The host window side, when the main loop has ended: frees the surfaces destroyed outside a UI
-// frame that no record took (and from then on, such a surface is freed at once).
+// The host window side, when the main loop has ended: from then on, a surface destroyed outside a
+// UI frame is freed at once. Those destroyed before that no record took are left to the UI thread's
+// next UI frame, if it runs one.
 void fsapp_surface_quit(void);
 
 #ifdef __cplusplus

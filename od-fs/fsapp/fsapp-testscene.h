@@ -24,12 +24,22 @@
  *       The host window's background colour (alpha 255 when left out; opaque black by default).
  *   fill <r> <g> <b>
  *       The emulation surface's fill colour (black by default).
- *   surface <x> <y> <w> <h> <r> <g> <b> <a> [translucent] [z <z>]
+ *   surface <x> <y> <w> <h> <r> <g> <b> <a> [translucent] [scale one|any] [<stacking>...]
  *       A surface filled with one straight RGBA colour (fsapp's filled rectangle), opaque unless
- *       translucent. Its z index is 0 unless given, so the surfaces are stacked in the order of the
- *       file (ties in creation order), later ones in front.
- *   emulation <x> <y> <w> <h> [z <z>] [linear|nearest] [rgb565]
- *       The emulation surface, at this place in the stacking order: a surface with streamed
+ *       translucent, with the scale support "1 only" (fsapp's default) unless scale any is given.
+ *       Its position and size, and the rectangles of its move, draw and commit lines, are in its
+ *       buffer pixels: at a display scale other than 1 (FSAPP_TEST_DISPLAY_SCALE), a "1 only"
+ *       surface covers its device rectangle (fsapp_pixels_get_device_rectangle). The stacking
+ *       options give its place in the stacking order (fsapp-stacking.h):
+ *         band background|normal|panel   a top-level's band (normal unless given)
+ *         child <surface index>          a child of that surface (one earlier in the file)
+ *         popup <surface index>          a popup of that surface (one earlier in the file)
+ *         overlay                        an overlay
+ *         raise                          raised when created (in the order of the file)
+ *       Without any, it is a top-level in the normal band, so the surfaces are stacked in the order
+ *       of the file, later ones in front.
+ *   emulation <x> <y> <w> <h> [<stacking>...] [linear|nearest] [rgb565]
+ *       The emulation surface, at its place in the stacking order: a surface with streamed
  *       content in BGRA (or RGB565 with rgb565), drawn with linear (the default) or nearest
  *       filtering, with no content until a frame line commits one, so until then its whole
  *       rectangle shows the fill colour. At most one.
@@ -63,6 +73,8 @@
  *   show <surface>
  *   hide <surface>
  *       Shows or hides the surface.
+ *   raise <surface>
+ *       Raises the surface (fsapp_surface_raise).
  *   translucent <surface> on|off
  *       Makes the surface translucent or opaque.
  *   draw <surface> <x> <y> <w> <h> <r> <g> <b> <a>

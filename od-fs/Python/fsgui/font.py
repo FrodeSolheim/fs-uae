@@ -1,8 +1,8 @@
 from enum import Enum
 
-import _fsapp_font  # type: ignore
+from fsapp.surfaceapi.v1 import Font as LoadedFont
 
-# import fsapp_font
+from .scale import get_scale, scaled, units_from_pixel_size
 
 
 class FontWeight(Enum):
@@ -27,15 +27,23 @@ class Font:
         size: int = 14,
         weight: FontWeight = FontWeight.NORMAL,
     ):
+        """size is in design units: the font is loaded at size times the scale, in pixels."""
         self.name = name
         self.size = size
+        self.weight = weight
 
-        from fsgui.fontmanager import FontManager
+    @property
+    def font(self) -> LoadedFont:
+        """The loaded font at the current scale."""
+        from .fontmanager import FontManager
 
-        self.font = FontManager.get().get_with_cache(name, size, weight)
+        return FontManager.get().get_with_cache(self.name, scaled(self.size), self.weight)
 
-        # FIXME: Remove alias?
-        self._font = self.font
+    # FIXME: Remove alias?
+    @property
+    def _font(self) -> LoadedFont:
+        return self.font
 
     def measure_text(self, text: str) -> tuple[int, int]:
-        return _fsapp_font.measure_text(self.font, text)
+        """The text's size in design units (rounded up)."""
+        return units_from_pixel_size(self.font.measure(text), get_scale())

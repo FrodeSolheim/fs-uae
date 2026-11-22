@@ -43,6 +43,12 @@ static struct {
     SDL_TimerID timer;
 } test_input;
 
+// The test display scale: read at the first call, 0 when it is off.
+static struct {
+    bool read;
+    float scale;
+} test_display_scale;
+
 // Turns the simulated display on when FSAPP_SIMULATED_DISPLAY_HZ gives a refresh rate (such as 50
 // or 59.94), with its first tick now.
 static void simulated_display_init(void)
@@ -253,6 +259,27 @@ int64_t fsapp_testaids_get_simulated_render_delay_ns(int64_t swap_number)
         return 0;
     }
     return simulated_render.delay_ns;
+}
+
+// REVIEW: Only the display scale is replaced, not the host window's size or pixel density, so the
+// window is as large in pixels as on a display at that scale with a pixel density of 1 (Windows,
+// X11), not as on macOS or Wayland.
+float fsapp_testaids_override_display_scale(float display_scale)
+{
+    if (!test_display_scale.read) {
+        test_display_scale.read = true;
+        const char *value = SDL_getenv("FSAPP_TEST_DISPLAY_SCALE");
+        if (value && value[0]) {
+            float scale = (float)SDL_atof(value);
+            if (scale > 0.0f) {
+                test_display_scale.scale = scale;
+                SDL_Log("Test display scale: %g (FSAPP_TEST_DISPLAY_SCALE)", scale);
+            } else {
+                SDL_Log("FSAPP_TEST_DISPLAY_SCALE=%s is not a scale more than 0, ignored", value);
+            }
+        }
+    }
+    return test_display_scale.scale > 0.0f ? test_display_scale.scale : display_scale;
 }
 
 void fsapp_testaids_quit(void)

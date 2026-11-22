@@ -38,7 +38,7 @@ class ParentStack:
 
     @classmethod
     def parent_widget(cls) -> Any:
-        from fsgui.widget import Widget
+        from .widget import Widget
 
         # Because init_subclass wraps the init functions in the class hierarchy
         # for widgets, all the init functions will push/pop and we will get

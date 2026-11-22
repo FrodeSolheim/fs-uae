@@ -1,6 +1,7 @@
 # _fsapp.pyi
 """Typing stubs for the `_fsapp` C extension."""
 
+from collections.abc import Callable
 from typing import Final
 
 def set_fullscreen(fullscreen: bool, /) -> None: ...
@@ -16,13 +17,14 @@ Raises:
 
 def get_mouse_grab() -> bool: ...
 
-"""Get the current mouse grab state.
+"""Get whether the user wants the input grab (Mod+G, the middle button).
 
 Returns:
-    True if mouse is currently grabbed, False otherwise.
+    True if the grab is wanted, False otherwise. A wanted grab is suspended (not applied) while a
+    surface other than the emulation surface has keyboard focus.
 
-When the mouse grab changes, fsapp pushes the app event FSAPP_MOUSE_GRAB (intdata 1 when grabbed,
-0 when released), so the UI need not poll this.
+When it changes, fsapp pushes the app event FSAPP_MOUSE_GRAB (intdata 1 when wanted, 0 when not),
+so the UI need not poll this.
 """
 
 def get_monotonic_us() -> int: ...
@@ -40,6 +42,114 @@ def request_ui_frame() -> None: ...
 
 Requests a host window frame, also without a pacer, and wakes the UI thread when the host window
 side starts it. Callable from any thread.
+"""
+
+def get_display_scale() -> float: ...
+
+"""Get the display scale: how many pixels the UI is to draw per design unit.
+
+Returns:
+    The display scale of the last configure (fsapp.surfaceapi.v1.Configure), which is SDL's window
+    display scale; before the host window exists, the scale it is predicted to have (the primary
+    display's content scale times its pixel density), for the first window size.
+"""
+
+TITLE_BAR_HEIGHT: Final[int]
+
+"""The height of the host window's title bar in design units, which the borderless host window's
+hit test takes as its title bar's (FSAPP_PIXELS_TITLE_BAR_HEIGHT)."""
+
+def create_window(title: str, size: tuple[int, int], fullscreen: bool, /) -> object: ...
+
+"""Create the host window (unstable, for the top), on the main thread when it handles the request.
+
+Args:
+    title: The window's title.
+    size: The window's size in pixels.
+    fullscreen: Whether it starts full screen.
+
+Returns:
+    The window, for set_window_background_color.
+"""
+
+def set_window_background_color(window: object, colour: tuple[int, int, int, int], /) -> None: ...
+
+"""Set the colour the host window is cleared with (RGBA), where no surface covers it."""
+
+def minimize_window() -> None: ...
+
+"""Request minimizing the host window."""
+
+def maximize_window() -> None: ...
+
+"""Request maximizing the host window."""
+
+def restore_window() -> None: ...
+
+"""Request restoring the host window from maximized (or minimized)."""
+
+def close_window() -> None: ...
+
+"""Request closing the host window, which quits FS-UAE."""
+
+SHORTCUT_MOD: Final[int]
+
+"""Mod, the modifier of FS-UAE's shortcuts, as SDL's modifier bits (Keymod in fsapp.surfaceapi.v1):
+Left Alt, or Left GUI (Cmd) on macOS."""
+
+def register_shortcut(key: int, modifiers: int, callback: Callable[[], object], /) -> int: ...
+
+"""Register a shortcut whose callback runs on the UI thread.
+
+The shortcut is looked up for each key event on the host window side before anything else sees it:
+its press, repeats and release are consumed and reach neither the Amiga nor the UI. When it is
+pressed, the UI thread is woken and runs the callback in its next UI frame, after the app events.
+An exception from the callback is logged. A shortcut matches when all its modifiers are down
+(others may be down too); the modifier keys themselves are no shortcuts. Shortcuts are never
+unregistered.
+
+Args:
+    key: The key, an SDL keycode (Keycode in fsapp.surfaceapi.v1).
+    modifiers: The modifiers that must be down, SDL's modifier bits (Keymod.NONE for none,
+        SHORTCUT_MOD for Mod).
+    callback: Called with no arguments when the shortcut is pressed.
+
+Returns:
+    The shortcut's id.
+
+Raises:
+    ValueError: If the key is already a shortcut with the same modifiers.
+    TypeError: If the callback is not callable.
+"""
+
+def take_shortcut_callbacks() -> list[Callable[[], object]]: ...
+
+"""Take the callbacks of the shortcuts and the menu input pressed since the last call, in the order
+pressed.
+
+For fsapp._frame, which runs them in the UI frame.
+"""
+
+def register_menu_input(callback: Callable[[], object], /) -> None: ...
+
+"""Register the callback of the menu input, run on the UI thread (for the top, which opens the
+gamepad session menu with it).
+
+The menu input is Guide, or Start and Select pressed together (in either order), on any gamepad. It
+never reaches the Amiga. While the emulation surface has keyboard focus or the input grab is
+applied, the UI thread is woken and runs the callback in its next UI frame, with the shortcuts'
+callbacks; while a UI surface has keyboard focus, that surface gets it as Navigation.MENU
+(fsapp.surfaceevent) instead. With no callback registered, the menu input does nothing while the
+Amiga has the input. Start pressed first has reached the Amiga at once (games pause with it), so
+when Select completes the chord, the Amiga gets a release of Start. An exception from the callback
+is logged. The callback is never unregistered.
+
+Args:
+    callback: Called with no arguments for each menu input.
+
+Raises:
+    ValueError: If a callback is already registered.
+    TypeError: If the callback is not callable.
 """
 
 LOG_PRIORITY_TRACE: Final[int]
@@ -73,6 +183,17 @@ __all__: Final = [
     "get_mouse_grab",
     "get_monotonic_us",
     "request_ui_frame",
+    "SHORTCUT_MOD",
+    "TITLE_BAR_HEIGHT",
+    "create_window",
+    "set_window_background_color",
+    "minimize_window",
+    "maximize_window",
+    "restore_window",
+    "close_window",
+    "register_shortcut",
+    "take_shortcut_callbacks",
+    "register_menu_input",
     "log",
     "LOG_PRIORITY_TRACE",
     "LOG_PRIORITY_VERBOSE",

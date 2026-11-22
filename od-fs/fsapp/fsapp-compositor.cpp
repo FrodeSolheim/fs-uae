@@ -50,7 +50,7 @@ static struct {
     std::vector<GLuint> adornment_textures;
     fsapp_frame_plan_steps_t steps;
     // Whether step 1 left the emulation surface's picture unfilled (its depth-only entry), and
-    // where: the picture rectangle before the wait, clipped (window coordinates).
+    // where: the picture rectangle before the wait, clipped (pixels).
     bool picture_unfilled;
     fsapp_frame_plan_rectangle_t unfilled_picture;
     bool dropped_logged;
@@ -58,11 +58,7 @@ static struct {
 
 // -------------------------------------------------------------------------------------------------
 
-// The viewport covers the whole window.
-// REVIEW: The viewport was the size in window coordinates (g_window_width/height) before the
-// snapshot; it is now the size in pixels, which covers the whole drawable. The two are the same
-// unless the window has high pixel density, which it never asks for (no
-// SDL_WINDOW_HIGH_PIXEL_DENSITY), so nothing changes today.
+// The viewport covers the whole drawable, in pixels.
 static void set_viewport(const fsapp_snapshot_t *snapshot)
 {
     glViewport(0, 0, snapshot->window.pixel_width, snapshot->window.pixel_height);
@@ -140,8 +136,7 @@ static void upload_record_content(const fsapp_snapshot_layout_t *layout)
             set_unpack_state(0);
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, content->width, content->height, 0, GL_BGRA,
                          GL_UNSIGNED_INT_8_8_8_8_REV, content->buffer);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            // The filter is set per draw (draw_entries).
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         } else if (content->damage.whole) {
@@ -236,7 +231,7 @@ static GLuint adornment_texture(const fsapp_snapshot_adornment_t *adornment)
     return texture->second.texture;
 }
 
-// The picture rectangle of streamed content in window coordinates (the surface at its place), and
+// The picture rectangle of streamed content in pixels (the surface at its place), and
 // the source rectangle shown in it, both cut to the part of the source that was uploaded. When the
 // upload region was larger than the GPU's largest texture, only its top left part is in the
 // texture: the picture keeps the scale of the whole source and shows that part, and the bars cover
@@ -261,7 +256,7 @@ static bool get_streamed_picture(const fsapp_snapshot_surface_t *surface,
     if (given.w <= 0 || given.h <= 0) {
         return false;
     }
-    // The uploaded region in window coordinates, at the picture's scale, to whole pixels.
+    // The uploaded region in the window, at the picture's scale, to whole pixels.
     double scale_x = (double)whole.width / given.w;
     double scale_y = (double)whole.height / given.h;
     int left = whole.x + (int)SDL_lround(-given.x * scale_x);
@@ -276,7 +271,7 @@ static bool get_streamed_picture(const fsapp_snapshot_surface_t *surface,
 // to draw for: the surfaces with a texture (a buffer uploaded at least once) and those with
 // streamed content (the emulation surface, which always has its fill), and the adornments with
 // content. Streamed content is taken as it is before the wait: whether it has content, and its
-// picture rectangle (in window coordinates, cut to what was uploaded), for the bars.
+// picture rectangle (cut to what was uploaded), for the bars.
 static void plan_frame(const fsapp_snapshot_t *snapshot)
 {
     if (g_frame.plan == NULL) {
@@ -384,6 +379,13 @@ static void fill_opaque(const SDL_FRect *rect, double depth, SDL_Color color)
                                 1.0f);
 }
 
+static void set_filter(bool nearest)
+{
+    GLint filter = nearest ? GL_NEAREST : GL_LINEAR;
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter);
+}
+
 // Draws the entries in their order, each at the depth of its place, with the step's state set:
 // surfaces and adornments with texture_program, the fill with the fill program, and the
 // depth-only entry with the fill program and colour writes off.
@@ -402,7 +404,8 @@ static void draw_entries(const fsapp_snapshot_t *snapshot, const fsapp_frame_pla
             if (program_begun) {
                 fsapp_gldraw_end_program();
             }
-            fsapp_gldraw_begin_program(program, snapshot->window.width, snapshot->window.height);
+            fsapp_gldraw_begin_program(program, snapshot->window.pixel_width,
+                                       snapshot->window.pixel_height);
             program_begun = true;
             begun = program;
         }
@@ -410,19 +413,20 @@ static void draw_entries(const fsapp_snapshot_t *snapshot, const fsapp_frame_pla
         SDL_FRect rect = {(float)r->x, (float)r->y, (float)r->width, (float)r->height};
         double depth = place_depth(entry->place);
         switch (entry->kind) {
-        case FSAPP_FRAME_PLAN_SURFACE:
-            // The surface's filter (linear) was set when its buffer was uploaded.
-            fsapp_gldraw_draw_texture(g_frame.surface_textures[entry->index], &rect, depth);
+        case FSAPP_FRAME_PLAN_SURFACE: {
+            // The whole texture into the surface's device rectangle, with its filter.
+            GLuint texture = g_frame.surface_textures[entry->index];
+            glBindTexture(GL_TEXTURE_2D, texture);
+            set_filter(g_frame.snapshot_surfaces[entry->index]->nearest);
+            fsapp_gldraw_draw_texture(texture, &rect, depth);
             break;
+        }
         case FSAPP_FRAME_PLAN_ADORNMENT: {
             const fsapp_snapshot_adornment_t *adornment = g_frame.snapshot_adornments[entry->index];
             GLuint texture = g_frame.adornment_textures[entry->index];
             // The adornment's own filter.
             glBindTexture(GL_TEXTURE_2D, texture);
-            GLint filter =
-                adornment->filter == FSAPP_ADORNMENT_FILTER_NEAREST ? GL_NEAREST : GL_LINEAR;
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter);
+            set_filter(adornment->filter == FSAPP_ADORNMENT_FILTER_NEAREST);
             fsapp_gldraw_draw_texture(texture, &rect, depth);
             break;
         }
@@ -544,16 +548,16 @@ static void draw_streamed_content(const fsapp_snapshot_t *snapshot,
     glDisable(GL_BLEND);
     glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_FALSE);
     if (fills_again) {
-        fsapp_gldraw_begin_program(FSAPP_GLDRAW_PROGRAM_FILL, snapshot->window.width,
-                                   snapshot->window.height);
+        fsapp_gldraw_begin_program(FSAPP_GLDRAW_PROGRAM_FILL, snapshot->window.pixel_width,
+                                   snapshot->window.pixel_height);
         SDL_FRect rect = {(float)rectangle.x, (float)rectangle.y, (float)rectangle.width,
                           (float)rectangle.height};
         fill_opaque(&rect, depth, surface->fill_color);
         fsapp_gldraw_end_program();
     }
     if (draws_picture) {
-        fsapp_gldraw_begin_program(FSAPP_GLDRAW_PROGRAM_STREAMED, snapshot->window.width,
-                                   snapshot->window.height);
+        fsapp_gldraw_begin_program(FSAPP_GLDRAW_PROGRAM_STREAMED, snapshot->window.pixel_width,
+                                   snapshot->window.pixel_height);
         glBindTexture(GL_TEXTURE_2D, content.texture);
         GLint filter =
             content.filter == FSAPP_SURFACE_STREAM_FILTER_NEAREST ? GL_NEAREST : GL_LINEAR;

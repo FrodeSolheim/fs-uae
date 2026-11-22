@@ -1,8 +1,7 @@
 from typing import Any
 
-from fsgui.label import Widget
-from fsgui.parentstack import ParentStack
-from fsgui.widgetorlayout import WidgetOrLayout
+from .parentstack import ParentStack
+from .widgetorlayout import WidgetOrLayout
 
 
 class Layout(WidgetOrLayout):
@@ -41,14 +40,14 @@ class Layout(WidgetOrLayout):
         # print("Layout.add", item)
         self.items.append(item)
 
-    def calculate_min_height(self, width: int) -> int:
-        height = 0
+    def calculate_min_height(self, width: float) -> float:
+        height = 0.0
         for item in self.items:
             height += item.calculate_min_height(width)
         return height
 
-    def calculate_min_width(self) -> int:
-        width = 0
+    def calculate_min_width(self) -> float:
+        width = 0.0
         for item in self.items:
             width += item.calculate_min_width()
         return width
@@ -57,6 +56,8 @@ class Layout(WidgetOrLayout):
         # Widgets themselves are destroyed by the parent widget, so we only
         # need to make sure that the layout hierarchy clears all references to
         # child widgets and layouts.
+        from .widget import Widget
+
         for item in self.items:
             if not isinstance(item, Widget):
                 item.destroy()
@@ -66,14 +67,18 @@ class Layout(WidgetOrLayout):
 
 
 class LinearLayout(Layout):
-    def __init__(self, *, gap: int = 0, horizontal: bool):
+    def __init__(self, *, gap: float = 0, horizontal: bool):
         super().__init__()
         self.horizontal = horizontal
         # self.vertical = not horizontal
-        self.gap = gap
+        self._gap = gap
 
-    def calculate_min_height(self, width: int) -> int:
-        height = 0
+    @property
+    def gap(self) -> float:
+        return self._gap
+
+    def calculate_min_height(self, width: float) -> float:
+        height = 0.0
         for i, item in enumerate(self.items):
             if self.horizontal:
                 height = max(height, item.calculate_min_height(width))
@@ -83,8 +88,8 @@ class LinearLayout(Layout):
                 height += item.calculate_min_height(width)
         return height
 
-    def calculate_min_width(self) -> int:
-        width = 0
+    def calculate_min_width(self) -> float:
+        width = 0.0
         for i, item in enumerate(self.items):
             if self.horizontal:
                 if i > 0:
@@ -138,24 +143,10 @@ class LinearLayout(Layout):
         #     "expanding",
         #     expanding,
         # )
+        # In design units, not rounded: fsgui rounds the edges when it draws.
         if available > 0 and expanding > 0:
-            available2 = available
             for item in self.items:
-                extra = int(available2 * (abs(item._expand) / expanding))
-                # if DEBUG:
-                #     print(child.expand, expanding, extra)
-                item.layout_data.size += extra
-                available -= extra
-
-            # some more pixels could be available due to rounding
-            while available > 0:
-                # print("distributing extra pixels:", available)
-                for item in self.items:
-                    if abs(item._expand):
-                        item.layout_data.size += 1
-                        available -= 1
-                        if available == 0:
-                            break
+                item.layout_data.size += available * (abs(item._expand) / expanding)
 
         # if horizontal
 
@@ -203,15 +194,12 @@ class LinearLayout(Layout):
                 #     # position[0] += (self.size[0] - size[0]) // 2
                 #     pass
                 # else:
-                position[horizontal] += round(
-                    (
-                        layout_size[horizontal]
-                        # - child.margin_top
-                        # - child.margin_bottom
-                        - size[horizontal]
-                    )
-                    * item._align[horizontal]
-                )
+                position[horizontal] += (
+                    layout_size[horizontal]
+                    # - child.margin_top
+                    # - child.margin_bottom
+                    - size[horizontal]
+                ) * item._align[horizontal]
 
             # print(x, y, position, item, size)
             item.move((position[0], position[1]))
@@ -249,10 +237,10 @@ class LinearLayout(Layout):
 
 
 class HorizontalLayout(LinearLayout):
-    def __init__(self, *, gap: int = 0):
+    def __init__(self, *, gap: float = 0):
         super().__init__(gap=gap, horizontal=True)
 
 
 class VerticalLayout(LinearLayout):
-    def __init__(self, *, gap: int = 0):
+    def __init__(self, *, gap: float = 0):
         super().__init__(gap=gap, horizontal=False)

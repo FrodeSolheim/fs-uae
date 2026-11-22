@@ -15,7 +15,6 @@ class SvgIcon:
         """Load the SVG as an Image at the specified size, optionally tinted with the given RGBA
         color."""
         try:
-            import _fsapp_image  # type: ignore
             from fsapp import fsapp
             from fsgui.image import Image
 
@@ -25,33 +24,24 @@ class SvgIcon:
 
             if os.path.exists(image_path):
                 print(f"Found SVG file at: {image_path}")
-                # Use sized SVG loader if available, otherwise fall back to regular loader
                 if image_path.lower().endswith(".svg"):
                     try:
-                        if hasattr(_fsapp_image, "load_sized_svg"):
-                            print(f"Using sized SVG loader: {size}x{size}")
-                            image_handle = _fsapp_image.load_sized_svg(image_path, size, size)
-                            print("Sized SVG loader succeeded")
-                        else:
-                            print("Sized SVG loader not available, using regular loader")
-                            image_handle = _fsapp_image.load(image_path)
-                            print("Regular loader succeeded")
+                        print(f"Using sized SVG loader: {size}x{size}")
+                        image = Image.from_svg(image_path, (size, size))
+                        print("Sized SVG loader succeeded")
                     except Exception as e:
                         print(f"SVG loading failed: {e}, trying regular loader")
-                        image_handle = _fsapp_image.load(image_path)
+                        image = Image.from_file(image_path)
                         print("Fallback regular loader succeeded")
                 else:
                     print(f"Not an SVG, using regular loader: {image_path}")
-                    image_handle = _fsapp_image.load(image_path)
+                    image = Image.from_file(image_path)
                     print("Regular loader succeeded")
-
-                print(f"Image handle created: {image_handle}")
-                image = Image(image_handle)
 
                 # Apply tint if specified
                 if tint_color:
                     print(f"Applying tint color: {tint_color}")
-                    image.tint(*tint_color)
+                    image = image.tint(*tint_color)
 
                 return image
             else:

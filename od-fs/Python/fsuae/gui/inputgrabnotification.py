@@ -13,7 +13,7 @@ class InputGrabNotification:
     ) -> None:
         self._notification_service = notification_service
         self._input_grab = False
-        event_service.event("FSAPP_MOUSE_GRAB").connect(self._on_mouse_grab)
+        event_service.add_listener("FSAPP_MOUSE_GRAB", self._on_mouse_grab)
 
     def _on_mouse_grab(self, event: Event) -> None:
         input_grab = bool(event.get("intdata", 0))

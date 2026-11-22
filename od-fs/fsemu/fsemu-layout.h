@@ -23,8 +23,8 @@ void fsemu_layout_set_pixel_aspect(double aspect);
 
 double fsemu_layout_pixel_aspect(void);
 
-// The emulation surface's rectangle in the host window, where the video is laid out. Set on the
-// drawing side when the picture rectangle is worked out (fsemu-video.cpp).
+// The emulation surface's rectangle in the host window (pixels), where the video is laid out. Set
+// on the drawing side when the picture rectangle is worked out (fsemu-video.cpp).
 void fsemu_layout_set_client_area(const fsemu_rect_t *rect);
 void fsemu_layout_client_area(fsemu_rect_t *rect);
 
@@ -50,7 +50,7 @@ void fsemu_layout_set_zoom_mode(int zoom_mode);
 bool fsemu_layout_ntsc_mode(void);
 void fsemu_layout_set_ntsc_mode(bool ntsc_mode);
 
-// The picture policies: settings that the top (or fsemu's event hook: Alt+C, Alt+S) changes from
+// The picture policies: settings that the top (or fsemu's shortcuts: Mod+C, Mod+S) changes from
 // any thread, atomically, and that fsemu reads where it decides the crop, the fit and the filter.
 
 // Which part of the emulated frame is shown. The emulator reads it when it sets the limits of a

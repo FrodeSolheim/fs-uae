@@ -2,10 +2,10 @@ import logging
 import os
 from typing import Self
 
+from app.filedialog import FileDialog
 from fsgui.button import Button
 from fsgui.checkbox import CheckBox
 from fsgui.choice import Choice
-from fsgui.filedialog import FileDialog
 from fsgui.heading import Heading
 from fsgui.item import Item
 from fsgui.label import Label

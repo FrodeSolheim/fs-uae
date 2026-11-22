@@ -1,13 +1,14 @@
 import logging
 from typing import Self
 
+from fsapp.surfaceapi.v1 import Role
 from fsapp.timerservice import Timer, TimerService
 from fsgui.borderlesswindow import BorderlessWindow
 from fsgui.imagelabel import ImageLabel
 from fsgui.label import Label
 from fsgui.layout import HorizontalLayout, VerticalLayout
+from fsgui.scale import scaled
 from fsgui.widget import Widget
-from fsgui.window import Window
 from fsuae.svgicon import SvgIcon
 
 logger = logging.getLogger()
@@ -108,6 +109,7 @@ class Notification:
         width: int | None = None,
     ) -> None:
         self.id = id
+        # In design units.
         self.width = width
 
         self.default_text = text
@@ -123,7 +125,10 @@ class Notification:
 
 class NotificationWindow(BorderlessWindow):
     def __init__(self, notification: "Notification") -> None:
-        super().__init__(size=(320, 80))
+        # Above every band, taking no pointer input: a click on it reaches what is below.
+        super().__init__(size=(320, 80), role=Role.OVERLAY)
+        # A notification never takes the keys.
+        self.set_focusable(False)
 
         self.notification = notification
         # Hides the notification when it is due (schedule_auto_hide).
@@ -143,10 +148,11 @@ class NotificationWindow(BorderlessWindow):
             if notification.icon:
                 try:
                     print(f"Loading notification icon: {notification.icon.name}")
-                    # Load icon with white tint for dark notification background
+                    # Load icon with white tint for dark notification background, 40x40 in
+                    # design units, rasterised in pixels.
                     icon_image = notification.icon.get_image(
-                        40, tint_color=(255, 255, 255, 255)
-                    )  # White tinted 40x40 icon
+                        scaled(40), tint_color=(255, 255, 255, 255)
+                    )
                     if icon_image:
                         print(f"Icon loaded successfully: {icon_image.width}x{icon_image.height}")
                         ImageLabel(icon_image)  # Create directly in layout context
@@ -176,7 +182,7 @@ class NotificationWindow(BorderlessWindow):
                         lines = [notification.description]
                     else:
                         text_width = (
-                            notification.width - self.padding[1] - self.padding[3] - 40 - 12
+                            notification.width - self.padding[1] - self.padding[3] - (40 + 12)
                         )
                         lines = wrap_text(notification.description, description_font, text_width)
                     # One label per line (wrapped labels do not work in horizontal layouts yet).
@@ -189,13 +195,10 @@ class NotificationWindow(BorderlessWindow):
 
         self.resize_to_fit_content(notification.width or 320)
 
-        # Set window layer to be on top
-        self.set_layer(Window.LAYER_HIGHEST)
-
     def _position_window(self) -> None:
         """Position the notification window in the top-right corner."""
         try:
-            from fsgui.mainwindow import MainWindow
+            from app.mainwindow import MainWindow
 
             main_window = MainWindow.get()
             if main_window:
@@ -253,16 +256,15 @@ class NotificationWindow(BorderlessWindow):
         pass
 
 
-def wrap_text(text: str, font, width: int) -> list[str]:
-    """Split text into lines no wider than width (in pixels) when drawn with font.
+def wrap_text(text: str, font, width: float) -> list[str]:
+    """Split text into lines no wider than width when drawn with font.
 
     Breaks at spaces; a word that is too wide on its own (such as a long path) is broken after
     a "/" or "\\" if possible, otherwise anywhere.
     """
-    import _fsapp_font  # type: ignore
 
     def fits(s: str) -> bool:
-        return _fsapp_font.measure_text(font.font, s)[0] <= width
+        return font.measure_text(s)[0] <= width
 
     lines: list[str] = []
     line = ""
@@ -295,11 +297,11 @@ class PlaceholderIcon(Widget):
     def __init__(self):
         super().__init__()
 
-    def calculate_min_height(self, width: int) -> int:
-        return 40  # 40px height
+    def calculate_min_height(self, width: float) -> float:
+        return 40
 
-    def calculate_min_width(self) -> int:
-        return 40  # 40px width
+    def calculate_min_width(self) -> float:
+        return 40
 
     def on_paint(self):
         dc = self.create_dc()

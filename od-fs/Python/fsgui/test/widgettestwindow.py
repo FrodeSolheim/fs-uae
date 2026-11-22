@@ -1,14 +1,14 @@
 from typing import Self
 
-from fsgui.button import Button
-from fsgui.checkbox import CheckBox
-from fsgui.choice import Choice
-from fsgui.heading import Heading
-from fsgui.label import Label
-from fsgui.layout import HorizontalLayout, VerticalLayout
-from fsgui.slider import DiscreteSlider
-from fsgui.textfield import TextField
-from fsgui.window import Window
+from ..button import Button
+from ..checkbox import CheckBox
+from ..choice import Choice
+from ..heading import Heading
+from ..label import Label
+from ..layout import HorizontalLayout, VerticalLayout
+from ..slider import DiscreteSlider
+from ..textfield import TextField
+from ..window import Window
 
 
 class WidgetTestWindow(Window):

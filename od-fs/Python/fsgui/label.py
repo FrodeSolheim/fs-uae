@@ -1,8 +1,7 @@
-import _fsapp_font  # type: ignore
-
-from fsgui.font import Font
-from fsgui.types import Size, TColour
-from fsgui.widget import Widget
+from .font import Font
+from .scale import fitting_pixels, get_scale, units_from_pixel_size
+from .types import Size, TColour
+from .widget import Widget
 
 
 class Label(Widget):
@@ -28,7 +27,7 @@ class Label(Widget):
     # def __del__(self):
     #     print("Label.__del__")
 
-    def calculate_min_height(self, width: int) -> int:
+    def calculate_min_height(self, width: float) -> float:
         # FIXME: calculate and cache min size
         # return 28
 
@@ -39,14 +38,12 @@ class Label(Widget):
         # font = FontManager.get().get_ui_font()
         font = self.font
 
-        if self.wrap:
-            _, th = _fsapp_font.measure_text_wrapped(
-                font.font,
-                self._text,
-                width,
-            )
-        else:
-            _, th = _fsapp_font.measure_text(font.font, "Åg")
+        if not self.wrap:
+            _, line_height = font.measure_text("Åg")
+            return line_height
+        # Wrapped at the same width as DrawingContext.draw_text_wrapped wraps it.
+        scale = get_scale()
+        wrapped_size = font.font.measure_wrapped(self._text, fitting_pixels(width, scale))
 
         # FIXME: Cache...
         # _, th = _fsapp_font.measure_text(font.font, "Åg")
@@ -57,9 +54,9 @@ class Label(Widget):
 
         # if self.wrap:
         #     print("calculate_min_height", width, "=", th)
-        return th
+        return units_from_pixel_size(wrapped_size, scale)[1]
 
-    def calculate_min_width(self) -> int:
+    def calculate_min_width(self) -> float:
         if self.wrap:
             # print("calculate_min_width", "=", 0)
             return 0
@@ -69,10 +66,7 @@ class Label(Widget):
         # from fsgui.fontmanager import FontManager
 
         # font = FontManager.get().get_ui_font()
-        font = self.font
-        tw, _ = _fsapp_font.measure_text(font.font, self._text)
-        # if self.wrap:
-        #     print("calculate_min_width", "=", tw)
+        tw, _ = self.font.measure_text(self._text)
         return tw
 
     def get_text(self) -> str:
@@ -85,13 +79,12 @@ class Label(Widget):
         if self._text_color is not None:
             dc.set_text_colour(self._text_color)
 
-        _, th = dc.measure_text(self._text)
         # print(self._text, self.font.size)
         if self.wrap:
             # print(self._size, self.width)
             dc.draw_text_wrapped(self._text, (0, 0), self.width)
         else:
-            dc.draw_text(self._text, (0, (self.height - th) // 2))
+            dc.draw_text_centred(self._text, (0, 0), self.size)
 
     def set_text(self, text: str):
         if text != self._text:

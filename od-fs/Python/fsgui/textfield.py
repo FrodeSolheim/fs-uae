@@ -1,7 +1,7 @@
-from fsgui.drawingcontext import Colour
-from fsgui.types import Size
-from fsgui.widget import Widget
-from fsgui.widgetpainter import WidgetPainter
+from .drawingcontext import Colour
+from .types import Size
+from .widget import Widget
+from .widgetpainter import WidgetPainter
 
 
 class TextField(Widget):
@@ -16,10 +16,10 @@ class TextField(Widget):
         self.style.background_color = (255, 255, 255, 255)
         self._text = text
 
-    def calculate_min_height(self, width: int) -> int:
+    def calculate_min_height(self, width: float) -> float:
         return 28
 
-    def calculate_min_width(self) -> int:
+    def calculate_min_width(self) -> float:
         return 28
 
     def get_text(self) -> str:
@@ -38,9 +38,8 @@ class TextField(Widget):
         if self.enabled:
             dc.set_text_colour(Colour.GREY_22)
 
-        _, th = dc.measure_text(self._text)
         # FIXME: 6 - variable from theme, same as TextField
-        dc.draw_text(self._text, (6, (self.height - th) // 2))
+        dc.draw_text_centred(self._text, (6, 0), (self.width - 6, self.height))
 
     def set_text(self, text: str):
         if text != self._text:

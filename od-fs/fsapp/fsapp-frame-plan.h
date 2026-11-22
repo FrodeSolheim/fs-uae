@@ -65,7 +65,7 @@ extern "C" {
 
 typedef struct fsapp_frame_plan fsapp_frame_plan_t;
 
-// A rectangle in window coordinates. Empty when its width or height is 0 or less.
+// A rectangle in pixels. Empty when its width or height is 0 or less.
 typedef struct fsapp_frame_plan_rectangle {
     int x;
     int y;
@@ -92,7 +92,7 @@ typedef struct fsapp_frame_plan_surface {
     // Has streamed content (the emulation surface's) rather than a buffer.
     bool streamed;
     // For a surface with streamed content: whether it has content (a commit since the content was
-    // attached or dropped), and the picture rectangle it is drawn into, in window coordinates. Only
+    // attached or dropped), and the picture rectangle it is drawn into, in pixels. Only
     // the emulation surface's are used.
     bool has_content;
     fsapp_frame_plan_rectangle_t picture;
@@ -175,7 +175,7 @@ void fsapp_frame_plan_destroy(fsapp_frame_plan_t *plan);
 void fsapp_frame_plan_update(fsapp_frame_plan_t *plan, const fsapp_frame_plan_input_t *input,
                              fsapp_frame_plan_steps_t *steps);
 
-// Cuts a picture rectangle to the surface's rectangle (both in window coordinates), and the source
+// Cuts a picture rectangle to the surface's rectangle (both in pixels), and the source
 // rectangle shown in it in proportion (fractional source coordinates), with no scissor: the clipped
 // picture shows exactly the part of the source that the unclipped picture shows there. Writes the
 // clipped picture and, when source is not NULL, the clipped source. Returns false when the clipped

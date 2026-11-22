@@ -31,6 +31,10 @@ windows/fs-uae.rc
 /Cache
 /Data
 
+# WinUAE's settings, created by "make winuae" (winuae64.exe is ignored as *.exe)
+
+/winuae.ini
+
 # Other directories used for testing
 
 /Media

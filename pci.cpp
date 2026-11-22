@@ -1908,13 +1908,11 @@ static void add_pci_devices(struct pci_bridge *pcib, struct autoconfig_info *aci
 		pci_board_add_next(pcib);
 	}
 
-#ifdef WITH_PCI // FS-UAE does not define WITH_PCI; the FM801 boards are in sndboard.cpp under WITH_PCI
 	if (is_device_rom(&currprefs, ROMTYPE_FM801, 0) >= 0) {
 		pci_board_add(pcib, &fm801_pci_board, -1, 0, aci, NULL);
 		pci_board_add(pcib, &fm801_pci_board_func1, -1, 1, aci, NULL);
 		pci_board_add_next(pcib);
 	}
-#endif
 
 	if (is_device_rom(&currprefs, ROMTYPE_ES1370, 0) >= 0) {
 		pci_board_add(pcib, &es1370_pci_board, -1, 0, aci, NULL);

@@ -35,6 +35,15 @@
 // Sound boards support
 #define WITH_SNDBOARD
 
+// PCI bridgeboards and cards, as in WinUAE
+#define WITH_PCI
+
+// Selects the SDL3 code in od-unix host files. FS-UAE builds only
+// od-unix/sndboard_host.cpp of those (sound board recording), on every
+// platform, Windows included; check any other od-unix file that tests this
+// before building it.
+#define UAE_UNIX_WITH_SDL3
+
 // Special Monitors support
 #define WITH_SPECIALMONITORS
 

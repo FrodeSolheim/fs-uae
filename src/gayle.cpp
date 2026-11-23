@@ -952,10 +952,13 @@ addrbank mbres_bank = {
 	ABFLAG_IO, S_READ, S_WRITE, mbres_sub_banks
 };
 
+static void pcmcia_hotplug_run (void);
+
 void gayle_hsync (void)
 {
 	if (ide_interrupt_hsync(idedrive[0]) || ide_interrupt_hsync(idedrive[2]) || ide_interrupt_hsync(idedrive[4]))
 		rethink_gayle ();
+	pcmcia_hotplug_run ();
 }
 
 static int pcmcia_common_size, pcmcia_attrs_size;
@@ -1625,14 +1628,61 @@ int gayle_add_ide_unit (int ch, struct uaedev_config_info *ci)
 	return 1;
 }
 
+/* The configured card, kept so that it can be inserted again after
+ * gayle_pcmcia_hotplug() removed it. */
+static struct uaedev_config_info pcmcia_hotplug_uci;
+static int pcmcia_hotplug_type;
+static int pcmcia_hotplug_request;
+
 int gayle_add_pcmcia_sram_unit (struct uaedev_config_info *uci)
 {
+	pcmcia_hotplug_uci = *uci;
+	pcmcia_hotplug_type = PCMCIA_SRAM;
 	return initpcmcia (uci->rootdir, uci->readonly, PCMCIA_SRAM, 1, NULL);
 }
 
 int gayle_add_pcmcia_ide_unit (struct uaedev_config_info *uci)
 {
+	pcmcia_hotplug_uci = *uci;
+	pcmcia_hotplug_type = PCMCIA_IDE;
 	return initpcmcia (uci->rootdir, 0, PCMCIA_IDE, 1, uci);
+}
+
+/* Remove or insert the configured PCMCIA card, as if a user pulled it
+ * from the slot or pushed it back in.
+ *   op 0: query, op 1: remove, op 2: insert.
+ * Returns GAYLE_PCMCIA_HOTPLUG plus 1 while a card is in the slot, or
+ * 0 when no PCMCIA card is configured. A remove or insert is carried
+ * out on the next horizontal line, outside the caller's trap. */
+uae_u32 gayle_pcmcia_hotplug (uae_u32 op)
+{
+	if (currprefs.cs_pcmcia == 0 || pcmcia_hotplug_type == 0)
+		return 0;
+	if (op == 1 || op == 2)
+		pcmcia_hotplug_request = op;
+	return GAYLE_PCMCIA_HOTPLUG | (pcmcia_card ? 1 : 0);
+}
+
+static void pcmcia_hotplug_run (void)
+{
+	int op = pcmcia_hotplug_request;
+
+	if (!op)
+		return;
+	pcmcia_hotplug_request = 0;
+	if (op == 1 && pcmcia_card) {
+		write_log (_T("PCMCIA: card removed\n"));
+		if (pcmcia_hotplug_type == PCMCIA_IDE)
+			gayle_modify_pcmcia_ide_unit (&pcmcia_hotplug_uci, 0);
+		else
+			gayle_modify_pcmcia_sram_unit (&pcmcia_hotplug_uci, 0);
+	} else if (op == 2 && !pcmcia_card) {
+		write_log (_T("PCMCIA: card inserted\n"));
+		if (pcmcia_hotplug_type == PCMCIA_IDE)
+			gayle_modify_pcmcia_ide_unit (&pcmcia_hotplug_uci, 1);
+		else
+			gayle_modify_pcmcia_sram_unit (&pcmcia_hotplug_uci, 1);
+	}
 }
 
 int gayle_modify_pcmcia_sram_unit (struct uaedev_config_info *uci, int insert)

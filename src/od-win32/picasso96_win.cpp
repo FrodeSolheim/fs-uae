@@ -196,8 +196,20 @@ static int set_gc_called = 0, init_picasso_screen_called = 0;
 static uaecptr oldscr = 0;
 
 
+/*
+ * Pens and colour-index-mapping values arrive as numbers (Amiga register or
+ * get_long() value) and are stored with native 16/32-bit writes into the
+ * Amiga board memory, which holds big-endian (Amiga) byte order. Only a
+ * little-endian host has to swap; on a big-endian host the native store
+ * already produces Amiga order, and swapping would reverse it (32-bit A8R8G8B8
+ * grey 0x00AAAAAA lands as AA AA AA 00 and shows yellowish).
+ */
 STATIC_INLINE void endianswap (uae_u32 *vp, int bpp)
 {
+#ifdef WORDS_BIGENDIAN
+	(void)vp;
+	(void)bpp;
+#else
 	uae_u32 v = *vp;
 	switch (bpp)
 	{
@@ -208,6 +220,7 @@ STATIC_INLINE void endianswap (uae_u32 *vp, int bpp)
 		*vp = ((v >> 24) & 0x000000ff) | ((v >> 8) & 0x0000ff00) | ((v << 8) & 0x00ff0000) | ((v << 24) & 0xff000000);
 		break;
 	}
+#endif
 }
 
 #if P96TRACING_ENABLED

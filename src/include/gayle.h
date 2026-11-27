@@ -12,6 +12,11 @@ extern int gayle_modify_pcmcia_ide_unit (struct uaedev_config_info*, int insert)
 extern int gayle_add_pcmcia_sram_unit (struct uaedev_config_info*);
 extern int gayle_add_pcmcia_ide_unit (struct uaedev_config_info*);
 extern void gayle_free_units (void);
+
+/* uaelib function GAYLE_PCMCIA_HOTPLUG_FN: remove or insert the PCMCIA card */
+#define GAYLE_PCMCIA_HOTPLUG_FN 120
+#define GAYLE_PCMCIA_HOTPLUG 0x50434d00 /* "PCM\0", answer when supported */
+extern uae_u32 gayle_pcmcia_hotplug (uae_u32 op);
 extern void rethink_gayle (void);
 extern void gayle_map_pcmcia (void);
 

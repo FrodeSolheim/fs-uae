@@ -16,6 +16,7 @@
 
 #include "options.h"
 #include "uae.h"
+#include "gayle.h"
 #include "uae/memory.h"
 #include "custom.h"
 #include "newcpu.h"
@@ -414,6 +415,7 @@ static uae_u32 uaelib_demux_common(uae_u32 ARG0, uae_u32 ARG1, uae_u32 ARG2, uae
 			m68k_dreg(regs, 1) = d1;
 			return d0;
 		}
+		case GAYLE_PCMCIA_HOTPLUG_FN: return gayle_pcmcia_hotplug(ARG1);
 
 	}
 	return 0;
